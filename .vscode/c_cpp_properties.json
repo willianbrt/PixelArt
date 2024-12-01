@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "includePath": [
+                "C:/Users/User/emsdk/upstream/emscripten/system/include",
+            ]
+        }
+    ],
+    "version": 4
+}
