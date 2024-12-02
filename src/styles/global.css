@@ -1,0 +1,8 @@
+*{
+    margin: 0; 
+    padding: 0;
+}
+html, body {
+    display: block !important;
+    height: 100vh !important;
+}
