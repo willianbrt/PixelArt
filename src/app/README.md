@@ -1,16 +1,13 @@
-# VIEW
+# APP
 
 ## Primeiros Passos
 
 ### Exportar funções
 
 ``` sh
-emcc index.c -o index.js  -s NO_EXIT_RUNTIME=1 -s EXPORTED_RUNTIME_METHODS=[ccall]
- ```
-
-``` sh
-emcc index.c -o index.js  -s NO_EXIT_RUNTIME=1 -s EXPORTED_RUNTIME_METHODS=[ccall,cwrap]
- ```
+emcc ./c/graphics.c -o ./js/graphics.js -s WASM=0 -s NO_EXIT_RUNTIME=1 -s EXPORTED_RUNTIME_METHODS=[ccall,cwrap]
+emcc ./c/graphics.c -o ./wasm/graphics.wasm -s WASM=1 --no-entry -s EXPORTED_FUNCTIONS=["_main"]
+ ```-
 
 ~~~c
 #include <stdio.h>
