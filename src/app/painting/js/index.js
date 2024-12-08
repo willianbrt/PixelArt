@@ -1,31 +1,102 @@
-var clientWidth = 64;
-var clientHeight = 64;
+var clientWidth = 4;
+var clientHeight = 4;
+
+var canvas;
+var context;
+
+const INDEX_RED   = 0;
+const INDEX_GREEN = 1;
+const INDEX_BLUE  = 2;
+const INDEX_ALFA  = 3;
+
 
 window.onload = ()=>{
-    const canvas = document.querySelector("#paintingCanvas");
-    const context = canvas.getContext("2d");
-    
+    canvas = document.querySelector("#paintingCanvas");
+    context = canvas.getContext("2d");
+
+    if(canvas === undefined || context === undefined )
+        throw new Error("Area de pintura não encontrada");
+
     const canvasHeight = canvas.clientHeight;
     const canvasWidth = canvas.clientWidth;
 
-    
-    context.fillStyle = "White";
-    context.shadowColor = "hsl(0deg 0% 71.01% / 20%)";
-    context.shadowBlur = 10;
 
-    context.fillRect(Math.round(canvasWidth/2 - clientWidth/2), Math.round(canvasHeight/2 - clientHeight), clientWidth, clientHeight);
-
-
-    var buffer = [clientWidth][clientHeight];    
+    var colorHEX = 0xff0000ff;
+    draw(getMiddlePoint(canvasWidth, clientWidth), getMiddlePoint(canvasHeight, clientHeight), clientWidth, clientHeight, colorHEX);
+    resize(context.getImageData(0, 0, canvas.width, canvas.height), 3, 3, 0, 0);
 
     canvas.addEventListener("mousedown", onMouseDown);
     canvas.addEventListener("mouseup", onMouseUp);
     canvas.addEventListener("mousemove", onMouseMove);
-    canvas.addEventListener("wheel", zoom);
+    canvas.addEventListener("wheel", onScroll);
     canvas.addEventListener("auxclick", onWhellClick);
-    canvas.addEventListener("auxclick", onScroll);
 };
 
+function draw(startX, startY, width, height, colorHEX){
+    let imageData = new ImageData(width, height);
+    const buffer = imageData.data;
+
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            const index = (y * width + x) * 4;
+            buffer[index + INDEX_RED]   = colorHEX >> 8*INDEX_RED   & 0xFF;
+            buffer[index + INDEX_GREEN] = colorHEX >> 8*INDEX_GREEN & 0xFF;
+            buffer[index + INDEX_BLUE]  = colorHEX >> 8*INDEX_BLUE  & 0xFF;
+            buffer[index + INDEX_ALFA]  = colorHEX >> 8*INDEX_ALFA  & 0xFF;
+        }
+    }
+
+    context.putImageData(imageData, startX, startY);
+}
+
+async function resize(imageData, scaleX, scaleY, cursorX, cursorY){
+    if(scaleX < 1)
+        throw new Error("O Valor de scaleX deve ser maior do que 1.");
+
+    if(scaleY < 1)
+        throw new Error("O Valor de scaleY deve ser maior do que 1.");
+
+    const originalData = imageData.data;
+    const originalHeight = imageData.height;
+    const originalWidth = imageData.width;
+    
+    let newImageData = new ImageData(originalWidth, originalHeight);
+    
+    
+    for (let x = 0; x < originalWidth; x++) {
+        for (let y = 0; y < originalHeight; y++) {
+            const index = calcIndex(x, y, originalHeight);
+            
+            putImagem(imageData, index, newImageData, x*scaleX, y*scaleY, scaleX, scaleY, originalWidth)
+        }
+    }
+    
+    context.putImageData(newImageData, cursorX, cursorY);
+}
+
+function putImagem(imageData, index, newImageData, x, y, scaleX, scaleY, originalWidth){
+    const SIZE_PIXEL = 4;
+
+    for (let iX = 0; iX < scaleX; iX++) {
+        for (let iY = 0; iY < scaleY; iY++) {
+            const newIndex = (y + iY) + (x + iX)*originalWidth;
+
+            newImageData.data[newIndex*SIZE_PIXEL + INDEX_RED]    = x%2 ? 0 : 255;
+            newImageData.data[newIndex*SIZE_PIXEL + INDEX_GREEN]  = x%2 ? 255 : 0;
+            newImageData.data[newIndex*SIZE_PIXEL + INDEX_BLUE]   = 0;
+            newImageData.data[newIndex*SIZE_PIXEL + INDEX_ALFA]   = 255;
+        }
+    }
+}
+
+
+function calcIndex(i, j, sizeColumn){
+    return i*sizeColumn + j;
+}
+
+function getMiddlePoint(parentSize, childrenSize){
+    return Math.round((parentSize - childrenSize) / 2);
+}
 
 function onMouseMove(event){
     // TODO: IMPLEMENTAR FUNÇÃO
@@ -36,6 +107,21 @@ function onWhellClick(event){
     if(event.button == WHELL_BUTTON){
         // TODO: IMPLEMENTAR AÇÃO
     }
+}
+let i = 0;
+function onScroll(event){
+    // TODO: IMPLEMENTAR FUNÇÃO
+    console.info("Scroll")
+    console.info(event)
+
+    let positionCursorX = event.clientX;
+    let positionCursorY = event.clientY;
+    let offsetHeight = event.srcElement.offsetHeight;
+    let offsetLeft = event.srcElement.offsetLeft;
+    let offsetTop = event.srcElement.offsetTop;
+    let offsetWidth = event.srcElement.offsetWidth;
+    // i++
+    // resize(context.getImageData(0, 0, canvas.width, canvas.height), i, i);
 }
 
 function zoomIn(x, y) {
@@ -52,7 +138,6 @@ function zoom(event){
 function move(x, y){
     // TODO: IMPLEMENTAR FUNÇÃO
 }
-
 
 function onMouseDown(event){
     // TODO: IMPLEMENTAR FUNÇÃO
