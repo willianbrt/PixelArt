@@ -19,11 +19,10 @@ window.onload = ()=>{
 
     const canvasHeight = canvas.clientHeight;
     const canvasWidth = canvas.clientWidth;
-
-
+    
     var colorHEX = 0xff0000ff;
     draw(getMiddlePoint(canvasWidth, clientWidth), getMiddlePoint(canvasHeight, clientHeight), clientWidth, clientHeight, colorHEX);
-    resize(context.getImageData(0, 0, canvas.width, canvas.height), 3, 3, 0, 0);
+    resize(context.getImageData(0, 0, canvas.width, canvas.height), 10, 10);
 
     canvas.addEventListener("mousedown", onMouseDown);
     canvas.addEventListener("mouseup", onMouseUp);
@@ -49,7 +48,7 @@ function draw(startX, startY, width, height, colorHEX){
     context.putImageData(imageData, startX, startY);
 }
 
-async function resize(imageData, scaleX, scaleY, cursorX, cursorY){
+async function resize(imageData, scaleX, scaleY){
     if(scaleX < 1)
         throw new Error("O Valor de scaleX deve ser maior do que 1.");
 
@@ -60,7 +59,7 @@ async function resize(imageData, scaleX, scaleY, cursorX, cursorY){
     const originalHeight = imageData.height;
     const originalWidth = imageData.width;
     
-    let newImageData = new ImageData(originalWidth, originalHeight);
+    let newImageData = new ImageData(originalWidth*scaleX, originalHeight*scaleY);
     
     
     for (let x = 0; x < originalWidth; x++) {
@@ -70,21 +69,24 @@ async function resize(imageData, scaleX, scaleY, cursorX, cursorY){
             putImagem(imageData, index, newImageData, x*scaleX, y*scaleY, scaleX, scaleY, originalWidth)
         }
     }
+
+
+    let displacementX = Math.floor(imageData.width / 2) * (1-scaleX);
+    let displacementY = Math.floor(imageData.height / 2) * (1-scaleY);
     
-    context.putImageData(newImageData, cursorX, cursorY);
+    context.putImageData(newImageData, displacementX, displacementY);
 }
 
 function putImagem(imageData, index, newImageData, x, y, scaleX, scaleY, originalWidth){
     const SIZE_PIXEL = 4;
-
     for (let iX = 0; iX < scaleX; iX++) {
         for (let iY = 0; iY < scaleY; iY++) {
-            const newIndex = (y + iY) + (x + iX)*originalWidth;
-
-            newImageData.data[newIndex*SIZE_PIXEL + INDEX_RED]    = x%2 ? 0 : 255;
-            newImageData.data[newIndex*SIZE_PIXEL + INDEX_GREEN]  = x%2 ? 255 : 0;
-            newImageData.data[newIndex*SIZE_PIXEL + INDEX_BLUE]   = 0;
-            newImageData.data[newIndex*SIZE_PIXEL + INDEX_ALFA]   = 255;
+            const newIndex = (y + iY) + (x + iX)*newImageData.width;
+            
+            newImageData.data[newIndex*SIZE_PIXEL + INDEX_RED]    = imageData.data[index*SIZE_PIXEL + INDEX_RED];
+            newImageData.data[newIndex*SIZE_PIXEL + INDEX_GREEN]  = imageData.data[index*SIZE_PIXEL + INDEX_GREEN];
+            newImageData.data[newIndex*SIZE_PIXEL + INDEX_BLUE]   = imageData.data[index*SIZE_PIXEL + INDEX_BLUE];
+            newImageData.data[newIndex*SIZE_PIXEL + INDEX_ALFA]   = imageData.data[index*SIZE_PIXEL + INDEX_ALFA];
         }
     }
 }
@@ -108,20 +110,15 @@ function onWhellClick(event){
         // TODO: IMPLEMENTAR AÇÃO
     }
 }
-let i = 0;
 function onScroll(event){
-    // TODO: IMPLEMENTAR FUNÇÃO
-    console.info("Scroll")
-    console.info(event)
-
     let positionCursorX = event.clientX;
     let positionCursorY = event.clientY;
     let offsetHeight = event.srcElement.offsetHeight;
     let offsetLeft = event.srcElement.offsetLeft;
     let offsetTop = event.srcElement.offsetTop;
     let offsetWidth = event.srcElement.offsetWidth;
-    // i++
-    // resize(context.getImageData(0, 0, canvas.width, canvas.height), i, i);
+
+    // TODO: IMPLEMENTAR FUNÇÃO
 }
 
 function zoomIn(x, y) {
@@ -132,7 +129,11 @@ function zoomOut(x, y) {
 }
 function zoom(event){
     // TODO: IMPLEMENTAR FUNÇÃO
-    console.info("Zoom")
+    
+    let scale = 0;
+    scale += event.deltaY;
+    console.info("Zoom:", scale)
+
 }
 
 function move(x, y){
