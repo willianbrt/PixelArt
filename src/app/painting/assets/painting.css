@@ -9,4 +9,5 @@ html, body {
     box-shadow: var(--shadow) 0px 0 10px 6px;
     margin: auto;
     display: block;
+    image-rendering: pixelated;
 }
