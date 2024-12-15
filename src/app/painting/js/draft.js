@@ -89,19 +89,15 @@ export function Draft(options) {
 
     let zoomIn = (cursorX, cursorY)=>{
         var targetScale = _scale-1;
-        if(targetScale < getMinScale()) return;
-        
         zoom(targetScale, cursorX, cursorY);
     }
     let zoomOut = (cursorX, cursorY)=>{
         var targetScale = _scale+1;
-        if(targetScale > getMaxScale()) return;
-
         zoom(targetScale, cursorX, cursorY);
     }
     
     let zoom = (scale, cursorX, cursorY)=>{
-        if(scale < 0) return;
+        if(scale < getMinScale() || scale > getMaxScale()) return;
 
         if(scale > _scale){
             _sketchPositionX = cursorX - (cursorX - _sketchPositionX) * (scale / _scale);
@@ -117,22 +113,30 @@ export function Draft(options) {
     }
     
     let panning = (fromCursorX, fromCursorY, toCursorX, toCursorY)=>{
-        let minX = 0, maxX = 0;
-        let minY = 0, maxY = 0;
         let newWidth = _sketchWidth*_scale;
         let newHeight = _sketchHeight*_scale;
+
+        let minLeftOffset = 0,
+            maxLeftOffset = _canvas.clientWidth - newWidth;
+
+        let minTopOffset = 0,
+            maxTopOffset = _canvas.clientHeight - newHeight;
+
+        let cursorDeltaX = toCursorX - fromCursorX;
+        let cursorDeltaY = toCursorY - fromCursorY;
         
-        if(newWidth > _canvas.clientWidth)
-            minX = _canvas.clientWidth - (newWidth)
+        if(newWidth < _canvas.clientWidth)
+            _sketchPositionX = Math.max(minLeftOffset, Math.min(maxLeftOffset, _sketchPositionX-cursorDeltaX));
+        else
+            _sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, _sketchPositionX-cursorDeltaX));
         
-        if(newHeight > _canvas.clientHeight)
-            minY = _canvas.clientHeight - (newHeight)
+        if(newHeight < _canvas.clientHeight)
+            _sketchPositionY = Math.max(minTopOffset, Math.min(maxTopOffset, _sketchPositionY-cursorDeltaY));
+        else
+            _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, _sketchPositionY-cursorDeltaY));
         
 
-        _sketchPositionX = Math.max(minX, Math.min(_canvas.clientWidth - (newWidth), _sketchPositionX - (toCursorX - fromCursorX)));
-        _sketchPositionY = Math.max(minY, Math.min(_canvas.clientHeight - (newHeight), _sketchPositionY - (toCursorY - fromCursorY)));
-    
-        context.clearRect(0, 0, _canvas.clientWidth, _canvas.clientHeight);
+        context.clearRect(0, 0, _canvas.clientHeight, _canvas.clientHeight);
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
     }
     
