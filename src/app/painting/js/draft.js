@@ -113,27 +113,20 @@ export function Draft(options) {
     }
     
     let panning = (fromCursorX, fromCursorY, toCursorX, toCursorY)=>{
-        let newWidth = _sketchWidth*_scale;
-        let newHeight = _sketchHeight*_scale;
+        let currentWidth = _sketchWidth * _scale;
+        let currentHeight = _sketchHeight * _scale;
 
-        let minLeftOffset = 0,
-            maxLeftOffset = _canvas.clientWidth - newWidth;
+        let minLeftOffset = calcMiddlePoint(_canvas.clientWidth, _sketchWidth*getMinScale()),
+            maxLeftOffset = _canvas.clientWidth - currentWidth - minLeftOffset;
 
-        let minTopOffset = 0,
-            maxTopOffset = _canvas.clientHeight - newHeight;
+        let minTopOffset = calcMiddlePoint(_canvas.clientHeight, _sketchHeight*getMinScale()),
+            maxTopOffset = _canvas.clientHeight - currentHeight - minTopOffset;
 
-        let cursorDeltaX = toCursorX - fromCursorX;
-        let cursorDeltaY = toCursorY - fromCursorY;
+        let cursorDeltaX = fromCursorX - toCursorX;
+        let cursorDeltaY = fromCursorY - toCursorY;
         
-        if(newWidth < _canvas.clientWidth)
-            _sketchPositionX = Math.max(minLeftOffset, Math.min(maxLeftOffset, _sketchPositionX-cursorDeltaX));
-        else
             _sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, _sketchPositionX-cursorDeltaX));
-        
-        if(newHeight < _canvas.clientHeight)
-            _sketchPositionY = Math.max(minTopOffset, Math.min(maxTopOffset, _sketchPositionY-cursorDeltaY));
-        else
-            _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, _sketchPositionY-cursorDeltaY));
+                    _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, _sketchPositionY-cursorDeltaY));
         
 
         context.clearRect(0, 0, _canvas.clientHeight, _canvas.clientHeight);
