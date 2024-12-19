@@ -186,7 +186,7 @@ export function Draft(options) {
     function getScale(){ return _scale; }
     function getMinScale(){ return Math.max(1, Math.min(Math.floor(_canvas.clientHeight/_sketchHeight),  Math.floor(_canvas.clientWidth/_sketchWidth))); }
     function getMaxScale(){ return getMinScale() + 10; }
-    function getCurrentHeight(){ console.log(getScale()); return _sketchHeight * getScale(); }
+    function getCurrentHeight(){ return _sketchHeight * getScale(); }
     function getCurrentWidth(){ return _sketchWidth * getScale(); }
 
     function calcIndex(row, col, lengthRow){ return col * lengthRow + row; }
