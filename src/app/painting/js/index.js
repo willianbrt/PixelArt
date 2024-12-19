@@ -28,10 +28,10 @@ import { Draft } from "./draft.js"
 
         let positionCursor = getPositionCursor(event);
         
-        if(event.deltaY > 0)
+        if(event.deltaY < 0)
             draft.zoomIn(positionCursor.x, positionCursor.y);
         else
-            draft.zoomOut(positionCursor.x, positionCursor.y);
+            draft.zoomOut();
     }
 
     function getPositionCursor(event){
