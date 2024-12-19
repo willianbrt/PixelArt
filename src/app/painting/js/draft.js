@@ -18,30 +18,27 @@ export function Draft(options) {
     
     if(!isValidCanvas()) throw new Error("Objeto 'canvas' não encontrado.");
     if(!isValidSize()) throw new Error("Os parâmetros 'sketchWidth' e 'sketchHeight' devem conter uma valor entre 0 e 1200.");
-
+    
     const context = _canvas.getContext("2d", { willReadFrequently: true, imageSmoothingEnabled: false });
+    _canvas.addEventListener("mouseout", (event)=>{ leaveHover(); });
     
     let _scale = getMinScale();
-    let _sketchPositionX = calcStartPosition(_canvas.clientWidth, getCurrentWidth());
-    let         _sketchPositionY = calcStartPosition(_canvas.clientHeight, getCurrentHeight());
-    
     let imageData = new ImageData(getCurrentWidth(), getCurrentHeight());
 
-    _canvas.addEventListener("mouseout", (event)=>{ leaveHover(); });
-    _canvas.addEventListener("mousemove", (event)=>{ onHover(); });
+    let _sketchPositionX = calcStartPosition(_canvas.clientWidth, getCurrentWidth());
+    let _sketchPositionY = calcStartPosition(_canvas.clientHeight, getCurrentHeight());
 
     let flagRowHover, flagColumnHover;
     let onHover = (cursorX, cursorY)=>{
         let cursorOffsetX = cursorX - _sketchPositionX;
         let cursorOffsetY = cursorY - _sketchPositionY;
-        
+
         let currentWidth = getCurrentWidth();
         let currentHeight = getCurrentHeight();
 
-
         leaveHover();
 
-        if(cursorOffsetX < 0 || cursorOffsetX > currentWidth ||             cursorOffsetY < 0 || cursorOffsetY > currentHeight)
+        if(cursorOffsetX < 0 || cursorOffsetX > currentWidth || cursorOffsetY < 0 || cursorOffsetY > currentHeight)
             return;
 
 
@@ -64,12 +61,12 @@ export function Draft(options) {
             }
         }
 
-                flagRowHover = row;
+        flagRowHover = row;
         flagColumnHover = col;
 
         context.clearRect(0, 0, _canvas.clientWidth, _canvas.clientHeight);
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
-    }
+    };
 
     let leaveHover = ()=>{
         const flagDX = flagRowHover*_scale;
@@ -90,74 +87,67 @@ export function Draft(options) {
 
         context.clearRect(0, 0, _canvas.clientWidth, _canvas.clientHeight);
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
-    }
+    };
 
     let zoomIn = (cursorX, cursorY)=>{
-        var targetScale = _scale-1;
-        zoom(targetScale, cursorX, cursorY);
-    }
-    let zoomOut = (cursorX, cursorY)=>{
         var targetScale = _scale+1;
-        zoom(targetScale, cursorX, cursorY);
-    }
-    
-    let zoom = (scale, cursorX, cursorY)=>{
-        if(scale < getMinScale() || scale > getMaxScale()) return;
 
-        let currentWidth = _sketchWidth * _scale;
-        let currentHeight = _sketchHeight * _scale;
+        if(targetScale > getMaxScale()) return;
+
+        let currentWidth = getCurrentWidth();
+        let currentHeight = getCurrentHeight();
+
+        let lastPixelPositionX = _sketchPositionX + currentWidth;
+        let lastPixelPositionY = _sketchPositionY + currentHeight;
         
-        if(scale > _scale){ 
-            let lastPixelPositionX = _sketchPositionX + currentWidth;
-            let lastPixelPositionY = _sketchPositionY + currentHeight;
-            
-            cursorX = Math.min(lastPixelPositionX, Math.max(_sketchPositionX, cursorX));
-            cursorY = Math.min(lastPixelPositionY, Math.max(_sketchPositionY, cursorY));
-            
-            _sketchPositionX = cursorX - (cursorX - _sketchPositionX) * (scale / _scale);
-            _sketchPositionY = cursorY - (cursorY - _sketchPositionY) * (scale / _scale);
-        }
-        else
-        {
-            let minScale = getMinScale();
+        let zoomPointX = Math.min(lastPixelPositionX, Math.max(_sketchPositionX, cursorX));
+        let zoomPointY = Math.min(lastPixelPositionY, Math.max(_sketchPositionY, cursorY));
 
-            let minLeftOffset = calcStartPosition(_canvas.clientWidth, _sketchWidth*minScale);
-            let maxLeftOffset = _canvas.clientWidth - currentWidth - minLeftOffset;
-            
-            let minTopOffset = calcStartPosition(_canvas.clientHeight, _sketchHeight*minScale);
-            let maxTopOffset = _canvas.clientHeight - currentHeight - minTopOffset;
-
-            let interpolatedX = _sketchPositionX - (_sketchWidth*scale - currentWidth);
-            let interpolatedY = _sketchPositionY - (_sketchHeight*scale - currentHeight);
-            
-            _sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, interpolatedX));
-            _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, interpolatedY));
-        }
-
-        _scale = scale;
-
+        let x = zoomPointX - (zoomPointX - _sketchPositionX) * (targetScale / _scale);
+        let y = zoomPointY - (zoomPointY - _sketchPositionY) * (targetScale / _scale);
+        setPositionTo(x, y);
+        
+        _scale = targetScale;
         renderFrame();
-    }
+    };
+
+    let zoomOut = ()=>{
+        var targetScale = _scale-1;
+
+        if(targetScale < getMinScale()) return;
+
+        let currentWidth = getCurrentWidth();
+        let currentHeight = getCurrentHeight();
+
+        let x = _sketchPositionX - (_sketchWidth*targetScale - currentWidth);
+        let y = _sketchPositionY - (_sketchHeight*targetScale - currentHeight);
+        setPositionTo(x, y);
+        
+        _scale = targetScale;
+        renderFrame();
+    };
+    
     
     let panning = (fromCursorX, fromCursorY, toCursorX, toCursorY)=>{
-        let currentWidth = _sketchWidth * _scale;
-        let currentHeight = _sketchHeight * _scale;
-
-        let minLeftOffset = calcStartPosition(_canvas.clientWidth, _sketchWidth*getMinScale()),
-            maxLeftOffset = _canvas.clientWidth - currentWidth - minLeftOffset;
-
-        let minTopOffset = calcStartPosition(_canvas.clientHeight, _sketchHeight*getMinScale()),
-            maxTopOffset = _canvas.clientHeight - currentHeight - minTopOffset;
-
         let cursorDeltaX = fromCursorX - toCursorX;
         let cursorDeltaY = fromCursorY - toCursorY;
         
-        _sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, _sketchPositionX-cursorDeltaX));
-        _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, _sketchPositionY-cursorDeltaY));
-        
+        setPositionTo(_sketchPositionX-cursorDeltaX, _sketchPositionY-cursorDeltaY);
+
         context.clearRect(0, 0, _canvas.clientHeight, _canvas.clientHeight);
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
-    }
+    };
+
+    let setPositionTo = (x, y)=>{
+        let minLeftOffset = calcStartPosition(_canvas.clientWidth, _sketchWidth*getMinScale());
+        let maxLeftOffset = _canvas.clientWidth - getCurrentWidth() - minLeftOffset;
+
+        let minTopOffset = calcStartPosition(_canvas.clientHeight, _sketchHeight*getMinScale());
+        let maxTopOffset = _canvas.clientHeight - getCurrentHeight() - minTopOffset;
+
+        _sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, x));
+        _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, y));
+    };
     
     let renderFrame = ()=>{
         let newWidth = getCurrentWidth();
@@ -167,7 +157,7 @@ export function Draft(options) {
         
         for (let x = 0; x < _sketchWidth; x++) {
             for (let y = 0; y < _sketchHeight; y++) {
-                                const dX = x*_scale;
+                const dX = x*_scale;
                 const dY = y*_scale;
                 
                 for (let iX = 0; iX < _scale; iX++) {
@@ -187,23 +177,19 @@ export function Draft(options) {
         imageData = newImageData;
         context.clearRect(0, 0, _canvas.clientWidth, _canvas.clientHeight);
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
-    }
+    };
 
-    let draw = ()=> {
-                requestAnimationFrame(renderFrame); 
-    }
+    let draw = ()=>{
+        requestAnimationFrame(renderFrame);
+    };
 
-    
-    let getScale = ()=> {
-        return _scale;
-    }
-    
-    function calcIndex(row, col, lengthRow){ return col * lengthRow + row; }
+    function getScale(){ return _scale; }
     function getMinScale(){ return Math.max(1, Math.min(Math.floor(_canvas.clientHeight/_sketchHeight),  Math.floor(_canvas.clientWidth/_sketchWidth))); }
     function getMaxScale(){ return getMinScale() + 10; }
-function getCurrentHeight(){ return _sketchHeight * _scale; }
-    function getCurrentWidth(){ return _sketchWidth * _scale; }
-    
+    function getCurrentHeight(){ console.log(getScale()); return _sketchHeight * getScale(); }
+    function getCurrentWidth(){ return _sketchWidth * getScale(); }
+
+    function calcIndex(row, col, lengthRow){ return col * lengthRow + row; }
     function calcStartPosition(sizeOfParent, sizeOfChild){ return Math.floor((sizeOfParent - sizeOfChild) / 2); }
     
     function isValidCanvas() { return _canvas.nodeName === 'CANVAS'}
@@ -212,10 +198,11 @@ function getCurrentHeight(){ return _sketchHeight * _scale; }
     return {
         draw,
         onHover,
-        zoom,
         zoomIn,
         zoomOut,
         panning,
-        getScale
+        getScale,
+        getCurrentHeight,
+        getCurrentWidth,
     }
 }
