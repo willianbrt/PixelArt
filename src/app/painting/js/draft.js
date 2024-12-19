@@ -22,8 +22,8 @@ export function Draft(options) {
     const context = _canvas.getContext("2d", { willReadFrequently: true, imageSmoothingEnabled: false });
     
     let _scale = getMinScale();
-    let _sketchPositionX = calcMiddlePoint(_canvas.clientWidth, _sketchWidth*_scale),
-        _sketchPositionY = calcMiddlePoint(_canvas.clientHeight, _sketchHeight*_scale);
+    let _sketchPositionX = calcStartPosition(_canvas.clientWidth, _sketchWidth*_scale),
+        _sketchPositionY = calcStartPosition(_canvas.clientHeight, _sketchHeight*_scale);
     
     let imageData = new ImageData(_sketchWidth*_scale, _sketchHeight*_scale);
     let buffer = new Uint8ClampedArray((_sketchWidth*_sketchHeight)*_scale);
@@ -37,7 +37,9 @@ export function Draft(options) {
         
         endHover();
 
-        if(cursorOffsetX < 0 || cursorOffsetX > _sketchWidth*_scale || cursorOffsetY < 0|| cursorOffsetY > _sketchHeight*_scale) return;
+        if(cursorOffsetX < 0 || cursorOffsetX > _sketchWidth*_scale ||
+            cursorOffsetY < 0 || cursorOffsetY > _sketchHeight*_scale)
+            return;
 
 
         let row = Math.floor(cursorOffsetY / _scale);
@@ -99,12 +101,34 @@ export function Draft(options) {
     let zoom = (scale, cursorX, cursorY)=>{
         if(scale < getMinScale() || scale > getMaxScale()) return;
 
-        if(scale > _scale){
+        let currentWidth = _sketchWidth * _scale;
+        let currentHeight = _sketchHeight * _scale;
+        
+        if(scale > _scale){ 
+            let lastPixelPositionX = _sketchPositionX + currentWidth;
+            let lastPixelPositionY = _sketchPositionY + currentHeight;
+            
+            cursorX = Math.min(lastPixelPositionX, Math.max(_sketchPositionX, cursorX));
+            cursorY = Math.min(lastPixelPositionY, Math.max(_sketchPositionY, cursorY));
+            
             _sketchPositionX = cursorX - (cursorX - _sketchPositionX) * (scale / _scale);
             _sketchPositionY = cursorY - (cursorY - _sketchPositionY) * (scale / _scale);
-        }else{
-            _sketchPositionX = (_canvas.clientWidth - _sketchWidth * scale) / 2;
-            _sketchPositionY = (_canvas.clientHeight - _sketchHeight * scale) / 2;
+        }
+        else
+        {
+            let minScale = getMinScale();
+
+            let minLeftOffset = calcStartPosition(_canvas.clientWidth, _sketchWidth*minScale);
+            let maxLeftOffset = _canvas.clientWidth - currentWidth - minLeftOffset;
+            
+            let minTopOffset = calcStartPosition(_canvas.clientHeight, _sketchHeight*minScale);
+            let maxTopOffset = _canvas.clientHeight - currentHeight - minTopOffset;
+
+            let interpolatedX = _sketchPositionX - (_sketchWidth*scale - currentWidth);
+            let interpolatedY = _sketchPositionY - (_sketchHeight*scale - currentHeight);
+            
+            _sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, interpolatedX));
+            _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, interpolatedY));
         }
 
         _scale = scale;
@@ -116,19 +140,18 @@ export function Draft(options) {
         let currentWidth = _sketchWidth * _scale;
         let currentHeight = _sketchHeight * _scale;
 
-        let minLeftOffset = calcMiddlePoint(_canvas.clientWidth, _sketchWidth*getMinScale()),
+        let minLeftOffset = calcStartPosition(_canvas.clientWidth, _sketchWidth*getMinScale()),
             maxLeftOffset = _canvas.clientWidth - currentWidth - minLeftOffset;
 
-        let minTopOffset = calcMiddlePoint(_canvas.clientHeight, _sketchHeight*getMinScale()),
+        let minTopOffset = calcStartPosition(_canvas.clientHeight, _sketchHeight*getMinScale()),
             maxTopOffset = _canvas.clientHeight - currentHeight - minTopOffset;
 
         let cursorDeltaX = fromCursorX - toCursorX;
         let cursorDeltaY = fromCursorY - toCursorY;
         
-            _sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, _sketchPositionX-cursorDeltaX));
-                    _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, _sketchPositionY-cursorDeltaY));
+        _sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, _sketchPositionX-cursorDeltaX));
+        _sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, _sketchPositionY-cursorDeltaY));
         
-
         context.clearRect(0, 0, _canvas.clientHeight, _canvas.clientHeight);
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
     }
@@ -182,7 +205,7 @@ export function Draft(options) {
     function getMinScale(){ return Math.max(1, Math.min(Math.floor(_canvas.clientHeight/_sketchHeight),  Math.floor(_canvas.clientWidth/_sketchWidth))); }
     function getMaxScale(){ return getMinScale() + 10; }
     
-    function calcMiddlePoint(sizeOfParent, sizeOfChild){ return Math.floor((sizeOfParent - sizeOfChild) / 2); }
+    function calcStartPosition(sizeOfParent, sizeOfChild){ return Math.floor((sizeOfParent - sizeOfChild) / 2); }
     
     function isValidCanvas() { return _canvas.nodeName === 'CANVAS'}
     function isValidSize() { return (parseInt(_sketchWidth) > 0 && parseInt(_sketchWidth) < 1200) || (parseInt(_sketchHeight) > 0 && parseInt(_sketchHeight) < 0) }
