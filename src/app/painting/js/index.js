@@ -9,7 +9,7 @@ import { Draft } from "./draft.js"
         sketchHeight: 100
     });
     draft.draw();
-    
+
     canvas.addEventListener("mousedown", onMouseKeyDown);
     canvas.addEventListener("mouseup", onMouseKeyUp);
     canvas.addEventListener("mousemove", onMouseMove);
@@ -43,36 +43,33 @@ import { Draft } from "./draft.js"
         });
     }
 
-    let onMoveController;
+    let onMoveSignal = new AbortController();
     function onMouseKeyDown(event){
         event.preventDefault();
-        onMoveController = new AbortController();
         
         let startPositionCursor = getPositionCursor(event);
-        let flagPositionCursorX = startPositionCursor.x;
-        let flagPositionCursorY = startPositionCursor.y;
 
         const acceptActions = {
-            2: ()=>{ 
-                canvas.style.cursor = "grabbing";
-                canvas.addEventListener("mousemove", onMove.bind(null, flagPositionCursorX, flagPositionCursorY), { signal: onMoveController.signal });
-                canvas.addEventListener("mouseout", stopMove, {once: true, signal: onMoveController.signal});
-            },
-        }
-
-        if(isActionValid(acceptActions, event.which)) throw new Error("Ação inválida!");
-
-        acceptActions[event.which]();
+            2: panning(startPositionCursor),
+        }[event.which]?.();
     }
 
-    function onMove(flagPositionCursorX, flagPositionCursorY, event){
-        event.preventDefault();
-
-        let positionCursor = getPositionCursor(event);
-        draft.panning(flagPositionCursorX, flagPositionCursorY, positionCursor.x, positionCursor.y);
-
-        flagPositionCursorX = positionCursor.x;
-        flagPositionCursorY = positionCursor.y;
+    function panning(startPositionCursor){
+        let flagPositionCursorX = startPositionCursor.x;
+        let flagPositionCursorY = startPositionCursor.y;
+        
+        canvas.style.cursor = "grabbing";
+        canvas.addEventListener("mousemove", (e)=>{
+            e.preventDefault();
+            
+            let positionCursor = getPositionCursor(e);
+            draft.panning(flagPositionCursorX, flagPositionCursorY, positionCursor.x, positionCursor.y);
+            
+            flagPositionCursorX = positionCursor.x;
+            flagPositionCursorY = positionCursor.y;
+        }, { signal: onMoveSignal.signal });
+        
+        canvas.addEventListener("mouseout", stopMove, {once: true, signal: onMoveSignal.signal});
     }
 
     function onMouseKeyUp(event){
@@ -80,16 +77,12 @@ import { Draft } from "./draft.js"
         
         const acceptActions = {
             2: stopMove,
-        }
-        
-        if(isActionValid(acceptActions, event.which)) throw new Error("Ação inválida!");
-        
-        acceptActions[event.which]();
+        }[event.which]?.();
     }
     function stopMove(){
         canvas.style.cursor = "";
-        onMoveController.abort();
-    }
 
-    function isActionValid(acceptActions, action) { return acceptActions[action] === undefined } 
+        onMoveSignal.abort();
+        onMoveSignal = new AbortController();
+    }
 })();
