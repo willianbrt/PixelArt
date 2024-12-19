@@ -22,35 +22,38 @@ export function Draft(options) {
     const context = _canvas.getContext("2d", { willReadFrequently: true, imageSmoothingEnabled: false });
     
     let _scale = getMinScale();
-    let _sketchPositionX = calcStartPosition(_canvas.clientWidth, _sketchWidth*_scale),
-        _sketchPositionY = calcStartPosition(_canvas.clientHeight, _sketchHeight*_scale);
+    let _sketchPositionX = calcStartPosition(_canvas.clientWidth, getCurrentWidth());
+    let         _sketchPositionY = calcStartPosition(_canvas.clientHeight, getCurrentHeight());
     
-    let imageData = new ImageData(_sketchWidth*_scale, _sketchHeight*_scale);
-    let buffer = new Uint8ClampedArray((_sketchWidth*_sketchHeight)*_scale);
+    let imageData = new ImageData(getCurrentWidth(), getCurrentHeight());
 
-    _canvas.addEventListener("mouseout", (event)=>{ endHover();});
+    _canvas.addEventListener("mouseout", (event)=>{ leaveHover(); });
+    _canvas.addEventListener("mousemove", (event)=>{ onHover(); });
 
-    let flagIndexHover, flagRowHover, flagColumnHover;
-    let hover = (cursorX, cursorY)=>{
+    let flagRowHover, flagColumnHover;
+    let onHover = (cursorX, cursorY)=>{
         let cursorOffsetX = cursorX - _sketchPositionX;
         let cursorOffsetY = cursorY - _sketchPositionY;
         
-        endHover();
+        let currentWidth = getCurrentWidth();
+        let currentHeight = getCurrentHeight();
 
-        if(cursorOffsetX < 0 || cursorOffsetX > _sketchWidth*_scale ||
-            cursorOffsetY < 0 || cursorOffsetY > _sketchHeight*_scale)
+
+        leaveHover();
+
+        if(cursorOffsetX < 0 || cursorOffsetX > currentWidth ||             cursorOffsetY < 0 || cursorOffsetY > currentHeight)
             return;
 
 
-        let row = Math.floor(cursorOffsetY / _scale);
-        let col = Math.floor(cursorOffsetX / _scale);
+        let col = Math.floor(cursorOffsetY / _scale);
+        let row = Math.floor(cursorOffsetX / _scale);
         
         const dX = row*_scale;
         const dY = col*_scale;
         
         for (let iX = 0; iX < _scale; iX++) {
             for (let iY = 0; iY < _scale; iY++) {
-                const resizedIndex = calcIndex(iX + dX, iY + dY,_sketchWidth*_scale);
+                const resizedIndex = calcIndex(iX + dX, iY + dY, currentWidth);
                 
                 let checkeredColorHEX = (!(row&0x1) && col&0x1) || (!(col&0x1) && row&0x1) ? CHECKERED_HOVER_LIGHT_COLOR_HEX : CHECKERED_HOVER_DARK_COLOR_HEX;
                 
@@ -61,21 +64,20 @@ export function Draft(options) {
             }
         }
 
-        flagIndexHover = calcIndex(row, col, _sketchWidth);
-        flagRowHover = row;
+                flagRowHover = row;
         flagColumnHover = col;
 
         context.clearRect(0, 0, _canvas.clientWidth, _canvas.clientHeight);
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
     }
 
-    let endHover = ()=>{
+    let leaveHover = ()=>{
         const flagDX = flagRowHover*_scale;
         const flagDY = flagColumnHover*_scale;
         
         for (let iX = 0; iX < _scale; iX++) {
             for (let iY = 0; iY < _scale; iY++) {
-                const resizedIndex = calcIndex(iX + flagDX, iY + flagDY,_sketchWidth*_scale);
+                const resizedIndex = calcIndex(iX + flagDX, iY + flagDY, getCurrentWidth());
             
                 let checkeredColorHEX = (!(flagRowHover&0x1) && flagColumnHover&0x1) || (!(flagColumnHover&0x1) && flagRowHover&0x1) ? CHECKERED_LIGHT_COLOR_HEX : CHECKERED_DARK_COLOR_HEX;
                 
@@ -85,6 +87,7 @@ export function Draft(options) {
                 imageData.data[resizedIndex * SIZE_PIXEL + INDEX_ALFA] = checkeredColorHEX >> 8*INDEX_ALFA & 0xFF;
             }
         }
+
         context.clearRect(0, 0, _canvas.clientWidth, _canvas.clientHeight);
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
     }
@@ -156,24 +159,20 @@ export function Draft(options) {
         context.putImageData(imageData, Math.floor(_sketchPositionX), Math.floor(_sketchPositionY));
     }
     
-
-
     let renderFrame = ()=>{
-        let newWidth =  _sketchWidth*_scale;
-        let newHeight = _sketchHeight*_scale;
+        let newWidth = getCurrentWidth();
+        let newHeight = getCurrentHeight();
         
         let newImageData = new ImageData(newWidth, newHeight);
         
         for (let x = 0; x < _sketchWidth; x++) {
             for (let y = 0; y < _sketchHeight; y++) {
-                const index = calcIndex(x, y, _sketchWidth); 
-                
-                const dX = x*_scale;
+                                const dX = x*_scale;
                 const dY = y*_scale;
                 
                 for (let iX = 0; iX < _scale; iX++) {
                     for (let iY = 0; iY < _scale; iY++) {
-                        const resizedIndex = calcIndex(iX + dX, iY + dY, newImageData.width);
+                        const resizedIndex = calcIndex(iX + dX, iY + dY, newWidth);
                     
                         let checkeredColorHEX = (!(y&0x1) && x&0x1) || (!(x&0x1) && y&0x1) ? CHECKERED_LIGHT_COLOR_HEX : CHECKERED_DARK_COLOR_HEX;
                         
@@ -191,9 +190,7 @@ export function Draft(options) {
     }
 
     let draw = ()=> {
-        let imageData = new ImageData(_sketchWidth, _sketchHeight);
-        buffer = imageData.data;
-        requestAnimationFrame(renderFrame); 
+                requestAnimationFrame(renderFrame); 
     }
 
     
@@ -201,9 +198,11 @@ export function Draft(options) {
         return _scale;
     }
     
-    function calcIndex(row, col, lengthRow){ return row * lengthRow + col; }
+    function calcIndex(row, col, lengthRow){ return col * lengthRow + row; }
     function getMinScale(){ return Math.max(1, Math.min(Math.floor(_canvas.clientHeight/_sketchHeight),  Math.floor(_canvas.clientWidth/_sketchWidth))); }
     function getMaxScale(){ return getMinScale() + 10; }
+function getCurrentHeight(){ return _sketchHeight * _scale; }
+    function getCurrentWidth(){ return _sketchWidth * _scale; }
     
     function calcStartPosition(sizeOfParent, sizeOfChild){ return Math.floor((sizeOfParent - sizeOfChild) / 2); }
     
@@ -212,7 +211,7 @@ export function Draft(options) {
     
     return {
         draw,
-        hover,
+        onHover,
         zoom,
         zoomIn,
         zoomOut,

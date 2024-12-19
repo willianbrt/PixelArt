@@ -5,12 +5,11 @@ import { Draft } from "./draft.js"
     const canvas = document.querySelector("#paintingCanvas");
     const draft = Draft({
         canvas: canvas, 
-        sketchWidth: 100,
+        sketchWidth: 50,
         sketchHeight: 100
     });
     draft.draw();
-    let scale = draft.getScale();
-
+    
     canvas.addEventListener("mousedown", onMouseKeyDown);
     canvas.addEventListener("mouseup", onMouseKeyUp);
     canvas.addEventListener("mousemove", onMouseMove);
@@ -20,7 +19,7 @@ import { Draft } from "./draft.js"
     function onMouseMove(event){
         // TODO: IMPLEMENTAR FUNÇÃO
         let cursorPosition = getPositionCursor(event);
-        draft.hover(cursorPosition.x, cursorPosition.y)
+        draft.onHover(cursorPosition.x, cursorPosition.y)
     }
         
         
