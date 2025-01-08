@@ -7,6 +7,13 @@
 ``` sh
 emcc ./c/graphics.c -o ./js/graphics.js -s WASM=0 -s NO_EXIT_RUNTIME=1 -s EXPORTED_RUNTIME_METHODS=[ccall,cwrap]
 emcc ./c/graphics.c -o ./wasm/graphics.wasm -s WASM=1 --no-entry -s EXPORTED_FUNCTIONS=["_main"]
+
+emcc ./lib/graphics.c -o ./js/graphics.js -s EXPORTED_FUNCTIONS="['_add']" -s EXPORTED_RUNTIME_METHODS=[ccall,cwrap] -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web
+
+emcc ./lib/graphics.c -o ./build/graphics/graphics.js -s EXPORTED_FUNCTIONS="['_render', '_setSize']" -s EXPORTED_RUNTIME_METHODS=[ccall,cwrap] -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web -s WASM=1 -s STANDALONE_WASM
+emcc ./lib/graphics.c -o ./build/graphics/graphics.js -s  EXPORTED_FUNCTIONS='["_render"]'
+
+emcc ./lib/graphics.cpp -o ./build/graphics/graphics.js -s EXPORTED_FUNCTIONS='_render','_setSize' -s ENVIRONMENT=web -s MODULARIZE=1 -s EXPORT_ES6=1 -s IMPORTED_MEMORY
  ```-
 
 ~~~c
