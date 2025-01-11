@@ -21,12 +21,14 @@ export default async function Sketch({
     if(!isValidCanvas()) throw new Error("Objeto 'canvas' não encontrado.");
     if(!isValidSize()) throw new Error("Os parâmetros 'sketchWidth' e 'sketchHeight' devem conter uma valor entre 0 e 1200.");
 
-    const context = canvas.getContext("2d", { willReadFrequently: true });
+    const offscreen = canvas.transferControlToOffscreen();
+    const context = offscreen.getContext("2d", { willReadFrequently: true, desyncronized: true });
+
     let _scale = getMinScale();
     let sketchPositionX = getInitialPosition().x;
     let sketchPositionY = getInitialPosition().y;
 
-    const originalBuffer = new Uint8ClampedArray(sketchWidth*sketchHeight*4);
+    const buffer = new Uint8ClampedArray(sketchWidth*sketchHeight*4);
     const listLayers = [];
     
     build();
@@ -42,33 +44,27 @@ export default async function Sketch({
             }
         }
 
-        render();
+        renderSketch();
     }
 
     function putPixel(index, colorHex){
-        originalBuffer[index + INDEX_RED] = colorHex >> 24 & 0xFF;
-        originalBuffer[index + INDEX_GREEN] = colorHex >> 16 & 0xFF;
-        originalBuffer[index + INDEX_BLUE] = colorHex >> 8 & 0xFF;
-        originalBuffer[index + INDEX_ALFA] = colorHex >> 0 & 0xFF;
+        buffer[index + INDEX_RED] = colorHex >> 24 & 0xFF;
+        buffer[index + INDEX_GREEN] = colorHex >> 16 & 0xFF;
+        buffer[index + INDEX_BLUE] = colorHex >> 8 & 0xFF;
+        buffer[index + INDEX_ALFA] = colorHex >> 0 & 0xFF;
     }
 
-    function render(){
-        context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-        renderBuffer(originalBuffer);
-        renderLayers();
-    }
-    
-    function renderBuffer(){
+    function renderSketch(){
         const viewportWidth = canvas.clientWidth;
         const viewportHeight = canvas.clientHeight;
         
         const resizedWidth = getCurrentWidth();
         const resizedHeight = getCurrentHeight();
         
-        let isVisibleX = sketchPositionX > viewportWidth || sketchPositionX < -resizedWidth;
-        let isVisibleY = sketchPositionY > viewportHeight || sketchPositionY < -resizedHeight;
+        let isNotVisibleX = sketchPositionX > viewportWidth || sketchPositionX < -resizedWidth;
+        let isNotVisibleY = sketchPositionY > viewportHeight || sketchPositionY < -resizedHeight;
         
-        if(isVisibleX || isVisibleY) return;
+        if(isNotVisibleX || isNotVisibleY) return;
         
         let maxPositionX = viewportWidth - resizedWidth;
         let maxPositionY = viewportHeight - resizedHeight;
@@ -78,48 +74,110 @@ export default async function Sketch({
         
         let startVisibleY = (sketchPositionY < 0) ? -sketchPositionY : 0;
         let endVisibleY = (sketchPositionY < maxPositionY) ? resizedHeight : resizedHeight - (sketchPositionY - maxPositionY);
-        
-        let visibleWidth = endVisibleX - startVisibleX;
-        let visibleHeight = endVisibleY - startVisibleY;
-        
-        const bufferView = new Uint8ClampedArray(visibleWidth * visibleHeight *4);
-        
-        for (let x = startVisibleX; x < endVisibleX; x++) {
-            const dX = Math.floor(x / _scale);
-            
-            for (let y = startVisibleY; y < endVisibleY; y++) {
-                const dY = Math.floor(y / _scale);
-                
-                const index = (dY * sketchWidth + dX)*SIZE_PIXEL;
-                const resizedIndex = ((y-startVisibleY) * visibleWidth + (x-startVisibleX))*SIZE_PIXEL;
 
-                bufferView.set(originalBuffer.subarray(index, index+SIZE_PIXEL), resizedIndex);
-            }
-        }
         
-        
-        var data = new ImageData(bufferView, visibleWidth, visibleHeight)
-        context.putImageData(data, sketchPositionX + startVisibleX, sketchPositionY + startVisibleY)
+        context.clearRect(0, 0, viewportWidth, viewportHeight);
+
+        renderNativo(buffer, startVisibleX, endVisibleX, startVisibleY, endVisibleY);
+        // renderLayers(startVisibleX, endVisibleX,  startVisibleY, endVisibleY);
     }
 
-    function renderLayers(){
+    function renderLayers(startVisibleX, endVisibleX,  startVisibleY, endVisibleY){
         listLayers.map(layer=>{
-            layer.getBuffer();
+            render(layer.getBuffer(), startVisibleX, endVisibleX,  startVisibleY, endVisibleY);
         });
     }
 
+
+    function render(originalBuffer, startVisibleX, endVisibleX, startVisibleY, endVisibleY){
+        const visibleWidth = endVisibleX - startVisibleX;
+        const visibleHeight = endVisibleY - startVisibleY;
+
+        const bufferView = new Uint8ClampedArray(visibleWidth * visibleHeight * SIZE_PIXEL);
+        
+        let yIncrement = startVisibleY % _scale;
+        let startXIncrement = startVisibleX % _scale;
+        
+        let startOriginalY = (startVisibleY - yIncrement) / _scale;
+        let startOriginalX = (startVisibleX - startXIncrement) / _scale;
+        let startIndex = (startOriginalY * sketchWidth + startOriginalX)*SIZE_PIXEL;
+        let nextLine = sketchWidth * SIZE_PIXEL;
+        
+        let resizedIndex = 0;
+        console.time("render")
+        for (let y = 0; y < visibleHeight; y++) {
+            let index = startIndex;
+            let xIncrement = startXIncrement;
+            
+            for (let x = 0; x < visibleWidth; x++) {
+                bufferView.set(originalBuffer.subarray(index, index+SIZE_PIXEL), resizedIndex);
+                resizedIndex += SIZE_PIXEL;
+                
+                xIncrement++;
+                if(xIncrement === _scale){
+                    xIncrement = 0;
+                    index += SIZE_PIXEL;
+                }
+            }
+            
+            yIncrement++;
+            if(yIncrement === _scale){
+                yIncrement = 0;
+                startIndex += nextLine;
+            }
+        }
+        console.timeEnd("render")
+
+        var data = new ImageData(bufferView, visibleWidth, visibleHeight)
+
+        context.putImageData(data, sketchPositionX + startVisibleX, sketchPositionY + startVisibleY)
+    }
+
+
+
+    function renderNativo(originalBuffer, startVisibleX, endVisibleX, startVisibleY, endVisibleY){
+        let positionY = sketchPositionY;
+        let positionX = sketchPositionX;
+
+        console.time("render")
+        
+        let index = 0;
+        for (let y = 0; y < sketchWidth; y++) {    
+            for (let x = 0; x < sketchHeight; x++) {
+                context.fillStyle = `rgba(${ originalBuffer.subarray(index, index+SIZE_PIXEL).join(",") })`;
+
+                context.fillRect(x*_scale+positionX, y*_scale+positionY, _scale, _scale);
+                
+                index += SIZE_PIXEL;
+            }
+            
+        }
+        console.timeEnd("render")
+    }
+    
+    function getPixel(index){
+        const startIndex = index;
+        const endIndex = startIndex + SIZE_PIXEL;
+
+        const colorHex = originalBuffer.slice(startIndex, endIndex).reduce((a,c)=>(a << 8n) | BigInt(c), 0n);
+        return colorHex
+    }
+
     function zoomIn(cursorPosition){
-        var targetScale = _scale+1;
+        var targetScale = _scale + 1;
         
         if(targetScale > getMaxScale()) return;
+        console.log(targetScale)
 
         zoom(targetScale, cursorPosition);
     }
 
     function zoomOut(cursorPosition){
-        var targetScale = _scale-1;
+        var targetScale = _scale - 1;
 
         if(targetScale < getMinScale()) return;
+
+        console.log(targetScale)
 
         zoom(targetScale, cursorPosition);
     }
@@ -139,21 +197,6 @@ export default async function Sketch({
         let x = zoomPointX - (zoomPointX - sketchPositionX) * (targetScale / _scale);
         let y = zoomPointY - (zoomPointY - sketchPositionY) * (targetScale / _scale);
 
-
-        // zoomPointX - (zoomPointX * targetScale / _scale) + (sketchPositionX * targetScale / _scale)
-
-        // se zoom point == sketchPosition: moveTo = sketchPositionX
-        // x = sketchPositionX - (sketchPositionX * targetScale / _scale) + (sketchPositionX * targetScale / _scale)
-        // x = sketchPositionX
-        
-        // se zoom point == endOfAxis: moveTo = sketchPositionX+_width*(_scale−targetScale)
-        // x = (sketchPositionX + _width * _scale) - ((sketchPositionX + _width * _scale) * targetScale / _scale) + (sketchPositionX * targetScale / _scale)
-        // x = sketchPositionX+_width*(_scale−targetScale)
-        
-
-        // se zoom point == cursorPosition: moveTo = sketchPositionX+_width*(_scale−targetScale)
-        // x = sketchPositionX - (cursorPosition.x * targetScale / _scale) + (sketchPositionX * targetScale / _scale)
-
         _scale = targetScale;
 
         moveTo({x, y});
@@ -167,9 +210,6 @@ export default async function Sketch({
     }
 
     function moveTo({x, y}){
-        x = parseInt(x);
-        y = parseInt(y);
-        
         let initialPosition = getInitialPosition();
 
         let minLeftOffset = initialPosition.x;
@@ -178,14 +218,14 @@ export default async function Sketch({
         let minTopOffset = initialPosition.y;
         let maxTopOffset = canvas.clientHeight - getCurrentHeight() - minTopOffset;
 
-        sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, x));
-        sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, y));
+        sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, Math.floor(x)));
+        sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, Math.floor(y)));
 
-        render();
+        renderSketch();
     }
 
     function getMinScale(){ return Math.max(1, Math.min(Math.floor(canvas.clientHeight/sketchHeight),  Math.floor(canvas.clientWidth/sketchWidth))); }
-    function getMaxScale(){ return getMinScale() + 10; }
+    function getMaxScale(){ return sketchWidth <= 16 || sketchHeight <= 16 ? 1 : getMinScale() + 10; }
     function getCurrentHeight(){ return sketchHeight * _scale; }
     function getCurrentWidth(){ return sketchWidth * _scale; }
 
@@ -217,15 +257,34 @@ export default async function Sketch({
     
     
     function isValidCanvas() { return canvas.nodeName === 'CANVAS'}
-    function isValidSize() { return (parseInt(sketchWidth) > 0 && parseInt(sketchWidth) < 1200) || (parseInt(_sketchHeight) > 0 && parseInt(_sketchHeight) < 0) }
+    function isValidSize() { return (parseInt(sketchWidth) > 0 && parseInt(sketchWidth) <= 1200) || (parseInt(sketchHeight) > 0 && parseInt(sketchHeight) < 0) }
 
+
+    function hoverCursor(cursor, brushStyle, brushSize){
+        const pixelHover = tryGetPixelPosition(cursorPosition);
+
+        const startIndex = calcIndex(x, y, _width);
+        const endIndex = startIndex + SIZE_PIXEL;
+
+        const colorHex = buffer.slice(startIndex, endIndex);
+
+        const size = brushSize*_scale;
+        
+        context.fillStyle  = `rgba(${colorHex[0]}, ${colorHex[1]},${colorHex[2]},${colorHex[3]}}`;
+        
+        for(let b = 0; b <= brushStyle.length; b++){
+            let x = b.x + pixelHover.x; 
+            let y = b.y + pixelHover.y; 
+            context.fillRect(x, y, size, size);
+        }
+    }
 
     function setCursor(cursorName){
         canvas.style.cursor = cursorName;
     }
 
     const proto = Object.create(Graphics.prototype);
-    proto.render = render;
+    proto.render = renderSketch;
     proto.zoomIn = zoomIn;
     proto.zoomOut = zoomOut;
     proto.panning = panning;
