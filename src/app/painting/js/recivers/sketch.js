@@ -133,24 +133,49 @@ export default async function Sketch({
         context.putImageData(data, sketchPositionX + startVisibleX, sketchPositionY + startVisibleY)
     }
 
-
-
     function renderNativo(originalBuffer, startVisibleX, endVisibleX, startVisibleY, endVisibleY){
-        let positionY = sketchPositionY;
-        let positionX = sketchPositionX;
 
         console.time("render")
         
-        let index = 0;
-        for (let y = 0; y < sketchWidth; y++) {    
-            for (let x = 0; x < sketchHeight; x++) {
-                context.fillStyle = `rgba(${ originalBuffer.subarray(index, index+SIZE_PIXEL).join(",") })`;
+        let restoX = startVisibleX % _scale;
+        let restoY = startVisibleY % _scale;
 
-                context.fillRect(x*_scale+positionX, y*_scale+positionY, _scale, _scale);
+        let startOriginalY = Math.floor(startVisibleY / _scale);
+        let startOriginalX = Math.floor(startVisibleX / _scale);
+
+        let endOriginalY = Math.floor(endVisibleY / _scale);
+        let endOriginalX = Math.floor(endVisibleX / _scale);
+
+        let index = calcIndex(startOriginalX, startOriginalY, sketchWidth);
+        let endindex = (endOriginalX * sketchWidth + endOriginalX)*SIZE_PIXEL;
+
+        // console.log((startOriginalY * sketchWidth + startOriginalX)*SIZE_PIXEL)
+        
+        let positionY = sketchPositionY + startOriginalY;
+        let positionX = sketchPositionX + startOriginalX;
+        let compensationX = startOriginalX*SIZE_PIXEL;
+        
+        let largura = _scale;
+        let altura = _scale;
+
+        for (let originalY = startOriginalY; originalY < sketchHeight; originalY++) {
+
+            for (let originalX = startOriginalX; originalX < sketchWidth; originalX++) {
+                let ci = (originalY *sketchWidth + originalX) * SIZE_PIXEL
+                
+                if(index != ci)
+                    console.error(index-ci)
+
+                context.fillStyle = `rgba(${ originalBuffer.subarray(index, index+SIZE_PIXEL).join(",") })`;
+                context.fillRect(positionX, positionY, largura, altura);
                 
                 index += SIZE_PIXEL;
+                positionX += largura;
             }
-            
+            index += compensationX;
+
+            positionX = sketchPositionX+startOriginalX;
+            positionY += _scale;
         }
         console.timeEnd("render")
     }
@@ -167,7 +192,6 @@ export default async function Sketch({
         var targetScale = _scale + 1;
         
         if(targetScale > getMaxScale()) return;
-        console.log(targetScale)
 
         zoom(targetScale, cursorPosition);
     }
@@ -176,8 +200,6 @@ export default async function Sketch({
         var targetScale = _scale - 1;
 
         if(targetScale < getMinScale()) return;
-
-        console.log(targetScale)
 
         zoom(targetScale, cursorPosition);
     }
