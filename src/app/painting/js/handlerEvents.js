@@ -34,17 +34,15 @@ export default function HandlerEvents(canvas){
         return {
             down:(event)=>{
                 strategy.pressed(event);
-                
-                canvas.addEventListener("mousemove", (event)=>{
-                    event.preventDefault();
 
-                    strategy.tracking(event);
+                canvas.addEventListener("mousemove", (event)=>{
+                    requestAnimationFrame(()=>strategy.tracking(event));
                 }, { signal: abortPointerTrackingEvent.signal });
             },
             up:(event)=>{
                 resetPointerTracking();
-                
-                strategy.released(event);
+
+                requestAnimationFrame(()=>strategy.released(event));
             }
         }
     } 
@@ -79,7 +77,6 @@ export default function HandlerEvents(canvas){
     });
 
     document.addEventListener("mouseleave", ()=>{
-        console.log("a")
         resetPointerTracking();
     });
     
@@ -107,7 +104,7 @@ export default function HandlerEvents(canvas){
 
         canvas.addEventListener("wheel", (event)=>{
             event.preventDefault();
-            eventHandler.scroll(event);
+            requestAnimationFrame(()=>eventHandler.scroll(event));
         }, { signal: abortScroll.signal });
     }
 
