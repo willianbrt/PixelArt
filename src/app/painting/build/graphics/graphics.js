@@ -28,7 +28,7 @@ var readyPromise = new Promise((resolve, reject) => {
   readyPromiseResolve = resolve;
   readyPromiseReject = reject;
 });
-["_render","_build","_freeBuffer","___indirect_function_table","onRuntimeInitialized"].forEach((prop) => {
+["_calculateIndex","_build","_render","_freeBuffer","_putPixel","_getPixel","___indirect_function_table","onRuntimeInitialized"].forEach((prop) => {
   if (!Object.getOwnPropertyDescriptor(readyPromise, prop)) {
     Object.defineProperty(readyPromise, prop, {
       get: () => abort('You are getting ' + prop + ' on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'),
@@ -1011,9 +1011,12 @@ var wasmImports = {
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
+var _build = Module['_build'] = createExportWrapper('build', 2);
+var _calculateIndex = Module['_calculateIndex'] = createExportWrapper('calculateIndex', 3);
+var _putPixel = Module['_putPixel'] = createExportWrapper('putPixel', 3);
+var _getPixel = Module['_getPixel'] = createExportWrapper('getPixel', 2);
 var _render = Module['_render'] = createExportWrapper('render', 6);
 var _freeBuffer = Module['_freeBuffer'] = createExportWrapper('freeBuffer', 1);
-var _build = Module['_build'] = createExportWrapper('build', 3);
 var _fflush = createExportWrapper('fflush', 1);
 var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
 var _emscripten_stack_get_free = () => (_emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'])();
