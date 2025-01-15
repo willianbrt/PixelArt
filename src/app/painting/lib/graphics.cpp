@@ -64,12 +64,19 @@ unsigned int getPixel(unsigned int x, unsigned int y) {
 
 EMSCRIPTEN_KEEPALIVE;
 unsigned int blending(unsigned int topColor, unsigned int bottomColor){
-    const Color src = Color(topColor); 
+    const Color dst = Color(bottomColor);
+    const Color src = Color(topColor);
 
     const float factorAlphaSrc = src.alpha / 255.0f;
+
+    const unsigned char outRed   = factorAlphaSrc*src.red   + (1.0f - factorAlphaSrc)*dst.red;
+    const unsigned char outGreen = factorAlphaSrc*src.green + (1.0f - factorAlphaSrc)*dst.green;
+    const unsigned char outBlue  = factorAlphaSrc*src.blue  + (1.0f - factorAlphaSrc)*dst.blue;
+    const unsigned char outAlpha = factorAlphaSrc*src.alpha + (1.0f - factorAlphaSrc)*dst.alpha;
     
-    topColor = factorAlphaSrc*topColor + (1.0f - factorAlphaSrc)*bottomColor;
-    return topColor;
+    const unsigned int outColor = outRed << 24 | outGreen << 16 | outBlue << 8 | outAlpha;
+
+    return outColor;
 }
 
 EMSCRIPTEN_KEEPALIVE;

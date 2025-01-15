@@ -28,7 +28,7 @@ var readyPromise = new Promise((resolve, reject) => {
   readyPromiseResolve = resolve;
   readyPromiseReject = reject;
 });
-["_calculateIndex","_build","_render","_freeBuffer","_putPixel","_getPixel","___indirect_function_table","onRuntimeInitialized"].forEach((prop) => {
+["_calculateIndex","_build","_render","_freeBuffer","_putPixel","_getPixel","_blending","___indirect_function_table","onRuntimeInitialized"].forEach((prop) => {
   if (!Object.getOwnPropertyDescriptor(readyPromise, prop)) {
     Object.defineProperty(readyPromise, prop, {
       get: () => abort('You are getting ' + prop + ' on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'),
@@ -1015,6 +1015,7 @@ var _build = Module['_build'] = createExportWrapper('build', 2);
 var _calculateIndex = Module['_calculateIndex'] = createExportWrapper('calculateIndex', 3);
 var _putPixel = Module['_putPixel'] = createExportWrapper('putPixel', 3);
 var _getPixel = Module['_getPixel'] = createExportWrapper('getPixel', 2);
+var _blending = Module['_blending'] = createExportWrapper('blending', 2);
 var _render = Module['_render'] = createExportWrapper('render', 6);
 var _freeBuffer = Module['_freeBuffer'] = createExportWrapper('freeBuffer', 1);
 var _fflush = createExportWrapper('fflush', 1);
