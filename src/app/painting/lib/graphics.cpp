@@ -9,6 +9,22 @@ unsigned int _width;
 unsigned int _height;
 unsigned int* tempBuffer;
 
+
+struct Color{
+public:
+    unsigned char red = 0;
+    unsigned char green = 0;
+    unsigned char blue = 0;
+    unsigned char alpha = 0;
+
+    Color(unsigned int colorHEX){
+        red = colorHEX >> 24 & 0xFF;
+        green = colorHEX >> 16 & 0xFF;
+        blue = colorHEX >> 8 & 0xFF;
+        alpha = colorHEX & 0xFF;
+    }
+};
+
 void swap_endian_uint32(unsigned int& data) {
     data = (data & 0xFF) << 24 | 
            (data >> 8 & 0xFF) << 16 | 
@@ -47,9 +63,17 @@ unsigned int getPixel(unsigned int x, unsigned int y) {
 }
 
 EMSCRIPTEN_KEEPALIVE;
-unsigned int* render(unsigned int* originalBuffer, unsigned int startVisibleX, unsigned int endVisibleX, unsigned int startVisibleY, unsigned int endVisibleY, unsigned int scale){
-    swap_endian_uint32(*originalBuffer);
+unsigned int blending(unsigned int topColor, unsigned int bottomColor){
+    const Color src = Color(topColor); 
 
+    const float factorAlphaSrc = src.alpha / 255.0f;
+    
+    topColor = factorAlphaSrc*topColor + (1.0f - factorAlphaSrc)*bottomColor;
+    return topColor;
+}
+
+EMSCRIPTEN_KEEPALIVE;
+unsigned int* render(unsigned int* originalBuffer, unsigned int startVisibleX, unsigned int endVisibleX, unsigned int startVisibleY, unsigned int endVisibleY, unsigned int scale){
     int visibleWidth = endVisibleX - startVisibleX;
     int visibleHeight = endVisibleY - startVisibleY;
 
@@ -97,6 +121,7 @@ unsigned int* render(unsigned int* originalBuffer, unsigned int startVisibleX, u
 
     return tempBuffer;
 }
+
 
 EMSCRIPTEN_KEEPALIVE;
 void freeBuffer(unsigned int* buffer) {
