@@ -35,6 +35,20 @@
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "xmemory": "cpp",
-        "xtr1common": "cpp"
+        "xtr1common": "cpp",
+        "array": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "cctype": "cpp",
+        "coroutine": "cpp",
+        "functional": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "variant": "cpp",
+        "xhash": "cpp",
+        "xtree": "cpp",
+        "stdexcept": "cpp"
     }
 }
