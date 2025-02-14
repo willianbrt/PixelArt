@@ -3,6 +3,9 @@
 html, body {
     align-content: center;
 }
+body{
+    padding: 16px;
+}
 
 #paintingCanvas{
     background-color: #c9c9c9;

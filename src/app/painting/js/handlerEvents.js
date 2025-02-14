@@ -1,3 +1,4 @@
+import { PositionHelper } from "../../../scripts/common/position.js";
 
 export default function HandlerEvents(canvas){
     const KEY_MOUSE = {
@@ -30,19 +31,18 @@ export default function HandlerEvents(canvas){
 
     let createPressedEvent = (strategy)=>{
         resetPointerTracking();
-
         return {
             down:(event)=>{
-                strategy.pressed(event);
+                strategy.onPressed(PositionHelper.getPositionCursor(event));
 
                 canvas.addEventListener("mousemove", (event)=>{
-                    requestAnimationFrame(()=>strategy.tracking(event));
+                    requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event)));
                 }, { signal: abortPointerTrackingEvent.signal });
             },
             up:(event)=>{
                 resetPointerTracking();
 
-                requestAnimationFrame(()=>strategy.released(event));
+                requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event)));
             }
         }
     } 
@@ -104,7 +104,7 @@ export default function HandlerEvents(canvas){
 
         canvas.addEventListener("wheel", (event)=>{
             event.preventDefault();
-            requestAnimationFrame(()=>eventHandler.scroll(event));
+            requestAnimationFrame(()=>eventHandler.onScroll(event.deltaX, event.deltaY, PositionHelper.getPositionCursor(event)));
         }, { signal: abortScroll.signal });
     }
 
@@ -112,6 +112,20 @@ export default function HandlerEvents(canvas){
         if(abortScroll.signal.aborted) abortScroll.abort();
         abortScroll = new AbortController();
     }
+
+
+    canvas.addEventListener("mousemove", (event)=>{
+        event.preventDefault();
+        // console.log(event)
+        // let cursor = event.getClientRect();
+        // let x =  event.clientX - cursor.left;
+        // let y =  event.clientY - cursor.top;
+        // scene.hover(x, y);
+    });
+
+    canvas.addEventListener("mouseleave", (event)=>{
+        event.preventDefault();
+    });
 
     
     return Object.seal({

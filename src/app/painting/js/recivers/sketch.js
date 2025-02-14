@@ -8,6 +8,7 @@ const CHECKERED_LIGHT_COLOR_HEX = 0xFFFFFFFF,
       CHECKERED_HOVER_LIGHT_COLOR_HEX = 0x555555FF,
       CHECKERED_HOVER_DARK_COLOR_HEX = 0x222222FF;
 
+
 export default async function Sketch({
     canvas: canvas, 
     width: sketchWidth,
@@ -15,26 +16,11 @@ export default async function Sketch({
 }){
     if(!isValidCanvas()) throw new Error("Objeto 'canvas' não encontrado.");
     if(!isValidSize()) throw new Error("Os parâmetros 'sketchWidth' e 'sketchHeight' devem conter uma valor entre 0 e 1200.");
-
-    let graphics = await Graphics({
-        wasmMemory: new WebAssembly.Memory({ initial: 256, maximum: 256 }),
-    }).then(Module => {
-        const { _build, _render, _freeBuffer, _putPixel, _getPixel, HEAPU8, _calculateIndex } = Module;
-            
-        function getPixel(x, y){
-            return _getPixel(x, y) >>> 0;
-        }
-
-        const proto = Object.create(Graphics.prototype);
-        proto.render = _render;
-        proto.putPixel = _putPixel;
-        proto.getPixel = getPixel;
-        proto.free = _freeBuffer;
-        proto.build = _build;
-        proto.memory = HEAPU8;
-        proto.calculateIndex = _calculateIndex;
-        return Object.seal(proto);
-    });
+    
+      
+    const ModuleGraphics = await Graphics({ wasmMemory: new WebAssembly.Memory({initial:256, maximum: 256}) });
+    const Scene = new ModuleGraphics.Scene(sketchWidth, sketchHeight);
+    console.log(new Uint8ClampedArray(ModuleGraphics.HEAPU8.buffer, ptr, sketchWidth*sketchHeight*4))
 
     const context = canvas.getContext("2d", { willReadFrequently: true });
 
@@ -42,76 +28,10 @@ export default async function Sketch({
     let sketchPositionX = getInitialPosition().x;
     let sketchPositionY = getInitialPosition().y;
     
-    const ptrBuffer = graphics.build(sketchWidth, sketchHeight);
-
-    const listLayers = [];
-
-    build();
-
-    function build(){
-        let isLightColor = true;
-        let flagIsLightColor = isLightColor;
-        for (let x = 0; x < sketchWidth; x++) {
-            for (let y = 0; y < sketchHeight; y++) {
-                let checkeredColorHEX = (isLightColor) ? CHECKERED_LIGHT_COLOR_HEX : CHECKERED_DARK_COLOR_HEX;
-
-                graphics.putPixel(x, y, checkeredColorHEX);
-                
-                isLightColor = !isLightColor;
-            }
-
-            isLightColor = !flagIsLightColor;
-            flagIsLightColor = isLightColor;
-        }
-
-        renderSketch();
-    }
-
-    function renderSketch(){
-        const viewportWidth = canvas.clientWidth;
-        const viewportHeight = canvas.clientHeight;
-        
-        context.clearRect(0, 0, viewportWidth, viewportHeight);
-
-        const resizedWidth = getCurrentWidth();
-        const resizedHeight = getCurrentHeight();
-        
-        let isNotVisibleX = sketchPositionX > viewportWidth || sketchPositionX < -resizedWidth;
-        let isNotVisibleY = sketchPositionY > viewportHeight || sketchPositionY < -resizedHeight;
-        
-        if(isNotVisibleX || isNotVisibleY) return;
-        
-        let maxPositionX = viewportWidth - resizedWidth;
-        let maxPositionY = viewportHeight - resizedHeight;
-        
-        let startVisibleX = (sketchPositionX < 0) ? -sketchPositionX : 0;
-        let endVisibleX =  (sketchPositionX < maxPositionX) ? resizedWidth : resizedWidth - (sketchPositionX - maxPositionX);
-        
-        let startVisibleY = (sketchPositionY < 0) ? -sketchPositionY : 0;
-        let endVisibleY = (sketchPositionY < maxPositionY) ? resizedHeight : resizedHeight - (sketchPositionY - maxPositionY);
-
-
-        render(startVisibleX, endVisibleX,  startVisibleY, endVisibleY);
-        renderLayers(startVisibleX, endVisibleX,  startVisibleY, endVisibleY);
-    }
-
-    function render(startVisibleX, endVisibleX,  startVisibleY, endVisibleY){
-        let visibleWidth = endVisibleX - startVisibleX;
-        let visibleHeight = endVisibleY - startVisibleY;
-
-        const tempPtr = graphics.render(ptrBuffer, startVisibleX, endVisibleX, startVisibleY, endVisibleY, _scale);
-
-        const bufferView = new Uint8ClampedArray(graphics.memory.buffer, tempPtr, visibleWidth*visibleHeight*SIZE_PIXEL);
-        const data = new ImageData(bufferView, visibleWidth, visibleHeight);
-        context.putImageData(data, sketchPositionX + startVisibleX, sketchPositionY + startVisibleY);
-
-        graphics.free(tempPtr);
-    }
-
-    function renderLayers(startVisibleX, endVisibleX,  startVisibleY, endVisibleY){
-        listLayers.map(layer=>{
-            layer.render(startVisibleX, endVisibleX,  startVisibleY, endVisibleY);
-        });
+    render();
+    
+    function render(){
+        Scene.render();
     }
 
     function zoomIn(cursorPosition){
@@ -169,7 +89,7 @@ export default async function Sketch({
         sketchPositionX = Math.min(minLeftOffset, Math.max(maxLeftOffset, Math.floor(x)));
         sketchPositionY = Math.min(minTopOffset, Math.max(maxTopOffset, Math.floor(y)));
 
-        renderSketch();
+        render();
     }
 
     function getMinScale(){ return Math.max(1, Math.min(Math.floor(canvas.clientHeight/sketchHeight),  Math.floor(canvas.clientWidth/sketchWidth))); }
@@ -207,32 +127,32 @@ export default async function Sketch({
     function isValidCanvas() { return canvas.nodeName === 'CANVAS'}
     function isValidSize() { return (parseInt(sketchWidth) > 0 && parseInt(sketchWidth) <= 1200) || (parseInt(sketchHeight) > 0 && parseInt(sketchHeight) < 0) }
 
-    function hover(cursorPosition, stencils, brushSize){
-        const pixelHover = tryGetPixelPosition(cursorPosition);
+    // function hover(cursorPosition, stencils, brushSize){
+    //     const pixelHover = tryGetPixelPosition(cursorPosition);
 
-        context.fillStyle = hexToRgba(((pixelHover.x + pixelHover.y) | 0x1) ? CHECKERED_HOVER_LIGHT_COLOR_HEX : CHECKERED_HOVER_DARK_COLOR_HEX);
+    //     context.fillStyle = hexToRgba(((pixelHover.x + pixelHover.y) | 0x1) ? CHECKERED_HOVER_LIGHT_COLOR_HEX : CHECKERED_HOVER_DARK_COLOR_HEX);
         
-        const size = brushSize*_scale;
-        for(let stencil in stencils){
-            let x = stencil.x + pixelHover.x;
-            let y = stencil.y + pixelHover.y;
-            context.fillRect(x, y, size, size);
-        }
-    }
-    function brush(cursorPosition, stencils, brushSize){
-        const pixelHover = tryGetPixelPosition(cursorPosition);
-        const colorHex = graphics.getPixel(pixelHover.x, pixelHover.y);
+    //     const size = brushSize*_scale;
+    //     for(let stencil in stencils){
+    //         let x = stencil.x + pixelHover.x;
+    //         let y = stencil.y + pixelHover.y;
+    //         context.fillRect(x, y, size, size);
+    //     }
+    // }
+    // function brush(cursorPosition, stencils, brushSize){
+    //     const pixelHover = tryGetPixelPosition(cursorPosition);
+    //     const colorHex = graphics.getPixel(pixelHover.x, pixelHover.y);
         
-        context.fillStyle = `#${ colorHex.toString(16) }`;
+    //     context.fillStyle = `#${ colorHex.toString(16) }`;
         
-        const size = brushSize*_scale;
-        for(let stencil in stencils){
-            let x = stencil.x + pixelHover.x;
-            let y = stencil.y + pixelHover.y;
-            context.fillRect(x, y, size, size);
-        }
-    }
-
+    //     const size = brushSize*_scale;
+    //     for(let stencil in stencils){
+    //         let x = stencil.x + pixelHover.x;
+    //         let y = stencil.y + pixelHover.y;
+    //         context.fillRect(x, y, size, size);
+    //     }
+    // }
+    
 
     function hexToRgba(colorHex){
         let red = colorHex >> 24 & 0xFF;
@@ -240,22 +160,53 @@ export default async function Sketch({
         let green = colorHex >> 8 & 0xFF;
         let alpha = colorHex & 0xFF;
         
-        return `rgba(${red}, ${blue}, ${green}, ${alpha})`; 
+        return `rgb(${red}, ${blue}, ${green}, ${alpha/255 *100}%)`; 
     }
 
     function setCursor(cursorName){
         canvas.style.cursor = cursorName;
     }
 
-    const proto = Object.create(Graphics.prototype);
-    proto.render = renderSketch;
-    proto.zoomIn = zoomIn;
-    proto.zoomOut = zoomOut;
-    proto.panning = panning;
-    proto.moveTo = moveTo;
-    proto.setCursor = setCursor;
-    proto.isItInsideTheSketch = isItInsideTheSketch;
-    proto.tryGetPixelPosition = tryGetPixelPosition;
+    async function addLayer(name){
+        // const layer = new ModuleGraphics.Layer(name, sketchHeight, sketchWidth, true);
+
+        // Scene.addLayer(layer);
+        
+        render();
+    }
+    
+    function removeLayer(index){
+        // Scene.removeLayer(index);
+    }
+    
+    function getAllLayer(){
+        // return Scene.getAllLayer(index);
+    }
+
+    function getLayer(index){
+        // return Scene.getLayer[index];
+    }
+
+    function moveLayerTo(from, to){
+        // Scene.moveLayerTo(from, to);
+    }
+
+
+    const proto = Object.create({
+        render: render,
+        zoomIn: zoomIn,
+        zoomOut: zoomOut,
+        panning: panning,
+        moveTo: moveTo,
+        setCursor: setCursor,
+        isItInsideTheSketch: isItInsideTheSketch,
+        tryGetPixelPosition: tryGetPixelPosition,
+        addLayer: addLayer,
+        removeLayer: removeLayer,
+        getAllLayer: getAllLayer,
+        getLayer: getLayer,
+        moveLayerTo: moveLayerTo,
+    });
 
     return Object.seal(proto);
 };

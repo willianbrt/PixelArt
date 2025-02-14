@@ -2,7 +2,8 @@
     "configurations": [
         {
             "includePath": [
-                "C:/Users/User/emsdk/upstream/emscripten/system/include",
+                "${workspaceFolder}/**",
+                "C:/Users/User/emsdk/upstream/emscripten/system/include"
             ]
         }
     ],

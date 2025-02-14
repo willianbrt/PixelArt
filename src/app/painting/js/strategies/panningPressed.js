@@ -4,11 +4,9 @@ import { PositionHelper } from "../../../../scripts/common/position.js";
 
 export default function PanningPressed(sketch){
     let flagCursor = { x: 0, y: 0 };
-    
-    sketch.setCursor("grab");
-    
+    // sketch.setCursor("grab");
     this.pressed = (event)=>{
-        sketch.setCursor("grabbing");
+        // sketch.setCursor("grabbing");
 
         flagCursor = PositionHelper.getPositionCursor(event);
     }
@@ -22,7 +20,7 @@ export default function PanningPressed(sketch){
     }
 
     this.released = (event)=>{
-        sketch.setCursor("grab");
+        // sketch.setCursor("grab");
     }
 }
 PanningPressed.prototype = IPressed.prototype;
