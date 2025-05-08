@@ -1,0 +1,81 @@
+
+@import url("./../resource/icons/fontawesome-free-6.7.2-web/css/all.css");
+
+html, body {
+    align-content: center;
+    padding: 0;
+    margin: 0;
+}
+body{
+    background-color: var(--background-color);
+}
+.navbar {
+    background-color: var(--navbar-color);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 8px 16px;
+}
+.navbar .logo{
+    height: 24px;
+    width: 24px;
+}
+.group {
+    display: inline-flex;
+}
+
+.dropdown-label{
+    display: inline-flex;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+}
+.dropdown{
+    position: relative;
+}
+
+.dropdown-label::after {
+    content:"\f078";
+    display: inline-block;
+    font-family: "FontAwesome";
+    color: var(--light-text-color);
+    padding: 8px;
+}
+.dropdown-menu{
+    display: none;
+    background-color: var(--background-color);
+    color: var(--light-text-color);
+    border: 1px solid var(--hover-color);
+    z-index: 1;
+}
+.dropdown:hover > .dropdown-menu{
+    display: block !important;
+    position: absolute !important;
+}
+.dropdown-item:hover > .dropdown-menu{
+    display: block !important;
+    position: absolute !important;
+    left: 100%;
+    top: 0;
+}
+.dropdown-item:hover {
+    background-color: var(--hover-color);
+}
+.dropdown-item {
+    position: relative !important;
+    padding: 6px 16px;
+}
+
+button{
+    outline: none;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+button.btn-ghost {
+    background-color: transparent;
+}

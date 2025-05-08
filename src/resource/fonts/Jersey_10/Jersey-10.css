@@ -1,0 +1,16 @@
+
+@font-face {
+    font-family: 'Jersey 10';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('Jersey10-Regular.ttf"') format('truetype');
+}
+
+@font-face {
+    font-family: 'Jersey 10';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('Jersey10-Regular.woff2') format('woff2');
+}
