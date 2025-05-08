@@ -1,0 +1,19 @@
+:root {
+    --background: hsl(0, 0%, 100%);
+    --shadow:hsl(0deg 0% 71.01% / 50%);
+    
+    --navbar-color:hsl(209, 11%, 44%);
+    
+    --panel-background-color:hsl(209, 11%, 44%);
+    --dark-panel-background-color: hsl(212, 11%, 34%);
+    --light-panel-background-color:hsl(210, 11%, 49%);
+
+    --hv-dropitem:hsl(210, 11%, 49%);
+    
+    --primary-color:hsl(208, 13%, 30%);
+    --secondary-color:hsl(207, 12%, 29%);
+    --emphasis-color:hsl(209, 88%, 44%);
+    
+    --light-text-color:#fff;
+    --dark-text-color:#000;
+}

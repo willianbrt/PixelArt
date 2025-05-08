@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painting - PixelArt</title>
+
+    <link href="./../../styles/themes/dark.css" rel="stylesheet" type="text/css"></link>     
+    <link href="assets/painting.css" rel="stylesheet" type="text/css"></link>
+</head>
+<body data-theme="dark">
+    <section class="navbar">
+        <div class="dropdown">
+            <button class="dropdown-label">
+                <img src="" class="logo"/>
+            </button>
+            
+            <div class="dropdown-menu">
+                <div class="dropdown-item">${novo}</div>
+                <div class="dropdown-item">${salvar}</div>
+
+                <div class="dropdown-item">
+                    ${export-as}
+                    
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item">JPG</div>
+                        <div class="dropdown-item">PNG</div>
+                        <div class  ="dropdown-item">GIF</div>
+                    </div>
+                </div>
+                
+                <div class="dropdown-item">${redimensionar}</div>
+                <div class="dropdown-item">${atalhos}</div>
+                <div class="dropdown-item">${configuracoes}</div>
+            </div>
+        </div>
+
+        <div class="group">
+            <button class="btn-ghost btn-premium"><img src="" /></button>
+            
+             <div class="dropdown">
+                <button class="dropdown-label">
+                    <img class="perfil-rounded" src="" />
+                </button>
+                
+                <div class="dropdown-menu">
+                    <div class="dropdown-item">${logout}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <section class="pane">
+            <div class="pane-tool">
+                <div class="header">
+                    <h4>Ferramentas</h4>
+                </div>
+
+                <div class="pane-content">
+                    <button class="tool tool-pencil"><img src="../../../src/resource/img/pencil.png" /></button>
+                    <button class="tool tool-eraser"><img src="../../../src/resource/img/eraser.png" /></button>
+                    <button class="tool tool-bucket"><img src="../../../src/resource/img/bucket.png" /></button>
+                    <button class="tool tool-line"><img src="../../../src/resource/img/line.png" /></button>
+                    <button class="tool tool-square"><img src="../../../src/resource/img/square.png" /></button>
+                    <button class="tool tool-circle"><img src="../../../src/resource/img/circle.png" /></button>
+                    <button class="tool tool-dropper"><img src="../../../src/resource/img/dropper.png" /></button>
+                </div>
+            </div>
+        </section>
+
+        <section id="drawing-area">
+            <canvas id="paintingCanvas" width="800" height="500"></canvas>
+        </section>
+
+        <section class="pane">
+            <div class="tabs">
+                <div class="tab active">
+                    <h4>Camadas</h4>
+                </div>
+
+                <div class="tab">
+                    <h4>Cores</h4>
+                </div>
+                <div class="tab">
+                    <h4>Ferramentas</h4>
+                </div>
+                <div class="tab">
+                    <h4>Opções</h4>
+                </div>
+            </div>
+
+            <div id="pane-layers">
+                <div class="header">
+                    <h4>Camadas</h4>
+                </div>
+                
+                <div class="opacity">
+                    <input class="slider" name="opacity-layer" type="range" value="10" min="10" max="50" />
+                    <span><h5>Transparência 10%</h5></span>
+                </div>
+                
+                <div class="pane-content" id="list-Layers">
+                    <div class="layer" draggable="true">
+                        <button class="hide-layer"><i class="fa fa-eye"></i></button>
+                        <canvas class="active" id="1" width="32" height="32"></canvas>
+                        <div class="name-layer">
+                            <input type="text" value="Layer1">
+                        </div>
+                        <button class="lock-layer"><i class="fa fa-lock"></i></button>
+                        <button class="grab-layer" draggable="true"><i class="fa fa-grip-lines"></i></button>
+                    </div>
+
+                    <div class="layer">
+                        <button class="hide-layer"><i class="fa fa-eye"></i></button>
+                        <canvas class="active" id="1" width="32" height="32"></canvas>
+                        <div class="name-layer">
+                            <h5>Layer1</h5>
+                        </div>
+                        <button class="lock-layer"><i class="fa fa-lock"></i></button>
+                        <button class="grab-layer"><i class="fa fa-grip-lines"></i></button>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <button class="btn-ghost-action" id="add-layer"><i class="fa fa-plus"></i></button>
+                    <button class="btn-ghost-action" id="duplicate-layer"><i class="fa fa-clone"></i></button>
+                    <button class="btn-ghost-action" id="move-down-layer"><i class="fa fa-angle-up"></i></button>
+                    <button class="btn-ghost-action" id="move-down-layer"><i class="fa fa-angle-down"></i></button>
+                    <button class="btn-ghost-action" id="duplicate-layer"><i class="fa fa-circle-half-stroke"></i></button>
+                    <button class="btn-ghost-action" id="remove-layer"><i class="fa fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="pane pane-colors">
+                <div class="pane-content">
+                    <div class="top-pane">
+                        <select name="pallet">
+                            <option selected>Padrão</option>
+                            <option>Sombras</option>
+                            <option>Luzes</option>
+                        </select>
+                        <button class="btn-ghost-action" id="add-pallet"><i class="fa fa-plus"></i></button>
+                        <button class="btn-ghost-action" id="trash-pallet"><i class="fa fa-trash"></i></button>
+                    </div>
+
+                    <div id="list-colors">
+                        <button class="add-color"><i class="fa fa-plus"></i></button>
+                        <span class="color" style="background-color: rgb(165, 42, 42);"></span>
+                        <span class="color" style="background-color: rgb(149, 173, 13);"></span>
+                        <span class="color" style="background-color: rgb(219, 10, 10);"></span>
+                        <span class="color" style="background-color: rgb(10, 219, 45);"></span>
+                        <span class="color" style="background-color: rgb(10, 31, 219);"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="pane pane-frames" id="frames">
+            <div class="pane-content">
+                <div class="header">
+                    <h4>Quadros</h4>
+                    <div class="dropdown">
+                        <select class="time-all-frame">
+                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
+                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
+                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
+                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
+                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn-ghost-action animate-frames"><i class="fa fa-play"></i> Animar</button>
+                    <button class="btn-ghost-action add-frame"><i class="fa fa-plus"></i> Adicionar</button>
+                    <button class="btn-ghost-action remove-frame"><i class="fa fa-trash"></i> Remover</button>
+                </div>
+
+                <div class="top">
+                    <button class="arrow-left"><i class="fa fa-arrow-left"></i></button>
+                    <button class="arrow-right"><i class="fa fa-arrow-right"></i></button>
+                    <button class="arrow-duplicate"><i class="fa fa-clone"></i></button>
+                    <button class="flip-x"><i class="fa fa-shuffle"></i></button>
+                    <button class="flip-y"><i class="fa fa-copy"></i></button>
+                </div>
+
+                <div id="list-frames">
+                    <div class="frame active">
+                        <canvas class="frame" id="1"></canvas>
+                    </div>
+                    <div class="frame">
+                        <canvas class="frame" id="2"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </section>
+</body>
+</html>
