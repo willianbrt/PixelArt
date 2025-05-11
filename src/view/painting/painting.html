@@ -143,6 +143,11 @@
                         <button class="btn-ghost-action" id="add-pallet"><i class="fa fa-plus"></i></button>
                         <button class="btn-ghost-action" id="trash-pallet"><i class="fa fa-trash"></i></button>
                     </div>
+                    <div class="cromatico">
+                        <canvas id="color-picker" width="100" height="100" dragglable="false"></canvas>
+                        <span class="marker" id="hue" data-hue="0"></span>
+                        <span class="marker" id="color" data-saturation="0" data-light="0"></span>
+                    </div>
 
                     <div id="list-colors">
                         <button class="add-color"><i class="fa fa-plus"></i></button>
@@ -195,5 +200,72 @@
             </div>
         </section>
     </section>
+   
+    <script src="./js/chromatic.js" type="module"></script>
+    <script>
+
+
+    </script>
+
+<!-- 
+
+    <script>
+        window.onload=()=>{
+            console.log(document.getElementById("list-layers"))
+
+        }
+        let listLayer = document.getElementById("#list-layers");
+        let listFrames = document.querySelector("#list-frames");
+        
+        let btnMoveDown = document.querySelector("#move-down-layer");
+        let btnMoveUp = document.querySelector("#move-up-layer");
+        let btnAddLayer = document.querySelector("#move-up-layer");
+        let btnRemoveLayer = document.querySelector("#move-up-layer");
+        let btnCloneLayer = document.querySelector("#move-up-layer");
+
+
+        
+        let btnHideLayer = document.querySelector(".layer .hide-layer");
+        let btnDragLayer = document.querySelector(".layer .grab-layer");
+        
+        btnHideLayer.addEventListener("click", function(){
+            let layer = this.parentNode;
+            let isHidden = layer.classList.toggle("hidden");
+            
+            if(isHidden){
+                this.querySelector("i").className = "fa fa-eye-slash";
+                return;
+            }
+            this.querySelector("i").classList.toggle("fa-eye");
+        });
+        
+        btnDragLayer.addEventListener("dragstart", function(e){
+            console.log("movendo: ",e.clientX, e.clientY)
+            e.dataTransfer.setData("text/html",this.text);
+            console.log("movendo: ",this.innerText)
+        });
+        
+        btnDragLayer.addEventListener("dragmove", function(e){
+            console.log("movendo: ",e.clientX, e.clientY)
+        });
+        
+        btnDragLayer.addEventListener("dragend", function(e){
+            console.log("movendo: ",e.clientX, e.clientY)
+            console.log("obj: ",e.dataTransfer.getData("text/html"))
+        });
+
+        function moveElement(list){
+            let kids = list;
+            console.log(kids)
+            return {
+                move:(from, to)=>{
+                    elem = kids[from]
+                    kids.insertBefore(elem, to === null ? 0 : kids[to]);
+                }
+            }
+        }
+
+        moveElement(listLayer).move(0,1);
+    </script> -->
 </body>
 </html>
