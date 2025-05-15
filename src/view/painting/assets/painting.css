@@ -36,6 +36,10 @@ h5{
     font-size: 16px;
     line-height: 16px;
 }
+body{
+    display: flex;
+    flex-direction: column;
+}
 #drawing-area canvas{
     margin: auto;
     display: block;
@@ -43,42 +47,59 @@ h5{
     height: 100%;
     width: 100%;
 }
-#drawing-area{
-    display: block;
-    width: 100%;
-    height:100%;
-}
-
 .content {
-    height: 100vh;
+    height: 100%;
     display:grid; 
+    grid-template-areas: "left canvas right"
+                         "footer footer footer";
     grid-template-columns: auto 1fr auto;
-    grid-template-rows: auto auto;
+    grid-template-rows: 1fr auto;
+    overflow: hidden;
+} 
+#drawing-area{
+    grid-area: canvas;
+    overflow-y: auto;
+    overflow-x: auto;
 }
-.navbar{
-    grid-column-start: 1;
-    grid-column-end: 4;
+#pane-left{
+    grid-area: left;
 }
-
-
-.pane{
-    position: relative;
-    background-color: var(--panel-background-color);
-    outline: solid 4px var(--panel-outline-color);
-    margin-top: 4px;
-    
+#pane-right{
+    grid-area: right;
+    display: flex;
+    flex-direction: row;
+    max-width: 242px;
+}
+#pane-footer{
+    grid-area: footer;
+}
+#pane-left, #drawing-area{
     display: flex;
     flex-direction: column;
 }
+.pane{
+    padding: 4px;
+    gap: 4px;
+    background: #441d51;
+    overflow-y: auto;
+}
+
+.pane-content{
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.pane-content .body{
+    background-color: var(--panel-background-color);
+    width: auto;
+    overflow-y: auto;
+}
 .pane .tabs{
-    position: absolute;
-    right:calc(100% + 4px);
-    top: -4px;
+    background-color: var(--panel-background-color);
 }
 .pane .tab{
-    background-color: var(--panel-background-color);
-    padding: 16px 8px;
-    writing-mode: sideways-lr;
+    padding: 16px 4px;
+    writing-mode: sideways-rl;
     cursor: pointer;
 }
 .pane .tab.active{
@@ -96,41 +117,38 @@ h5{
     flex-direction: row;
     align-items: center;
 }
+#pane-tool .footer{
+    align-self: center;
+}
+.pane #pane-tool{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 
-
-.pane .pane-tool .pane-content{
-    padding: 16px 20px;
+.pane #pane-tool .body{
+    padding: 16px 8px;
     display: grid;
     justify-content: center;
     align-content: start;
     gap: 8px 10px;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto;
+    height: 100%;
+    overflow-y: auto;
 }
-.pane .pane-tool .tool {
+.pane #pane-tool .tool {
     width: min-content;
     height: min-content;
 }
-.pane .pane-tool .tool img{
-    width: 24px;
+.pane #pane-tool .tool img{
+    width: 16px;
 }
 
 .pane .tool{
-    /*x y desfoque extensao */
-    box-shadow: 0px -2px 0px 0px var(--dark-btn-border-color),
-                2px 0px 0px 0px  var(--dark-btn-border-color),
-                -2px 0px 0px 0px var(--dark-btn-border-color),
-                0px 2px 0px 0px  var(--dark-btn-border-color);
+    border: 2px solid var(--dark-btn-border-color);
     background-color:var(--dark-btn-background-color);
-    border:none;
     padding: 8px;
 }
-.pane-frames{
-    grid-column-start: 1;
-    grid-column-end: 4;
-}
-
-
-
 
 .opacity{
     position: relative;
@@ -225,18 +243,18 @@ h5{
     display: flex;
     flex-direction: column;
     flex:1;
-    max-width: 280px;
 }
 #pane-layers .footer{
     background-color: #5C4165;
     display: flex;
     justify-content: center;
 }
+#pane-footer .header{
+    padding: 0px 16px;
+}
 .btn-ghost-action{
     background-color: transparent;
     color: var(--light-text-color);
-    font-size: 18px;
-    padding: 8px 16PX;
     font-family: "Jersey 10", sans-serif;
 }
 .layer button:hover{
@@ -264,8 +282,7 @@ span.color, button.add-color{
     cursor: pointer;
     padding: 0;
 }
-/* .pane-colors .pane-content{ */
-.pane-colors #list-colors{
+#pane-colors #list-colors{
     display:flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -273,7 +290,23 @@ span.color, button.add-color{
     padding: 8px 16px;
     align-items: start;
     height: 64px;
-    overflow: hidden;
+}
+
+.hidden{
+    display: none;
+}
+.layer.swap{
+    position: relative;
+    z-index: 1;
+}
+.layer.swap::after {
+    content: "";
+    background: hsl(285 49% 24% / 1);
+    height: 2px;
+    width: 100%;
+    position: absolute;
+    border-radius: 0px;
+    bottom:0%;
 }
 select{
     border: none;
@@ -296,10 +329,6 @@ select option i{
 select option:hover{
     background-color: var(--hover-color);
     outline: none;
-}
-.header .btn-ghost-action{
-    height: 100%;
-    padding: 8px;
 }
 .pane .top {
     display: flex;
@@ -364,32 +393,36 @@ div.frame.active::before{
 }
 .cromatico{
     position: relative;
+    width: 100%;
 }
 .marker{
     display: block;
     height: 10px;
     width: 10px;
-    /* background-color: white; */
     border-radius: 100%;
     border: #fff solid 2px;
     position: absolute;
 }
-/*
-
-body {
-  /* Set "my-sec-counter" to 0 
-  counter-reset: my-sec-counter;
+#pane-wornking-colors .body{
+    overflow-y: hidden;
 }
-
-h2::before {
-  /* Increment "my-sec-counter" by 1 
-  counter-increment: my-sec-counter;
-  content: "Section " counter(my-sec-counter) ". ";
+.working-colors{
+    position: relative;
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    margin: 8px auto;
 }
-
-
-a::after {
-  content: " (" attr(href) ")";
+.work-color{
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+    border-radius: 4px;
+    position:absolute;
 }
-
-*/
+.work-color.primary-color{
+    top:12px;
+    left:12px;
+    z-index:0;
+}
