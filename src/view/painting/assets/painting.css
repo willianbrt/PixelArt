@@ -199,6 +199,13 @@ body{
     display: flex;
     align-items: stretch;
     margin-bottom: 4px;
+    cursor: pointer;
+}
+.layer.active {
+    background-color: #37233e;
+}
+.layer:hover {
+    background-color: #37233e;
 }
 .layer i{
     font-size: 10px;
@@ -220,10 +227,13 @@ body{
     flex: 1;
     align-content: center;
     padding: 0px 8px;
+    white-space: nowrap;
+    overflow: hidden;
 }
 .layer .name-layer input{
     background-color: transparent;
     font-family: "Jersey 10", sans-serif;
+    text-overflow: ellipsis;
     color: var(--light-text-color); 
     margin: 0;
     display: block;
@@ -330,6 +340,17 @@ select option:hover{
     background-color: var(--hover-color);
     outline: none;
 }
+
+select#time-all-frame::before {
+    content: "\f017";
+    font-family: 'FontAwesome';
+    display: block;
+    font-size: 16px;
+    background-color: antiquewhite;
+    height: 16px;
+    width: 16px;
+}
+
 .pane .top {
     display: flex;
     flex-direction: row;

@@ -51,7 +51,6 @@
     </section>
 
     <section class="content">
-
         <section class="pane" id="pane-left">
             <div class="pane-content" id="pane-tool">
                 <div class="header">
@@ -94,36 +93,19 @@
                     </div>
                     
                     <div class="opacity">
-                        <input class="slider" name="opacity-layer" type="range" value="10" min="10" max="50" />
-                        <span><h5>Transparência 10%</h5></span>
+                        <input class="slider" name="opacity-layer" type="range" value="1" min="0" max="100" />
+                        <span id="opacity-label"><h5>Transparência 10%</h5></span>
                     </div>
                     
                     <div class="body" id="list-Layers">
-                        <div class="layer">
-                            <button class="hide-layer"><i class="fa fa-eye"></i></button>
-                            <div class="name-layer">
-                                <input type="text" value="Layer1">
-                            </div>
-                            <button class="lock-layer"><i class="fa fa-lock"></i></button>
-                            <button class="grab-layer"><i class="fa fa-grip-lines"></i></button>
-                        </div>
-                        
-                        <div class="layer">
-                            <button class="hide-layer"><i class="fa fa-eye"></i></button>
-                            <div class="name-layer">
-                                <h5>Layer 2</h5>
-                            </div>
-                            <button class="lock-layer"><i class="fa fa-lock"></i></button>
-                            <button class="grab-layer"><i class="fa fa-grip-lines"></i></button>
-                        </div>
                     </div>
                     
                     <div class="footer">
                         <button class="btn-ghost-action" id="add-layer"><i class="fa fa-plus"></i></button>
                         <button class="btn-ghost-action" id="duplicate-layer"><i class="fa fa-clone"></i></button>
-                        <button class="btn-ghost-action" id="move-down-layer"><i class="fa fa-angle-up"></i></button>
+                        <button class="btn-ghost-action" id="move-up-layer"><i class="fa fa-angle-up"></i></button>
                         <button class="btn-ghost-action" id="move-down-layer"><i class="fa fa-angle-down"></i></button>
-                        <button class="btn-ghost-action" id="duplicate-layer"><i class="fa fa-circle-half-stroke"></i></button>
+                        <button class="btn-ghost-action" id="merge-layer"><i class="fa fa-circle-half-stroke"></i></button>
                         <button class="btn-ghost-action" id="remove-layer"><i class="fa fa-trash"></i></button>
                     </div>
                 </div>
@@ -180,14 +162,14 @@
                 </div>
             </div>
         </section>
-
-        
+    
         <section class="pane pane-frames" id="pane-footer">
             <div class="pane-content">
                 <div class="header">
                     <h4>Quadros</h4>
-                    <div class="dropdown">
-                        <select class="time-all-frame">
+                    <div class="v-group">
+                        <label for="time-all-frame"><i class="fa fa-clock"></i></label>
+                        <select id="time-all-frame">
                             <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
                             <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
                             <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
@@ -232,102 +214,201 @@
     </script>
 
     <script>
-        const container = document.getElementById("list-Layers");
-        
-        let draggingLayer = null;
+        var ctr = 1;
+        window.onload=()=>{
+            addLayer({});
+            ctr = listLayer.querySelectorAll(".layer").length + 1;
+        }
+        let activeLayer;
+        let inpOpacity = document.querySelector("input[name='opacity-layer']");
+        let listLayer = document.getElementById("list-Layers");
+        let listFrames = document.querySelector("#list-frames");
 
-        container.querySelectorAll(".grab-layer").forEach(handle => {
-            handle.addEventListener("mousedown", (e) => {
+        let btnAddLayer = document.getElementById("add-layer");
+        let btnCloneLayer = document.getElementById("duplicate-layer");
+        let btnMoveDown = document.getElementById("move-down-layer");
+        let btnMoveUp = document.getElementById("move-up-layer");
+        let btnRemoveLayer = document.getElementById("remove-layer");
+        
+        inpOpacity.addEventListener("input", function(){
+            document.querySelector("#opacity-label h5").innerText = "Transparência " + this.value + "%"
+            activeLayer.dataset.opacity = this.value;
+        });
+        btnMoveDown.addEventListener("click", function(){
+            let layers = [...listLayer.querySelectorAll(".layer")];
+            let nextLayer = layers.indexOf(activeLayer) + 1;
+
+            if(nextLayer < layers.length)
+                layers[nextLayer].after(activeLayer);
+        });
+        btnMoveUp.addEventListener("click", function(){
+            let layers = [...listLayer.querySelectorAll(".layer")];
+            let previousLayer = layers.indexOf(activeLayer) - 1;
+
+            if(previousLayer>= 0)
+                layers[previousLayer].before(activeLayer);
+        });
+        btnAddLayer.addEventListener("click", addLayer);
+        btnRemoveLayer.addEventListener("click", function(){
+            if(listLayer.querySelectorAll(".layer").length <= 1) return;
+
+            let layers = [...listLayer.querySelectorAll(".layer")];
+            let indexActiveLayer = layers.indexOf(activeLayer);
+            activeLayer.remove();
+
+            layers = [...listLayer.querySelectorAll(".layer")];
+
+            if (layers.length === 0) return;
+
+            let nextLayer;
+            if (indexActiveLayer < layers.length) {
+                nextLayer = layers[indexActiveLayer];
+            } else {
+                nextLayer = layers[layers.length - 1];
+            }
+
+            swapActiveLayer.call(nextLayer);
+        });
+        btnCloneLayer.addEventListener("click", function(){
+            let title = findTitle(activeLayer.dataset.title, 1);
+
+            addLayer({
+                title: title,
+                ishidden: activeLayer.dataset.ishidden,
+                islock: activeLayer.dataset.islock
+            });
+        });
+        
+        function findTitle(find, cntr) {
+            const layers = [...listLayer.querySelectorAll(".layer")];
+            const exists = layers.some(e => e.dataset.title === find);
+
+            if (exists) {
+                const newFind = `${find.replace(/\(\d+\)$/, '')}(${cntr})`;
+                return findTitle(newFind, cntr + 1);
+            }
+
+            return find;
+        }
+        function addLayer(options){
+            let layer = document.createElement("div");
+            let nameLayer = document.createElement("div");
+            let h5 = document.createElement("h5");
+            let btnHideLayer = document.createElement("button");
+            let btnLockLayer = document.createElement("button");
+            let btnGrabLayer = document.createElement("button");
+            
+            layer.classList.add("layer");
+            layer.id = options.id ?? ctr;
+            layer.dataset.islock = options.islock ?? false;
+            layer.dataset.ishidden = options.ishidden ??false;
+            layer.dataset.title = options.title ?? findTitle("Layer " + ctr, 1);
+            layer.dataset.opacity = options.opacity ?? 100;
+
+            if(listLayer.querySelectorAll(".layer").length == 0){
+                swapActiveLayer.call(layer);
+            }
+
+            nameLayer.className = "text";
+            nameLayer.className = "name-layer"
+            h5.innerText = layer.dataset.title;
+
+            btnHideLayer.className = "hide-layer";
+            btnHideLayer.innerHTML = "<i class=\"fa fa-eye\"></i>";
+
+            btnLockLayer.className = "lock-layer";
+            btnLockLayer.innerHTML = "<i class=\"fa fa-lock\"></i>";
+
+            btnGrabLayer.className = "grab-layer";
+            btnGrabLayer.innerHTML = "<i class=\"fa fa-grip-lines\"></i>";
+
+            layer.append(btnHideLayer);
+            nameLayer.append(h5);
+            layer.append(nameLayer);
+            layer.append(btnLockLayer);
+            layer.append(btnGrabLayer);
+            listLayer.prepend(layer);
+
+            layer.addEventListener("click", swapActiveLayer);
+            btnLockLayer.addEventListener("click", function(){
+                let isLocking = layer.getAttribute("data-islock") === "true";
+                let icon = this.querySelector("i");
+                
+                if(!isLocking){
+                    icon.classList.remove("fa-unlock");
+                    icon.classList.add("fa-lock");
+                    layer.dataset.islock = true;
+                    return;
+                }
+                layer.dataset.islock = false;
+                icon.classList.remove("fa-lock");
+                icon.classList.add("fa-unlock");
+            });
+            btnHideLayer.addEventListener("click", function(){
+                let isHidden = layer.getAttribute("data-ishidden") === "true";
+                let icon = this.querySelector("i");
+                
+                if(!isHidden){
+                    icon.classList.remove("fa-eye");
+                    icon.classList.add("fa-eye-slash");
+
+                    layer.classList.add("hidden-layer");
+                    layer.dataset.ishidden = true;
+                    return;
+                }
+                
+                layer.dataset.ishidden = false;
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+
+                layer.classList.remove("hidden-layer");
+            });
+            btnGrabLayer.addEventListener("mousedown", (e) => {
                 let abort = new AbortController();
                 e.preventDefault();
-
-                draggingLayer = handle.closest(".layer");
-                
+            
                 window.addEventListener("mousemove", (e)=> {
-                    container.querySelectorAll(".layer").forEach(el => el.classList.remove("swap"));
+                    listLayer.querySelectorAll(".layer").forEach(el => el.classList.remove("swap"));
                     e.target.closest(".layer")?.classList.add("swap");
                 },{signal: abort.signal});
-
                 window.addEventListener("mouseup", (e)=>{
                     e.target?.closest(".layer").classList.remove("swap");
-                    e.target?.closest(".layer").after(draggingLayer);
+                    e.target?.closest(".layer").after(layer);
                     abort.abort();
                 }, { once: true });
             });
-        });
-        function getPositionRelativeToParent(element) {
-            const parent = element.parentElement;
-            const parentRect = parent.getBoundingClientRect();
-            const elementRect = element.getBoundingClientRect();
-            
-            return {
-                top: elementRect.top - parentRect.top,
-                left: elementRect.left - parentRect.left,
-                bottom: elementRect.bottom - parentRect.top,
-                right: elementRect.right - parentRect.left
-            };
+            nameLayer.addEventListener("dblclick", function(e){
+                let inpNameLayer = document.createElement("input");
+                inpNameLayer.value = layer.dataset.title;
+                inpNameLayer.type = "text";
+
+                nameLayer.replaceChild(inpNameLayer, h5);
+                inpNameLayer.focus();
+                inpNameLayer.addEventListener("blur", function(){
+                    if(inpNameLayer.value == ""){
+                        nameLayer.replaceChild(h5, inpNameLayer);
+                        return;
+                    }
+
+                    layer.dataset.title = findTitle(inpNameLayer.value, 1);
+                    h5.innerText = layer.dataset.title;
+                    nameLayer.replaceChild(h5, inpNameLayer);
+                });
+                inpNameLayer.addEventListener("keypress", function(e){
+                    if(e.keyCode == 13)
+                        inpNameLayer.blur();
+                });
+            });
+            ctr++;
+        }
+        function swapActiveLayer(){
+            activeLayer?.classList.remove("active");
+            this.classList.add("active");
+            activeLayer = this;
+
+            document.querySelector("#opacity-label h5").innerText = "Transparência " + activeLayer.dataset.opacity + "%"
+            inpOpacity.value = activeLayer.dataset.opacity;
         }
     </script>
-
-<!-- 
-
-    <script>
-        window.onload=()=>{
-            console.log(document.getElementById("list-layers"))
-
-        }
-        let listLayer = document.getElementById("#list-layers");
-        let listFrames = document.querySelector("#list-frames");
-        
-        let btnMoveDown = document.querySelector("#move-down-layer");
-        let btnMoveUp = document.querySelector("#move-up-layer");
-        let btnAddLayer = document.querySelector("#move-up-layer");
-        let btnRemoveLayer = document.querySelector("#move-up-layer");
-        let btnCloneLayer = document.querySelector("#move-up-layer");
-
-
-        
-        let btnHideLayer = document.querySelector(".layer .hide-layer");
-        let btnDragLayer = document.querySelector(".layer .grab-layer");
-        
-        btnHideLayer.addEventListener("click", function(){
-            let layer = this.parentNode;
-            let isHidden = layer.classList.toggle("hidden");
-            
-            if(isHidden){
-                this.querySelector("i").className = "fa fa-eye-slash";
-                return;
-            }
-            this.querySelector("i").classList.toggle("fa-eye");
-        });
-        
-        btnDragLayer.addEventListener("dragstart", function(e){
-            console.log("movendo: ",e.clientX, e.clientY)
-            e.dataTransfer.setData("text/html",this.text);
-            console.log("movendo: ",this.innerText)
-        });
-        
-        btnDragLayer.addEventListener("dragmove", function(e){
-            console.log("movendo: ",e.clientX, e.clientY)
-        });
-        
-        btnDragLayer.addEventListener("dragend", function(e){
-            console.log("movendo: ",e.clientX, e.clientY)
-            console.log("obj: ",e.dataTransfer.getData("text/html"))
-        });
-
-        function moveElement(list){
-            let kids = list;
-            console.log(kids)
-            return {
-                move:(from, to)=>{
-                    elem = kids[from]
-                    kids.insertBefore(elem, to === null ? 0 : kids[to]);
-                }
-            }
-        }
-
-        moveElement(listLayer).move(0,1);
-    </script> -->
 </body>
 </html>
