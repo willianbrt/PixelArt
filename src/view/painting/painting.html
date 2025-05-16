@@ -178,26 +178,20 @@
                         </select>
                     </div>
                     
-                    <button class="btn-ghost-action animate-frames"><i class="fa fa-play"></i> Animar</button>
-                    <button class="btn-ghost-action add-frame"><i class="fa fa-plus"></i> Adicionar</button>
-                    <button class="btn-ghost-action remove-frame"><i class="fa fa-trash"></i> Remover</button>
+                    <button class="btn-ghost-action" id="animate-frames"><i class="fa fa-play"></i> Animar</button>
+                    <button class="btn-ghost-action" id="add-frame"><i class="fa fa-plus"></i> Adicionar</button>
+                    <button class="btn-ghost-action" id="remove-frame"><i class="fa fa-trash"></i> Remover</button>
                 </div>
                 <div class="body hidden">
                     <div class="top">
-                        <button class="arrow-left"><i class="fa fa-arrow-left"></i></button>
-                        <button class="arrow-right"><i class="fa fa-arrow-right"></i></button>
-                        <button class="arrow-duplicate"><i class="fa fa-clone"></i></button>
-                        <button class="flip-x"><i class="fa fa-shuffle"></i></button>
-                        <button class="flip-y"><i class="fa fa-copy"></i></button>
+                        <button id="move-down-frame"><i class="fa fa-arrow-left"></i></button>
+                        <button id="move-up-frame"><i class="fa fa-arrow-right"></i></button>
+                        <button id="duplicate-frame"><i class="fa fa-clone"></i></button>
+                        <button id="flip-x"><i class="fa fa-shuffle"></i></button>
+                        <button id="flip-y"><i class="fa fa-shuffle"></i></button>
                     </div>
 
                     <div id="list-frames">
-                        <div class="frame active">
-                            <canvas class="frame" id="1"></canvas>
-                        </div>
-                        <div class="frame">
-                            <canvas class="frame" id="2"></canvas>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -216,13 +210,90 @@
     <script>
         var ctr = 1;
         window.onload=()=>{
+            addFrame({});
+            ctrFrame = listFrame.querySelectorAll("div.frame").length + 1;
             addLayer({});
             ctr = listLayer.querySelectorAll(".layer").length + 1;
         }
+
+        /* FRAMES */
+        var ctrFrame = 1;
+        let activeFrame;
+        let listFrame = document.getElementById("list-frames");
+
+        let btnAddFrame = document.getElementById("add-frame");
+        let btnCloneFrame = document.getElementById("duplicate-frame");
+        let btnMoveDownFrame = document.getElementById("move-down-frame");
+        let btnMoveUpFrame = document.getElementById("move-up-frame");
+        let btnRemoveFrame = document.getElementById("remove-frame");
+        
+        btnMoveDownFrame.addEventListener("click", function(){
+            let frames = [...listFrame.querySelectorAll("div.frame")];
+            let previousFrame = frames.indexOf(activeFrame) - 1;
+
+            if(previousFrame>= 0)
+                frames[previousFrame].before(activeFrame);
+        });
+        btnMoveUpFrame.addEventListener("click", function(){
+            let frames = [...listFrame.querySelectorAll("div.frame")];
+            let nextFrame = frames.indexOf(activeFrame) + 1;
+
+            if(nextFrame < frames.length)
+                frames[nextFrame].after(activeFrame);
+        }
+    );
+        btnAddFrame.addEventListener("click", addFrame);
+        btnRemoveFrame.addEventListener("click", function(){
+            if(listFrame.querySelectorAll("div.frame").length <= 1) return;
+
+            let frames = [...listFrame.querySelectorAll(".frame")];
+            let indexActiveFrame = frames.indexOf(activeFrame);
+            activeFrame.remove();
+
+            frames = [...listFrame.querySelectorAll("div.frame")];
+
+            if (frames.length === 0) return;
+
+            let nextFrame;
+            if (indexActiveFrame < frames.length) {
+                nextFrame = frames[indexActiveFrame];
+            } else {
+                nextFrame = frames[frames.length - 1];
+            }
+
+            swapActiveFrame.call(nextFrame);
+        });
+        btnCloneFrame.addEventListener("click", function(){
+            addFrame({});
+        });
+        
+        function addFrame(options){
+            let frame = document.createElement("div");
+            let canvas = document.createElement("canvas");
+            
+            frame.classList.add("frame");
+            canvas.id = options.id ?? ctrFrame;
+
+            if(listFrame.querySelectorAll(".frame").length == 0){
+                swapActiveFrame.call(frame);
+            }
+
+            frame.append(canvas);
+            listFrame.prepend(frame);
+
+            frame.addEventListener("click", swapActiveFrame);
+            ctrFrame++;
+        }
+        function swapActiveFrame(){
+            activeFrame?.classList.remove("active");
+            this.classList.add("active");
+            activeFrame = this;
+        }
+
+        /* LAYER */
         let activeLayer;
         let inpOpacity = document.querySelector("input[name='opacity-layer']");
         let listLayer = document.getElementById("list-Layers");
-        let listFrames = document.querySelector("#list-frames");
 
         let btnAddLayer = document.getElementById("add-layer");
         let btnCloneLayer = document.getElementById("duplicate-layer");

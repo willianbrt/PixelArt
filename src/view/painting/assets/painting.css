@@ -374,7 +374,7 @@ select#time-all-frame::before {
   align-items: center;
   overflow: hidden;
 }
-canvas.frame{
+.frame canvas{
     height: 96px;
     width: 96px;
     background-color: aqua;
