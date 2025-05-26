@@ -94,7 +94,7 @@
                     
                     <div class="opacity">
                         <input class="slider" name="opacity-layer" type="range" value="1" min="0" max="100" />
-                        <span id="opacity-label"><h5>Transparência 10%</h5></span>
+                        <span id="opacity-label"><h5>Transparência %</h5></span>
                     </div>
                     
                     <div class="body" id="list-Layers">
@@ -122,25 +122,8 @@
                             <button class="btn-ghost-action" id="trash-pallet"><i class="fa fa-trash"></i></button>
                         </div>
 
-                        <div class="color-picker">
-                            <div class="cromatico">
-                                <canvas id="color-picker" width="150" height="150" dragglable="false"></canvas>
-                                <span class="marker" id="hue" data-hue="0"></span>
-                                <span class="marker" id="color" data-saturation="0" data-light="0"></span>
-                            </div>
-                            
-                            <div class="picker-control">
-                                <input name="hex" type="text"/>
-                            </div>
-                        </div>
-
                         <div class="" id="list-colors">
                             <button class="add-color"><i class="fa fa-plus"></i></button>
-                            <span class="color" style="background-color: rgb(165, 42, 42);"></span>
-                            <span class="color" style="background-color: rgb(149, 173, 13);"></span>
-                            <span class="color" style="background-color: rgb(219, 10, 10);"></span>
-                            <span class="color" style="background-color: rgb(10, 219, 45);"></span>
-                            <span class="color" style="background-color: rgb(10, 31, 219);"></span>
                         </div>
                     </div>
                 </div>
@@ -197,14 +180,112 @@
             </div>
         </section>
     </section>
+
+    <div class="modal" id="modal-color-picker">
+        <div class="modal-header">
+            <div class="color-picker">
+                <div class="cromatico">
+                    <canvas id="color-picker" width="150" height="150" dragglable="false"></canvas>
+                    <span class="marker" id="hue" data-hue="0"></span>
+                    <span class="marker" id="color" data-saturation="0" data-light="0"></span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-content">
+            <div class="form-group col g-4" id="picker-control">
+                <div class="row">
+                    <span class="modal-color" id="new-color"></span>
+                    <span class="modal-color" id="old-color"></span>
+                </div>
+               
+                <div class="row">
+                    <div class="input-group">
+                        <span class="input-label">#</span>
+                        <input name="hex" type="text"/>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col g-4">
+                        <div class="input-group">
+                            <span class="input-label">R</span>
+                            <input name="r" type="number"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-label">G</span>
+                            <input name="g" type="number"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-label">B</span>
+                            <input name="b" type="number"/>
+                        </div>
+                    </div>
+                    
+                    <div class="col g-4">
+                        <div class="input-group">
+                            <span class="input-label">H</span>
+                            <input name="h" type="number" />
+                        </div>
+                        <div class="input-group">
+                            <span class="input-label">S</span>
+                            <input name="s" type="number" max="100" min="0"/>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-label">L</span>
+                            <input name="l" type="number" max="100" min="0"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row center">
+                    <button class="btn-primary" id="add-color">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
    
-    <script src="./js/chromatic.js" type="module"></script>
+    <script src="./js/c2.js" type="module"></script>
     <script>
         let headerFrame = document.querySelector("#pane-footer .header");
+        let btnAddColor= document.querySelector("#add-color");
+        let listColors= document.getElementById("list-colors");
+        
+        let activeColor;
+        let pallet = {
+            name: "Default",
+            colors:[
+                [255,0,0],
+                [255,255,0],
+            ]
+        };
+        
+        btnAddColor.addEventListener("click", function(){
+            let r = document.querySelector("input[name=r]");
+            let g = document.querySelector("input[name=g]");
+            let b = document.querySelector("input[name=b]");
+            console.log(r, g, b)
+            addColor([r, g, b]);
+        });
         headerFrame.addEventListener("click", function(e){
             if(e.target.classList.contains("header"))
                 this.parentNode.querySelector(".body").classList.toggle("hidden")
         });
+        function addColor(color){
+            let spanColor = document.createElement("span");
+
+            spanColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+            spanColor.className = "color";
+            listColors.append(spanColor);
+            swapActiveColor.call(spanColor);
+
+            spanColor.addEventListener("click", function(){
+                swapActiveColor.call(this);
+            });
+        }
+        function swapActiveColor(){
+            document.querySelector(".color.active")?.classList.remove("active");
+            this.classList.add("active");
+        }
     </script>
 
     <script>
@@ -214,6 +295,7 @@
             ctrFrame = listFrame.querySelectorAll("div.frame").length + 1;
             addLayer({});
             ctr = listLayer.querySelectorAll(".layer").length + 1;
+            pallet.colors.forEach(color => addColor(color));
         }
 
         /* FRAMES */
