@@ -1,5 +1,4 @@
-import { rotate, getDelta } from "./dot.js"
-
+s
 const canvas = document.getElementById("color-picker");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
@@ -22,40 +21,206 @@ let colorMarkerPosition = triangle.vertexC.x;
 let _hue = 0;
 let hueMarker = document.querySelector(".marker#hue");
 let colorMarker = document.querySelector(".marker#color");
+
 let inpColorHex = document.querySelector("input[name=hex]");
+
+let inpColorR = document.querySelector("input[name=r]");
+let inpColorG = document.querySelector("input[name=g]");
+let inpColorB = document.querySelector("input[name=b]");
+
+let inpColorH = document.querySelector("input[name=h]");
+let inpColorS = document.querySelector("input[name=s]");
+let inpColorL = document.querySelector("input[name=l]");
+
+inpColorR.addEventListener("input", updateRGB);
+inpColorG.addEventListener("input", updateRGB);
+inpColorB.addEventListener("input", updateRGB);
+
+inpColorH.addEventListener("input", updateHSL);
+inpColorS.addEventListener("input", updateHSL);
+inpColorL.addEventListener("input", updateHSL);
 
 drawColorWheel();
 setHueDeg(_hue);
 
 document.querySelector(".work-color.secondary-color")
-.addEventListener("click", (e)=>{
-    let elemPrimaryColor = e.target.parentNode.querySelector(".work-color.primary-color");
-    let elemSecondaryColor = e.target;
+        .addEventListener("click", (e)=>{
+            let elemPrimaryColor = e.target.parentNode.querySelector(".work-color.primary-color");
+            let elemSecondaryColor = e.target;
 
-    let temp = primaryColor;
-    primaryColor = secondaryColor;
-    secondaryColor = temp;
+            let temp = primaryColor;
+            primaryColor = secondaryColor;
+            secondaryColor = temp;
 
-    elemPrimaryColor.style.background = `rgb(${ secondaryColor[0] }, ${secondaryColor[1]}, ${secondaryColor[2]})`;
-    elemSecondaryColor.style.background = `rgb(${ primaryColor[0] }, ${primaryColor[1]}, ${primaryColor[2]})`;
-});
+            elemPrimaryColor.style.background = `rgb(${ secondaryColor[0] }, ${secondaryColor[1]}, ${secondaryColor[2]})`;
+            elemSecondaryColor.style.background = `rgb(${ primaryColor[0] }, ${primaryColor[1]}, ${primaryColor[2]})`;
+        });
 
 function setColorByPosition(x, y){
     colorMarkerPosition = triangle.clampToTriangle(x, y);
-    const [r,g,b] = triangle.getColor(colorMarkerPosition);
-    primaryColor = [r,g,b];
-    inpColorHex.value = `rgb(${r},${g},${b})`;
+    primaryColor = triangle.getColor(colorMarkerPosition);
 
-    let selectedColor = document.querySelector(".work-color.primary-color");
-    selectedColor.style.background = `rgb(${r},${g},${b})`;
+    const [r,g,b] = primaryColor;
+
+    updateInputColors(r, g, b);
 
     colorMarker.style.left = `${(colorMarkerPosition.x - colorMarker.offsetWidth / 2)}px`;
     colorMarker.style.top = `${(colorMarkerPosition.y - colorMarker.offsetHeight / 2)}px`;
 }
 inpColorHex.addEventListener("input", function(e){
-    let p = triangle.setColor([255,0,0])
-    console.log(e)
+    let color = hexToRgb(this.value);
+    let p = triangle.setColor([color.r, color.g, color.b]);
+    setColorByPosition(p.x, p.y);
 });
+
+function updateHSL(){
+    if(inpColorH.value > 359)
+        inpColorH.value = inpColorH.value.slice(1);
+
+    if(inpColorS.value > 100)
+        inpColorS.value = 100;
+
+    if(inpColorL.value > 100)
+        inpColorL.value = 100;
+
+    if(inpColorH.value < 0)
+        inpColorH.value = 0;
+
+    if(inpColorS.value < 0)
+        inpColorS.value = 0;
+
+    if(inpColorL.value < 0)
+        inpColorL.value = 0;
+
+    let h = Number(inpColorH.value);
+    let s = Number(inpColorS.value);
+    let l = Number(inpColorL.value);
+    let { r, g, b } = hslToRgb(h, s, l);
+    try{
+        setHueDeg(h);
+        let p = triangle.setColor([r, g, b]);
+        setColorByPosition(p.x, p.y)
+    } catch(e){
+        
+    }
+}
+function updateRGB(){
+    let r = inpColorR.value;
+    let g = inpColorG.value;
+    let b = inpColorB.value;
+    try{
+        let p = triangle.setColor([r, g, b]);
+        setColorByPosition(p.x, p.y)
+    } catch(e){
+        
+    }
+}
+function updateInputColors(r, g, b){
+    const colorHSL = rgbToHsl(r, g, b);
+    const colorHex = rgbToHex(r, g, b);
+
+    inpColorHex.value = colorHex;
+    inpColorR.value = r;
+    inpColorG.value = g;
+    inpColorB.value = b;
+    inpColorH.value = colorHSL.h;
+    inpColorS.value = colorHSL.s;
+    inpColorL.value = colorHSL.l;
+
+    let selectedColor = document.querySelector(".work-color.primary-color");
+    selectedColor.style.background = colorHex;
+}
+function rgbToHex(r, g, b) {
+    return "#" + [r, g, b]
+        .map(x => {
+            const hex = x.toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+        })
+        .join("");
+}
+function rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (delta !== 0) {
+        s = delta / (1 - Math.abs(2 * l - 1));
+
+        switch (max) {
+            case r:
+                h = ((g - b) / delta) % 6;
+                break;
+            case g:
+                h = (b - r) / delta + 2;
+                break;
+            case b:
+                h = (r - g) / delta + 4;
+                break;
+        }
+
+        h *= 60;
+        if (h < 0) h += 360;
+    }
+
+    return {
+        h: Math.round(h),
+        s: +(s * 100).toFixed(1),
+        l: +(l * 100).toFixed(1)
+    };
+}
+function hexToRgb(hex) {
+    hex = hex.replace(/^#/, "");
+
+    // Atende formatos curtos como #abc
+    if (hex.length === 3) {
+        hex = hex.split("").map(c => c + c).join("");
+    }
+
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return { r, g, b };
+}
+function hslToRgb(h, s, l) {
+    s /= 100;
+    l /= 100;
+
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+
+    let r = 0, g = 0, b = 0;
+
+    if (0 <= h && h < 60) {
+        [r, g, b] = [c, x, 0];
+    } else if (60 <= h && h < 120) {
+        [r, g, b] = [x, c, 0];
+    } else if (120 <= h && h < 180) {
+        [r, g, b] = [0, c, x];
+    } else if (180 <= h && h < 240) {
+        [r, g, b] = [0, x, c];
+    } else if (240 <= h && h < 300) {
+        [r, g, b] = [x, 0, c];
+    } else if (300 <= h && h < 360) {
+        [r, g, b] = [c, 0, x];
+    }
+
+    r = Math.round((r + m) * 255);
+    g = Math.round((g + m) * 255);
+    b = Math.round((b + m) * 255);
+
+    return { r, g, b };
+}
+
+
 
 function setHueByPosition(x, y){
     const dx = x - cx;
@@ -76,15 +241,17 @@ function setHueRad(hue){
 
     _hue = hue * 180 / Math.PI;
 
-    triangle.setHueColor(_hue);
+    colorMarkerPosition = triangle.setHueColor(_hue);
     requestAnimationFrame(() => drawChromaticTriangle());
 
+    console.log(colorMarkerPosition.x, colorMarkerPosition.y);
     try{
         setColorByPosition(colorMarkerPosition.x, colorMarkerPosition.y);
     }
     catch(e)
     {
-        setColorByPosition(triangle.vertexC.x,triangle.vertexC.y);
+        // setColorByPosition(triangle.vertexC.x,triangle.vertexC.y);
+        // console.log(e)
     }
 }
 

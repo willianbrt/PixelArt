@@ -186,6 +186,7 @@
             <div class="color-picker">
                 <div class="cromatico">
                     <canvas id="color-picker" width="150" height="150" dragglable="false"></canvas>
+                    <!-- <div id="color-picker" width="150" height="150" dragglable="false"></div> -->
                     <span class="marker" id="hue" data-hue="0"></span>
                     <span class="marker" id="color" data-saturation="0" data-light="0"></span>
                 </div>
@@ -260,9 +261,9 @@
         };
         
         btnAddColor.addEventListener("click", function(){
-            let r = document.querySelector("input[name=r]");
-            let g = document.querySelector("input[name=g]");
-            let b = document.querySelector("input[name=b]");
+            let r = document.querySelector("input[name=r]").value;
+            let g = document.querySelector("input[name=g]").value;
+            let b = document.querySelector("input[name=b]").value;
             console.log(r, g, b)
             addColor([r, g, b]);
         });
@@ -271,16 +272,26 @@
                 this.parentNode.querySelector(".body").classList.toggle("hidden")
         });
         function addColor(color){
-            let spanColor = document.createElement("span");
+            if(pallet.colors.find((c)=>  c != color)){
+                pallet.colors.push(color);
+            }
 
-            spanColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-            spanColor.className = "color";
-            listColors.append(spanColor);
+            let spanColor = listColors.querySelector(`.color[data-color='rgb(${color[0]}, ${color[1]}, ${color[2]})']`);
+
+            if(spanColor === null){
+                spanColor = document.createElement("span");
+                spanColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                spanColor.className = "color";
+                spanColor.dataset.color = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                listColors.append(spanColor);
+                console.log(spanColor)
+                
+                spanColor.addEventListener("click", function(){
+                    swapActiveColor.call(this);
+                });
+            }
+
             swapActiveColor.call(spanColor);
-
-            spanColor.addEventListener("click", function(){
-                swapActiveColor.call(this);
-            });
         }
         function swapActiveColor(){
             document.querySelector(".color.active")?.classList.remove("active");
