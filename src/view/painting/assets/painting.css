@@ -508,7 +508,9 @@ button#add-color{
 #modal-color-picker{
     transform: translate(0%, 0%);
     z-index: 10;
-    right: 100%;
+    right: auto;
     left: auto;
+    bottom: auto;
+    top: auto;
     margin-right: 10px;
 }

@@ -13,6 +13,7 @@
         <div class="dropdown">
             <button class="dropdown-label">
                 <img src="../../resource/img/logo.png" class="logo"/>
+                <h3>PREEBIT</h3>
             </button>
             
             <div class="dropdown-menu">
@@ -119,7 +120,7 @@
                         </div>
 
                         <div class="" id="list-colors">
-                            <button class="add-color"><i class="fa fa-plus"></i></button>
+                            <button class="add-color" id="open-modal-color"><i class="fa fa-plus"></i></button>
                         </div>
                     </div>
                 </div>
@@ -261,6 +262,43 @@
    
     <script src="./js/c2.js" type="module"></script>
     <script>
+        let btnOpenModalAddColor = document.querySelector("#open-modal-color");
+        let modalPalleteName = document.querySelector("#modal-pallete-name");
+
+        btnOpenModalAddColor.addEventListener("click", function(e){
+            const rect = btnOpenModalAddColor.getBoundingClientRect();
+            let modalAddColor = document.querySelector("#modal-color-picker");
+
+            modalAddColor.classList.toggle("hidden", false);
+            
+            const padding = 15;
+            const modalWidth = modalAddColor.offsetWidth;
+            const modalHeight = modalAddColor.offsetHeight;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            let top = rect.bottom - modalHeight / 2;
+            let left = rect.left - modalWidth - 30;
+
+            top = Math.max(padding, Math.min(top, windowHeight - modalHeight - padding));
+            left = Math.max(padding, Math.min(left, windowWidth - modalWidth - padding));
+
+            modalAddColor.style.top = `${top + window.scrollY}px`;
+            modalAddColor.style.left = `${left + window.scrollX}px`;
+
+            e.stopPropagation();
+            
+            let abort = new AbortController();
+            window.addEventListener("click", function(){
+                if (!btnOpenModalAddColor.contains(event.target)
+                    && !modalAddColor.contains(event.target)) {
+                    modalAddColor.classList.toggle("hidden", true);
+                    abort.abort();
+                }
+            }, { signal:abort.signal })
+        });
+
+
         let selectPallet = document.querySelector("select[name='pallet']");
         let headerFrame = document.querySelector("#pane-footer .header");
         let btnAddColor= document.querySelector("#add-color");
