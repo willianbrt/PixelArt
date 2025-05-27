@@ -31,9 +31,9 @@ let modalChromatic = chromatic({
 function updateHex(){
     try{
         let color = ColorFactory().buildByHex(this.value);
-        modalChromatic.setColorByHue(color.hsl.h, color.hsl.s, color.hsl.l);
+        modalChromatic.setColor(color);
     } catch(e){
-        console.log(e)
+        console.warn(e)
     }
 }
 function updateHSL(){
@@ -43,21 +43,11 @@ function updateHSL(){
         inpColorH.value = 0;
     }
     inpColorS.value = Math.min(100, Math.max(inpColorS.value, 0));
-    inpColorB.value = Math.min(100, Math.max(inpColorB.value, 0));
-
-    let h = Number(inpColorH.value);
-    let s = Number(inpColorS.value);
-    let l = Number(inpColorL.value);
+    inpColorL.value = Math.min(100, Math.max(inpColorL.value, 0));
 
     let color = ColorFactory().buildByHSL(inpColorH.value, inpColorS.value, inpColorL.value);
 
-    inpColorHex.value = color.hex.replace(/^#/,"");
-
-    inpColorR.value = color.rgb.r;
-    inpColorG.value = color.rgb.g;
-    inpColorB.value = color.rgb.b;
-
-    modalChromatic.setColorByHue(h,s,l);
+    modalChromatic.setColor(color);
 }
 function updateRGB(){
     inpColorR.value = Math.min(255, Math.max(inpColorR.value, 0));
@@ -65,18 +55,9 @@ function updateRGB(){
     inpColorB.value = Math.min(255, Math.max(inpColorB.value, 0));
 
     let color = ColorFactory().buildByRGB(inpColorR.value, inpColorG.value, inpColorB.value);
-    
-    inpColorHex.value = color.hex.replace(/^#/,"");
-
-    inpColorH.value = Math.round(color.hsl.h);
-    inpColorS.value = color.hsl.s;
-    inpColorL.value = color.hsl.l;
-
-    modalChromatic.setColorByHue(color.hsl.h, color.hsl.s, color.hsl.l);
+    modalChromatic.setColor(color);
 }
-function onUpdateColor(hue, saturation, lightness){
-    let color = ColorFactory().buildByHSL(hue, saturation, lightness);
-
+function onUpdateColor(color){
     inpColorHex.value = color.hex.replace(/^#/,"");
 
     inpColorR.value = color.rgb.r;
@@ -98,9 +79,7 @@ function chromatic(options){
     const RAD_TO_DEG = 180 / Math.PI;
     const DEG_TO_RAD = Math.PI / 180;
 
-    let _hue = 0;
-    let _saturation = 100;
-    let _lightness = 50;
+    let _color = ColorFactory().buildByHSL(0, 100, 50);
 
     const canvas = document.getElementById("color-picker");
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -123,7 +102,7 @@ function chromatic(options){
     let chromatic = buildChromatic(innerRadius-padding, {x: cx,y:cy}, 90);
     
     (()=>{
-        setColorByHue(_hue, _saturation,_lightness);
+        setColor(_color);
         drawColorWheel();
         drawChromaticTriangle();
     })();
@@ -188,7 +167,7 @@ function chromatic(options){
             cursorY = ev.clientY - rect.top;
             setHueByPosition(cursorX, cursorY);
             
-            options?.onUpdateColor(_hue, _saturation, _lightness);
+            options?.onUpdateColor(_color);
         }, { signal: abort.signal });
 
         window.addEventListener("mouseup", ()=>abort.abort(), {once:true});
@@ -206,8 +185,7 @@ function chromatic(options){
         hueMarker.style.top = `${markerY - hueMarker.offsetHeight/2}px`;
         hueMarker.style.left = `${markerX - hueMarker.offsetWidth/2}px`;
         
-        _hue = degree;
-        chromatic.setColor(_hue);
+        chromatic.setColor(degree);
 
         requestAnimationFrame(() => drawChromaticTriangle());
     }
@@ -236,24 +214,22 @@ function chromatic(options){
     
     function setColorByPoint(x, y){
         let colorMarkerPosition = chromatic.clampped(x, y);
-        const color = chromatic.getColor(colorMarkerPosition);
-        _saturation= color.hsl.s;
-        _lightness = color.hsl.l;
-
+        _color = chromatic.getColor(colorMarkerPosition);
+        
         colorMarker.style.left = `${(colorMarkerPosition.x - colorMarker.offsetWidth/2)}px`;
         colorMarker.style.top = `${(colorMarkerPosition.y - colorMarker.offsetHeight/2)}px`;
 
-        options?.onUpdateColor(_hue, _saturation, _lightness);
+        options?.onUpdateColor(_color);
     }
-    function setColorByHue(hue, saturation, lightness){
-        console.log(hue, saturation, lightness);
+    function setColor(color){
         try{
-            const position = chromatic.getPositionColor(saturation, lightness);
+            _color = color;
+            const position = chromatic.getPositionColor(_color.hsl.s, _color.hsl.l);
 
             colorMarker.style.left = `${(position.x - colorMarker.offsetWidth / 2)}px`;
             colorMarker.style.top = `${(position.y - colorMarker.offsetHeight / 2)}px`;
 
-            const rad = hue * DEG_TO_RAD;
+            const rad = _color.hsl.h * DEG_TO_RAD;
             
             const markerX = Math.cos(rad) * centerRadius + cx;
             const markerY = Math.sin(rad) * centerRadius + cy;
@@ -261,15 +237,13 @@ function chromatic(options){
             hueMarker.style.top = `${markerY - hueMarker.offsetHeight/2}px`;
             hueMarker.style.left = `${markerX - hueMarker.offsetWidth/2}px`;
 
-            _hue = hue;
-            _saturation = saturation;
-            _lightness = lightness;
-            chromatic.setColor(_hue);
+            chromatic.setColor(_color.hsl.h);
             requestAnimationFrame(() => drawChromaticTriangle());
         } catch(e){
-            console.log(e)
+            console.warn(e);
         }
-        options?.onUpdateColor(hue, saturation, lightness);
+
+        options?.onUpdateColor(_color);
     }
     
     function drawColorWheel(){
@@ -537,14 +511,14 @@ function chromatic(options){
     }
 
     return {
-        setColorByHue
+        setColor
     }
 }
 
 function ColorFactory(){
     function buildByRGB(r,g,b){ 
         return {
-            rgb: [r, g, b],
+            rgb: {r, g, b},
             hsl: rgbToHsl(r, g, b),
             hex: rgbToHex(r, g, b)
         }
@@ -569,12 +543,7 @@ function ColorFactory(){
     }
     
     function rgbToHex(r, g, b) {
-        return "#" + [r, g, b]
-            .map(x => {
-                const hex = x.toString(16);
-                return hex.length === 1 ? "0" + hex : hex;
-            })
-            .join("");
+        return "#" + (r << 16 | g << 8 | b).toString(16).padStart(6, "0");
     }
     function rgbToHsl(r, g, b) {
         r /= 255;
@@ -615,7 +584,7 @@ function ColorFactory(){
     function hexToRgb(hex) {
         hex = hex.replace(/^#/, "");
         if (!(/^[0-9A-Fa-f]{6}$/.test(hex)) && !(/^[0-9A-Fa-f]{3}$/.test(hex))) {
-            throw new Error("Fora do escopo");
+            throw new Error("Formato do hexadecimal inválido.");
         }
         if (hex.length === 3) {
             hex = hex.split("").map(c => c + c).join("");

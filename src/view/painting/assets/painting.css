@@ -458,10 +458,14 @@ div.frame.active::before{
 
 .modal{
     position: absolute;
-    left: 0;
-    top: 0;
     background-color: #53365E;
     width: 224px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.modal.hidden{
+    display: none;
 }
 .modal-content{
     padding: 16px 20px;
@@ -502,5 +506,9 @@ button#add-color{
     width: 100%;
 }
 #modal-color-picker{
-    
+    transform: translate(0%, 0%);
+    z-index: 10;
+    right: 100%;
+    left: auto;
+    margin-right: 10px;
 }

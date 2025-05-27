@@ -12,7 +12,7 @@
     <section class="navbar">
         <div class="dropdown">
             <button class="dropdown-label">
-                <img src="" class="logo"/>
+                <img src="../../resource/img/logo.png" class="logo"/>
             </button>
             
             <div class="dropdown-menu">
@@ -113,11 +113,7 @@
                 <div class="pane-content" id="pane-colors">
                     <div class="body">
                         <div class="top-pane">
-                            <select name="pallet">
-                                <option selected>Padrão</option>
-                                <option>Sombras</option>
-                                <option>Luzes</option>
-                            </select>
+                            <select name="pallet"></select>
                             <button class="btn-ghost-action" id="add-pallet"><i class="fa fa-plus"></i></button>
                             <button class="btn-ghost-action" id="trash-pallet"><i class="fa fa-trash"></i></button>
                         </div>
@@ -181,7 +177,7 @@
         </section>
     </section>
 
-    <div class="modal" id="modal-color-picker">
+    <div class="modal hidden" id="modal-color-picker">
         <div class="modal-header">
             <div class="color-picker">
                 <div class="cromatico">
@@ -198,7 +194,7 @@
                     <span class="modal-color" id="new-color"></span>
                     <span class="modal-color" id="old-color"></span>
                 </div>
-               
+            
                 <div class="row">
                     <div class="input-group">
                         <span class="input-label">#</span>
@@ -244,27 +240,61 @@
             </div>
         </div>
     </div>
+
+    <div class="modal hidden" id="modal-pallete-name">
+        <div class="modal-content">
+            <div class="form-group col g-4">
+                <div class="row">
+                    <div class="input-group">
+                        <span class="input-label">${Nome}</span>
+                        <input name="name-pallete" type="text"/>
+                    </div>
+                </div>
+
+                <div class="row center">
+                    <button class="btn-primary" id="add-color">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
    
     <script src="./js/c2.js" type="module"></script>
     <script>
+        let selectPallet = document.querySelector("select[name='pallet']");
         let headerFrame = document.querySelector("#pane-footer .header");
         let btnAddColor= document.querySelector("#add-color");
         let listColors= document.getElementById("list-colors");
         
         let activeColor;
-        let pallet = {
+        let pallet = [{
             name: "Default",
             colors:[
                 [255,0,0],
                 [255,255,0],
             ]
-        };
+        },
+        {
+            name: "Sombras",
+            colors:[
+                [255,0,0],
+                [255,255,0],
+            ]
+        },
+        {
+            name: "Luzes",
+            colors:[
+                [255,0,0],
+                [255,255,0],
+            ]
+        }];
+        selectPallet.addEventListener("change", ()=> changeActivePallet());
         
         btnAddColor.addEventListener("click", function(){
             let r = document.querySelector("input[name=r]").value;
             let g = document.querySelector("input[name=g]").value;
             let b = document.querySelector("input[name=b]").value;
-            console.log(r, g, b)
+
             addColor([r, g, b]);
         });
         headerFrame.addEventListener("click", function(e){
@@ -272,8 +302,8 @@
                 this.parentNode.querySelector(".body").classList.toggle("hidden")
         });
         function addColor(color){
-            if(pallet.colors.find((c)=>  c != color)){
-                pallet.colors.push(color);
+            if(activePallet.colors.find((c)=>  c != color)){
+                activePallet.colors.push(color);
             }
 
             let spanColor = listColors.querySelector(`.color[data-color='rgb(${color[0]}, ${color[1]}, ${color[2]})']`);
@@ -284,7 +314,6 @@
                 spanColor.className = "color";
                 spanColor.dataset.color = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
                 listColors.append(spanColor);
-                console.log(spanColor)
                 
                 spanColor.addEventListener("click", function(){
                     swapActiveColor.call(this);
@@ -300,13 +329,26 @@
     </script>
 
     <script>
+        var activePallet;
         var ctr = 1;
         window.onload=()=>{
             addFrame({});
             ctrFrame = listFrame.querySelectorAll("div.frame").length + 1;
             addLayer({});
             ctr = listLayer.querySelectorAll(".layer").length + 1;
-            pallet.colors.forEach(color => addColor(color));
+
+            pallet.forEach(p => addPallet(p));
+            changeActivePallet();
+        }
+        function changeActivePallet(){
+            activePallet = pallet.find((p)=> p.name === selectPallet.value);
+            activePallet.colors.forEach(color => addColor(color));
+        }
+        function addPallet(p){
+            let optionPallet = document.createElement("option");
+            optionPallet.value = p.name;
+            optionPallet.innerText = p.name;
+            selectPallet.append(optionPallet)
         }
 
         /* FRAMES */
