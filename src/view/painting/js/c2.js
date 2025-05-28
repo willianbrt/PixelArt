@@ -1,81 +1,6 @@
-import { rotate, getDelta } from "./dot.js"
+import { rotate } from "./dot.js"
 
-// INPUTS
-let inpColorHex = document.querySelector("input[name=hex]");
-
-let inpColorR = document.querySelector("input[name=r]");
-let inpColorG = document.querySelector("input[name=g]");
-let inpColorB = document.querySelector("input[name=b]");
-
-let inpColorH = document.querySelector("input[name=h]");
-let inpColorS = document.querySelector("input[name=s]");
-let inpColorL = document.querySelector("input[name=l]");
-    
-inpColorR.addEventListener("input", updateRGB);
-inpColorG.addEventListener("input", updateRGB);
-inpColorB.addEventListener("input", updateRGB);
-
-inpColorH.addEventListener("input", updateHSL);
-inpColorS.addEventListener("input", updateHSL);
-inpColorL.addEventListener("input", updateHSL);
-
-inpColorHex.addEventListener("input", updateHex);
-
-let modalChromatic = chromatic({
-    content: document.getElementById("chromatic"),
-    width:100,
-    height:100,
-    onUpdateColor: onUpdateColor
-});
-
-function updateHex(){
-    try{
-        let color = ColorFactory().buildByHex(this.value);
-        modalChromatic.setColor(color);
-    } catch(e){
-        console.warn(e)
-    }
-}
-function updateHSL(){
-    if(inpColorH.value < 0){
-        inpColorH.value = 359;
-    }else if(inpColorH.value >= 360){
-        inpColorH.value = 0;
-    }
-    inpColorS.value = Math.min(100, Math.max(inpColorS.value, 0));
-    inpColorL.value = Math.min(100, Math.max(inpColorL.value, 0));
-
-    let color = ColorFactory().buildByHSL(inpColorH.value, inpColorS.value, inpColorL.value);
-
-    modalChromatic.setColor(color);
-}
-function updateRGB(){
-    inpColorR.value = Math.min(255, Math.max(inpColorR.value, 0));
-    inpColorG.value = Math.min(255, Math.max(inpColorG.value, 0));
-    inpColorB.value = Math.min(255, Math.max(inpColorB.value, 0));
-
-    let color = ColorFactory().buildByRGB(inpColorR.value, inpColorG.value, inpColorB.value);
-    modalChromatic.setColor(color);
-}
-function onUpdateColor(color){
-    inpColorHex.value = color.hex.replace(/^#/,"");
-
-    inpColorR.value = color.rgb.r;
-    inpColorG.value = color.rgb.g;
-    inpColorB.value = color.rgb.b;
-
-    inpColorH.value = Math.round(color.hsl.h);
-    inpColorS.value = color.hsl.s;
-    inpColorL.value = color.hsl.l;
-
-    let selectedColor = document.querySelector(".work-color.primary-color");
-    selectedColor.style.background = color.hex;
-
-    let newColor = document.querySelector("#new-color");
-    newColor.style.background = color.hex;
-}
-
-function chromatic(options){
+export function Chromatic(options){
     const RAD_TO_DEG = 180 / Math.PI;
     const DEG_TO_RAD = Math.PI / 180;
 
@@ -515,7 +440,7 @@ function chromatic(options){
     }
 }
 
-function ColorFactory(){
+export function ColorFactory(){
     function buildByRGB(r,g,b){ 
         return {
             rgb: {r, g, b},

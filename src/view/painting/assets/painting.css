@@ -68,7 +68,7 @@ body{
     grid-area: right;
     display: flex;
     flex-direction: row;
-    max-width: 242px;
+    width: 209px;
 }
 #pane-footer{
     grid-area: footer;
@@ -88,6 +88,7 @@ body{
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    width: 100%;
 }
 .pane-content .body{
     background-color: var(--panel-background-color);
@@ -257,7 +258,7 @@ body{
     flex-direction: column;
     flex:1;
 }
-#pane-layers .footer{
+.pane .footer{
     background-color: #5C4165;
     display: flex;
     justify-content: center;
@@ -282,27 +283,31 @@ body{
 .top-pane{
     display: flex;
 }
-span.color, button.add-color{
-    display: block;
-    height: 24px;
-    width: 24px;
-    border:none;
-    outline: none;
+#pane-colors{
+    flex: 0.75;
+}
+.pane .body{
+    flex: 1;
+}
+#pane-colors #list-colors{
+    display:grid;
+    gap: 2px 2px;
+    grid-template-columns: repeat(6, 24px);
+    grid-auto-rows: 24px;
+    height: 64px;
+    justify-content: center;
+}
+span.color{
+    height: 100%;
+    width: 100%;
     border-radius: 4px;
     color: var(--light-text-color);
-    background-color: var(--panel-outline-color);
-    align-items: center;
     cursor: pointer;
     padding: 0;
 }
-#pane-colors #list-colors{
-    display:flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 8px 16px;
-    align-items: start;
-    height: 64px;
+span.color.active{
+  -webkit-mask-image: radial-gradient(circle at 8px 8px, transparent 2px, black 2px);
+  mask-image: radial-gradient(circle at 8px 8px, transparent 2px, black 2px);
 }
 
 .hidden{
@@ -455,7 +460,6 @@ div.frame.active::before{
     left:12px;
     z-index:0;
 }
-
 .modal{
     position: absolute;
     background-color: #53365E;
@@ -463,6 +467,7 @@ div.frame.active::before{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    border: 1px solid #000;
 }
 .modal.hidden{
     display: none;
@@ -474,7 +479,6 @@ div.frame.active::before{
     flex: 1;
     height: 16px;
     width: 50%;
-    background-color: #04AA6D;
 }
 input{
     background-color: #896A95;
