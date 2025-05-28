@@ -372,7 +372,7 @@
             workPrimaryColor.style.background = `rgb(${ activeColor[0] }, ${activeColor[1]}, ${activeColor[2]})`;    
             workSecondaryColor.style.background = `rgb(${ secondaryColor[0] }, ${secondaryColor[1]}, ${secondaryColor[2]})`;
             
-            palette.forEach(p => addPalette(p));
+            palette.forEach(p => loadPalette(p));
             loadActivePalette();
         });
 
@@ -404,7 +404,7 @@
             };
 
             palette.push(newPalette);
-            addPalette(newPalette);
+            loadPalette(newPalette);
             selectPalette.value = newPalette.name;
             loadActivePalette();
         });
@@ -517,7 +517,7 @@
             this?.classList.toggle("active",true);
         }
         
-        function addPalette(p){
+        function loadPalette(p){
             let optionPalette = document.createElement("option");
             optionPalette.value = p.name;
             optionPalette.innerText = p.name;
