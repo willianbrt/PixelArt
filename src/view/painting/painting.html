@@ -7,8 +7,6 @@
 
     <link href="./../../styles/themes/dark.css" rel="stylesheet" type="text/css"></link>     
     <link href="assets/painting.css" rel="stylesheet" type="text/css"></link>
-    
-    <script src="./js/c2.js" type="module"></script>
 </head>
 <body data-theme="dark">
     <section class="navbar">
@@ -301,6 +299,7 @@
         let btnOpenModalAddPalette = document.querySelector("#new-palette");
         let modalPaletteName = document.querySelector("#modal-pallete-name");
         let btnAddPalette = document.querySelector("#add-pallete");
+        let btnRemovePalette = document.querySelector("#trash-palette");
 
         let btnOpenModalAddColor = document.querySelector("#open-modal-color");
         let modalAddColor = document.querySelector("#modal-color-picker");
@@ -397,6 +396,7 @@
             swapActiveColor.call(spanColor, secondaryColor);
         });
 
+        btnRemovePalette.addEventListener("click", ()=>removePalette());
         btnAddPalette.addEventListener("click", function(e){
             let newPalette = {
                 name: document.querySelector("input[name='name-pallete']").value,
@@ -522,6 +522,15 @@
             optionPalette.value = p.name;
             optionPalette.innerText = p.name;
             selectPalette.append(optionPalette)
+        }
+    
+        function removePalette(){
+            if(selectPalette.value === "Default")
+                return;
+
+            palette.splice(0, 1, (p)=>p.name === selectPalette.value);
+            selectPalette.querySelector(`option[value=${selectPalette.value}]`).remove();
+            selectPalette.value = "Default";
         }
     </script>
 
