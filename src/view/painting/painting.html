@@ -528,9 +528,13 @@
             if(selectPalette.value === "Default")
                 return;
 
-            palette.splice(0, 1, (p)=>p.name === selectPalette.value);
+            let index = palette.findIndex((p)=> p.name == selectPalette.value);
+            if (index <= -1) return;
+            
+            palette.splice(index, 1);
             selectPalette.querySelector(`option[value=${selectPalette.value}]`).remove();
             selectPalette.value = "Default";
+            loadActivePalette();
         }
     </script>
 
