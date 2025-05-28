@@ -89,7 +89,6 @@ export function Chromatic(options){
             cursorX = ev.clientX - rect.left;
             cursorY = ev.clientY - rect.top;
             setHueByPosition(cursorX, cursorY);
-            
             options?.onUpdateColor(_color);
         }, { signal: abort.signal });
 
@@ -107,7 +106,8 @@ export function Chromatic(options){
 
         hueMarker.style.top = `${markerY - hueMarker.offsetHeight/2}px`;
         hueMarker.style.left = `${markerX - hueMarker.offsetWidth/2}px`;
-        
+
+        _color = ColorFactory().buildByHSL(degree, _color.hsl.s,_color.hsl.l);
         chromatic.setColor(degree);
 
         requestAnimationFrame(() => drawChromaticTriangle());
