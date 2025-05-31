@@ -15,7 +15,7 @@
     --secondary-color:hsl(207, 12%, 29%);
     --emphasis-color:hsl(209, 88%, 44%);
     
-    --light-text-color:#fff;
+    --light-text-color:#fbf0ff;
     --dark-text-color:#000;
 
     --dark-btn-border-color:#BDA20A;
@@ -36,51 +36,86 @@ h5{
     font-size: 16px;
     line-height: 16px;
 }
+.form-group input{
+    width: 70px;
+}
+
 body{
     display: flex;
     flex-direction: column;
 }
-#drawing-area canvas{
-    margin: auto;
-    display: block;
+.frame canvas, #drawing-area canvas#painting, #drawing-area canvas#preview {
+    --tile-size: 1px;
+    background-image: repeating-conic-gradient(
+        #fff 0% 25%, 
+        #ccc 0% 50%,
+        #fff 0% 75%,
+        #ccc 0% 100%);
+    background-size: calc(var(--tile-size) * 2) calc(var(--tile-size) * 2);
     image-rendering: pixelated;
-    height: 100%;
-    width: 100%;
+}
+#drawing-area {
+    position: relative;
+    display: block;
+    padding: 8px;
+}
+#drawing-area #painting{
+    transform: scale(200%);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+}
+#drawing-area #preview{
+    position: absolute;
+    right: 32px;
+    top:   32px;
+    width: 100px;
+    height: 100px;
 }
 .content {
     height: 100%;
     display:grid; 
-    grid-template-areas: "left canvas right"
-                         "footer footer footer";
+    grid-template-areas: "top top right"
+                        "left canvas right"
+                         "footer footer right";
     grid-template-columns: auto 1fr auto;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: auto 1fr auto;
     overflow: hidden;
+    
+    background: #441d51;
+    gap: 4px;
+    padding: 4px;
 } 
 #drawing-area{
     grid-area: canvas;
     overflow-y: auto;
     overflow-x: auto;
+    background-color: var(--background-color)
+}
+#pane-top{
+    grid-area: top;
 }
 #pane-left{
     grid-area: left;
+    display:grid; 
+    grid-template-columns: auto 200px;
+    overflow: hidden;
 }
 #pane-right{
     grid-area: right;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 209px;
+}
+#pane-advertisement{
+    grid-area: ad;
 }
 #pane-footer{
     grid-area: footer;
 }
-#pane-left, #drawing-area{
-    display: flex;
-    flex-direction: column;
-}
 .pane{
-    padding: 4px;
-    gap: 4px;
     background: #441d51;
+    gap: 4px;
     overflow-y: auto;
 }
 
@@ -126,13 +161,12 @@ body{
     flex-direction: column;
     height: 100%;
 }
-
 .pane #pane-tool .body{
-    padding: 16px 8px;
+    padding: 16px 0px;
     display: grid;
     justify-content: center;
     align-content: start;
-    gap: 8px 10px;
+    gap: 4px 4px;
     grid-template-columns: auto;
     height: 100%;
     overflow-y: auto;
@@ -140,15 +174,14 @@ body{
 .pane #pane-tool .tool {
     width: min-content;
     height: min-content;
+    background-color: transparent;
+    padding: 8px;
+}
+.pane #pane-tool .tool:hover {
+    background: rgb(0 0 0 / 10%)
 }
 .pane #pane-tool .tool img{
     width: 16px;
-}
-
-.pane .tool{
-    border: 2px solid var(--dark-btn-border-color);
-    background-color:var(--dark-btn-background-color);
-    padding: 8px;
 }
 
 .opacity{
@@ -222,11 +255,6 @@ body{
     padding: 8px;
     align-self: center;
 }
-.layer canvas{
-    width: 32px;
-    height: 32px;
-    background-color: #1E1326;
-}
 .layer .name-layer{
     flex: 1;
     align-content: center;
@@ -283,18 +311,14 @@ body{
 .top-pane{
     display: flex;
 }
-#pane-colors{
-    flex: 0.75;
-}
 .pane .body{
     flex: 1;
 }
-#pane-colors #list-colors{
+#list-colors{
     display:grid;
     gap: 2px 2px;
     grid-template-columns: repeat(6, 24px);
     grid-auto-rows: 24px;
-    height: 64px;
     justify-content: center;
 }
 span.color{
@@ -375,7 +399,7 @@ select#time-all-frame::before {
 }
 #list-frames{
   counter-reset: my-sec-counter;
-  padding: 4px 24px;
+  padding: 8px 24px;
   display: flex;
   flex-direction: row;
   gap: 8px;
@@ -421,6 +445,7 @@ div.frame.active::before{
     align-content: center;
 }
 .color-picker{
+    position: relative;
     background-color: #16021E;
     display: flex;
     justify-content: center;
@@ -440,30 +465,30 @@ div.frame.active::before{
 #pane-wornking-colors .body{
     overflow-y: hidden;
 }
-.working-colors{
-    position: relative;
-    min-width: 40px;
-    max-width: 40px;
-    min-height: 40px;
-    max-height: 40px;
-    margin: 8px auto;
+.working-colors {
+    position: absolute;
+    min-width: 32px;
+    max-width: 32px;
+    min-height: 32px;
+    max-height: 32px;
+    left: 8px;
 }
 .work-color{
     display: inline-block;
-    height: 24px;
-    width: 24px;
+    height: 16px;
+    width: 16px;
+    border: #fff solid 1px;
     border-radius: 4px;
     position:absolute;
 }
 .work-color.primary-color{
-    top:12px;
-    left:12px;
+    top:8px;
+    left:8px;
     z-index:0;
 }
 .modal{
     position: absolute;
     background-color: #53365E;
-    width: 224px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -480,7 +505,7 @@ div.frame.active::before{
     height: 16px;
     width: 50%;
 }
-input{
+.form-group input{
     background-color: #896A95;
     border: none;
     outline: none;
@@ -488,26 +513,38 @@ input{
     color: var(--light-text-color);
     font-size: 16px;
     border-radius: 4px;
-    padding: 8px;
-    width: 100%;
+    padding: 8px 8px;
+    width: calc(100% - 16px);
 }
 .input-group{
     display: flex;
-    background-color: #684875;
-    border-radius: 4px;
+    text-align: center;
+    align-items: center;
+    gap:4px;
+}
+div#picker-control {
+    padding: 4px 8px;
+}
+#picker-control .input-group{
     width: 100%;
+    flex-direction: column-reverse;
+}
+select[name="color-pattern"]{
+    padding-left: 0;
+    padding-right: 0;
+}
+.color-form.hidden {
+    display: none;
 }
 .input-group .input-label{
     font-family: "Jersey 10";
     color: var(--light-text-color);
     font-size: 16px;
-    height: 100%;
     display: block;
     align-content: center;
-    padding: 0 8px;
 }
-button#add-color{
-    width: 100%;
+.color-form .input-label{
+    color: #896A95;
 }
 #modal-color-picker{
     transform: translate(0%, 0%);
@@ -517,4 +554,7 @@ button#add-color{
     bottom: auto;
     top: auto;
     margin-right: 10px;
+}
+#add-color{
+    align-self: baseline;
 }

@@ -78,6 +78,7 @@ button{
     align-items: center;
     justify-content: center;
     font-size: 1em;
+    /* align-self: baseline; */
 }
 button.btn-primary {
     background-color: #350D44;

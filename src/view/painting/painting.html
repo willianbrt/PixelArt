@@ -52,99 +52,167 @@
     </section>
 
     <section class="content">
+        <section class="pane" id="pane-top">
+            <div class="pane-content" id="pane-tool-options">
+                <div class="body">
+                    <div class="row">
+                        <button class="btn-ghost-action"><i class="fa fa-reply"></i></button>
+                        <button class="btn-ghost-action"><i class="fa fa-share"></i></button>
+                    
+                        <div class="input-group">
+                            <span class="input-label">Tamanho</span>
+                            <input name="size" type="range" value="1" min="0" max="100"/>
+                        </div>
+                    
+                        <div class="input-group">
+                            <span class="input-label">Tamanho</span>
+                            <input name="size" type="range" value="1" min="0" max="100"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="pane" id="pane-left">
             <div class="pane-content" id="pane-tool">
-                <div class="header">
-                    <h4>
-                        <i class="fa fa-toolbox"></i>
-                    </h4>
-                </div>
-
                 <div class="body">
                     <button class="tool tool-pencil"><img src="../../../src/resource/img/pencil.png" /></button>
-                    <button class="tool tool-brush"><img src="../../../src/resource/img/brush.png" /></button>
                     <button class="tool tool-eraser"><img src="../../../src/resource/img/eraser.png" /></button>
+                    <button class="tool tool-dropper"><img src="../../../src/resource/img/dropper.png" /></button>
+                    <button class="tool tool-brush"><img src="../../../src/resource/img/brush.png" /></button>
                     <button class="tool tool-bucket"><img src="../../../src/resource/img/bucket.png" /></button>
                     <button class="tool tool-line"><img src="../../../src/resource/img/line.png" /></button>
                     <button class="tool tool-square"><img src="../../../src/resource/img/square.png" /></button>
                     <button class="tool tool-circle"><img src="../../../src/resource/img/circle.png" /></button>
-                    <button class="tool tool-dropper"><img src="../../../src/resource/img/dropper.png" /></button>
                 </div>
             </div>
-            
-            <div class="pane-content" id="pane-wornking-colors">
+
+            <div class="pane-content" id="pane-colors">
                 <div class="body">
-                    <div class="working-colors">
-                        <span class="work-color secondary-color"></span>
-                        <span class="work-color primary-color"></span>
+                    <div class="color-picker">
+                        <div class="cromatico">
+                            <canvas id="color-picker" width="150" height="150" dragglable="false"></canvas>
+                            <span class="marker" id="hue" data-hue="0"></span>
+                            <span class="marker" id="color" data-saturation="0" data-light="0"></span>
+                        </div>
+
+                        <div class="working-colors">
+                            <span class="work-color secondary-color"></span>
+                            <span class="work-color primary-color"></span>
+                        </div>
                     </div>
+
+                    <div class="row">
+                        <span class="modal-color" id="new-color"></span>
+                        <span class="modal-color" id="old-color"></span>
+                    </div>
+
+                    <div class="form-group col" id="picker-control">
+                        <div class="row">
+                            <select name="color-pattern">
+                                <option selected>HEX</option>
+                                <option>RGB</option>
+                                <option>HSL</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-4">   
+                            <div class="row g-4 color-form" id="inp-hex">
+                                <div class="input-group" id="inp-hex">
+                                    <span class="input-label">Hexadecimal</span>
+                                    <input name="hex" type="text"/>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 color-form hidden" id="inp-rgb">
+                                <div class="input-group">
+                                    <span class="input-label">R</span>
+                                    <input name="r" type="number"/>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-label">G</span>
+                                    <input name="g" type="number"/>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-label">B</span>
+                                    <input name="b" type="number"/>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-4 color-form  hidden" id="inp-hsl">
+                                <div class="input-group">
+                                    <span class="input-label">H</span>
+                                    <input name="h" type="number" />
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-label">S</span>
+                                    <input name="s" type="number" max="100" min="0"/>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-label">L</span>
+                                    <input name="l" type="number" max="100" min="0"/>
+                                </div>
+                            </div>
+
+                            <button class="btn-primary" id="add-color"><i class="fa fa-plus"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="top-pane">
+                        <select name="palette"></select>
+                        <button class="btn-ghost-action" id="new-palette"><i class="fa fa-plus"></i></button>
+                        <button class="btn-ghost-action" id="trash-palette"><i class="fa fa-trash"></i></button>
+                    </div>
+
+                    <div class="" id="list-colors"></div>
+                </div>
+
+                <div class="footer">
+                    <button class="btn-ghost-action">
+                        <i class="fa fa-file-import"></i>
+                    </button>
+                    <button class="btn-ghost-action">
+                        <i class="fa fa-file-export"></i>
+                    </button>
                 </div>
             </div>
         </section>
-
+        
         <section id="drawing-area">
-            <canvas id="paintingCanvas" width="800" height="500"></canvas>
+            <canvas id="painting" width="40" height="32"></canvas>
+            <canvas id="preview" width="40" height="32"></canvas>
         </section>
 
         <section class="pane" id="pane-right">
-            <div class="pane-content"> 
-                <div class="pane-content" id="pane-layers">
-                    <div class="header">
-                        <h4>Camadas</h4>
-                    </div>
-                    
-                    <div class="opacity">
-                        <input class="slider" name="opacity-layer" type="range" value="1" min="0" max="100" />
-                        <span id="opacity-label"><h5>Transparência %</h5></span>
-                    </div>
-                    
-                    <div class="body" id="list-Layers">
-                    </div>
-                    
-                    <div class="footer">
-                        <button class="btn-ghost-action" id="add-layer"><i class="fa fa-plus"></i></button>
-                        <button class="btn-ghost-action" id="duplicate-layer"><i class="fa fa-clone"></i></button>
-                        <button class="btn-ghost-action" id="move-up-layer"><i class="fa fa-angle-up"></i></button>
-                        <button class="btn-ghost-action" id="move-down-layer"><i class="fa fa-angle-down"></i></button>
-                        <button class="btn-ghost-action" id="merge-layer"><i class="fa fa-circle-half-stroke"></i></button>
-                        <button class="btn-ghost-action" id="remove-layer"><i class="fa fa-trash"></i></button>
-                    </div>
-                </div>
-                
-                <div class="pane-content" id="pane-colors">
-                    <div class="body">
-                        <div class="top-pane">
-                            <select name="palette"></select>
-                            <button class="btn-ghost-action" id="new-palette"><i class="fa fa-plus"></i></button>
-                            <button class="btn-ghost-action" id="trash-palette"><i class="fa fa-trash"></i></button>
-                        </div>
-
-                        <div class="" id="list-colors">
-                        </div>
-                    </div>
-
-                    <div class="footer">
-                        <button class="btn-ghost-action" id="open-modal-color">
-                            <i class="fa fa-palette"></i>
-                            <h5>Adicionar cor</h5>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tabs">
-                <div class="tab active">
+            <div class="pane-content" id="pane-layers">
+                <div class="header">
                     <h4>Camadas</h4>
                 </div>
-
-                <div class="tab">
-                    <h4>Cores</h4>
+                
+                <div class="opacity">
+                    <input class="slider" name="opacity-layer" type="range" value="1" min="0" max="100" />
+                    <span id="opacity-label"><h5>Transparência %</h5></span>
                 </div>
-                <div class="tab">
-                    <h4>Ferramentas</h4>
+                
+                <div class="body" id="list-Layers">
                 </div>
-                <div class="tab">
-                    <h4>Opções</h4>
+                
+                <div class="footer">
+                    <button class="btn-ghost-action" id="add-layer"><i class="fa fa-plus"></i></button>
+                    <button class="btn-ghost-action" id="duplicate-layer"><i class="fa fa-clone"></i></button>
+                    <button class="btn-ghost-action" id="move-up-layer"><i class="fa fa-angle-up"></i></button>
+                    <button class="btn-ghost-action" id="move-down-layer"><i class="fa fa-angle-down"></i></button>
+                    <button class="btn-ghost-action" id="merge-layer"><i class="fa fa-circle-half-stroke"></i></button>
+                    <button class="btn-ghost-action" id="remove-layer"><i class="fa fa-trash"></i></button>
+                </div>
+            </div>
+            
+            <div class="pane-content" id="pane-advertisement">
+                <div class="header">
+                    <h4>Publicidade</h4>
+                </div>
+                <div class="body col center">
+                    <img height="200px" width="200px"/>
                 </div>
             </div>
         </section>
@@ -153,114 +221,42 @@
             <div class="pane-content">
                 <div class="header">
                     <h4>Quadros</h4>
-                    <div class="v-group">
-                        <label for="time-all-frame"><i class="fa fa-clock"></i></label>
-                        <select id="time-all-frame">
-                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
-                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
-                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
-                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
-                            <option value="60"><i class="fa fa-clock"></i> 60 ms</option>
-                        </select>
-                    </div>
+                    <select id="time-all-frame">
+                        <option value="60">60 ms</option>
+                        <option value="60">60 ms</option>
+                        <option value="60">60 ms</option>
+                        <option value="60">60 ms</option>
+                        <option value="60">60 ms</option>
+                    </select>
                     
                     <button class="btn-ghost-action" id="animate-frames"><i class="fa fa-play"></i> Animar</button>
                     <button class="btn-ghost-action" id="add-frame"><i class="fa fa-plus"></i> Adicionar</button>
                     <button class="btn-ghost-action" id="remove-frame"><i class="fa fa-trash"></i> Remover</button>
                 </div>
                 <div class="body hidden">
-                    <div class="top">
-                        <button id="move-down-frame"><i class="fa fa-arrow-left"></i></button>
-                        <button id="move-up-frame"><i class="fa fa-arrow-right"></i></button>
-                        <button id="duplicate-frame"><i class="fa fa-clone"></i></button>
-                        <button id="flip-x"><i class="fa fa-shuffle"></i></button>
-                        <button id="flip-y"><i class="fa fa-shuffle"></i></button>
-                    </div>
-
                     <div id="list-frames">
+                    </div>
+                    <div class="footer">
+                        <button class="btn-ghost-action" id="move-down-frame"><i class="fa fa-arrow-left"></i></button>
+                        <button class="btn-ghost-action" id="move-up-frame"><i class="fa fa-arrow-right"></i></button>
+                        <button class="btn-ghost-action" id="duplicate-frame"><i class="fa fa-clone"></i></button>
+                        <button class="btn-ghost-action" id="flip-x"><i class="fa fa-shuffle"></i></button>
+                        <button class="btn-ghost-action" id="flip-y"><i class="fa fa-shuffle"></i></button>
                     </div>
                 </div>
             </div>
         </section>
     </section>
 
-    <div class="modal hidden" id="modal-color-picker">
-        <div class="modal-header">
-            <div class="color-picker">
-                <div class="cromatico">
-                    <canvas id="color-picker" width="150" height="150" dragglable="false"></canvas>
-                    <!-- <div id="color-picker" width="150" height="150" dragglable="false"></div> -->
-                    <span class="marker" id="hue" data-hue="0"></span>
-                    <span class="marker" id="color" data-saturation="0" data-light="0"></span>
-                </div>
-            </div>
-        </div>
-        <div class="modal-content">
-            <div class="form-group col g-4" id="picker-control">
-                <div class="row">
-                    <span class="modal-color" id="new-color"></span>
-                    <span class="modal-color" id="old-color"></span>
-                </div>
-            
-                <div class="row">
-                    <div class="input-group">
-                        <span class="input-label">#</span>
-                        <input name="hex" type="text"/>
-                    </div>
-                </div>
-
-                <div class="row g-4">
-                    <div class="col g-4">
-                        <div class="input-group">
-                            <span class="input-label">R</span>
-                            <input name="r" type="number"/>
-                        </div>
-                        <div class="input-group">
-                            <span class="input-label">G</span>
-                            <input name="g" type="number"/>
-                        </div>
-                        <div class="input-group">
-                            <span class="input-label">B</span>
-                            <input name="b" type="number"/>
-                        </div>
-                    </div>
-                    
-                    <div class="col g-4">
-                        <div class="input-group">
-                            <span class="input-label">H</span>
-                            <input name="h" type="number" />
-                        </div>
-                        <div class="input-group">
-                            <span class="input-label">S</span>
-                            <input name="s" type="number" max="100" min="0"/>
-                        </div>
-                        <div class="input-group">
-                            <span class="input-label">L</span>
-                            <input name="l" type="number" max="100" min="0"/>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row center">
-                    <button class="btn-primary" id="add-color">Adicionar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal hidden" id="modal-pallete-name">
         <div class="modal-content">
-            <div class="form-group col g-4">
-                <div class="row">
-                    <div class="input-group">
-                        <span class="input-label">${Paleta}</span>
-                        <input name="name-pallete" type="text"/>
-                    </div>
+            <div class="form-group row g-4">
+                <div class="input-group">
+                    <span class="input-label">${Paleta}</span>
+                    <input name="name-pallete" type="text"/>
                 </div>
 
-                <div class="row center">
-                    <button class="btn-primary" id="add-pallete">Adicionar</button>
-                </div>
+                <button class="btn-primary" id="add-pallete"><i class="fa fa-check"></i></button>
             </div>
         </div>
     </div>
@@ -293,6 +289,7 @@
             ]
         }];
         
+        let selectColorPattern = document.querySelector("select[name='color-pattern']");
         let workPrimaryColor = document.querySelector(".work-color.primary-color");
         let workSecondaryColor = document.querySelector(".work-color.secondary-color");
 
@@ -318,7 +315,8 @@
         let inpColorH = document.querySelector("input[name=h]");
         let inpColorS = document.querySelector("input[name=s]");
         let inpColorL = document.querySelector("input[name=l]");
-            
+        
+        selectColorPattern.addEventListener("change", loadColorPattern);
         inpColorR.addEventListener("input", updateRGB);
         inpColorG.addEventListener("input", updateRGB);
         inpColorB.addEventListener("input", updateRGB);
@@ -332,6 +330,7 @@
         function updateHex(){
             try{
                 let color = ColorFactory().buildByHex(this.value);
+                console.log(modalChromatic)
                 modalChromatic.setColor(color);
             } catch(e){
                 console.warn(e)
@@ -358,19 +357,36 @@
             let color = ColorFactory().buildByRGB(inpColorR.value, inpColorG.value, inpColorB.value);
             modalChromatic.setColor(color);
         }
-       
+        function loadColorPattern(){
+            document.querySelectorAll(".color-form").forEach((f)=>f.classList.toggle("hidden", true));
+
+            let pattern;
+            switch(selectColorPattern.value){
+                case "HEX":
+                    pattern = document.querySelector("#inp-hex");
+                    break;
+                case "RGB":
+                    pattern = document.querySelector("#inp-rgb");
+                    break;
+                case "HSL":
+                    pattern = document.querySelector("#inp-hsl");
+                    break;
+            }
+
+            pattern.classList.toggle("hidden", false);
+        }
         
         window.addEventListener("load", function(){
-            var modalChromatic = Chromatic({
+            window.modalChromatic = Chromatic({
                 content: document.getElementById("chromatic"),
                 width:100,
                 height:100,
                 onUpdateColor: onUpdateColor
             });
-            console.log(`rgb(${ activeColor[0] }, ${activeColor[1]}, ${activeColor[2]})`,`rgb(${ secondaryColor[0] }, ${secondaryColor[1]}, ${secondaryColor[2]})`)
-
             workPrimaryColor.style.background = `rgb(${ activeColor[0] }, ${activeColor[1]}, ${activeColor[2]})`;    
             workSecondaryColor.style.background = `rgb(${ secondaryColor[0] }, ${secondaryColor[1]}, ${secondaryColor[2]})`;
+            loadColorPattern();
+            swapActiveColor(activeColor);
             
             palette.forEach(p => loadPalette(p));
             loadActivePalette();
@@ -508,7 +524,7 @@
 
             activeColor = color;
             let selectedColor = document.querySelector(".work-color.primary-color");
-            let oldColor = modalAddColor.querySelector("#old-color");
+            let oldColor = document.querySelector("#old-color");
 
             selectedColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
             oldColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
