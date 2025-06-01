@@ -58,15 +58,19 @@
                     <div class="row">
                         <button class="btn-ghost-action"><i class="fa fa-reply"></i></button>
                         <button class="btn-ghost-action"><i class="fa fa-share"></i></button>
-                    
-                        <div class="input-group">
-                            <span class="input-label">Tamanho</span>
-                            <input name="size" type="range" value="1" min="0" max="100"/>
-                        </div>
-                    
-                        <div class="input-group">
-                            <span class="input-label">Tamanho</span>
-                            <input name="size" type="range" value="1" min="0" max="100"/>
+
+                        <div class="row g-16">
+                            <div class="input-group">
+                                <span class="input-label">Tamanho</span>
+                                <input name="size" type="range" value="1" min="0" max="100"/>
+                                <span class="input-label">10px</span>
+                            </div>
+                            
+                            <div class="input-group">
+                                <span class="input-label">Força</span>
+                                <input name="strength" type="range" value="1" min="0" max="100"/>
+                                <span class="input-label">10%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -179,7 +183,7 @@
         </section>
         
         <section id="drawing-area">
-            <canvas id="painting" width="40" height="32"></canvas>
+            <canvas id="painting" width="40" height="33"></canvas>
             <canvas id="preview" width="40" height="32"></canvas>
         </section>
 
@@ -207,18 +211,21 @@
                 </div>
             </div>
             
+            <!-- bulletin board -->
             <div class="pane-content" id="pane-advertisement">
                 <div class="header">
-                    <h4>Publicidade</h4>
+                    <h4>Mural</h4>
                 </div>
                 <div class="body col center">
-                    <img height="200px" width="200px"/>
+                    <a href="#">
+                        <img src="../../resource/img/publicidade.png" height="200px" width="200px"/>
+                    </a>
                 </div>
             </div>
         </section>
     
-        <section class="pane pane-frames" id="pane-footer">
-            <div class="pane-content">
+        <section class="pane" id="pane-footer">
+            <div class="pane-content" id="pane-frames">
                 <div class="header">
                     <h4>Quadros</h4>
                     <select id="time-all-frame">
@@ -298,7 +305,6 @@
         let btnAddPalette = document.querySelector("#add-pallete");
         let btnRemovePalette = document.querySelector("#trash-palette");
 
-        let btnOpenModalAddColor = document.querySelector("#open-modal-color");
         let modalAddColor = document.querySelector("#modal-color-picker");
         let btnAddColor= document.querySelector("#add-color");
 

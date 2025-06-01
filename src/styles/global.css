@@ -100,13 +100,16 @@ button.btn-ghost {
     flex: 1;
 }
 .row.center{
-   justify-content: center; 
+   justify-content: center;
 }
 .col.center{
    align-items: center; 
 }
 .g-4{
    gap: 8px 4px; 
+}
+.g-16{
+   gap: 16px 8px; 
 }
 .mb-4{
     margin-bottom: 4px;
