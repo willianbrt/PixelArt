@@ -694,7 +694,7 @@
             swapActiveLayer.call(nextLayer);
         });
         btnCloneLayer.addEventListener("click", function(){
-            let title = findTitle(activeLayer.dataset.title, 1);
+            let title = findTitle(activeLayer.dataset.title);
 
             addLayer({
                 title: title,
@@ -703,16 +703,23 @@
             });
         });
         
-        function findTitle(find, cntr) {
+        function findTitle(find) {
             const layers = [...listLayer.querySelectorAll(".layer")];
-            const exists = layers.some(e => e.dataset.title === find);
+            let name = find;
 
-            if (exists) {
-                const newFind = `${find.replace(/\(\d+\)$/, '')}(${cntr})`;
-                return findTitle(newFind, cntr + 1);
+            let layersFounds = 1;
+            let cntr = 1;
+            while(layers.length > cntr){
+                const exists = layers.filter(e => e.dataset.title === name).length;
+
+                if (exists >= 1) {
+                    name = `${name.replace(/\(\d+\)$/, '')}(${cntr})`;
+                }
+
+                cntr++;
             }
 
-            return find;
+            return name;
         }
         function addLayer(options){
             let layer = document.createElement("div");
@@ -726,7 +733,7 @@
             layer.id = options.id ?? ctr;
             layer.dataset.islock = options.islock ?? false;
             layer.dataset.ishidden = options.ishidden ??false;
-            layer.dataset.title = options.title ?? findTitle("Layer " + ctr, 1);
+            layer.dataset.title = options.title ?? findTitle("Layer " + ctr);
             layer.dataset.opacity = options.opacity ?? 100;
 
             if(listLayer.querySelectorAll(".layer").length == 0){
@@ -809,12 +816,12 @@
                 nameLayer.replaceChild(inpNameLayer, h5);
                 inpNameLayer.focus();
                 inpNameLayer.addEventListener("blur", function(){
-                    if(inpNameLayer.value == ""){
+                    if(inpNameLayer.value == "" || inpNameLayer.value == layer.dataset.title){
                         nameLayer.replaceChild(h5, inpNameLayer);
                         return;
                     }
 
-                    layer.dataset.title = findTitle(inpNameLayer.value, 1);
+                    layer.dataset.title = findTitle(inpNameLayer.value);
                     h5.innerText = layer.dataset.title;
                     nameLayer.replaceChild(h5, inpNameLayer);
                 });
