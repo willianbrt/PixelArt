@@ -438,41 +438,6 @@
             }, { signal:abort.signal });
         });
 
-        btnOpenModalAddColor.addEventListener("click", function(e){
-            const rect = btnOpenModalAddColor.getBoundingClientRect();
-
-            modalAddColor.classList.toggle("hidden", false);
-            
-            const padding = 15;
-            const modalWidth = modalAddColor.offsetWidth;
-            const modalHeight = modalAddColor.offsetHeight;
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-
-            let top = rect.bottom - modalHeight / 2;
-            let left = rect.left - modalWidth - 30;
-
-            top = Math.max(padding, Math.min(top, windowHeight - modalHeight - padding));
-            left = Math.max(padding, Math.min(left, windowWidth - modalWidth - padding));
-
-            modalAddColor.style.top = `${top + window.scrollY}px`;
-            modalAddColor.style.left = `${left + window.scrollX}px`;
-
-            let oldColor = modalAddColor.querySelector("#old-color");
-            oldColor.style.background = `rgb(${activeColor[0]}, ${activeColor[1]}, ${activeColor[2]})`;
-
-            e.stopPropagation();
-            
-            let abort = new AbortController();
-            window.addEventListener("mousedown", function(){
-                if (!btnOpenModalAddColor.contains(event.target)
-                    && !modalAddColor.contains(event.target)) {
-                    modalAddColor.classList.toggle("hidden", true);
-                    abort.abort();
-                }
-            }, { signal:abort.signal })
-        });
-
         selectPalette.addEventListener("change", ()=> loadActivePalette());
         
         btnAddColor.addEventListener("click", function(){
