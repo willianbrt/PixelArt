@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painting - PixelArt</title>
-
+    <title>Painting - PixelArt</title>  
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,700,0,0" rel="stylesheet"/>
     <link href="./../../styles/themes/dark.css" rel="stylesheet" type="text/css"></link>     
     <link href="assets/painting.css" rel="stylesheet" type="text/css"></link>
 </head>
@@ -55,22 +55,45 @@
         <section class="pane" id="pane-top">
             <div class="pane-content" id="pane-tool-options">
                 <div class="body">
-                    <div class="row">
-                        <button class="btn-ghost-action"><i class="fa fa-reply"></i></button>
-                        <button class="btn-ghost-action"><i class="fa fa-share"></i></button>
-
-                        <div class="row g-16">
+                    <div class="row g-4">
+                        <button class="btn-ghost-action" id="undo"><span class="material-symbols-outlined">undo</span> </button>
+                        <button class="btn-ghost-action" id="redo"><span class="material-symbols-outlined">redo</span> </button>
+                        <div id="tool-options">
                             <div class="input-group">
-                                <span class="input-label">Tamanho</span>
-                                <input name="size" type="range" value="1" min="0" max="100"/>
-                                <span class="input-label">10px</span>
+                                <span class="input-label">Tamanho:</span>
+                                <input name="size" type="number" value="1" min="1" max="100" style="width: 32px;"/>
+                                <span class="input-label">px</span>
                             </div>
                             
                             <div class="input-group">
-                                <span class="input-label">Força</span>
-                                <input name="strength" type="range" value="1" min="0" max="100"/>
-                                <span class="input-label">10%</span>
+                                <span class="input-label">Força:</span>
+                                <input name="strength" type="number" value="1" min="1" max="100" style="width: 32px;"/>
+                                <span class="input-label">%</span>
                             </div>
+                            
+                            <div class="input-group">
+                                <span class="input-label">Espaçamento:</span>
+                                <input name="strength" type="number" value="1" min="1" max="100" style="width: 32px;"/>
+                                <span class="input-label">px</span>
+                            </div>
+                            
+                            <label class="btn-choice active" id="pixel-perfect">
+                                <input type="checkbox"/>
+                                <span class="material-symbols-outlined">line_curve</span> 
+                                Pixel Perfect
+                            </label>
+                            
+                            <label class="btn-choice active" id="pixel-perfect">
+                                <input type="checkbox"/>
+                                <span class="material-symbols-outlined">flip</span>
+                                Espelhar X
+                            </label>
+                            
+                            <label class="btn-choice active" id="pixel-perfect">
+                                <input type="checkbox"/>
+                                <span class="material-symbols-outlined" style="transform: rotate(90deg);">flip</span>
+                                Espelhar Y
+                            </label>
                         </div>
                     </div>
                 </div>

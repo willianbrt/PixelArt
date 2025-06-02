@@ -15,7 +15,7 @@
     --secondary-color:hsl(207, 12%, 29%);
     --emphasis-color:hsl(209, 88%, 44%);
     
-    --light-text-color:#fbf0ff;
+    --light-text-color:#e7deea;
     --dark-text-color:#000;
 
     --dark-btn-border-color:#BDA20A;
@@ -63,7 +63,9 @@ input[type="range"]::-webkit-slider-thumb{
     border-radius: 50%;
     margin-top: -4px;
 }
-
+i, .material-symbols-outlined{
+    font-size: 10px;
+}
 select{
     border: none;
     outline: none;
@@ -79,16 +81,10 @@ select option{
     background-color: var(--background-color);
     outline: none;
 }
-select option i{
-    font-size: 10px;
-}
+
 select option:hover{
     background-color: var(--hover-color);
     outline: none;
-}
-
-.form-group input{
-    width: 70px;
 }
 
 body{
@@ -201,6 +197,14 @@ body{
 #pane-tool .footer{
     align-self: center;
 }
+#tool-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#pane-tool-options .body{
+    padding: 4px 8px;
+}
 .pane #pane-tool{
     display: flex;
     flex-direction: column;
@@ -271,7 +275,6 @@ input[type="range"].slider::-webkit-slider-runnable-track{
     overflow: hidden;
 }
 
-
 .layer{
     display: flex;
     align-items: stretch;
@@ -283,9 +286,6 @@ input[type="range"].slider::-webkit-slider-runnable-track{
 }
 .layer:hover {
     background-color: #37233e;
-}
-.layer i{
-    font-size: 10px;
 }
 .layer button{
     background-color: transparent;
@@ -342,11 +342,34 @@ input[type="range"].slider::-webkit-slider-runnable-track{
 .layer button:hover{
     background-color: var(--hover-color);
 }
-.btn-ghost-action i{
-    font-size: 10px;
-}
 .btn-ghost-action:hover{
     background-color: var(--hover-color);
+}
+.btn-choice{
+    font-family: 'Jersey 10';
+    background: transparent;
+    color: var(--light-text-color);
+    border-radius: 4px;
+    font-size: 16px;
+    padding: 4px 8px;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    transition: background 0.3s;
+    box-shadow: 0px 0px 10px 1px #0000004d inset;
+}
+.btn-choice:has(input[type="checkbox"]:checked) {
+    outline: #301439 2px solid;
+    background: #bbaac0;
+    color: #301439;
+    box-shadow: none;
+}
+.btn-choice input[type="checkbox"]{
+    display: none;
 }
 .top-pane{
     display: flex;
@@ -522,7 +545,7 @@ div.frame.active::before{
     height: 16px;
     width: 50%;
 }
-.form-group input{
+input{
     background-color: #896A95;
     border: none;
     outline: none;
@@ -530,7 +553,7 @@ div.frame.active::before{
     color: var(--light-text-color);
     font-size: 16px;
     border-radius: 4px;
-    padding: 8px 8px;
+    padding: 4px 8px;
     width: calc(100% - 16px);
 }
 .input-group{
@@ -553,7 +576,7 @@ select[name="color-pattern"]{
 .color-form.hidden {
     display: none;
 }
-.input-group .input-label{
+.input-label{
     font-family: "Jersey 10";
     color: var(--light-text-color);
     font-size: 16px;
