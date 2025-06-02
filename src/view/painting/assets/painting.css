@@ -21,6 +21,10 @@
     --dark-btn-border-color:#BDA20A;
     --dark-btn-background-color:#E9E2BA;
 }
+*{
+    user-select: none;
+}
+
 h1, h2, h3, h4, h5, h6{
     font-family: "Jersey 10", sans-serif;
     font-weight: 400;

@@ -11,17 +11,17 @@
 <body data-theme="dark">
     <section class="navbar">
         <div class="dropdown">
-            <button class="dropdown-label">
-                <img src="../../resource/img/logo.png" class="logo"/>
-                <h3>PREEBIT</h3>
-            </button>
+            <a class="dropdown-label">
+                <!-- <img src="../../resource/img/logo.png" class="logo"/> -->
+                <h3>File</h3>
+            </a>
             
             <div class="dropdown-menu">
                 <div class="dropdown-item">${novo}</div>
                 <div class="dropdown-item">${salvar}</div>
 
                 <div class="dropdown-item">
-                    ${export-as}
+                    <a class="dropdown-sub-label">${export-as}</a>
                     
                     <div class="dropdown-menu">
                         <div class="dropdown-item">JPG</div>
@@ -36,13 +36,13 @@
             </div>
         </div>
 
-        <div class="group">
+        <div class="row">
             <button class="btn-ghost btn-premium"><img src="" /></button>
             
              <div class="dropdown">
-                <button class="dropdown-label">
+                <a class="dropdown-label">
                     <img class="perfil-rounded" src="" />
-                </button>
+                </a>
                 
                 <div class="dropdown-menu">
                     <div class="dropdown-item">${logout}</div>
@@ -291,6 +291,42 @@
         </div>
     </div>
     
+    <script>
+        document.querySelectorAll(".dropdown-label")
+                .forEach(e=>e.addEventListener("click", drop));
+
+        function drop(){
+            const dropdown = this.parentNode;
+            const dropdownMenu = this.parentNode.querySelector(".dropdown-menu");
+
+            dropdownMenu.classList.toggle("active");
+            
+            if(!dropdownMenu.classList.contains("active")) return;
+
+            const dropdownRect = dropdown.getBoundingClientRect();
+            const contentRect = dropdownMenu.getBoundingClientRect();
+
+            if (dropdownRect.right + contentRect.width > window.innerWidth) {
+                dropdownMenu.style.left = `-${contentRect.width - dropdownRect.width}px`;
+            } else {
+                dropdownMenu.style.left = '0';
+            }
+
+            if (dropdownRect.bottom + contentRect.height > window.innerHeight) {
+                dropdownMenu.style.top = `-${contentRect.height}px`;
+            } else {
+                dropdownMenu.style.top = '100%';
+            }
+
+            let abort = new AbortController();
+            window.addEventListener("mousedown", (event)=>{
+                if (!dropdownMenu.contains(event.target) && !this.contains(event.target)) {
+                    dropdownMenu.classList.toggle("active", false);
+                    abort.abort();
+                }
+            }, { signal:abort.signal });
+        }
+    </script>
    
     <script type="module">
         import { Chromatic, ColorFactory } from "./js/chromatic.js"
