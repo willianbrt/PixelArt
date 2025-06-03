@@ -762,7 +762,7 @@
             layer.classList.add("layer");
             layer.id = options.id ?? ctr;
             layer.dataset.islock = options.islock ?? false;
-            layer.dataset.ishidden = options.ishidden ??false;
+            layer.dataset.ishidden = options.ishidden ?? false;
             layer.dataset.title = options.title ?? findTitle("Layer " + ctr);
             layer.dataset.opacity = options.opacity ?? 100;
 
@@ -775,10 +775,10 @@
             h5.innerText = layer.dataset.title;
 
             btnHideLayer.className = "hide-layer";
-            btnHideLayer.innerHTML = "<i class=\"fa fa-eye\"></i>";
+            btnHideLayer.innerHTML = `<i class=\"fa ${options.ishidden ? "fa-eye-slash" : "fa-eye"}\"></i>`;
 
             btnLockLayer.className = "lock-layer";
-            btnLockLayer.innerHTML = "<i class=\"fa fa-lock\"></i>";
+            btnLockLayer.innerHTML = `<i class=\"fa ${options.islock ?  "fa-lock" : "fa-unlock" }\"></i>`;
 
             btnGrabLayer.className = "grab-layer";
             btnGrabLayer.innerHTML = "<i class=\"fa fa-grip-lines\"></i>";
@@ -794,35 +794,30 @@
             btnLockLayer.addEventListener("click", function(){
                 let isLocking = layer.getAttribute("data-islock") === "true";
                 let icon = this.querySelector("i");
-                
-                if(!isLocking){
-                    icon.classList.remove("fa-unlock");
-                    icon.classList.add("fa-lock");
-                    layer.dataset.islock = true;
+
+                if(isLocking){
+                    layer.dataset.islock = false;
+                    icon.classList.replace("fa-lock", "fa-unlock");
                     return;
                 }
-                layer.dataset.islock = false;
-                icon.classList.remove("fa-lock");
-                icon.classList.add("fa-unlock");
+                
+                layer.dataset.islock = true;
+                icon.classList.replace("fa-unlock", "fa-lock");
             });
             btnHideLayer.addEventListener("click", function(){
                 let isHidden = layer.getAttribute("data-ishidden") === "true";
                 let icon = this.querySelector("i");
                 
-                if(!isHidden){
-                    icon.classList.remove("fa-eye");
-                    icon.classList.add("fa-eye-slash");
-
-                    layer.classList.add("hidden-layer");
-                    layer.dataset.ishidden = true;
+                if(isHidden){
+                    layer.dataset.ishidden = false;
+                    icon.classList.replace("fa-eye-slash", "fa-eye");
+                    layer.classList.toggle("hidden-layer", false);
                     return;
                 }
-                
-                layer.dataset.ishidden = false;
-                icon.classList.remove("fa-eye-slash");
-                icon.classList.add("fa-eye");
-
-                layer.classList.remove("hidden-layer");
+            
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+                layer.classList.toggle("hidden-layer", true);
+                layer.dataset.ishidden = true;
             });
             btnGrabLayer.addEventListener("mousedown", (e) => {
                 let abort = new AbortController();
