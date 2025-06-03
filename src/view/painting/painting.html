@@ -610,45 +610,11 @@
                 this.parentNode.querySelector(".body").classList.toggle("hidden")
         });
 
-        btnMoveDownFrame.addEventListener("click", function(){
-            let frames = [...listFrame.querySelectorAll("div.frame")];
-            let previousFrame = frames.indexOf(activeFrame) - 1;
-
-            if(previousFrame>= 0)
-                frames[previousFrame].before(activeFrame);
-        });
-        btnMoveUpFrame.addEventListener("click", function(){
-            let frames = [...listFrame.querySelectorAll("div.frame")];
-            let nextFrame = frames.indexOf(activeFrame) + 1;
-
-            if(nextFrame < frames.length)
-                frames[nextFrame].after(activeFrame);
-        });
+        btnMoveDownFrame.addEventListener("click", moveDownFrame);
+        btnMoveUpFrame.addEventListener("click", moveUpFrame);
         btnAddFrame.addEventListener("click", addFrame);
-        btnRemoveFrame.addEventListener("click", function(){
-            if(listFrame.querySelectorAll("div.frame").length <= 1) return;
-
-            let frames = [...listFrame.querySelectorAll(".frame")];
-            let indexActiveFrame = frames.indexOf(activeFrame);
-            activeFrame.remove();
-
-            frames = [...listFrame.querySelectorAll("div.frame")];
-
-            if (frames.length === 0) return;
-
-            let nextFrame;
-            if (indexActiveFrame < frames.length) {
-                nextFrame = frames[indexActiveFrame];
-            } else {
-                nextFrame = frames[frames.length - 1];
-            }
-
-            swapActiveFrame.call(nextFrame);
-        });
-
-        btnCloneFrame.addEventListener("click", function(){
-            addFrame({});
-        });
+        btnRemoveFrame.addEventListener("click", removeFrame);
+        btnCloneFrame.addEventListener("click", cloneFrame);
         
         function addFrame(options){
             let frame = document.createElement("div");
@@ -672,6 +638,43 @@
             this.classList.add("active");
             activeFrame = this;
         }
+        function moveDownFrame(){
+            let frames = [...listFrame.querySelectorAll("div.frame")];
+            let previousFrame = frames.indexOf(activeFrame) - 1;
+
+            if(previousFrame>= 0)
+                frames[previousFrame].before(activeFrame);
+        }
+        function moveUpFrame(){
+            let frames = [...listFrame.querySelectorAll("div.frame")];
+            let nextFrame = frames.indexOf(activeFrame) + 1;
+
+            if(nextFrame < frames.length)
+                frames[nextFrame].after(activeFrame);
+        }
+        function removeFrame(){
+            if(listFrame.querySelectorAll("div.frame").length <= 1) return;
+
+            let frames = [...listFrame.querySelectorAll(".frame")];
+            let indexActiveFrame = frames.indexOf(activeFrame);
+            activeFrame.remove();
+
+            frames = [...listFrame.querySelectorAll("div.frame")];
+
+            if (frames.length === 0) return;
+
+            let nextFrame;
+            if (indexActiveFrame < frames.length) {
+                nextFrame = frames[indexActiveFrame];
+            } else {
+                nextFrame = frames[frames.length - 1];
+            }
+
+            swapActiveFrame.call(nextFrame);
+        }
+        function cloneFrame(){
+            addFrame({});
+        }
 
         /* LAYER */
         let activeLayer;
@@ -684,26 +687,27 @@
         let btnMoveUp = document.getElementById("move-up-layer");
         let btnRemoveLayer = document.getElementById("remove-layer");
         
-        inpOpacity.addEventListener("input", function(){
+        inpOpacity.addEventListener("input", updateOpcaityLayer);
+        btnMoveDown.addEventListener("click", moveDownLayer);
+        btnMoveUp.addEventListener("click", moveUpLayer);
+        btnAddLayer.addEventListener("click", addLayer);
+        btnRemoveLayer.addEventListener("click", removeLayer);
+        btnCloneLayer.addEventListener("click", cloneLayer);
+
+        function updateOpcaityLayer(){
             document.querySelector("#opacity-label h5").innerText = "Transparência " + this.value + "%"
             activeLayer.dataset.opacity = this.value;
-        });
-        btnMoveDown.addEventListener("click", function(){
-            let layers = [...listLayer.querySelectorAll(".layer")];
-            let nextLayer = layers.indexOf(activeLayer) + 1;
-
-            if(nextLayer < layers.length)
-                layers[nextLayer].after(activeLayer);
-        });
-        btnMoveUp.addEventListener("click", function(){
-            let layers = [...listLayer.querySelectorAll(".layer")];
-            let previousLayer = layers.indexOf(activeLayer) - 1;
-
-            if(previousLayer>= 0)
-                layers[previousLayer].before(activeLayer);
-        });
-        btnAddLayer.addEventListener("click", addLayer);
-        btnRemoveLayer.addEventListener("click", function(){
+        }
+        function cloneLayer(){
+            let title = findTitle(activeLayer.dataset.title);
+            
+            addLayer({
+                title: title,
+                ishidden: activeLayer.dataset.ishidden === "true",
+                islock: activeLayer.dataset.islock === "true"
+            });
+        }
+        function removeLayer(){
             if(listLayer.querySelectorAll(".layer").length <= 1) return;
 
             let layers = [...listLayer.querySelectorAll(".layer")];
@@ -722,17 +726,21 @@
             }
 
             swapActiveLayer.call(nextLayer);
-        });
-        btnCloneLayer.addEventListener("click", function(){
-            let title = findTitle(activeLayer.dataset.title);
+        }
+        function moveUpLayer(){
+            let layers = [...listLayer.querySelectorAll(".layer")];
+            let nextLayer = layers.indexOf(activeLayer) + 1;
 
-            addLayer({
-                title: title,
-                ishidden: activeLayer.dataset.ishidden,
-                islock: activeLayer.dataset.islock
-            });
-        });
-        
+            if(nextLayer < layers.length)
+                layers[nextLayer].after(activeLayer);
+        }
+        function moveDownLayer(){
+            let layers = [...listLayer.querySelectorAll(".layer")];
+            let previousLayer = layers.indexOf(activeLayer) - 1;
+
+            if(previousLayer>= 0)
+                layers[previousLayer].before(activeLayer);
+        }
         function findTitle(find) {
             const layers = [...listLayer.querySelectorAll(".layer")];
             let name = find;
@@ -791,7 +799,12 @@
             listLayer.prepend(layer);
 
             layer.addEventListener("click", swapActiveLayer);
-            btnLockLayer.addEventListener("click", function(){
+            btnLockLayer.addEventListener("click", toggleLockLayer);
+            btnHideLayer.addEventListener("click", toggleHideLayer);
+            btnGrabLayer.addEventListener("mousedown", grabLayer);
+            nameLayer.addEventListener("dblclick", renameLayer);
+            
+            function toggleLockLayer(){
                 let isLocking = layer.getAttribute("data-islock") === "true";
                 let icon = this.querySelector("i");
 
@@ -803,8 +816,8 @@
                 
                 layer.dataset.islock = true;
                 icon.classList.replace("fa-unlock", "fa-lock");
-            });
-            btnHideLayer.addEventListener("click", function(){
+            }
+            function toggleHideLayer(){
                 let isHidden = layer.getAttribute("data-ishidden") === "true";
                 let icon = this.querySelector("i");
                 
@@ -818,8 +831,8 @@
                 icon.classList.replace("fa-eye", "fa-eye-slash");
                 layer.classList.toggle("hidden-layer", true);
                 layer.dataset.ishidden = true;
-            });
-            btnGrabLayer.addEventListener("mousedown", (e) => {
+            }
+            function grabLayer(e){
                 let abort = new AbortController();
                 e.preventDefault();
             
@@ -832,8 +845,8 @@
                     e.target?.closest(".layer").after(layer);
                     abort.abort();
                 }, { once: true });
-            });
-            nameLayer.addEventListener("dblclick", function(e){
+            }
+            function renameLayer(e){
                 let inpNameLayer = document.createElement("input");
                 inpNameLayer.value = layer.dataset.title;
                 inpNameLayer.type = "text";
@@ -854,7 +867,8 @@
                     if(e.keyCode == 13)
                         inpNameLayer.blur();
                 });
-            });
+            }
+
             ctr++;
         }
         function swapActiveLayer(){
