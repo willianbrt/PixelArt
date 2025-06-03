@@ -24,7 +24,12 @@
 *{
     user-select: none;
 }
-
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    -moz-appearance: none !important;
+}
 h1, h2, h3, h4, h5, h6{
     font-family: "Jersey 10", sans-serif;
     font-weight: 400;
