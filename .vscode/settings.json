@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "xstring": "cpp",
+        "memory": "cpp"
+    },
+    "liveServer.settings.port": 5501
+}

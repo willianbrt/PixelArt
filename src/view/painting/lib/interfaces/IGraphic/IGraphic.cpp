@@ -1,0 +1,4 @@
+#include "IGraphic.h"
+
+#include <emscripten.h>
+#include <emscripten/bind.h>
