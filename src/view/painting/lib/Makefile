@@ -1,8 +1,14 @@
 MAKEFLAGS += --always-make --debug=v
 ifeq ($(OS),Windows_NT)
     CC := mingw32-g++
+    RM := del /q
+    RMDIR := rmdir /s /q
+    MKDIR := if not exist "$(subst /,\,$(dir $@))" mkdir "$(subst /,\,$(dir $@))"
 else
     CC := emcc
+    RM := rm -f
+    RMDIR := rm -rf
+    MKDIR := mkdir -p $(dir $@)
 endif
 SRC_DIR = ./
 BUILD_DIR = ../build/graphics
@@ -31,7 +37,7 @@ EMCC_FLAGS = -s ENVIRONMENT=web \
              -s IMPORTED_MEMORY \
              -s ALLOW_MEMORY_GROWTH=1 \
              -s INITIAL_MEMORY=256MB -s MAXIMUM_MEMORY=2564MB \
-             -s STANDALONE_WASM=0 \
+             -s STANDALONE_WASM=1 \
              -s ERROR_ON_UNDEFINED_SYMBOLS=1 \
 			-s NO_DISABLE_EXCEPTION_CATCHING=1 \
 			-s USE_WEBGL2=1 \
@@ -49,6 +55,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 $(TARGET_DIR): $(OBJECTS)
 	@echo Linking $(TARGET)...
 	@emcc $(EMCC_FLAGS) $(OBJECTS) -o $@
+	@echo Removing object files...
+	@$(RMDIR) "$(subst /,\,$(OBJ_DIR))"
 	@echo Build successful.
 
 clean:
