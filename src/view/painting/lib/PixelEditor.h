@@ -17,7 +17,7 @@
 #include "objects/layer/Layers.h"
 #include "objects/frame/Frame.h"
 #include "interfaces/IGraphic/IGraphic.h"
-#include "helpers/Pixel/Pixel.h"
+#include "graphics/Pixel/Pixel.h"
 
 const unsigned int CHECKERED_LIGHT_COLOR_HEX = 0xFFFFFFFF;
 const unsigned int CHECKERED_DARK_COLOR_HEX = 0xDDDDDDFF;

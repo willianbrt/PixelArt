@@ -1,7 +1,7 @@
 #ifndef ITILE_H
 #define ITILE_H
 
-#include "../../helpers/Pixel/Pixel.h"
+#include "../../graphics/Pixel/Pixel.h"
 
 class IGraphic;
 

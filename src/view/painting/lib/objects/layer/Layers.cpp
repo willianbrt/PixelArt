@@ -79,6 +79,7 @@ EMSCRIPTEN_BINDINGS(layer_module){
     class_<Layer>("Layer")
     .constructor<std::string, unsigned int, unsigned int>()
     .smart_ptr<std::shared_ptr<Layer>>("shared_ptr<Layer>")
+    .function("getID", &Layer::getID)
     .function("resize", &Layer::resize)
     .function("move", &Layer::move)
     .function("draw", &Layer::draw)

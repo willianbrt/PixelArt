@@ -834,6 +834,24 @@ function dbg(...args) {
 
 // end include: runtime_debug.js
 // === Body ===
+var ASM_CONSTS = {
+  102084: () => Module.canvas.clientWidth,
+  102122: () => Module.canvas.clientHeight,
+  102161: ($0, $1, $2, $3, $4, $5) => {
+    const context = Module.canvas.getContext("2d");
+    const ptr = $0;
+    const length = $1;
+    const width = $2;
+    const height = $3;
+    const x = $4;
+    const y = $5;
+    const buffer = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, length * 4);
+    const data = new ImageData(buffer, width);
+    context.clearRect(x, y, width, height);
+    context.putImageData(data, x, y);
+  }
+};
+
 // end include: preamble.js
 class ExitStatus {
   name="ExitStatus";
@@ -1059,6 +1077,17 @@ function ___cxa_begin_catch(ptr) {
 
 var exceptionLast = 0;
 
+var ___cxa_end_catch = () => {
+  // Clear state flag.
+  _setThrew(0, 0);
+  assert(exceptionCaught.length > 0);
+  // Call destructor if one is registered then clear it.
+  var info = exceptionCaught.pop();
+  ___cxa_decrement_exception_refcount(info.excPtr);
+  exceptionLast = 0;
+};
+
+// XXX in decRef?
 class ExceptionInfo {
   // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
   constructor(excPtr) {
@@ -1159,6 +1188,23 @@ function ___cxa_find_matching_catch_3(arg0) {
   return findMatchingCatch([ arg0 ]);
 }
 
+var ___cxa_rethrow = () => {
+  var info = exceptionCaught.pop();
+  if (!info) {
+    abort("no exception to throw");
+  }
+  var ptr = info.excPtr;
+  if (!info.get_rethrown()) {
+    // Only pop if the corresponding push was through rethrow_primary_exception
+    exceptionCaught.push(info);
+    info.set_rethrown(true);
+    info.set_caught(false);
+    uncaughtExceptionCount++;
+  }
+  exceptionLast = new CppException(ptr);
+  throw exceptionLast;
+};
+
 function ___cxa_throw(ptr, type, destructor) {
   ptr >>>= 0;
   type >>>= 0;
@@ -1170,6 +1216,8 @@ function ___cxa_throw(ptr, type, destructor) {
   uncaughtExceptionCount++;
   throw exceptionLast;
 }
+
+var ___cxa_uncaught_exceptions = () => uncaughtExceptionCount;
 
 var __abort_js = () => abort("native code called abort()");
 
@@ -2512,6 +2560,16 @@ function __embind_register_memory_view(rawType, dataTypeIndex, name) {
   });
 }
 
+var EmValOptionalType = Object.assign({
+  optional: true
+}, EmValType);
+
+function __embind_register_optional(rawOptionalType, rawType) {
+  rawOptionalType >>>= 0;
+  rawType >>>= 0;
+  registerType(rawOptionalType, EmValOptionalType);
+}
+
 var __embind_register_smart_ptr = function(rawType, rawPointeeType, name, sharingPolicy, getPointeeSignature, rawGetPointee, constructorSignature, rawConstructor, shareSignature, rawShare, destructorSignature, rawDestructor) {
   rawType >>>= 0;
   rawPointeeType >>>= 0;
@@ -2919,6 +2977,35 @@ function __emval_call(caller, handle, destructorsRef, args) {
   return caller(null, handle, destructorsRef, args);
 }
 
+var emval_symbols = {};
+
+var getStringOrSymbol = address => {
+  var symbol = emval_symbols[address];
+  if (symbol === undefined) {
+    return readLatin1String(address);
+  }
+  return symbol;
+};
+
+var emval_get_global = () => {
+  if (typeof globalThis == "object") {
+    return globalThis;
+  }
+  return (function() {
+    return Function;
+  })()("return this")();
+};
+
+function __emval_get_global(name) {
+  name >>>= 0;
+  if (name === 0) {
+    return Emval.toHandle(emval_get_global());
+  } else {
+    name = getStringOrSymbol(name);
+    return Emval.toHandle(emval_get_global()[name]);
+  }
+}
+
 var emval_addMethodCaller = caller => {
   var id = emval_methodCallers.length;
   emval_methodCallers.push(caller);
@@ -3011,105 +3098,241 @@ function __emval_take_value(type, arg) {
   return Emval.toHandle(v);
 }
 
-function _add_layer(options) {
-  let listLayer = document.getElementById("list-Layers");
-  let layer = document.createElement("div");
-  let nameLayer = document.createElement("div");
-  let h5 = document.createElement("h5");
-  let btnHideLayer = document.createElement("button");
-  let btnLockLayer = document.createElement("button");
-  let btnGrabLayer = document.createElement("button");
-  layer.classList.add("layer");
-  layer.id = options.id ?? ctr;
-  layer.dataset.islock = options.islock ?? false;
-  layer.dataset.ishidden = options.ishidden ?? false;
-  layer.dataset.title = options.title ?? findTitle("Layer " + ctr);
-  layer.dataset.opacity = options.opacity ?? 100;
-  if (listLayer.querySelectorAll(".layer").length == 0) {
-    swapActiveLayer.call(layer);
+var __tzset_js = function(timezone, daylight, std_name, dst_name) {
+  timezone >>>= 0;
+  daylight >>>= 0;
+  std_name >>>= 0;
+  dst_name >>>= 0;
+  // TODO: Use (malleable) environment variables instead of system settings.
+  var currentYear = (new Date).getFullYear();
+  var winter = new Date(currentYear, 0, 1);
+  var summer = new Date(currentYear, 6, 1);
+  var winterOffset = winter.getTimezoneOffset();
+  var summerOffset = summer.getTimezoneOffset();
+  // Local standard timezone offset. Local standard time is not adjusted for
+  // daylight savings.  This code uses the fact that getTimezoneOffset returns
+  // a greater value during Standard Time versus Daylight Saving Time (DST).
+  // Thus it determines the expected output during Standard Time, and it
+  // compares whether the output of the given date the same (Standard) or less
+  // (DST).
+  var stdTimezoneOffset = Math.max(winterOffset, summerOffset);
+  // timezone is specified as seconds west of UTC ("The external variable
+  // `timezone` shall be set to the difference, in seconds, between
+  // Coordinated Universal Time (UTC) and local standard time."), the same
+  // as returned by stdTimezoneOffset.
+  // See http://pubs.opengroup.org/onlinepubs/009695399/functions/tzset.html
+  HEAPU32[((timezone) >>> 2) >>> 0] = stdTimezoneOffset * 60;
+  HEAP32[((daylight) >>> 2) >>> 0] = Number(winterOffset != summerOffset);
+  var extractZone = timezoneOffset => {
+    // Why inverse sign?
+    // Read here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
+    var sign = timezoneOffset >= 0 ? "-" : "+";
+    var absOffset = Math.abs(timezoneOffset);
+    var hours = String(Math.floor(absOffset / 60)).padStart(2, "0");
+    var minutes = String(absOffset % 60).padStart(2, "0");
+    return `UTC${sign}${hours}${minutes}`;
+  };
+  var winterName = extractZone(winterOffset);
+  var summerName = extractZone(summerOffset);
+  assert(winterName);
+  assert(summerName);
+  assert(lengthBytesUTF8(winterName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${winterName})`);
+  assert(lengthBytesUTF8(summerName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${summerName})`);
+  if (summerOffset < winterOffset) {
+    // Northern hemisphere
+    stringToUTF8(winterName, std_name, 17);
+    stringToUTF8(summerName, dst_name, 17);
+  } else {
+    stringToUTF8(winterName, dst_name, 17);
+    stringToUTF8(summerName, std_name, 17);
   }
-  nameLayer.className = "text";
-  nameLayer.className = "name-layer";
-  h5.innerText = layer.dataset.title;
-  btnHideLayer.className = "hide-layer";
-  btnHideLayer.innerHTML = `<i class="fa ${options.ishidden ? "fa-eye-slash" : "fa-eye"}"></i>`;
-  btnLockLayer.className = "lock-layer";
-  btnLockLayer.innerHTML = `<i class="fa ${options.islock ? "fa-lock" : "fa-unlock"}"></i>`;
-  btnGrabLayer.className = "grab-layer";
-  btnGrabLayer.innerHTML = '<i class="fa fa-grip-lines"></i>';
-  layer.append(btnHideLayer);
-  nameLayer.append(h5);
-  layer.append(nameLayer);
-  layer.append(btnLockLayer);
-  layer.append(btnGrabLayer);
-  listLayer.prepend(layer);
-  layer.addEventListener("click", swapActiveLayer);
-  btnLockLayer.addEventListener("click", toggleLockLayer);
-  btnHideLayer.addEventListener("click", toggleHideLayer);
-  btnGrabLayer.addEventListener("mousedown", grabLayer);
-  nameLayer.addEventListener("dblclick", renameLayer);
-  function toggleLockLayer() {
-    let isLocking = layer.getAttribute("data-islock") === "true";
-    let icon = this.querySelector("i");
-    if (isLocking) {
-      layer.dataset.islock = false;
-      icon.classList.replace("fa-lock", "fa-unlock");
-      return;
+};
+
+function _draw(screen, length, viewportWidth, viewportHeight, x, y) {
+  const context = Module.canvas.getContext("2d");
+  const ptr = screen;
+  const width = viewportWidth;
+  const height = viewportHeight;
+  const buffer = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, length * 4);
+  const data = new ImageData(buffer, width);
+  context.clearRect(x, y, width, height);
+  context.putImageData(data, x, y);
+}
+
+var readEmAsmArgsArray = [];
+
+var readEmAsmArgs = (sigPtr, buf) => {
+  // Nobody should have mutated _readEmAsmArgsArray underneath us to be something else than an array.
+  assert(Array.isArray(readEmAsmArgsArray));
+  // The input buffer is allocated on the stack, so it must be stack-aligned.
+  assert(buf % 16 == 0);
+  readEmAsmArgsArray.length = 0;
+  var ch;
+  // Most arguments are i32s, so shift the buffer pointer so it is a plain
+  // index into HEAP32.
+  while (ch = HEAPU8[sigPtr++ >>> 0]) {
+    var chr = String.fromCharCode(ch);
+    var validChars = [ "d", "f", "i", "p" ];
+    assert(validChars.includes(chr), `Invalid character ${ch}("${chr}") in readEmAsmArgs! Use only [${validChars}], and do not specify "v" for void return argument.`);
+    // Floats are always passed as doubles, so all types except for 'i'
+    // are 8 bytes and require alignment.
+    var wide = (ch != 105);
+    wide &= (ch != 112);
+    buf += wide && (buf % 8) ? 4 : 0;
+    readEmAsmArgsArray.push(// Special case for pointers under wasm64 or CAN_ADDRESS_2GB mode.
+    ch == 112 ? HEAPU32[((buf) >>> 2) >>> 0] : ch == 105 ? HEAP32[((buf) >>> 2) >>> 0] : HEAPF64[((buf) >>> 3) >>> 0]);
+    buf += wide ? 8 : 4;
+  }
+  return readEmAsmArgsArray;
+};
+
+var runEmAsmFunction = (code, sigPtr, argbuf) => {
+  var args = readEmAsmArgs(sigPtr, argbuf);
+  assert(ASM_CONSTS.hasOwnProperty(code), `No EM_ASM constant found at address ${code}.  The loaded WebAssembly file is likely out of sync with the generated JavaScript.`);
+  return ASM_CONSTS[code](...args);
+};
+
+function _emscripten_asm_const_int(code, sigPtr, argbuf) {
+  code >>>= 0;
+  sigPtr >>>= 0;
+  argbuf >>>= 0;
+  return runEmAsmFunction(code, sigPtr, argbuf);
+}
+
+var JSEvents = {
+  memcpy(target, src, size) {
+    HEAP8.set(HEAP8.subarray(src >>> 0, src + size >>> 0), target >>> 0);
+  },
+  removeAllEventListeners() {
+    while (JSEvents.eventHandlers.length) {
+      JSEvents._removeHandler(JSEvents.eventHandlers.length - 1);
     }
-    layer.dataset.islock = true;
-    icon.classList.replace("fa-unlock", "fa-lock");
-  }
-  function toggleHideLayer() {
-    let isHidden = layer.getAttribute("data-ishidden") === "true";
-    let icon = this.querySelector("i");
-    if (isHidden) {
-      layer.dataset.ishidden = false;
-      icon.classList.replace("fa-eye-slash", "fa-eye");
-      layer.classList.toggle("hidden-layer", false);
-      return;
+    JSEvents.deferredCalls = [];
+  },
+  inEventHandler: 0,
+  deferredCalls: [],
+  deferCall(targetFunction, precedence, argsList) {
+    function arraysHaveEqualContent(arrA, arrB) {
+      if (arrA.length != arrB.length) return false;
+      for (var i in arrA) {
+        if (arrA[i] != arrB[i]) return false;
+      }
+      return true;
     }
-    icon.classList.replace("fa-eye", "fa-eye-slash");
-    layer.classList.toggle("hidden-layer", true);
-    layer.dataset.ishidden = true;
-  }
-  function grabLayer(e) {
-    let listLayer = document.getElementById("list-Layers");
-    let abort = new AbortController;
-    e.preventDefault();
-    window.addEventListener("mousemove", e => {
-      listLayer.querySelectorAll(".layer").forEach(el => el.classList.remove("swap"));
-      e.target.closest(".layer")?.classList.add("swap");
-    }, {
-      signal: abort.signal
-    });
-    window.addEventListener("mouseup", e => {
-      e.target?.closest(".layer").classList.remove("swap");
-      e.target?.closest(".layer").after(layer);
-      abort.abort();
-    }, {
-      once: true
-    });
-  }
-  function renameLayer(e) {
-    let inpNameLayer = document.createElement("input");
-    inpNameLayer.value = layer.dataset.title;
-    inpNameLayer.type = "text";
-    nameLayer.replaceChild(inpNameLayer, h5);
-    inpNameLayer.focus();
-    inpNameLayer.addEventListener("blur", function() {
-      if (inpNameLayer.value == "" || inpNameLayer.value == layer.dataset.title) {
-        nameLayer.replaceChild(h5, inpNameLayer);
+    // Test if the given call was already queued, and if so, don't add it again.
+    for (var call of JSEvents.deferredCalls) {
+      if (call.targetFunction == targetFunction && arraysHaveEqualContent(call.argsList, argsList)) {
         return;
       }
-      layer.dataset.title = findTitle(inpNameLayer.value);
-      h5.innerText = layer.dataset.title;
-      nameLayer.replaceChild(h5, inpNameLayer);
+    }
+    JSEvents.deferredCalls.push({
+      targetFunction,
+      precedence,
+      argsList
     });
-    inpNameLayer.addEventListener("keypress", function(e) {
-      if (e.keyCode == 13) inpNameLayer.blur();
-    });
+    JSEvents.deferredCalls.sort((x, y) => x.precedence < y.precedence);
+  },
+  removeDeferredCalls(targetFunction) {
+    JSEvents.deferredCalls = JSEvents.deferredCalls.filter(call => call.targetFunction != targetFunction);
+  },
+  canPerformEventHandlerRequests() {
+    if (navigator.userActivation) {
+      // Verify against transient activation status from UserActivation API
+      // whether it is possible to perform a request here without needing to defer. See
+      // https://developer.mozilla.org/en-US/docs/Web/Security/User_activation#transient_activation
+      // and https://caniuse.com/mdn-api_useractivation
+      // At the time of writing, Firefox does not support this API: https://bugzilla.mozilla.org/show_bug.cgi?id=1791079
+      return navigator.userActivation.isActive;
+    }
+    return JSEvents.inEventHandler && JSEvents.currentEventHandler.allowsDeferredCalls;
+  },
+  runDeferredCalls() {
+    if (!JSEvents.canPerformEventHandlerRequests()) {
+      return;
+    }
+    var deferredCalls = JSEvents.deferredCalls;
+    JSEvents.deferredCalls = [];
+    for (var call of deferredCalls) {
+      call.targetFunction(...call.argsList);
+    }
+  },
+  eventHandlers: [],
+  removeAllHandlersOnTarget: (target, eventTypeString) => {
+    for (var i = 0; i < JSEvents.eventHandlers.length; ++i) {
+      if (JSEvents.eventHandlers[i].target == target && (!eventTypeString || eventTypeString == JSEvents.eventHandlers[i].eventTypeString)) {
+        JSEvents._removeHandler(i--);
+      }
+    }
+  },
+  _removeHandler(i) {
+    var h = JSEvents.eventHandlers[i];
+    h.target.removeEventListener(h.eventTypeString, h.eventListenerFunc, h.useCapture);
+    JSEvents.eventHandlers.splice(i, 1);
+  },
+  registerOrRemoveHandler(eventHandler) {
+    if (!eventHandler.target) {
+      err("registerOrRemoveHandler: the target element for event handler registration does not exist, when processing the following event handler registration:");
+      console.dir(eventHandler);
+      return -4;
+    }
+    if (eventHandler.callbackfunc) {
+      eventHandler.eventListenerFunc = function(event) {
+        // Increment nesting count for the event handler.
+        ++JSEvents.inEventHandler;
+        JSEvents.currentEventHandler = eventHandler;
+        // Process any old deferred calls the user has placed.
+        JSEvents.runDeferredCalls();
+        // Process the actual event, calls back to user C code handler.
+        eventHandler.handlerFunc(event);
+        // Process any new deferred calls that were placed right now from this event handler.
+        JSEvents.runDeferredCalls();
+        // Out of event handler - restore nesting count.
+        --JSEvents.inEventHandler;
+      };
+      eventHandler.target.addEventListener(eventHandler.eventTypeString, eventHandler.eventListenerFunc, eventHandler.useCapture);
+      JSEvents.eventHandlers.push(eventHandler);
+    } else {
+      for (var i = 0; i < JSEvents.eventHandlers.length; ++i) {
+        if (JSEvents.eventHandlers[i].target == eventHandler.target && JSEvents.eventHandlers[i].eventTypeString == eventHandler.eventTypeString) {
+          JSEvents._removeHandler(i--);
+        }
+      }
+    }
+    return 0;
+  },
+  getNodeNameForTarget(target) {
+    if (!target) return "";
+    if (target == window) return "#window";
+    if (target == screen) return "#screen";
+    return target?.nodeName || "";
+  },
+  fullscreenEnabled() {
+    return document.fullscreenEnabled || // Safari 13.0.3 on macOS Catalina 10.15.1 still ships with prefixed webkitFullscreenEnabled.
+    // TODO: If Safari at some point ships with unprefixed version, update the version check above.
+    document.webkitFullscreenEnabled;
   }
-  ctr++;
+};
+
+var maybeCStringToJsString = cString => cString > 2 ? UTF8ToString(cString) : cString;
+
+/** @type {Object} */ var specialHTMLTargets = [ 0, document, window ];
+
+/** @suppress {duplicate } */ var findEventTarget = target => {
+  target = maybeCStringToJsString(target);
+  var domElement = specialHTMLTargets[target] || document.querySelector(target);
+  return domElement;
+};
+
+var findCanvasEventTarget = findEventTarget;
+
+function _emscripten_get_canvas_element_size(target, width, height) {
+  target >>>= 0;
+  width >>>= 0;
+  height >>>= 0;
+  var canvas = findCanvasEventTarget(target);
+  if (!canvas) return -4;
+  HEAP32[((width) >>> 2) >>> 0] = canvas.width;
+  HEAP32[((height) >>> 2) >>> 0] = canvas.height;
 }
 
 var getHeapMax = () => // Stay one Wasm page short of 4GB: while e.g. Chrome is able to allocate
@@ -3186,6 +3409,73 @@ function _emscripten_resize_heap(requestedSize) {
   return false;
 }
 
+var ENV = {};
+
+var getExecutableName = () => thisProgram || "./this.program";
+
+var getEnvStrings = () => {
+  if (!getEnvStrings.strings) {
+    // Default values.
+    // Browser language detection #8751
+    var lang = ((typeof navigator == "object" && navigator.languages && navigator.languages[0]) || "C").replace("-", "_") + ".UTF-8";
+    var env = {
+      "USER": "web_user",
+      "LOGNAME": "web_user",
+      "PATH": "/",
+      "PWD": "/",
+      "HOME": "/home/web_user",
+      "LANG": lang,
+      "_": getExecutableName()
+    };
+    // Apply the user-provided values, if any.
+    for (var x in ENV) {
+      // x is a key in ENV; if ENV[x] is undefined, that means it was
+      // explicitly set to be so. We allow user code to do that to
+      // force variables with default values to remain unset.
+      if (ENV[x] === undefined) delete env[x]; else env[x] = ENV[x];
+    }
+    var strings = [];
+    for (var x in env) {
+      strings.push(`${x}=${env[x]}`);
+    }
+    getEnvStrings.strings = strings;
+  }
+  return getEnvStrings.strings;
+};
+
+var stringToAscii = (str, buffer) => {
+  for (var i = 0; i < str.length; ++i) {
+    assert(str.charCodeAt(i) === (str.charCodeAt(i) & 255));
+    HEAP8[buffer++ >>> 0] = str.charCodeAt(i);
+  }
+  // Null-terminate the string
+  HEAP8[buffer >>> 0] = 0;
+};
+
+var _environ_get = function(__environ, environ_buf) {
+  __environ >>>= 0;
+  environ_buf >>>= 0;
+  var bufSize = 0;
+  getEnvStrings().forEach((string, i) => {
+    var ptr = environ_buf + bufSize;
+    HEAPU32[(((__environ) + (i * 4)) >>> 2) >>> 0] = ptr;
+    stringToAscii(string, ptr);
+    bufSize += string.length + 1;
+  });
+  return 0;
+};
+
+var _environ_sizes_get = function(penviron_count, penviron_buf_size) {
+  penviron_count >>>= 0;
+  penviron_buf_size >>>= 0;
+  var strings = getEnvStrings();
+  HEAPU32[((penviron_count) >>> 2) >>> 0] = strings.length;
+  var bufSize = 0;
+  strings.forEach(string => bufSize += string.length + 1);
+  HEAPU32[((penviron_buf_size) >>> 2) >>> 0] = bufSize;
+  return 0;
+};
+
 var SYSCALLS = {
   varargs: undefined,
   getStr(ptr) {
@@ -3240,6 +3530,31 @@ function _fd_write(fd, iov, iovcnt, pnum) {
     num += len;
   }
   HEAPU32[((pnum) >>> 2) >>> 0] = num;
+  return 0;
+}
+
+function _get_viewport_height() {
+  return Module.canvas.clientHeight;
+}
+
+function _get_viewport_width() {
+  return Module.canvas.clientWidth;
+}
+
+var initRandomFill = () => {
+  if (typeof crypto == "object" && typeof crypto["getRandomValues"] == "function") {
+    // for modern web browsers
+    return view => crypto.getRandomValues(view);
+  } else // we couldn't find a proper implementation, as Math.random() is not suitable for /dev/random, see emscripten-core/emscripten/pull/7096
+  abort("no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: (array) => { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };");
+};
+
+var randomFill = view => (randomFill = initRandomFill())(view);
+
+function _random_get(buffer, size) {
+  buffer >>>= 0;
+  size >>>= 0;
+  randomFill(HEAPU8.subarray(buffer >>> 0, buffer + size >>> 0));
   return 0;
 }
 
@@ -3306,9 +3621,12 @@ function checkIncomingModuleAPI() {
 var wasmImports = {
   /** @export */ __assert_fail: ___assert_fail,
   /** @export */ __cxa_begin_catch: ___cxa_begin_catch,
+  /** @export */ __cxa_end_catch: ___cxa_end_catch,
   /** @export */ __cxa_find_matching_catch_2: ___cxa_find_matching_catch_2,
   /** @export */ __cxa_find_matching_catch_3: ___cxa_find_matching_catch_3,
+  /** @export */ __cxa_rethrow: ___cxa_rethrow,
   /** @export */ __cxa_throw: ___cxa_throw,
+  /** @export */ __cxa_uncaught_exceptions: ___cxa_uncaught_exceptions,
   /** @export */ __resumeException: ___resumeException,
   /** @export */ _abort_js: __abort_js,
   /** @export */ _embind_register_bigint: __embind_register_bigint,
@@ -3320,6 +3638,7 @@ var wasmImports = {
   /** @export */ _embind_register_float: __embind_register_float,
   /** @export */ _embind_register_integer: __embind_register_integer,
   /** @export */ _embind_register_memory_view: __embind_register_memory_view,
+  /** @export */ _embind_register_optional: __embind_register_optional,
   /** @export */ _embind_register_smart_ptr: __embind_register_smart_ptr,
   /** @export */ _embind_register_std_string: __embind_register_std_string,
   /** @export */ _embind_register_std_wstring: __embind_register_std_wstring,
@@ -3327,23 +3646,48 @@ var wasmImports = {
   /** @export */ _emscripten_memcpy_js: __emscripten_memcpy_js,
   /** @export */ _emval_call: __emval_call,
   /** @export */ _emval_decref: __emval_decref,
+  /** @export */ _emval_get_global: __emval_get_global,
   /** @export */ _emval_get_method_caller: __emval_get_method_caller,
   /** @export */ _emval_incref: __emval_incref,
   /** @export */ _emval_run_destructors: __emval_run_destructors,
   /** @export */ _emval_take_value: __emval_take_value,
-  /** @export */ add_layer: _add_layer,
+  /** @export */ _tzset_js: __tzset_js,
+  /** @export */ draw: _draw,
+  /** @export */ emscripten_asm_const_int: _emscripten_asm_const_int,
+  /** @export */ emscripten_get_canvas_element_size: _emscripten_get_canvas_element_size,
   /** @export */ emscripten_resize_heap: _emscripten_resize_heap,
+  /** @export */ environ_get: _environ_get,
+  /** @export */ environ_sizes_get: _environ_sizes_get,
   /** @export */ fd_close: _fd_close,
   /** @export */ fd_seek: _fd_seek,
   /** @export */ fd_write: _fd_write,
+  /** @export */ get_viewport_height: _get_viewport_height,
+  /** @export */ get_viewport_width: _get_viewport_width,
+  /** @export */ invoke_diii,
+  /** @export */ invoke_fiii,
+  /** @export */ invoke_i,
   /** @export */ invoke_ii,
   /** @export */ invoke_iii,
+  /** @export */ invoke_iiii,
+  /** @export */ invoke_iiiii,
+  /** @export */ invoke_iiiiii,
+  /** @export */ invoke_iiiiiii,
+  /** @export */ invoke_iiiiiiii,
+  /** @export */ invoke_iiiiiiiiiii,
+  /** @export */ invoke_iiiiiiiiiiii,
+  /** @export */ invoke_iiiiiiiiiiiii,
+  /** @export */ invoke_iiiiij,
+  /** @export */ invoke_jiiii,
   /** @export */ invoke_v,
   /** @export */ invoke_vi,
   /** @export */ invoke_vii,
   /** @export */ invoke_viii,
   /** @export */ invoke_viiii,
-  /** @export */ memory: wasmMemory
+  /** @export */ invoke_viiiiiii,
+  /** @export */ invoke_viiiiiiiiii,
+  /** @export */ invoke_viiiiiiiiiiiiiii,
+  /** @export */ memory: wasmMemory,
+  /** @export */ random_get: _random_get
 };
 
 var wasmExports = createWasm();
@@ -3352,13 +3696,13 @@ var ___wasm_call_ctors = createExportWrapper("__wasm_call_ctors", 0);
 
 var ___getTypeName = createExportWrapper("__getTypeName", 1);
 
-var _fflush = createExportWrapper("fflush", 1);
-
 var _malloc = createExportWrapper("malloc", 1);
 
-var _strerror = createExportWrapper("strerror", 1);
-
 var _free = createExportWrapper("free", 1);
+
+var _fflush = createExportWrapper("fflush", 1);
+
+var _strerror = createExportWrapper("strerror", 1);
 
 var _setThrew = createExportWrapper("setThrew", 2);
 
@@ -3378,11 +3722,11 @@ var __emscripten_stack_alloc = a0 => (__emscripten_stack_alloc = wasmExports["_e
 
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports["emscripten_stack_get_current"])();
 
-var ___cxa_free_exception = createExportWrapper("__cxa_free_exception", 1);
+var ___cxa_decrement_exception_refcount = createExportWrapper("__cxa_decrement_exception_refcount", 1);
 
 var ___cxa_increment_exception_refcount = createExportWrapper("__cxa_increment_exception_refcount", 1);
 
-var ___cxa_decrement_exception_refcount = createExportWrapper("__cxa_decrement_exception_refcount", 1);
+var ___cxa_free_exception = createExportWrapper("__cxa_free_exception", 1);
 
 var ___get_exception_message = createExportWrapper("__get_exception_message", 3);
 
@@ -3390,12 +3734,22 @@ var ___cxa_can_catch = createExportWrapper("__cxa_can_catch", 3);
 
 var ___cxa_get_exception_ptr = createExportWrapper("__cxa_get_exception_ptr", 1);
 
+var dynCall_iiiiij = Module["dynCall_iiiiij"] = createExportWrapper("dynCall_iiiiij", 7);
+
+var dynCall_viijii = Module["dynCall_viijii"] = createExportWrapper("dynCall_viijii", 7);
+
+var dynCall_jiiii = Module["dynCall_jiiii"] = createExportWrapper("dynCall_jiiii", 5);
+
+var dynCall_iiiiijj = Module["dynCall_iiiiijj"] = createExportWrapper("dynCall_iiiiijj", 9);
+
+var dynCall_iiiiiijj = Module["dynCall_iiiiiijj"] = createExportWrapper("dynCall_iiiiiijj", 10);
+
 var dynCall_jiji = Module["dynCall_jiji"] = createExportWrapper("dynCall_jiji", 5);
 
-function invoke_ii(index, a1) {
+function invoke_iiii(index, a1, a2, a3) {
   var sp = stackSave();
   try {
-    return getWasmTableEntry(index)(a1);
+    return getWasmTableEntry(index)(a1, a2, a3);
   } catch (e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -3403,10 +3757,10 @@ function invoke_ii(index, a1) {
   }
 }
 
-function invoke_v(index) {
+function invoke_ii(index, a1) {
   var sp = stackSave();
   try {
-    getWasmTableEntry(index)();
+    return getWasmTableEntry(index)(a1);
   } catch (e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -3425,10 +3779,43 @@ function invoke_iii(index, a1, a2) {
   }
 }
 
+function invoke_vii(index, a1, a2) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1, a2);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
 function invoke_vi(index, a1) {
   var sp = stackSave();
   try {
     getWasmTableEntry(index)(a1);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_v(index) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)();
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiiii(index, a1, a2, a3, a4, a5, a6) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6);
   } catch (e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -3447,10 +3834,10 @@ function invoke_viiii(index, a1, a2, a3, a4) {
   }
 }
 
-function invoke_vii(index, a1, a2) {
+function invoke_iiiiii(index, a1, a2, a3, a4, a5) {
   var sp = stackSave();
   try {
-    getWasmTableEntry(index)(a1, a2);
+    return getWasmTableEntry(index)(a1, a2, a3, a4, a5);
   } catch (e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -3462,6 +3849,149 @@ function invoke_viii(index, a1, a2, a3) {
   var sp = stackSave();
   try {
     getWasmTableEntry(index)(a1, a2, a3);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiiiii(index, a1, a2, a3, a4, a5, a6, a7) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiii(index, a1, a2, a3, a4) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1, a2, a3, a4);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_fiii(index, a1, a2, a3) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1, a2, a3);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_diii(index, a1, a2, a3) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1, a2, a3);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_i(index) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)();
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiiiiii(index, a1, a2, a3, a4, a5, a6, a7) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiiiiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiij(index, a1, a2, a3, a4, a5, a6) {
+  var sp = stackSave();
+  try {
+    return dynCall_iiiiij(index, a1, a2, a3, a4, a5, a6);
+  } catch (e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_jiiii(index, a1, a2, a3, a4) {
+  var sp = stackSave();
+  try {
+    return dynCall_jiiii(index, a1, a2, a3, a4);
   } catch (e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -3491,11 +4021,11 @@ function applySignatureConversions(wasmExports) {
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
-var missingLibrarySymbols = [ "writeI53ToI64", "writeI53ToI64Clamped", "writeI53ToI64Signaling", "writeI53ToU64Clamped", "writeI53ToU64Signaling", "readI53FromI64", "readI53FromU64", "convertI32PairToI53", "convertU32PairToI53", "getTempRet0", "zeroMemory", "exitJS", "strError", "inetPton4", "inetNtop4", "inetPton6", "inetNtop6", "readSockaddr", "writeSockaddr", "emscriptenLog", "readEmAsmArgs", "jstoi_q", "getExecutableName", "listenOnce", "autoResumeAudioContext", "handleException", "keepRuntimeAlive", "runtimeKeepalivePush", "runtimeKeepalivePop", "callUserCallback", "maybeExit", "asmjsMangle", "asyncLoad", "mmapAlloc", "HandleAllocator", "getNativeTypeSize", "STACK_SIZE", "STACK_ALIGN", "POINTER_SIZE", "ASSERTIONS", "getCFunc", "ccall", "cwrap", "uleb128Encode", "sigToWasmTypes", "generateFuncType", "convertJsFunctionToWasm", "getEmptyTableSlot", "updateTableMap", "getFunctionAddress", "addFunction", "removeFunction", "reallyNegative", "unSign", "strLen", "reSign", "formatString", "intArrayFromString", "intArrayToString", "AsciiToString", "stringToAscii", "stringToNewUTF8", "stringToUTF8OnStack", "writeArrayToMemory", "registerKeyEventCallback", "maybeCStringToJsString", "findEventTarget", "getBoundingClientRect", "fillMouseEventData", "registerMouseEventCallback", "registerWheelEventCallback", "registerUiEventCallback", "registerFocusEventCallback", "fillDeviceOrientationEventData", "registerDeviceOrientationEventCallback", "fillDeviceMotionEventData", "registerDeviceMotionEventCallback", "screenOrientation", "fillOrientationChangeEventData", "registerOrientationChangeEventCallback", "fillFullscreenChangeEventData", "registerFullscreenChangeEventCallback", "JSEvents_requestFullscreen", "JSEvents_resizeCanvasForFullscreen", "registerRestoreOldStyle", "hideEverythingExceptGivenElement", "restoreHiddenElements", "setLetterbox", "softFullscreenResizeWebGLRenderTarget", "doRequestFullscreen", "fillPointerlockChangeEventData", "registerPointerlockChangeEventCallback", "registerPointerlockErrorEventCallback", "requestPointerLock", "fillVisibilityChangeEventData", "registerVisibilityChangeEventCallback", "registerTouchEventCallback", "fillGamepadEventData", "registerGamepadEventCallback", "registerBeforeUnloadEventCallback", "fillBatteryEventData", "battery", "registerBatteryEventCallback", "setCanvasElementSize", "getCanvasElementSize", "jsStackTrace", "getCallstack", "convertPCtoSourceLocation", "getEnvStrings", "checkWasiClock", "wasiRightsToMuslOFlags", "wasiOFlagsToMuslOFlags", "initRandomFill", "randomFill", "safeSetTimeout", "setImmediateWrapped", "safeRequestAnimationFrame", "clearImmediateWrapped", "polyfillSetImmediate", "registerPostMainLoop", "registerPreMainLoop", "getPromise", "makePromise", "idsToPromises", "makePromiseCallback", "Browser_asyncPrepareDataCounter", "isLeapYear", "ydayFromDate", "arraySum", "addDays", "getSocketFromFD", "getSocketAddress", "FS_createPreloadedFile", "FS_modeStringToFlags", "FS_getMode", "FS_stdin_getChar", "FS_unlink", "FS_createDataFile", "FS_mkdirTree", "_setNetworkCallback", "heapObjectForWebGLType", "toTypedArrayIndex", "webgl_enable_ANGLE_instanced_arrays", "webgl_enable_OES_vertex_array_object", "webgl_enable_WEBGL_draw_buffers", "webgl_enable_WEBGL_multi_draw", "webgl_enable_EXT_polygon_offset_clamp", "webgl_enable_EXT_clip_control", "webgl_enable_WEBGL_polygon_mode", "emscriptenWebGLGet", "computeUnpackAlignedImageSize", "colorChannelsInGlTextureFormat", "emscriptenWebGLGetTexPixelData", "emscriptenWebGLGetUniform", "webglGetUniformLocation", "webglPrepareUniformLocationsBeforeFirstUse", "webglGetLeftBracePos", "emscriptenWebGLGetVertexAttrib", "__glGetActiveAttribOrUniform", "writeGLArray", "registerWebGlEventCallback", "runAndAbortIfError", "emscriptenWebGLGetIndexed", "webgl_enable_WEBGL_draw_instanced_base_vertex_base_instance", "webgl_enable_WEBGL_multi_draw_instanced_base_vertex_base_instance", "ALLOC_NORMAL", "ALLOC_STACK", "allocate", "writeStringToMemory", "writeAsciiToMemory", "setErrNo", "demangle", "stackTrace", "getFunctionArgsName", "createJsInvokerSignature", "registerInheritedInstance", "unregisterInheritedInstance", "getInheritedInstanceCount", "getLiveInheritedInstances", "enumReadValueFromPointer", "setDelayFunction", "validateThis", "getStringOrSymbol", "emval_get_global" ];
+var missingLibrarySymbols = [ "writeI53ToI64", "writeI53ToI64Clamped", "writeI53ToI64Signaling", "writeI53ToU64Clamped", "writeI53ToU64Signaling", "readI53FromI64", "readI53FromU64", "convertI32PairToI53", "convertU32PairToI53", "getTempRet0", "zeroMemory", "exitJS", "strError", "inetPton4", "inetNtop4", "inetPton6", "inetNtop6", "readSockaddr", "writeSockaddr", "emscriptenLog", "runMainThreadEmAsm", "jstoi_q", "listenOnce", "autoResumeAudioContext", "handleException", "keepRuntimeAlive", "runtimeKeepalivePush", "runtimeKeepalivePop", "callUserCallback", "maybeExit", "asmjsMangle", "asyncLoad", "mmapAlloc", "HandleAllocator", "getNativeTypeSize", "STACK_SIZE", "STACK_ALIGN", "POINTER_SIZE", "ASSERTIONS", "getCFunc", "ccall", "cwrap", "uleb128Encode", "sigToWasmTypes", "generateFuncType", "convertJsFunctionToWasm", "getEmptyTableSlot", "updateTableMap", "getFunctionAddress", "addFunction", "removeFunction", "reallyNegative", "unSign", "strLen", "reSign", "formatString", "intArrayFromString", "intArrayToString", "AsciiToString", "stringToNewUTF8", "stringToUTF8OnStack", "writeArrayToMemory", "registerKeyEventCallback", "getBoundingClientRect", "fillMouseEventData", "registerMouseEventCallback", "registerWheelEventCallback", "registerUiEventCallback", "registerFocusEventCallback", "fillDeviceOrientationEventData", "registerDeviceOrientationEventCallback", "fillDeviceMotionEventData", "registerDeviceMotionEventCallback", "screenOrientation", "fillOrientationChangeEventData", "registerOrientationChangeEventCallback", "fillFullscreenChangeEventData", "registerFullscreenChangeEventCallback", "JSEvents_requestFullscreen", "JSEvents_resizeCanvasForFullscreen", "registerRestoreOldStyle", "hideEverythingExceptGivenElement", "restoreHiddenElements", "setLetterbox", "softFullscreenResizeWebGLRenderTarget", "doRequestFullscreen", "fillPointerlockChangeEventData", "registerPointerlockChangeEventCallback", "registerPointerlockErrorEventCallback", "requestPointerLock", "fillVisibilityChangeEventData", "registerVisibilityChangeEventCallback", "registerTouchEventCallback", "fillGamepadEventData", "registerGamepadEventCallback", "registerBeforeUnloadEventCallback", "fillBatteryEventData", "battery", "registerBatteryEventCallback", "setCanvasElementSize", "getCanvasElementSize", "jsStackTrace", "getCallstack", "convertPCtoSourceLocation", "checkWasiClock", "wasiRightsToMuslOFlags", "wasiOFlagsToMuslOFlags", "safeSetTimeout", "setImmediateWrapped", "safeRequestAnimationFrame", "clearImmediateWrapped", "polyfillSetImmediate", "registerPostMainLoop", "registerPreMainLoop", "getPromise", "makePromise", "idsToPromises", "makePromiseCallback", "Browser_asyncPrepareDataCounter", "isLeapYear", "ydayFromDate", "arraySum", "addDays", "getSocketFromFD", "getSocketAddress", "FS_createPreloadedFile", "FS_modeStringToFlags", "FS_getMode", "FS_stdin_getChar", "FS_unlink", "FS_createDataFile", "FS_mkdirTree", "_setNetworkCallback", "heapObjectForWebGLType", "toTypedArrayIndex", "webgl_enable_ANGLE_instanced_arrays", "webgl_enable_OES_vertex_array_object", "webgl_enable_WEBGL_draw_buffers", "webgl_enable_WEBGL_multi_draw", "webgl_enable_EXT_polygon_offset_clamp", "webgl_enable_EXT_clip_control", "webgl_enable_WEBGL_polygon_mode", "emscriptenWebGLGet", "computeUnpackAlignedImageSize", "colorChannelsInGlTextureFormat", "emscriptenWebGLGetTexPixelData", "emscriptenWebGLGetUniform", "webglGetUniformLocation", "webglPrepareUniformLocationsBeforeFirstUse", "webglGetLeftBracePos", "emscriptenWebGLGetVertexAttrib", "__glGetActiveAttribOrUniform", "writeGLArray", "registerWebGlEventCallback", "runAndAbortIfError", "emscriptenWebGLGetIndexed", "webgl_enable_WEBGL_draw_instanced_base_vertex_base_instance", "webgl_enable_WEBGL_multi_draw_instanced_base_vertex_base_instance", "ALLOC_NORMAL", "ALLOC_STACK", "allocate", "writeStringToMemory", "writeAsciiToMemory", "setErrNo", "demangle", "stackTrace", "getFunctionArgsName", "createJsInvokerSignature", "registerInheritedInstance", "unregisterInheritedInstance", "getInheritedInstanceCount", "getLiveInheritedInstances", "enumReadValueFromPointer", "setDelayFunction", "validateThis" ];
 
 missingLibrarySymbols.forEach(missingLibrarySymbol);
 
-var unexportedSymbols = [ "run", "addOnPreRun", "addOnInit", "addOnPreMain", "addOnExit", "addOnPostRun", "addRunDependency", "removeRunDependency", "out", "err", "callMain", "abort", "wasmMemory", "wasmExports", "writeStackCookie", "checkStackCookie", "convertI32PairToI53Checked", "stackSave", "stackRestore", "stackAlloc", "setTempRet0", "ptrToString", "getHeapMax", "growMemory", "ENV", "ERRNO_CODES", "DNS", "Protocols", "Sockets", "timers", "warnOnce", "readEmAsmArgsArray", "jstoi_s", "dynCallLegacy", "getDynCaller", "dynCall", "alignMemory", "wasmTable", "noExitRuntime", "freeTableIndexes", "functionsInTableMap", "setValue", "getValue", "PATH", "PATH_FS", "UTF8Decoder", "UTF8ArrayToString", "UTF8ToString", "stringToUTF8Array", "stringToUTF8", "lengthBytesUTF8", "UTF16Decoder", "UTF16ToString", "stringToUTF16", "lengthBytesUTF16", "UTF32ToString", "stringToUTF32", "lengthBytesUTF32", "JSEvents", "specialHTMLTargets", "findCanvasEventTarget", "currentFullscreenStrategy", "restoreOldWindowedStyle", "UNWIND_CACHE", "ExitStatus", "flush_NO_FILESYSTEM", "promiseMap", "uncaughtExceptionCount", "exceptionLast", "exceptionCaught", "ExceptionInfo", "findMatchingCatch", "getExceptionMessageCommon", "incrementExceptionRefcount", "decrementExceptionRefcount", "getExceptionMessage", "Browser", "getPreloadedImageData__data", "wget", "MONTH_DAYS_REGULAR", "MONTH_DAYS_LEAP", "MONTH_DAYS_REGULAR_CUMULATIVE", "MONTH_DAYS_LEAP_CUMULATIVE", "SYSCALLS", "preloadPlugins", "FS_stdin_getChar_buffer", "FS_createPath", "FS_createDevice", "FS_readFile", "FS", "FS_createLazyFile", "MEMFS", "TTY", "PIPEFS", "SOCKFS", "tempFixedLengthArray", "miniTempWebGLFloatBuffers", "miniTempWebGLIntBuffers", "GL", "AL", "GLUT", "EGL", "GLEW", "IDBStore", "SDL", "SDL_gfx", "allocateUTF8", "allocateUTF8OnStack", "print", "printErr", "InternalError", "BindingError", "throwInternalError", "throwBindingError", "registeredTypes", "awaitingDependencies", "typeDependencies", "tupleRegistrations", "structRegistrations", "sharedRegisterType", "whenDependentTypesAreResolved", "embind_charCodes", "embind_init_charCodes", "readLatin1String", "getTypeName", "getFunctionName", "heap32VectorToArray", "requireRegisteredType", "usesDestructorStack", "checkArgCount", "getRequiredArgCount", "createJsInvoker", "UnboundTypeError", "PureVirtualError", "GenericWireTypeSize", "EmValType", "EmValOptionalType", "throwUnboundTypeError", "ensureOverloadTable", "exposePublicSymbol", "replacePublicSymbol", "extendError", "createNamedFunction", "embindRepr", "registeredInstances", "getBasestPointer", "getInheritedInstance", "registeredPointers", "registerType", "integerReadValueFromPointer", "floatReadValueFromPointer", "readPointer", "runDestructors", "newFunc", "craftInvokerFunction", "embind__requireFunction", "genericPointerToWireType", "constNoSmartPtrRawPointerToWireType", "nonConstNoSmartPtrRawPointerToWireType", "init_RegisteredPointer", "RegisteredPointer", "RegisteredPointer_fromWireType", "runDestructor", "releaseClassHandle", "finalizationRegistry", "detachFinalizer_deps", "detachFinalizer", "attachFinalizer", "makeClassHandle", "init_ClassHandle", "ClassHandle", "throwInstanceAlreadyDeleted", "deletionQueue", "flushPendingDeletes", "delayFunction", "RegisteredClass", "shallowCopyInternalPointer", "downcastPointer", "upcastPointer", "char_0", "char_9", "makeLegalFunctionName", "emval_freelist", "emval_handles", "emval_symbols", "init_emval", "count_emval_handles", "Emval", "emval_returnValue", "emval_lookupTypes", "emval_methodCallers", "emval_addMethodCaller", "reflectConstruct" ];
+var unexportedSymbols = [ "run", "addOnPreRun", "addOnInit", "addOnPreMain", "addOnExit", "addOnPostRun", "addRunDependency", "removeRunDependency", "out", "err", "callMain", "abort", "wasmMemory", "wasmExports", "writeStackCookie", "checkStackCookie", "convertI32PairToI53Checked", "stackSave", "stackRestore", "stackAlloc", "setTempRet0", "ptrToString", "getHeapMax", "growMemory", "ENV", "ERRNO_CODES", "DNS", "Protocols", "Sockets", "timers", "warnOnce", "readEmAsmArgsArray", "readEmAsmArgs", "runEmAsmFunction", "jstoi_s", "getExecutableName", "dynCallLegacy", "getDynCaller", "dynCall", "alignMemory", "wasmTable", "noExitRuntime", "freeTableIndexes", "functionsInTableMap", "setValue", "getValue", "PATH", "PATH_FS", "UTF8Decoder", "UTF8ArrayToString", "UTF8ToString", "stringToUTF8Array", "stringToUTF8", "lengthBytesUTF8", "stringToAscii", "UTF16Decoder", "UTF16ToString", "stringToUTF16", "lengthBytesUTF16", "UTF32ToString", "stringToUTF32", "lengthBytesUTF32", "JSEvents", "specialHTMLTargets", "maybeCStringToJsString", "findEventTarget", "findCanvasEventTarget", "currentFullscreenStrategy", "restoreOldWindowedStyle", "UNWIND_CACHE", "ExitStatus", "getEnvStrings", "flush_NO_FILESYSTEM", "initRandomFill", "randomFill", "promiseMap", "uncaughtExceptionCount", "exceptionLast", "exceptionCaught", "ExceptionInfo", "findMatchingCatch", "getExceptionMessageCommon", "incrementExceptionRefcount", "decrementExceptionRefcount", "getExceptionMessage", "Browser", "getPreloadedImageData__data", "wget", "MONTH_DAYS_REGULAR", "MONTH_DAYS_LEAP", "MONTH_DAYS_REGULAR_CUMULATIVE", "MONTH_DAYS_LEAP_CUMULATIVE", "SYSCALLS", "preloadPlugins", "FS_stdin_getChar_buffer", "FS_createPath", "FS_createDevice", "FS_readFile", "FS", "FS_createLazyFile", "MEMFS", "TTY", "PIPEFS", "SOCKFS", "tempFixedLengthArray", "miniTempWebGLFloatBuffers", "miniTempWebGLIntBuffers", "GL", "AL", "GLUT", "EGL", "GLEW", "IDBStore", "SDL", "SDL_gfx", "allocateUTF8", "allocateUTF8OnStack", "print", "printErr", "InternalError", "BindingError", "throwInternalError", "throwBindingError", "registeredTypes", "awaitingDependencies", "typeDependencies", "tupleRegistrations", "structRegistrations", "sharedRegisterType", "whenDependentTypesAreResolved", "embind_charCodes", "embind_init_charCodes", "readLatin1String", "getTypeName", "getFunctionName", "heap32VectorToArray", "requireRegisteredType", "usesDestructorStack", "checkArgCount", "getRequiredArgCount", "createJsInvoker", "UnboundTypeError", "PureVirtualError", "GenericWireTypeSize", "EmValType", "EmValOptionalType", "throwUnboundTypeError", "ensureOverloadTable", "exposePublicSymbol", "replacePublicSymbol", "extendError", "createNamedFunction", "embindRepr", "registeredInstances", "getBasestPointer", "getInheritedInstance", "registeredPointers", "registerType", "integerReadValueFromPointer", "floatReadValueFromPointer", "readPointer", "runDestructors", "newFunc", "craftInvokerFunction", "embind__requireFunction", "genericPointerToWireType", "constNoSmartPtrRawPointerToWireType", "nonConstNoSmartPtrRawPointerToWireType", "init_RegisteredPointer", "RegisteredPointer", "RegisteredPointer_fromWireType", "runDestructor", "releaseClassHandle", "finalizationRegistry", "detachFinalizer_deps", "detachFinalizer", "attachFinalizer", "makeClassHandle", "init_ClassHandle", "ClassHandle", "throwInstanceAlreadyDeleted", "deletionQueue", "flushPendingDeletes", "delayFunction", "RegisteredClass", "shallowCopyInternalPointer", "downcastPointer", "upcastPointer", "char_0", "char_9", "makeLegalFunctionName", "emval_freelist", "emval_handles", "emval_symbols", "init_emval", "count_emval_handles", "getStringOrSymbol", "Emval", "emval_get_global", "emval_returnValue", "emval_lookupTypes", "emval_methodCallers", "emval_addMethodCaller", "reflectConstruct" ];
 
 unexportedSymbols.forEach(unexportedRuntimeSymbol);
 

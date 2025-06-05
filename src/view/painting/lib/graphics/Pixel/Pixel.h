@@ -59,4 +59,21 @@ struct HistoryPixel{
         _y = y;
     }
 };
+
+struct Bounding{
+    Point start = Point(0,0);
+    Point end = Point(0,0);
+
+    Bounding(Point start, Point end) : start(start), end(end){
+        if(start.x > end.x){
+            std::swap(start.x, end.x);
+        }
+        
+        if(start.y > end.y){
+            std::swap(start.y, end.y);
+        }
+    }
+    unsigned int getWidth(){ return end.x - start.x; }
+    unsigned int getHeight(){ return end.y - start.y; }
+};
 #endif

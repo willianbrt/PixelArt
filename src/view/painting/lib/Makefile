@@ -11,15 +11,14 @@ OBJ_DIR = $(BUILD_DIR)/obj
 TARGET = PixelEditor.js
 TARGET_DIR = $(BUILD_DIR)/$(TARGET)
 
-# SOURCES = $(wildcard $(SRC_DIR)/helpers/*/*.cpp) \
-# 			$(wildcard $(SRC_DIR)/interfaces/*/*.cpp) \
-# 			$(wildcard $(SRC_DIR)/command/*/*.cpp) \
-# 			$(wildcard $(SRC_DIR)/observers/*/*.cpp) \
-# 			$(wildcard $(SRC_DIR)/strategy/*/*.cpp) \
-# 			$(wildcard $(SRC_DIR)/objects/*/*.cpp) \
-# 			$(wildcard $(SRC_DIR)/main/main.cpp) \
-# 			$(wildcard $(SRC_DIR)/*.cpp)
-SOURCES = $(wildcard $(SRC_DIR)/main.cpp)
+SOURCES = $(wildcard $(SRC_DIR)/helpers/*/*.cpp) \
+			$(wildcard $(SRC_DIR)/interfaces/*/*.cpp) \
+			$(wildcard $(SRC_DIR)/command/*/*.cpp) \
+			$(wildcard $(SRC_DIR)/observers/*/*.cpp) \
+			$(wildcard $(SRC_DIR)/strategy/*/*.cpp) \
+			$(wildcard $(SRC_DIR)/objects/*/*.cpp) \
+			$(wildcard $(SRC_DIR)/main/main.cpp) \
+			$(wildcard $(SRC_DIR)/*.cpp)
 
 OBJECTS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 

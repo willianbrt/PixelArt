@@ -1,0 +1,95 @@
+#ifndef GRAPHICS_ENGINE
+#define GRAPHICS_ENGINE
+
+#include <algorithm>
+#include <math.h>
+
+#include "../Pixel/Pixel.h"
+#include "../Surface/Surface.cpp"
+
+struct GraphicsEngine{
+    static void translation(Surface* surface, Bounding bound, int deltaX, int deltaY){
+        int width = surface->getWidth();
+        unsigned int* data = surface->getData();
+        for(int y = bound.start.y; y < bound.end.y; y++){
+            for(int x = bound.start.x; x < bound.end.x; x++){
+                int index = x + width*y;
+                int newIndex = (x + deltaX) + width*(y + deltaY);
+
+                data[newIndex] = data[index];
+                data[index] = 0x0;
+            }
+        }
+    }
+    static void interpolation(Surface* surface, Bounding bound, float scaleX, float scaleY){
+        Surface dirtSurface =  surface->crop(bound);
+
+        int resizedWidth = scaleX * bound.getWidth();
+        int resizedHeight = scaleY * bound.getHeight();
+
+        int width = surface->getWidth();
+
+        unsigned int* data = surface->getData();
+        for(int y = bound.start.y; y < bound.end.y; y++){
+            for(int x = bound.start.x; x < bound.end.x; x++){
+                int index = x + width*y;
+
+                data[index] = 0x0;
+            }
+        }
+    }
+    static void rotate(Surface* surface, Surface* dirtSurface, Bounding bound, Point eixo, float radians){
+        // float radians = deg * std::M_PI/180;
+        // Point eixo = Point(bound.start.x + bound.getWidth()/2, bound.start.y + bound.getHeight()/2);
+        // Point dirtStart = rotate(bound.start, rad);
+        // Point dirtEnd = rotate(bound.end, rad);
+        // Bounding newBounding = Bounding(start, end);
+        
+        unsigned int* data = surface->getData();
+        int width = surface->getWidth();
+        for(int y = bound.start.y; y < bound.end.y; y++){
+            for(int x = bound.start.x; x < bound.end.x; x++){
+                Point point = rotate(Point(x, y), eixo, radians);
+                int rotatedIndex = point.x + bound.getWidth()*point.y;
+                int index = x + width*y;
+
+                data[index] = 0x0;
+                data[rotatedIndex] = dirtSurface->getData()[index];
+            }
+        }
+    }
+    static Point rotate(Point point, Point eixo, float radians){
+        float cos = std::cos(radians);
+        float sin = 1 - cos;
+
+        point.x -= eixo.x;
+        point.y -= eixo.y;
+
+        point.x = std::abs(point.x*cos - point.y*sin + eixo.x);
+        point.y = std::abs(point.x*sin + point.y*cos + eixo.y);
+        return point;
+    }
+    static void blending(unsigned int& bottomColor, unsigned int topColor) {
+        const float alphaSrc = (topColor & 0xFF) / 255.0f;
+        const float alphaDst = 1.0f - alphaSrc;
+
+        bottomColor = 
+            (static_cast<int>(alphaSrc * ((topColor >> 24) & 0xFF) + alphaDst * ((bottomColor >> 24) & 0xFF)) << 24) |
+            (static_cast<int>(alphaSrc * ((topColor >> 16) & 0xFF) + alphaDst * ((bottomColor >> 16) & 0xFF)) << 16) |
+            (static_cast<int>(alphaSrc * ((topColor >> 8) & 0xFF) + alphaDst * ((bottomColor >> 8) & 0xFF)) << 8) |
+            (static_cast<int>(alphaSrc * (topColor & 0xFF) + alphaDst * (bottomColor & 0xFF)));
+    }
+    static bool computeVisibleShape(int originalAxis, int originalSize, int viewportSize, int& outStartAxis, int& outEndAxis){
+        if (originalAxis <= -originalSize || originalAxis >= viewportSize){
+            outEndAxis = 0;
+            outStartAxis = 0;
+            return false;
+        }
+
+        outStartAxis = std::max(0, originalAxis);
+        outEndAxis = std::min(viewportSize, originalAxis + originalSize);
+
+        return true;
+    }
+};
+#endif

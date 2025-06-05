@@ -139,7 +139,6 @@ void PixelEditor::zoomOut(Point cursorPosition){
 
     zoom(targetScale, cursorPosition);
 }
-
 void PixelEditor::zoom(int targetScale, Point cursorPosition){
     if(targetScale < 0) return;
 
@@ -162,7 +161,6 @@ void PixelEditor::zoom(int targetScale, Point cursorPosition){
     
     move(location.x, location.y);
 }
-
 void PixelEditor::panning(Point fromCursor, Point toCursor){
     int cursorDeltaX = sketchLocation.x - (fromCursor.x - toCursor.x);
     int cursorDeltaY = sketchLocation.y - (fromCursor.y - toCursor.y);
@@ -247,7 +245,7 @@ void PixelEditor::hover(int x, int y){
     int endOfBoundY = startOfBoundX + (visiblePixelHeight * viewportWidth);
     int endOfBoundX = startOfBoundX + visiblePixelWidth;
 
-    for(startOfBoundX; startOfBoundX < endOfBoundX; startOfBoundX++){
+    for(; startOfBoundX < endOfBoundX; startOfBoundX++){
         for(int index = startOfBoundX; index < endOfBoundY; index+=viewportWidth){
             screen[index] = colorHex;
         }
@@ -300,7 +298,7 @@ void PixelEditor::updatePixel(int x, int y){
     int endOfBoundY = startOfBoundX + (visiblePixelHeight * viewportWidth);
     int endOfBoundX = startOfBoundX+visiblePixelWidth;
 
-    for(startOfBoundX; startOfBoundX < endOfBoundX; startOfBoundX++){
+    for(; startOfBoundX < endOfBoundX; startOfBoundX++){
         for(int index = startOfBoundX; index < endOfBoundY; index+=viewportWidth){
             screen[index] = colorHex;
         }

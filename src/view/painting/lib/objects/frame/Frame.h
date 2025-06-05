@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <array>
 
-#include "../../helpers/Pixel/Pixel.h"
+#include "../../graphics/Pixel/Pixel.h"
 #include "../../helpers/Guid/Guid.h"
 
 #include "../../interfaces/IGraphic/IGraphic.h"
