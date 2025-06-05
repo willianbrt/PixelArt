@@ -34,14 +34,8 @@ EMCC_COMPILE_FLAGS = -gsource-map \
 EMCC_FLAGS = -s ENVIRONMENT=web \
              -s MODULARIZE=1 \
              -s EXPORT_ES6=1 \
-             -s IMPORTED_MEMORY \
              -s ALLOW_MEMORY_GROWTH=1 \
-             -s INITIAL_MEMORY=256MB -s MAXIMUM_MEMORY=2564MB \
-             -s STANDALONE_WASM=1 \
-             -s ERROR_ON_UNDEFINED_SYMBOLS=1 \
-			-s NO_DISABLE_EXCEPTION_CATCHING=1 \
-			-s USE_WEBGL2=1 \
-			-s FULL_ES2 \
+             -s STANDALONE_WASM=0 \
 			-lembind \
 			--js-library='./../js/library.js'
 			
