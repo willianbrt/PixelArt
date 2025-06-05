@@ -56,7 +56,7 @@ $(TARGET_DIR): $(OBJECTS)
 	@echo Linking $(TARGET)...
 	@emcc $(EMCC_FLAGS) $(OBJECTS) -o $@
 	@echo Removing object files...
-	@$(RMDIR) "$(subst /,\,$(OBJ_DIR))"
+	@$(RMDIR) "$(OBJ_DIR)"
 	@echo Build successful.
 
 clean:
