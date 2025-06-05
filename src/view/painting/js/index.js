@@ -40,11 +40,11 @@ window.onload = async ()=>{
             this.parentNode.querySelector(".body").classList.toggle("hidden")
     });
 
-    btnMoveDownFrame.addEventListener("click", ()=> moveDownFrame(activeFrame.getId()));
-    btnMoveUpFrame.addEventListener("click", ()=> moveUpFrame(activeFrame.getId()));
-    btnAddFrame.addEventListener("click", addFrame);
-    btnRemoveFrame.addEventListener("click", ()=> removeFrame(activeFrame.getId()));
-    btnCloneFrame.addEventListener("click", ()=> cloneFrame(activeFrame.getId()));
+    // btnMoveDownFrame.addEventListener("click", ()=> moveDownFrame(activeFrame.getId()));
+    // btnMoveUpFrame.addEventListener("click", ()=> moveUpFrame(activeFrame.getId()));
+    btnAddFrame.addEventListener("click", ()=> editor.addFrame(new module.Frame(width, height)));
+    btnRemoveFrame.addEventListener("click", ()=> editor.removeFrame(editor.getActiveFrame().getID()));
+    // btnCloneFrame.addEventListener("click", ()=> cloneFrame(activeFrame.getId()));
     
     
     let btnAddLayer = document.getElementById("add-layer");
@@ -53,61 +53,85 @@ window.onload = async ()=>{
     let btnMoveUp = document.getElementById("move-up-layer");
     let btnRemoveLayer = document.getElementById("remove-layer");
 
-    let inpOpacity = document.querySelector("input[name='opacity-layer']");
-    inpOpacity.addEventListener("input", ()=> updateOpacityLayer(activeLayer.getId(), this.value));
-    btnMoveDown.addEventListener("click", ()=> moveDownLayer(activeLayer.getId()));
-    btnMoveUp.addEventListener("click", ()=> moveUpLayer(activeLayer.getId()));
-    btnAddLayer.addEventListener("click", addLayer);
-    btnRemoveLayer.addEventListener("click", ()=> removeLayer(activeLayer.getId()));
-    btnCloneLayer.addEventListener("click", ()=> cloneLayer(activeLayer.getId()));
+    // let inpOpacity = document.querySelector("input[name='opacity-layer']");
+    // inpOpacity.addEventListener("input", ()=> updateOpacityLayer(activeLayer.getId(), this.value));
+    // btnMoveDown.addEventListener("click", ()=> moveDownLayer(activeLayer.getId()));
+    // btnMoveUp.addEventListener("click", ()=> moveUpLayer(activeLayer.getId()));
+    // btnAddLayer.addEventListener("click", addLayer);
+    // btnRemoveLayer.addEventListener("click", ()=> removeLayer(activeLayer.getId()));
+    // btnCloneLayer.addEventListener("click", ()=> cloneLayer(activeLayer.getId()));
 }
 
 window.add_layer = addLayer;
 window.remove_layer = removeLayer;
 window.swap_layer = swapActiveLayer;
+window.move_layer_to = moveDownLayer;
 window.move_down_layer = moveDownLayer;
 window.move_up_layer = moveUpLayer;
 window.clone_layer = cloneLayer;
 
 window.add_frame = addFrame;
 window.remove_frame = removeFrame;
-window.swap_frame = swapActiveFrame;
+window.change_active_frame = changeActiveFrame;
+window.move_frame_to = moveFrameTo;
 window.move_down_frame = moveDownFrame;
 window.move_up_frame = moveUpFrame;
-window.clone_frame = cloneFrame;
 
 
 var ctrFrame = 1;
 let activeFrame;
-let listFrame = document.getElementById("list-frames");
 
+let listFrame = document.getElementById("list-frames");
 function addFrame(frame){
+    const id = frame.getID();
+
     let frameElement = document.createElement("div");
     let canvas = document.createElement("canvas");
-    
-    frameElement.classList.add("frame");
-    canvas.id = frame.getID().toString();
 
-    if(listFrame.querySelectorAll(".frame").length == 0){
-        swapActiveFrame.call(frameElement);
-    }
+    frameElement.classList.add("frame");
+    frameElement.dataset.id = id.toString();
 
     frameElement.append(canvas);
     listFrame.prepend(frameElement);
 
-    frameElement.addEventListener("click", swapActiveFrame);
+    frameElement.addEventListener("click", ()=>changeActiveFrame(id));
 }
-function swapActiveFrame(){
-    activeFrame?.classList.remove("active");
-    this.classList.add("active");
-    activeFrame = this;
+function changeActiveFrame(id){
+    let frameElement = getFrameById(id.toString());
+    
+    listFrame.querySelectorAll("div.frame.active")
+             .forEach((f)=>f.classList.remove("active"));
+
+    frameElement?.classList.toggle("active", true);
 }
-function moveDownFrame(frame){
+function moveFrameTo(frame, index){
     let frames = [...listFrame.querySelectorAll("div.frame")];
-    let previousFrame = frames.indexOf(activeFrame) - 1;
+    let frameElement = listFrame.querySelector(`div.frame[data-id=${frame.getID().toString()}]`);
+    let previousFrame = frames.indexOf(frameElement) - 1;
 
     if(previousFrame>= 0)
         frames[previousFrame].before(activeFrame);
+
+
+    const children = parentNode.children;
+
+    if (index < 0 || index > frames.length) {
+        return;
+    }
+
+    if (index === children.length) {
+        previousFrame.appendChild(newElement); // Append if index is at the end
+    } else {
+        previousFrame.insertBefore(newElement, children[index]);
+    }
+}
+function moveDownFrame(frame){
+    let frames = [...listFrame.querySelectorAll("div.frame")];
+    let frameElement = getFrameById(frame.getID().toString());
+    let previousFrame = frames.indexOf(frameElement) - 1;
+
+    if(previousFrame>= 0)
+        frames[previousFrame].before(frameElement);
 }
 function moveUpFrame(frame){
     let listFrame = document.getElementById("list-frames");
@@ -118,30 +142,12 @@ function moveUpFrame(frame){
         frames[nextFrame].after(activeFrame);
 }
 function removeFrame(id){
-    let listFrame = document.getElementById("list-frames");
-    if(listFrame.querySelectorAll("div.frame").length <= 1) return;
-
-    let frames = [...listFrame.querySelectorAll(".frame")];
-    let indexActiveFrame = frames.indexOf(activeFrame);
-    activeFrame.remove();
-
-    frames = [...listFrame.querySelectorAll("div.frame")];
-
-    if (frames.length === 0) return;
-
-    let nextFrame;
-    if (indexActiveFrame < frames.length) {
-        nextFrame = frames[indexActiveFrame];
-    } else {
-        nextFrame = frames[frames.length - 1];
-    }
-
-    swapActiveFrame.call(nextFrame);
+    let frameElement = getFrameById(id);
+    frameElement.remove();
 }
-function cloneFrame(){
-    addFrame({});
+function getFrameById(id){
+    return listFrame.querySelector(`.frame[data-id="${id}"]`);
 }
-
 
 /* LAYER */
 let ctr = 1;
@@ -340,33 +346,3 @@ function swapActiveLayer(){
     document.querySelector("#opacity-label h5").innerText = "Transparência " + activeLayer.dataset.opacity + "%"
     inpOpacity.value = activeLayer.dataset.opacity;
 }
-
-
-
-
-// function moveDownFrame(id){}
-// function moveUpFrame(id){}
-// function addFrame(){}
-// function removeFrame(id){}
-// function cloneFrame(id){}
-
-// function updateOpacityLayer(id, value){
-//     activeLayer.setOpacity(value);
-// }
-// function cloneLayer(id){
-//     let layer = activeLayer;
-//     layer.title = findTitle(activeLayer.getTitle());
-//     activeFrame.addLayer(layer);
-// }
-// function removeLayer(id){
-//     activeFrame.remove(activeLayer);
-// }
-// function moveUpLayer(id){
-// }
-// function moveDownLayer(id){
-// }
-// function addLayer(options){
-// }
-// function swapActiveLayer(){
-    
-// }
