@@ -62,21 +62,13 @@ window.onload = async ()=>{
     let btnRemoveLayer = document.getElementById("remove-layer");
 
     // let inpOpacity = document.querySelector("input[name='opacity-layer']");
+    btnAddLayer.addEventListener("click", ()=> editor.getActiveFrame().addLayer());
     // inpOpacity.addEventListener("input", ()=> updateOpacityLayer(activeLayer.getId(), this.value));
     // btnMoveDown.addEventListener("click", ()=> moveDownLayer(activeLayer.getId()));
     // btnMoveUp.addEventListener("click", ()=> moveUpLayer(activeLayer.getId()));
-    // btnAddLayer.addEventListener("click", addLayer);
     // btnRemoveLayer.addEventListener("click", ()=> removeLayer(activeLayer.getId()));
     // btnCloneLayer.addEventListener("click", ()=> cloneLayer(activeLayer.getId()));
 }
-
-window.add_layer = addLayer;
-window.remove_layer = removeLayer;
-window.swap_layer = swapActiveLayer;
-window.move_layer_to = moveDownLayer;
-window.move_down_layer = moveDownLayer;
-window.move_up_layer = moveUpLayer;
-window.clone_layer = cloneLayer;
 
 window.add_layer = addLayer;
 window.remove_layer = removeLayer;
@@ -90,6 +82,7 @@ window.change_active_frame = changeActiveFrame;
 window.move_frame_to = moveFrameTo;
 
 let listFrame = document.getElementById("list-frames");
+let listLayer = document.getElementById("list-Layers");
 function addFrame(frame){
     const id = frame.getID();
 
@@ -135,48 +128,18 @@ function getFrameById(id){
 }
 
 /* LAYER */
-let ctr = 1;
-let activeLayer;
-
 function updateOpacityLayer(){
     document.querySelector("#opacity-label h5").innerText = "Transparência " + this.value + "%"
-    activeLayer.dataset.opacity = this.value;
+    editor.getActiveFrame().getActiveLayer().setOpacity(this.value);
 }
-function cloneLayer(){
-    let title = findTitle(activeLayer.dataset.title);
-    
-    addLayer({
-        title: title,
-        ishidden: activeLayer.dataset.ishidden === "true",
-        islock: activeLayer.dataset.islock === "true"
-    });
-}
-function removeLayer(){
-    let listLayer = document.getElementById("list-Layers");
-    if(listLayer.querySelectorAll(".layer").length <= 1) return;
-
-    let layers = [...listLayer.querySelectorAll(".layer")];
-    let indexActiveLayer = layers.indexOf(activeLayer);
-    activeLayer.remove();
-
-    layers = [...listLayer.querySelectorAll(".layer")];
-
-    if (layers.length === 0) return;
-
-    let nextLayer;
-    if (indexActiveLayer < layers.length) {
-        nextLayer = layers[indexActiveLayer];
-    } else {
-        nextLayer = layers[layers.length - 1];
-    }
-
-    swapActiveLayer.call(nextLayer);
+function removeLayer(id){    
+    let frameElement = getLayerById(id);
+    frameElement.remove();
 }
 
 function moveLayerTo(id, index){
-    const listFrame = document.getElementById("list-layers");
-    let layers = listFrame.querySelectorAll("div.layer");
-    let layerElement = getFrameById(id.toString());
+    let layers = listLayer.querySelectorAll("div.layer");
+    let layerElement = getLayerById(id.toString());
 
     if (layerElement === layers[index] || index < 0 || index >= layers.length) {
         return;
@@ -189,11 +152,16 @@ function moveLayerTo(id, index){
     }
 }
 
-function changeActiveLayer(id){
-    let layerElement = getFrameById(id.toString());
-    listFrame.querySelectorAll("div.layer.active")
+function changeActiveLayer(layer){
+    let inpOpacity = document.querySelector("input[name='opacity-layer']");
+    document.querySelector("#opacity-label h5").innerText = "Transparência " + layer.getOpacity() + "%"
+    inpOpacity.value = layer.getOpacity();
+
+    let layerElement = getLayerById(layer.getID().toString());
+    listLayer.querySelectorAll("div.layer.active")
              .forEach((f)=>f.classList.remove("active"));
     layerElement?.classList.toggle("active", true);
+
 }
 
 function findTitle(find) {
@@ -204,7 +172,7 @@ function findTitle(find) {
     let layersFounds = 1;
     let cntr = 1;
     while(layers.length > cntr){
-        const exists = layers.filter(e => e.dataset.title === name).length;
+        const exists = layers.filter(e => e.getName() === name).length;
 
         if (exists >= 1) {
             name = `${name.replace(/\(\d+\)$/, '')}(${cntr})`;
@@ -215,80 +183,63 @@ function findTitle(find) {
 
     return name;
 }
-function addLayer(options){
-    console.log("add_layer")
+function addLayer(layer){
     let listLayer = document.getElementById("list-Layers");
-    let layer = document.createElement("div");
+    let layerElement = document.createElement("div");
     let nameLayer = document.createElement("div");
     let h5 = document.createElement("h5");
     let btnHideLayer = document.createElement("button");
     let btnLockLayer = document.createElement("button");
     let btnGrabLayer = document.createElement("button");
     
-    layer.classList.add("layer");
-    layer.id = options.id ?? ctr;
-    layer.dataset.islock = options.islock ?? false;
-    layer.dataset.ishidden = options.ishidden ?? false;
-    layer.dataset.title = options.title ?? findTitle("Layer " + ctr);
-    layer.dataset.opacity = options.opacity ?? 100;
-
-    if(listLayer.querySelectorAll(".layer").length == 0){
-        swapActiveLayer.call(layer);
-    }
-
+    layerElement.classList.add("layer");
+    layerElement.id = layer.getID().toString();
     nameLayer.className = "text";
     nameLayer.className = "name-layer"
-    h5.innerText = layer.dataset.title;
+    h5.innerText = layer.getName();
 
     btnHideLayer.className = "hide-layer";
-    btnHideLayer.innerHTML = `<i class=\"fa ${options.ishidden ? "fa-eye-slash" : "fa-eye"}\"></i>`;
+    btnHideLayer.innerHTML = `<i class=\"fa ${layer.isVisible() ? "fa-eye-slash" : "fa-eye"}\"></i>`;
 
     btnLockLayer.className = "lock-layer";
-    btnLockLayer.innerHTML = `<i class=\"fa ${options.islock ?  "fa-lock" : "fa-unlock" }\"></i>`;
+    btnLockLayer.innerHTML = `<i class=\"fa ${layer.isLock() ?  "fa-lock" : "fa-unlock" }\"></i>`;
 
     btnGrabLayer.className = "grab-layer";
     btnGrabLayer.innerHTML = "<i class=\"fa fa-grip-lines\"></i>";
 
-    layer.append(btnHideLayer);
+    layerElement.append(btnHideLayer);
     nameLayer.append(h5);
-    layer.append(nameLayer);
-    layer.append(btnLockLayer);
-    layer.append(btnGrabLayer);
-    listLayer.prepend(layer);
+    layerElement.append(nameLayer);
+    layerElement.append(btnLockLayer);
+    layerElement.append(btnGrabLayer);
+    listLayer.prepend(layerElement);
 
-    layer.addEventListener("click", swapActiveLayer);
+    layerElement.addEventListener("click", ()=>editor.getActiveFrame().changeActiveLayer(layer.getID()));
     btnLockLayer.addEventListener("click", toggleLockLayer);
     btnHideLayer.addEventListener("click", toggleHideLayer);
     btnGrabLayer.addEventListener("mousedown", grabLayer);
     nameLayer.addEventListener("dblclick", renameLayer);
     
     function toggleLockLayer(){
-        let isLocking = layer.getAttribute("data-islock") === "true";
         let icon = this.querySelector("i");
 
-        if(isLocking){
-            layer.dataset.islock = false;
+        if(layer.isLock()){
             icon.classList.replace("fa-lock", "fa-unlock");
             return;
         }
-        
-        layer.dataset.islock = true;
         icon.classList.replace("fa-unlock", "fa-lock");
     }
     function toggleHideLayer(){
-        let isHidden = layer.getAttribute("data-ishidden") === "true";
         let icon = this.querySelector("i");
         
-        if(isHidden){
-            layer.dataset.ishidden = false;
+        if(layer.isLock()){
             icon.classList.replace("fa-eye-slash", "fa-eye");
-            layer.classList.toggle("hidden-layer", false);
+            layerElement.classList.toggle("hidden-layer", false);
             return;
         }
     
         icon.classList.replace("fa-eye", "fa-eye-slash");
-        layer.classList.toggle("hidden-layer", true);
-        layer.dataset.ishidden = true;
+        layerElement.classList.toggle("hidden-layer", true);
     }
     function grabLayer(e){
         let listLayer = document.getElementById("list-Layers");
@@ -301,25 +252,25 @@ function addLayer(options){
         },{signal: abort.signal});
         window.addEventListener("mouseup", (e)=>{
             e.target?.closest(".layer").classList.remove("swap");
-            e.target?.closest(".layer").after(layer);
+            e.target?.closest(".layer").after(layerElement);
             abort.abort();
         }, { once: true });
     }
     function renameLayer(e){
         let inpNameLayer = document.createElement("input");
-        inpNameLayer.value = layer.dataset.title;
+        inpNameLayer.value = layer.getName();
         inpNameLayer.type = "text";
 
         nameLayer.replaceChild(inpNameLayer, h5);
         inpNameLayer.focus();
         inpNameLayer.addEventListener("blur", function(){
-            if(inpNameLayer.value == "" || inpNameLayer.value == layer.dataset.title){
+            if(inpNameLayer.value == "" || inpNameLayer.value == layer.getName()){
                 nameLayer.replaceChild(h5, inpNameLayer);
                 return;
             }
 
-            layer.dataset.title = findTitle(inpNameLayer.value);
-            h5.innerText = layer.dataset.title;
+            layer.setName(findTitle(inpNameLayer.value));
+            h5.innerText = layer.getName();
             nameLayer.replaceChild(h5, inpNameLayer);
         });
         inpNameLayer.addEventListener("keypress", function(e){
@@ -327,15 +278,7 @@ function addLayer(options){
                 inpNameLayer.blur();
         });
     }
-
-    ctr++;
 }
-function swapActiveLayer(){
-    let inpOpacity = document.querySelector("input[name='opacity-layer']");
-    activeLayer?.classList.remove("active");
-    this.classList.add("active");
-    activeLayer = this;
-
-    document.querySelector("#opacity-label h5").innerText = "Transparência " + activeLayer.dataset.opacity + "%"
-    inpOpacity.value = activeLayer.dataset.opacity;
+function getLayerById(id){
+    return listLayer.querySelector(`.layer[data-id="${id}"]`);
 }

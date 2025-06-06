@@ -151,7 +151,7 @@ Layer* Frame::getActiveLayer(){
 }
 void Frame::changeActiveLayer(Guid id){
     activeLayer= getLayerByID(id);
-    emscripten::val::global("change_active_layer")(emscripten::val(id));
+    emscripten::val::global("change_active_layer")(emscripten::val(activeLayer));
 }
 
 

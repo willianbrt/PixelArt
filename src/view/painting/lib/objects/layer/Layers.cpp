@@ -37,7 +37,13 @@ bool Layer::isVisible(){
 }
 void Layer::setVisible(bool isVisible){
     _isVisible = isVisible;
-}   
+}
+bool Layer::isLock(){
+    return _isLock;
+}
+void Layer::setLock(bool isLock){
+    _isLock = isLock;
+}
 std::string Layer::getName() {
     return _name;
 }
@@ -59,6 +65,7 @@ void Layer::draw(IGraphic& graphic){
 unsigned int* Layer::getBuffer(){ return _buffer; }
 unsigned int Layer::getWidth(){ return _width; }
 unsigned int Layer::getHeight(){ return _height; }
+unsigned int Layer::getOpacity(){ return _opacity; }
 
 unsigned int Layer::getPixel(int x, int y){ return getPixel(calcIndex(x,y)); }
 unsigned int Layer::getPixel(int index){ return _buffer[index]; }
@@ -83,11 +90,13 @@ EMSCRIPTEN_BINDINGS(layer_module){
     .function("resize", &Layer::resize)
     .function("move", &Layer::move)
     .function("draw", &Layer::draw)
-    .function("getID", &Layer::getID)
     .function("getName", &Layer::getName)
+    .function("getOpacity", &Layer::getOpacity)
     .function("getWidth", &Layer::getWidth)
     .function("getHeight", &Layer::getHeight)
     .function("setVisible", &Layer::setVisible)
     .function("isVisible", &Layer::isVisible)
+    .function("setLock", &Layer::setLock)
+    .function("isLock", &Layer::isLock)
     .function("getBuffer", &Layer::getBuffer, emscripten::allow_raw_pointer<unsigned int*>() );
 };

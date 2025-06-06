@@ -26,6 +26,8 @@ private:
     unsigned int _height = 0;
     unsigned int _length = 0;
     bool _isVisible = true;
+    bool _isLock = true;
+    unsigned int _opacity = 100;
     std::string _name = nullptr;
     
 public:
@@ -45,6 +47,9 @@ public:
     
     bool isVisible();
     void setVisible(bool isVisible);
+    bool isLock();
+    void setLock(bool isLock);
+    unsigned int getOpacity();
     std::string getName();
     
     unsigned int* getBuffer();
