@@ -3,28 +3,28 @@
 Frame::Frame(unsigned int width, unsigned int height) : id(Guid::generateUUID()) {
     _width = width;
     _height = height;
-    addTile(new Layer("Layer 1", _width, _height));
+    addLayer(new Layer("Layer 1", _width, _height));
 
-    tiles.at(0)->putPixel(5, 5, 0xFF00FFFF);
-    tiles.at(0)->putPixel(1, 57, 0xFFFFFFFF);
-    tiles.at(0)->putPixel(99, 10, 0xFFFF00FF);
-    tiles.at(0)->putPixel(9, 99, 0xFF0000FF);
+    layers.at(0)->putPixel(5, 5, 0xFF00FFFF);
+    layers.at(0)->putPixel(1, 57, 0xFFFFFFFF);
+    layers.at(0)->putPixel(99, 10, 0xFFFF00FF);
+    layers.at(0)->putPixel(9, 99, 0xFF0000FF);
 }
 
 Frame::~Frame(){}
 
 void Frame::resize(int width, int height){
-    for(auto& layer : tiles){
+    for(auto& layer : layers){
         layer->resize(width, height);
     }
 }
 void Frame::move(int offsetX, int offsetY){
-    for(auto& layer : tiles){
+    for(auto& layer : layers){
         layer->move(offsetX, offsetY);
     }
 }
 void Frame::draw(IGraphic& graphic){
-    tiles.at(active)->draw(graphic);
+    activeLayer->draw(graphic);
 }
 
 unsigned int Frame::getWidth(){ return _width; }
@@ -32,14 +32,14 @@ unsigned int Frame::getHeight(){ return _height; }
 
 unsigned int Frame::getPixel(int x, int y){ return getPixel(calcIndex(x,y)); }
 unsigned int Frame::getPixel(int index){
-    return getPixel(index, 0, tiles.size());
+    return getPixel(index, 0, layers.size());
 }
 unsigned int Frame::getPixel(int index, int fromIndex, int toIndex){
     unsigned int colorHex = 0;
-    if(toIndex > tiles.size()) throw std::runtime_error("ToIndex excede o tamanho maximo de Layers.");
+    if(toIndex > layers.size()) throw std::runtime_error("ToIndex excede o tamanho maximo de Layers.");
     
     for(int layerIndex = fromIndex; layerIndex < toIndex; layerIndex++){
-        Layer* layer = tiles.at(layerIndex);
+        Layer* layer = layers.at(layerIndex);
         if(!layer->isVisible()) continue;
 
         blending(colorHex, layer->getPixel(index));
@@ -50,7 +50,7 @@ unsigned int Frame::getPixel(int index, int fromIndex, int toIndex){
 
 void Frame::putPixel(int x, int y, unsigned int colorHex){ putPixel(calcIndex(x, y), colorHex); }
 void Frame::putPixel(int index, unsigned int colorHex){ 
-    tiles.at(active)->putPixel(index, colorHex); 
+    activeLayer->putPixel(index, colorHex); 
 }
 
 unsigned int Frame::calcIndex(int x, int y){ return x + y*_width; }
@@ -82,42 +82,76 @@ Guid Frame::getID(){
     return id;
 }
 
-void Frame::bringTileTo(size_t from, size_t to){
-    if (from == to || from >= tiles.size() || to >= tiles.size()) return;
+
+void Frame::bringLayerToFoward(Guid id){
+    size_t i = std::distance(layers.begin(), getIteratorLayerByID(id));
+    bringLayerTo(id, i + 1);
+}
+void Frame::bringLayerBack(Guid id){
+    size_t i = std::distance(layers.begin(), getIteratorLayerByID(id));
+    bringLayerTo(id, i - 1);
+}
+void Frame::bringLayerTo(Guid id, size_t toIndex){
+    auto from = getIteratorLayerByID(id);
+
+    if (from == layers.end()) return;
+
+    size_t fromIndex = std::distance(layers.begin(), from);
     
-    if (from < to)
-        std::swap(to, from);
+    if (fromIndex == toIndex || fromIndex >= layers.size() || toIndex >= layers.size()) return;
+    
+    if (fromIndex < toIndex) {
+        std::rotate(layers.begin() + fromIndex, layers.begin() + fromIndex + 1, layers.begin() + toIndex + 1);
+    } else {
+        std::rotate(layers.begin() + toIndex, layers.begin() + fromIndex, layers.begin() + fromIndex + 1);
+    }
+    
+    emscripten::val::global("move_layer_to")(emscripten::val(id), emscripten::val(toIndex));
+}
+void Frame::removeLayer(Guid id){
+    auto it = getIteratorLayerByID(id);
+    size_t index = it - layers.begin();
+    if (it != layers.end()) {
+        layers.erase(it);
+        
+        emscripten::val::global("remove_layer")(emscripten::val(id));
 
-    std::rotate(tiles.begin() + to, tiles.begin() + from, tiles.begin() + from + 1);
-}
-void Frame::removeTile(int index){
-    typename vector<Layer*>::iterator it = tiles.begin();
-    advance(it, index);
-    tiles.erase(it);
-}
-void Frame::addTile(Layer* tile){
-    tiles.emplace_back(tile);
-}
-vector<Layer*> Frame::getAllTiles(){
-    return tiles;
-}
-Layer* Frame::getTileByIndex(unsigned int index){
-    return tiles.at(index);
-}
-Layer* Frame::getActiveTile(){
-    return getTileByIndex(active);
-}
-int Frame::getIndexFromActiveTile(){
-    return active;
-}
-void Frame::changeActiveTile(unsigned int index){
-    if(tiles.size() < index && index >= 0)
-        return;
+        if(layers.size() == 0){
+            addLayer(new Layer("", getWidth(), getHeight()));
+            return;
+        }
 
-    active = index;
+        if(id.toString() == activeLayer->getID().toString()){
+            size_t activeIndex = std::min(layers.size()-1, std::max<size_t>(0, index));
+            changeActiveLayer(layers[activeIndex]->getID());
+        }
+    }
 }
-size_t Frame::getNumberOfTiles(){
-    return tiles.size();
+void Frame::addLayer(Layer* layer){
+    layers.emplace_back(layer);
+    emscripten::val::global("add_layer")(emscripten::val(*layer));
+    
+    if(layers.size() == 1){
+        changeActiveLayer(layers[0]->getID());
+    }
+}
+vector<Layer*> Frame::getAllLayers(){
+    return layers;
+}
+Layer* Frame::getLayerByID(Guid id){
+    auto it = getIteratorLayerByID(id);
+    return (it != layers.end()) ? *it : nullptr;
+}
+std::vector<Layer*>::iterator Frame::getIteratorLayerByID(Guid id){
+    string idStr = id.toString();
+    return std::find_if(layers.begin(), layers.end(), [&idStr](Layer* f){ return f->getID().toString() == idStr; });
+}
+Layer* Frame::getActiveLayer(){
+    return activeLayer;
+}
+void Frame::changeActiveLayer(Guid id){
+    activeLayer= getLayerByID(id);
+    emscripten::val::global("change_active_layer")(emscripten::val(id));
 }
 
 
@@ -133,13 +167,14 @@ EMSCRIPTEN_BINDINGS(frame_module){
         .function("move", &Frame::move)
         .function("draw", &Frame::draw)
         .function("getFrameDuration", &Frame::getFrameDuration)
-        .function("bringTileTo", &Frame::bringTileTo)
-        .function("removeTile", &Frame::removeTile)
-        .function("addTile", &Frame::addTile, allow_raw_pointers())
-        .function("getAllTiles", &Frame::getAllTiles, allow_raw_pointers())
-        .function("getTileByIndex", &Frame::getTileByIndex, allow_raw_pointers())
-        .function("getActiveTile", &Frame::getActiveTile, allow_raw_pointers())
-        .function("getIndexFromActiveTile", &Frame::getIndexFromActiveTile)
-        .function("changeActiveTile", &Frame::changeActiveTile)
-        .function("getNumberOfTiles", &Frame::getNumberOfTiles);
+        
+        .function("bringLayerToFoward", &Frame::bringLayerToFoward)
+        .function("bringLayerBack", &Frame::bringLayerBack)
+        .function("bringLayerTo", &Frame::bringLayerTo)
+        .function("removeLayer", &Frame::removeLayer)
+        .function("addLayer", &Frame::addLayer, allow_raw_pointers())
+        .function("getAllLayers", &Frame::getAllLayers, allow_raw_pointers())
+        .function("getLayerByID", &Frame::getLayerByID, allow_raw_pointers())
+        .function("getActiveLayer", &Frame::getActiveLayer, allow_raw_pointers())
+        .function("changeActiveLayer", &Frame::changeActiveLayer);
 };

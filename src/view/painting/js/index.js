@@ -78,6 +78,12 @@ window.move_down_layer = moveDownLayer;
 window.move_up_layer = moveUpLayer;
 window.clone_layer = cloneLayer;
 
+window.add_layer = addLayer;
+window.remove_layer = removeLayer;
+window.change_active_layer = changeActiveLayer;
+window.move_layer_to = moveLayerTo;
+
+
 window.add_frame = addFrame;
 window.remove_frame = removeFrame;
 window.change_active_frame = changeActiveFrame;
@@ -166,22 +172,30 @@ function removeLayer(){
 
     swapActiveLayer.call(nextLayer);
 }
-function moveUpLayer(){
-    let listLayer = document.getElementById("list-Layers");
-    let layers = [...listLayer.querySelectorAll(".layer")];
-    let nextLayer = layers.indexOf(activeLayer) + 1;
 
-    if(nextLayer < layers.length)
-        layers[nextLayer].after(activeLayer);
-}
-function moveDownLayer(){
-    let listLayer = document.getElementById("list-Layers");
-    let layers = [...listLayer.querySelectorAll(".layer")];
-    let previousLayer = layers.indexOf(activeLayer) - 1;
+function moveLayerTo(id, index){
+    const listFrame = document.getElementById("list-layers");
+    let layers = listFrame.querySelectorAll("div.layer");
+    let layerElement = getFrameById(id.toString());
 
-    if(previousLayer>= 0)
-        layers[previousLayer].before(activeLayer);
+    if (layerElement === layers[index] || index < 0 || index >= layers.length) {
+        return;
+    }
+    
+    if (layerElement.compareDocumentPosition(layers[index]) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        layers[index].after(layerElement);
+    } else {
+        layers[index].before(layerElement);
+    }
 }
+
+function changeActiveLayer(id){
+    let layerElement = getFrameById(id.toString());
+    listFrame.querySelectorAll("div.layer.active")
+             .forEach((f)=>f.classList.remove("active"));
+    layerElement?.classList.toggle("active", true);
+}
+
 function findTitle(find) {
     let listLayer = document.getElementById("list-Layers");
     const layers = [...listLayer.querySelectorAll(".layer")];

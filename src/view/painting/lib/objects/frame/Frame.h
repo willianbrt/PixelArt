@@ -45,16 +45,18 @@ public:
     unsigned int getFrameDuration();
     
     Guid getID();
-    void bringTileTo(size_t from, size_t to);
-    void removeTile(int index);
-    void addTile(Layer* tile);
-    vector<Layer*> getAllTiles();
-    Layer* getTileByIndex(unsigned int index);
-    Layer* getActiveTile();
-    int getIndexFromActiveTile();
-    void changeActiveTile(unsigned int index);
-    size_t getNumberOfTiles();
-
+    void bringLayerToFoward(Guid id);
+    void bringLayerBack(Guid id);
+    void bringLayerTo(Guid id, size_t to);
+    void removeLayer(Guid id);
+    void addLayer(Layer* tile);
+    vector<Layer*> getAllLayers();
+    Layer* getActiveLayer();
+    int getIndexFromActiveLayer();
+    void changeActiveLayer(Guid id);
+    size_t getNumberOfLayers();
+    Layer* getLayerByID(Guid id);
+    std::vector<Layer*>::iterator getIteratorLayerByID(Guid id);
 
 private:
     void blending(unsigned int& bottomColor, unsigned int topColor);
@@ -64,8 +66,8 @@ private:
     unsigned int _height = 0;
 
     // vector<Layer*> tiles = vector<Layer*>(MAX_LAYERS);
-    vector<Layer*> tiles;
-    int active = 0;
+    vector<Layer*> layers;
+    Layer* activeLayer = 0;
     
     Guid id;
 };
