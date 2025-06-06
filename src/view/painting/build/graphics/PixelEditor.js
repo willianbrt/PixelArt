@@ -821,9 +821,9 @@ function dbg(...args) {
 // === Body ===
 
 var ASM_CONSTS = {
-  88732: () => { return Module.canvas.clientWidth; },  
- 88770: () => { return Module.canvas.clientHeight; },  
- 88809: ($0, $1, $2, $3, $4, $5) => { const context = Module.canvas.getContext("2d"); const ptr = $0; const length = $1; const width = $2; const height = $3; const x = $4; const y = $5; const buffer = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, length*4); const data = new ImageData(buffer, width); context.clearRect(x, y, width, height); context.putImageData(data, x, y); }
+  88796: () => { return Module.canvas.clientWidth; },  
+ 88834: () => { return Module.canvas.clientHeight; },  
+ 88873: ($0, $1, $2, $3, $4, $5) => { const context = Module.canvas.getContext("2d"); const ptr = $0; const length = $1; const width = $2; const height = $3; const x = $4; const y = $5; const buffer = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, length*4); const data = new ImageData(buffer, width); context.clearRect(x, y, width, height); context.putImageData(data, x, y); }
 };
 
 // end include: preamble.js

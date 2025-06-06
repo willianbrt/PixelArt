@@ -4,6 +4,7 @@
 #include <emscripten/html5.h>
 #include <memory>
 #include <algorithm>
+#include <vector>
 
 #include "objects/componding/CompoundingTiles.h"
 #include "objects/layer/Layers.h"
@@ -38,15 +39,30 @@ public:
         // free(_screen);
     }
 
-    void bringFrameTo(size_t from, size_t to){
-        if (from == to || from >= frames.size() || to >= frames.size()) return;
+    void bringFrameToFoward(Guid id){
+        size_t i = std::distance(frames.begin(), getIteratorFrameByID(id));
+        bringFrameTo(id, i + 1);
+    }
+    void bringFrameBack(Guid id){
+        size_t i = std::distance(frames.begin(), getIteratorFrameByID(id));
+        bringFrameTo(id, i - 1);
+    }
+    void bringFrameTo(Guid id, size_t toIndex){
+        auto from = getIteratorFrameByID(id);
 
-        if (from < to)
-            std::swap(to, from);
+        if (from == frames.end()) return;
 
-        std::rotate(frames.begin() + to, frames.begin() + from, frames.begin() + from + 1);
+        size_t fromIndex = std::distance(frames.begin(), from);
         
-        // emscripten::val::global("move_frame_to")(emscripten::val(id), to);
+        if (fromIndex == toIndex || fromIndex >= frames.size() || toIndex >= frames.size()) return;
+        
+        if (fromIndex < toIndex) {
+            std::rotate(frames.begin() + fromIndex, frames.begin() + fromIndex + 1, frames.begin() + toIndex + 1);
+        } else {
+            std::rotate(frames.begin() + toIndex, frames.begin() + fromIndex, frames.begin() + fromIndex + 1);
+        }
+        
+        emscripten::val::global("move_frame_to")(emscripten::val(id), emscripten::val(toIndex));
     }
     void removeFrame(Guid id){
         auto it = getIteratorFrameByID(id);
@@ -101,6 +117,8 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<Editor>("Editor")
         .constructor<unsigned int, unsigned int>()
         .smart_ptr<std::shared_ptr<Editor>>("shared_ptr<Editor>")
+        .function("bringFrameToFoward", &Editor::bringFrameToFoward)
+        .function("bringFrameBack", &Editor::bringFrameBack)
         .function("bringFrameTo", &Editor::bringFrameTo)
         .function("removeFrame", &Editor::removeFrame)
         .function("addFrame", &Editor::addFrame, allow_raw_pointers())

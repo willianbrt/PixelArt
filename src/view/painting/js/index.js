@@ -40,12 +40,20 @@ window.onload = async ()=>{
             this.parentNode.querySelector(".body").classList.toggle("hidden")
     });
 
-    // btnMoveDownFrame.addEventListener("click", ()=> moveDownFrame(activeFrame.getId()));
-    // btnMoveUpFrame.addEventListener("click", ()=> moveUpFrame(activeFrame.getId()));
-    btnAddFrame.addEventListener("click", ()=> editor.addFrame(new module.Frame(width, height)));
-    btnRemoveFrame.addEventListener("click", ()=> editor.removeFrame(editor.getActiveFrame().getID()));
+    btnMoveDownFrame.addEventListener("click", ()=> editor.bringFrameBack(editor.getActiveFrame().getID()));
+    btnMoveUpFrame.addEventListener("click", ()=> editor.bringFrameToFoward(editor.getActiveFrame().getID()));
+    btnAddFrame.addEventListener("click", ()=> {
+        let f = new module.Frame(width, height);
+        editor.addFrame(f); 
+        editor.changeActiveFrame(f.getID());
+    });
+    btnRemoveFrame.addEventListener("click", ()=> { editor.removeFrame(editor.getActiveFrame().getID()); });
     // btnCloneFrame.addEventListener("click", ()=> cloneFrame(activeFrame.getId()));
-    
+        btnAddFrame.click();
+        btnAddFrame.click();
+        btnAddFrame.click();
+        btnAddFrame.click();
+        headerFrame.click();
     
     let btnAddLayer = document.getElementById("add-layer");
     let btnCloneLayer = document.getElementById("duplicate-layer");
@@ -74,12 +82,6 @@ window.add_frame = addFrame;
 window.remove_frame = removeFrame;
 window.change_active_frame = changeActiveFrame;
 window.move_frame_to = moveFrameTo;
-window.move_down_frame = moveDownFrame;
-window.move_up_frame = moveUpFrame;
-
-
-var ctrFrame = 1;
-let activeFrame;
 
 let listFrame = document.getElementById("list-frames");
 function addFrame(frame){
@@ -92,55 +94,32 @@ function addFrame(frame){
     frameElement.dataset.id = id.toString();
 
     frameElement.append(canvas);
-    listFrame.prepend(frameElement);
+    listFrame.append(frameElement);
 
-    frameElement.addEventListener("click", ()=>changeActiveFrame(id));
+    frameElement.addEventListener("click", ()=> editor.changeActiveFrame(id));
 }
 function changeActiveFrame(id){
     let frameElement = getFrameById(id.toString());
-    
     listFrame.querySelectorAll("div.frame.active")
              .forEach((f)=>f.classList.remove("active"));
-
     frameElement?.classList.toggle("active", true);
 }
-function moveFrameTo(frame, index){
-    let frames = [...listFrame.querySelectorAll("div.frame")];
-    let frameElement = listFrame.querySelector(`div.frame[data-id=${frame.getID().toString()}]`);
-    let previousFrame = frames.indexOf(frameElement) - 1;
+function moveFrameTo(id, index){
+    const listFrame = document.getElementById("list-frames");
+    let frames = listFrame.querySelectorAll("div.frame");
+    let frameElement = getFrameById(id.toString());
 
-    if(previousFrame>= 0)
-        frames[previousFrame].before(activeFrame);
-
-
-    const children = parentNode.children;
-
-    if (index < 0 || index > frames.length) {
+    if (frameElement === frames[index] || index < 0 || index >= frames.length) {
         return;
     }
-
-    if (index === children.length) {
-        previousFrame.appendChild(newElement); // Append if index is at the end
+    
+    if (frameElement.compareDocumentPosition(frames[index]) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        frames[index].after(frameElement);
     } else {
-        previousFrame.insertBefore(newElement, children[index]);
+        frames[index].before(frameElement);
     }
 }
-function moveDownFrame(frame){
-    let frames = [...listFrame.querySelectorAll("div.frame")];
-    let frameElement = getFrameById(frame.getID().toString());
-    let previousFrame = frames.indexOf(frameElement) - 1;
 
-    if(previousFrame>= 0)
-        frames[previousFrame].before(frameElement);
-}
-function moveUpFrame(frame){
-    let listFrame = document.getElementById("list-frames");
-    let frames = [...listFrame.querySelectorAll("div.frame")];
-    let nextFrame = frames.indexOf(activeFrame) + 1;
-
-    if(nextFrame < frames.length)
-        frames[nextFrame].after(activeFrame);
-}
 function removeFrame(id){
     let frameElement = getFrameById(id);
     frameElement.remove();
