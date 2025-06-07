@@ -47,7 +47,7 @@ void Layer::setLock(bool isLock){
 std::string Layer::getName() {
     return _name;
 }
-void Layer::setName(string name) {
+void Layer::setName(std::string name) {
     _name = name;
 }
 

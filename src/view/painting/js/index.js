@@ -181,28 +181,26 @@ function changeActiveLayer(layer){
 }
 
 function findTitle(find) {
-    let layers = editor.getActiveFrame().getAllLayers();
     let name = find;
-
     let cntr = 1;
-    while(layers.size() >= cntr){
-        let exists = 0;
-        
-        for(let i = 0; i < layers.size(); i++){
-            if(layers.get(i).getName() === name){
-                exists++;
-            }
-        }
-
-        if (exists >= 1) {
-            name = `${name.replace(/\(\d+\)$/, '')}(${cntr})`;
-        }
-
+    while(hasLayerWithName(name)){
+        name = `${name.replace(/\(\d+\)$/, '')}(${cntr})`;
         cntr++;
     }
 
     return name;
 }
+function hasLayerWithName(name){
+    let layers = editor.getActiveFrame().getAllLayers();
+    for(let i = 0; i < layers.size(); i++){
+        if(layers.get(i).getName() === name){
+            return true;
+        }
+    }
+    return false;
+}
+
+
 function addLayer(layer){
     let activeFrame = editor.getActiveFrame();
     if(!activeFrame)
@@ -304,8 +302,8 @@ function addLayer(layer){
                 nameLayer.replaceChild(h5, inpNameLayer);
                 return;
             }
-
-            layer.setName(findTitle(inpNameLayer.value));
+            let nome = findTitle(inpNameLayer.value);
+            layer.setName(nome);
             h5.innerText = layer.getName();
             nameLayer.replaceChild(h5, inpNameLayer);
         });

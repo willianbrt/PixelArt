@@ -130,7 +130,7 @@ void Frame::removeLayer(Guid id){
 }
 void Frame::addLayer(Layer* layer){
     layers.emplace_back(layer);
-    emscripten::val::global("add_layer")(emscripten::val(*layer));
+    emscripten::val::global("add_layer")(layer);
     
     if(layers.size() == 1){
         changeActiveLayer(layers[0]->getID());
@@ -152,7 +152,7 @@ Layer* Frame::getActiveLayer(){
 }
 void Frame::changeActiveLayer(Guid id){
     activeLayer = getLayerByID(id);
-    emscripten::val::global("change_active_layer")(emscripten::val(activeLayer));
+    emscripten::val::global("change_active_layer")(activeLayer);
 }
 
 
