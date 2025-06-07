@@ -118,7 +118,7 @@ void Frame::removeLayer(Guid id){
         emscripten::val::global("remove_layer")(emscripten::val(id));
 
         if(layers.size() == 0){
-            addLayer(new Layer("", getWidth(), getHeight()));
+            addLayer(new Layer("Layer", getWidth(), getHeight()));
             return;
         }
 

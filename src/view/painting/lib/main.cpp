@@ -72,7 +72,9 @@ public:
             emscripten::val::global("remove_frame")(emscripten::val(id));
 
             if(frames.size() == 0){
-                addFrame(new Frame(_sketch.getWidth(), _sketch.getHeight()));
+                Frame* f = new Frame(_sketch.getWidth(), _sketch.getHeight());
+                f->addLayer(new Layer("Layer", f->getWidth(), f->getHeight()));
+                addFrame(f);
                 return;
             }
 

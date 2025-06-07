@@ -67,18 +67,22 @@ window.onload = async ()=>{
         // headerFrame.click();
     
     let btnAddLayer = document.getElementById("add-layer");
+    let btnRemoveLayer = document.getElementById("remove-layer");
     let btnCloneLayer = document.getElementById("duplicate-layer");
     let btnMoveDown = document.getElementById("move-down-layer");
     let btnMoveUp = document.getElementById("move-up-layer");
-    let btnRemoveLayer = document.getElementById("remove-layer");
 
     let inpOpacity = document.querySelector("input[name='opacity-layer']");
 
     btnAddLayer.addEventListener("click", ()=> editor.getActiveFrame().addLayer(new module.Layer(findTitle(DEFAULT_NAME_LAYER), width, height)));
     inpOpacity.addEventListener("input", ()=> updateOpacityLayer(activeLayer.getId(), this.value));
+    btnRemoveLayer.addEventListener("click", ()=> {
+        const activeFrame = editor.getActiveFrame();
+        const activeLayer = activeFrame.getActiveLayer();
+        activeFrame.removeLayer(activeLayer.getID());
+    });
     // btnMoveDown.addEventListener("click", ()=> moveDownLayer(activeLayer.getId()));
     // btnMoveUp.addEventListener("click", ()=> moveUpLayer(activeLayer.getId()));
-    // btnRemoveLayer.addEventListener("click", ()=> removeLayer(activeLayer.getId()));
     // btnCloneLayer.addEventListener("click", ()=> cloneLayer(activeLayer.getId()));
 }
 
