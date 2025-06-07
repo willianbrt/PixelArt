@@ -69,6 +69,7 @@ unsigned int* Layer::getBuffer(){ return _buffer; }
 unsigned int Layer::getWidth(){ return _width; }
 unsigned int Layer::getHeight(){ return _height; }
 unsigned int Layer::getOpacity(){ return _opacity; }
+void Layer::setOpacity(unsigned int value){ _opacity = value; }
 
 unsigned int Layer::getPixel(int x, int y){ return getPixel(calcIndex(x,y)); }
 unsigned int Layer::getPixel(int index){ return _buffer[index]; }
@@ -96,6 +97,7 @@ EMSCRIPTEN_BINDINGS(layer_module){
     .function("getName", &Layer::getName)
     .function("setName", &Layer::setName)
     .function("getOpacity", &Layer::getOpacity)
+    .function("setOpacity", &Layer::setOpacity)
     .function("getWidth", &Layer::getWidth)
     .function("getHeight", &Layer::getHeight)
     .function("setVisible", &Layer::setVisible)

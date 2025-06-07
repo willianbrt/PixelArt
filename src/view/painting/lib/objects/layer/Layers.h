@@ -50,6 +50,7 @@ public:
     bool isLock();
     void setLock(bool isLock);
     unsigned int getOpacity();
+    void setOpacity(unsigned int value);
     std::string getName();
     void setName(string name);
     

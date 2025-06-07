@@ -75,7 +75,12 @@ window.onload = async ()=>{
     let inpOpacity = document.querySelector("input[name='opacity-layer']");
 
     btnAddLayer.addEventListener("click", ()=> editor.getActiveFrame().addLayer(new module.Layer(findTitle(DEFAULT_NAME_LAYER), width, height)));
-    inpOpacity.addEventListener("input", ()=> updateOpacityLayer(activeLayer.getId(), this.value));
+    inpOpacity.addEventListener("input", function() {
+        const activeFrame = editor.getActiveFrame();
+        const activeLayer = activeFrame.getActiveLayer();
+        activeLayer.setOpacity(parseInt(this.value));
+        updateOpacityLayer(this.value)
+    });
     btnRemoveLayer.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
         const activeLayer = activeFrame.getActiveLayer();
@@ -113,15 +118,26 @@ function addFrame(frame){
     frameElement.addEventListener("click", ()=> editor.changeActiveFrame(id));
 }
 function changeActiveFrame(id){
+    const activeFrame = editor.getActiveFrame();
+    const activeLayer = activeFrame.getActiveLayer();
+    const activeLayerID =  activeLayer.getID().toString();
+
     let frameElement = getFrameById(id.toString());
     listFrame.querySelectorAll("div.frame.active")
              .forEach((f)=>f.classList.remove("active"));
     frameElement?.classList.toggle("active", true);
     
-    let layers = editor.getActiveFrame().getAllLayers();
-    listLayer.innerHTML = "";
+    listLayer.querySelectorAll(".layer")
+             .forEach((e)=>e.remove());
+
+    let layers = activeFrame.getAllLayers();
     for(let i = 0; i < layers.size(); i++){
         addLayer(layers.get(i));
+
+        if(activeLayerID ==  layers.get(i).getID().toString())
+        {
+            changeActiveLayer(layers.get(i));
+        }
     }
 }
 function moveFrameTo(id, index){
@@ -148,9 +164,8 @@ function getFrameById(id){
 }
 
 /* LAYER */
-function updateOpacityLayer(){
-    document.querySelector("#opacity-label h5").innerText = "Transparência " + this.value + "%"
-    editor.getActiveFrame().getActiveLayer().setOpacity(this.value);
+function updateOpacityLayer(value){
+    document.querySelector("#opacity-label h5").innerText = "Transparência " + value + "%"
 }
 function removeLayer(id){    
     let frameElement = getLayerById(id);
@@ -172,8 +187,13 @@ function moveLayerTo(id, index){
 }
 function changeActiveLayer(layer){
     let layerElement = getLayerById(layer.getID().toString());
-    if(!layerElement)
-        layerElement = addLayer(layer);
+        
+    if(!layerElement){
+        // addLayer(layer);
+        // console.log(getLayerById(layer.getID().toString()))
+        console.log("change", layer.getID().toString())
+
+    }
 
     listLayer.querySelectorAll("div.layer.active")
                 .forEach((f)=>f.classList.remove("active"));
@@ -206,6 +226,7 @@ function hasLayerWithName(name){
 
 
 function addLayer(layer){
+        console.log("add", layer.getID().toString())
     let activeFrame = editor.getActiveFrame();
     if(!activeFrame)
         return;
@@ -316,7 +337,6 @@ function addLayer(layer){
                 inpNameLayer.blur();
         });
     }
-
     return layerElement;
 }
 function getLayerById(id){
