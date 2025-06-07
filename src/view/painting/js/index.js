@@ -86,8 +86,16 @@ window.onload = async ()=>{
         const activeLayer = activeFrame.getActiveLayer();
         activeFrame.removeLayer(activeLayer.getID());
     });
-    // btnMoveDown.addEventListener("click", ()=> moveDownLayer(activeLayer.getId()));
-    // btnMoveUp.addEventListener("click", ()=> moveUpLayer(activeLayer.getId()));
+    btnMoveDown.addEventListener("click", ()=> {
+        const activeFrame = editor.getActiveFrame();
+        const activeLayer = activeFrame.getActiveLayer();
+        activeFrame.bringLayerBack(activeLayer.getID());
+    });
+    btnMoveUp.addEventListener("click", ()=> {
+        const activeFrame = editor.getActiveFrame();
+        const activeLayer = activeFrame.getActiveLayer();
+        activeFrame.bringLayerToFoward(activeLayer.getID());
+    });
     // btnCloneLayer.addEventListener("click", ()=> cloneLayer(activeLayer.getId()));
 }
 
@@ -172,7 +180,11 @@ function removeLayer(id){
     frameElement.remove();
 }
 function moveLayerTo(id, index){
+    if(!activeFrameContainLayer(id))
+        return;
+
     let layers = listLayer.querySelectorAll("div.layer");
+    index = layers.length - index - 1;
     let layerElement = getLayerById(id.toString());
 
     if (layerElement === layers[index] || index < 0 || index >= layers.length) {
@@ -187,13 +199,8 @@ function moveLayerTo(id, index){
 }
 function changeActiveLayer(layer){
     let layerElement = getLayerById(layer.getID().toString());
-        
-    if(!layerElement){
-        // addLayer(layer);
-        // console.log(getLayerById(layer.getID().toString()))
-        console.log("change", layer.getID().toString())
-
-    }
+    if(!layerElement)
+        layerElement = addLayer(layer);
 
     listLayer.querySelectorAll("div.layer.active")
                 .forEach((f)=>f.classList.remove("active"));
@@ -226,21 +233,11 @@ function hasLayerWithName(name){
 
 
 function addLayer(layer){
-        console.log("add", layer.getID().toString())
     let activeFrame = editor.getActiveFrame();
     if(!activeFrame)
         return;
 
-    const strIdLayer = layer.getID().toString();
-    let has = false;
-    let frames = activeFrame.getAllLayers();
-    for(let i = 0; i < frames.size(); i++){
-        if(frames.get(i).getID().toString() == strIdLayer){
-            has = true;
-            break;
-        }
-    }
-    if(!has)
+    if(!activeFrameContainLayer(layer.getID()))
         return;
 
     let listLayer = document.getElementById("list-Layers");
@@ -341,4 +338,16 @@ function addLayer(layer){
 }
 function getLayerById(id){
     return listLayer.querySelector(`.layer[data-id="${id}"]`);
+}
+function activeFrameContainLayer(layerID){
+    let activeFrame = editor.getActiveFrame();
+    const strIdLayer = layerID.toString();
+    
+    let frames = activeFrame.getAllLayers();
+    for(let i = 0; i < frames.size(); i++){
+        if(frames.get(i).getID().toString() == strIdLayer){
+            return true;
+        }
+    }
+    return false;
 }

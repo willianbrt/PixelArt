@@ -106,8 +106,9 @@ void Frame::bringLayerTo(Guid id, size_t toIndex){
     } else {
         std::rotate(layers.begin() + toIndex, layers.begin() + fromIndex, layers.begin() + fromIndex + 1);
     }
-    
-    emscripten::val::global("move_layer_to")(emscripten::val(id), emscripten::val(toIndex));
+
+    if(activeLayer->getID().toString() == id.toString())
+        emscripten::val::global("move_layer_to")(emscripten::val(id), emscripten::val(toIndex));
 }
 void Frame::removeLayer(Guid id){
     auto it = getIteratorLayerByID(id);
