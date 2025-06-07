@@ -33,7 +33,6 @@ private:
 public:
     Editor(unsigned int width, unsigned int height) :_screen(get_viewport_width(), get_viewport_height()), _sketch(width, height) {
         draw(_screen.getData(), _screen.getLength(), _screen.getWidth(), _screen.getHeight(), 0, 0);
-        addFrame(new Frame(width, height));
     }
     ~Editor(){
         // free(_screen);

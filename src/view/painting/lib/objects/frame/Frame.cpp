@@ -3,12 +3,13 @@
 Frame::Frame(unsigned int width, unsigned int height) : id(Guid::generateUUID()) {
     _width = width;
     _height = height;
-    addLayer(new Layer("Layer 1", _width, _height));
 
-    layers.at(0)->putPixel(5, 5, 0xFF00FFFF);
-    layers.at(0)->putPixel(1, 57, 0xFFFFFFFF);
-    layers.at(0)->putPixel(99, 10, 0xFFFF00FF);
-    layers.at(0)->putPixel(9, 99, 0xFF0000FF);
+    // addLayer(new Layer("Layer 1", _width, _height));
+
+    // layers.at(0)->putPixel(5, 5, 0xFF00FFFF);
+    // layers.at(0)->putPixel(1, 57, 0xFFFFFFFF);
+    // layers.at(0)->putPixel(99, 10, 0xFFFF00FF);
+    // layers.at(0)->putPixel(9, 99, 0xFF0000FF);
 }
 
 Frame::~Frame(){}
@@ -150,7 +151,7 @@ Layer* Frame::getActiveLayer(){
     return activeLayer;
 }
 void Frame::changeActiveLayer(Guid id){
-    activeLayer= getLayerByID(id);
+    activeLayer = getLayerByID(id);
     emscripten::val::global("change_active_layer")(emscripten::val(activeLayer));
 }
 

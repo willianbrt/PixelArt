@@ -47,6 +47,9 @@ void Layer::setLock(bool isLock){
 std::string Layer::getName() {
     return _name;
 }
+void Layer::setName(string name) {
+    _name = name;
+}
 
 void Layer::move(int x, int y){
     int offset = y*_width + x;
@@ -91,6 +94,7 @@ EMSCRIPTEN_BINDINGS(layer_module){
     .function("move", &Layer::move)
     .function("draw", &Layer::draw)
     .function("getName", &Layer::getName)
+    .function("setName", &Layer::setName)
     .function("getOpacity", &Layer::getOpacity)
     .function("getWidth", &Layer::getWidth)
     .function("getHeight", &Layer::getHeight)

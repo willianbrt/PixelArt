@@ -2,6 +2,9 @@ import ModulePixelEditor from '../build/graphics/PixelEditor.js'
 
 let width = 100;
 let height = 100;
+let activeFrame;
+let activeLayer;
+const DEFAULT_NAME_LAYER = "Layer";
 
 window.onload = async ()=>{
     window.canvas = document.querySelector("canvas#painting");
@@ -26,7 +29,13 @@ window.onload = async ()=>{
             console.log("MODULE INITIALIZED")
         }
     });
+
     window.editor = new module.Editor(width, height);
+
+    let frame = new module.Frame(width, height);
+    frame.addLayer(new module.Layer(DEFAULT_NAME_LAYER, width, height));
+    window.editor.addFrame(frame);
+    
     
     let headerFrame = document.querySelector("#pane-footer .header");
     let btnAddFrame = document.getElementById("add-frame");
@@ -44,16 +53,18 @@ window.onload = async ()=>{
     btnMoveUpFrame.addEventListener("click", ()=> editor.bringFrameToFoward(editor.getActiveFrame().getID()));
     btnAddFrame.addEventListener("click", ()=> {
         let f = new module.Frame(width, height);
-        editor.addFrame(f); 
+        let l = new module.Layer("Layer", width, height);
+        f.addLayer(l);
+        editor.addFrame(f);
         editor.changeActiveFrame(f.getID());
     });
     btnRemoveFrame.addEventListener("click", ()=> { editor.removeFrame(editor.getActiveFrame().getID()); });
     // btnCloneFrame.addEventListener("click", ()=> cloneFrame(activeFrame.getId()));
-        btnAddFrame.click();
-        btnAddFrame.click();
-        btnAddFrame.click();
-        btnAddFrame.click();
-        headerFrame.click();
+        // btnAddFrame.click();
+        // btnAddFrame.click();
+        // btnAddFrame.click();
+        // btnAddFrame.click();
+        // headerFrame.click();
     
     let btnAddLayer = document.getElementById("add-layer");
     let btnCloneLayer = document.getElementById("duplicate-layer");
@@ -61,9 +72,10 @@ window.onload = async ()=>{
     let btnMoveUp = document.getElementById("move-up-layer");
     let btnRemoveLayer = document.getElementById("remove-layer");
 
-    // let inpOpacity = document.querySelector("input[name='opacity-layer']");
-    btnAddLayer.addEventListener("click", ()=> editor.getActiveFrame().addLayer());
-    // inpOpacity.addEventListener("input", ()=> updateOpacityLayer(activeLayer.getId(), this.value));
+    let inpOpacity = document.querySelector("input[name='opacity-layer']");
+
+    btnAddLayer.addEventListener("click", ()=> editor.getActiveFrame().addLayer(new module.Layer(findTitle(DEFAULT_NAME_LAYER), width, height)));
+    inpOpacity.addEventListener("input", ()=> updateOpacityLayer(activeLayer.getId(), this.value));
     // btnMoveDown.addEventListener("click", ()=> moveDownLayer(activeLayer.getId()));
     // btnMoveUp.addEventListener("click", ()=> moveUpLayer(activeLayer.getId()));
     // btnRemoveLayer.addEventListener("click", ()=> removeLayer(activeLayer.getId()));
@@ -74,7 +86,6 @@ window.add_layer = addLayer;
 window.remove_layer = removeLayer;
 window.change_active_layer = changeActiveLayer;
 window.move_layer_to = moveLayerTo;
-
 
 window.add_frame = addFrame;
 window.remove_frame = removeFrame;
@@ -102,6 +113,12 @@ function changeActiveFrame(id){
     listFrame.querySelectorAll("div.frame.active")
              .forEach((f)=>f.classList.remove("active"));
     frameElement?.classList.toggle("active", true);
+    
+    let layers = editor.getActiveFrame().getAllLayers();
+    listLayer.innerHTML = "";
+    for(let i = 0; i < layers.size(); i++){
+        addLayer(layers.get(i));
+    }
 }
 function moveFrameTo(id, index){
     const listFrame = document.getElementById("list-frames");
@@ -118,7 +135,6 @@ function moveFrameTo(id, index){
         frames[index].before(frameElement);
     }
 }
-
 function removeFrame(id){
     let frameElement = getFrameById(id);
     frameElement.remove();
@@ -136,7 +152,6 @@ function removeLayer(id){
     let frameElement = getLayerById(id);
     frameElement.remove();
 }
-
 function moveLayerTo(id, index){
     let layers = listLayer.querySelectorAll("div.layer");
     let layerElement = getLayerById(id.toString());
@@ -151,28 +166,33 @@ function moveLayerTo(id, index){
         layers[index].before(layerElement);
     }
 }
-
 function changeActiveLayer(layer){
+    let layerElement = getLayerById(layer.getID().toString());
+    if(!layerElement)
+        layerElement = addLayer(layer);
+
+    listLayer.querySelectorAll("div.layer.active")
+                .forEach((f)=>f.classList.remove("active"));
+    layerElement?.classList.toggle("active", true);
+
     let inpOpacity = document.querySelector("input[name='opacity-layer']");
     document.querySelector("#opacity-label h5").innerText = "Transparência " + layer.getOpacity() + "%"
     inpOpacity.value = layer.getOpacity();
-
-    let layerElement = getLayerById(layer.getID().toString());
-    listLayer.querySelectorAll("div.layer.active")
-             .forEach((f)=>f.classList.remove("active"));
-    layerElement?.classList.toggle("active", true);
-
 }
 
 function findTitle(find) {
-    let listLayer = document.getElementById("list-Layers");
-    const layers = [...listLayer.querySelectorAll(".layer")];
+    let layers = editor.getActiveFrame().getAllLayers();
     let name = find;
 
-    let layersFounds = 1;
     let cntr = 1;
-    while(layers.length > cntr){
-        const exists = layers.filter(e => e.getName() === name).length;
+    while(layers.size() >= cntr){
+        let exists = 0;
+        
+        for(let i = 0; i < layers.size(); i++){
+            if(layers.get(i).getName() === name){
+                exists++;
+            }
+        }
 
         if (exists >= 1) {
             name = `${name.replace(/\(\d+\)$/, '')}(${cntr})`;
@@ -184,6 +204,22 @@ function findTitle(find) {
     return name;
 }
 function addLayer(layer){
+    let activeFrame = editor.getActiveFrame();
+    if(!activeFrame)
+        return;
+
+    const strIdLayer = layer.getID().toString();
+    let has = false;
+    let frames = activeFrame.getAllLayers();
+    for(let i = 0; i < frames.size(); i++){
+        if(frames.get(i).getID().toString() == strIdLayer){
+            has = true;
+            break;
+        }
+    }
+    if(!has)
+        return;
+
     let listLayer = document.getElementById("list-Layers");
     let layerElement = document.createElement("div");
     let nameLayer = document.createElement("div");
@@ -193,7 +229,7 @@ function addLayer(layer){
     let btnGrabLayer = document.createElement("button");
     
     layerElement.classList.add("layer");
-    layerElement.id = layer.getID().toString();
+    layerElement.dataset.id = layer.getID().toString();
     nameLayer.className = "text";
     nameLayer.className = "name-layer"
     h5.innerText = layer.getName();
@@ -278,6 +314,8 @@ function addLayer(layer){
                 inpNameLayer.blur();
         });
     }
+
+    return layerElement;
 }
 function getLayerById(id){
     return listLayer.querySelector(`.layer[data-id="${id}"]`);

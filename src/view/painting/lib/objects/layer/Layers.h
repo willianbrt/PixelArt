@@ -51,6 +51,7 @@ public:
     void setLock(bool isLock);
     unsigned int getOpacity();
     std::string getName();
+    void setName(string name);
     
     unsigned int* getBuffer();
     unsigned int getWidth();
