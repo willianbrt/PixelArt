@@ -1,87 +1,42 @@
 #include "Layers.h"
 
-Layer::Layer(std::string name, unsigned int width, unsigned int height) : id(Guid::generateUUID()){
-    int length = width*height;
-
-    _buffer = (unsigned int*) malloc(length*sizeof(unsigned int));
-
-    if(!_buffer){
-        free(_buffer);
-        throw runtime_error("Impossível alocar memoria para layer");
-    }
-    
-    memset(_buffer, 0, length*sizeof(unsigned int));
-    
-    _width = width;
-    _height = height;
-    _length = length;
+Layer::Layer(std::string name, unsigned int width, unsigned int height) : id(Guid::generateUUID()), _sketch(width, height){
     _name = name;
 }
-Layer::~Layer(){
-    free(_buffer);
+Layer::~Layer(){}
+
+void Layer::draw(IGraphic& graphic){ graphic.draw(*this); }
+void Layer::move(int x, int y){
+    // TODO: IMPLEMENTAR
+    // int offset = y*_width + x;
+    
+    // for(unsigned int i = 0; i < (_width-y)*(_height-x); i++){
+    //     _buffer[offset + i] = _buffer[i];
+    // }
+    
+    // for(unsigned int i = offset; i < (_width+y)*(_height+x); i+=y){
+    //     _buffer[i] = _buffer[offset + i];
+    // }
 }
 void Layer::resize(int width, int height){
-    int length = width*height;
-
-    _buffer = (unsigned int*) malloc(length*sizeof(unsigned int));
-
-    if(!_buffer){
-        free(_buffer);
-        throw runtime_error("Impossível alocar memoria para layer");
-    }
-    
-    memset(_buffer, 0, length*sizeof(unsigned int));
-}
-bool Layer::isVisible(){
-    return _isVisible;
-}
-void Layer::setVisible(bool isVisible){
-    _isVisible = isVisible;
-}
-bool Layer::isLock(){
-    return _isLock;
-}
-void Layer::setLock(bool isLock){
-    _isLock = isLock;
-}
-std::string Layer::getName() {
-    return _name;
-}
-void Layer::setName(std::string name) {
-    _name = name;
+    // TODO: IMPLEMENTAR
 }
 
-void Layer::move(int x, int y){
-    int offset = y*_width + x;
-    
-    for(unsigned int i = 0; i < (_width-y)*(_height-x); i++){
-        _buffer[offset + i] = _buffer[i];
-    }
-    
-    for(unsigned int i = offset; i < (_width+y)*(_height+x); i+=y){
-        _buffer[i] = _buffer[offset + i];
-    }
-}
-void Layer::draw(IGraphic& graphic){
-    graphic.draw(*this);
-}
-unsigned int* Layer::getBuffer(){ return _buffer; }
-unsigned int Layer::getWidth(){ return _width; }
-unsigned int Layer::getHeight(){ return _height; }
+unsigned int* Layer::getBuffer(){ return _sketch.getData(); }
+unsigned int Layer::getPixel(int x, int y){ return _sketch.getPixel(x, y); }
+unsigned int Layer::getPixel(int index){ return _sketch.getPixel(index); }
+void Layer::putPixel(int x, int y, unsigned int colorHex){ _sketch.putPixel(x, y, colorHex); }
+void Layer::putPixel(int index, unsigned int colorHex){ _sketch.putPixel(index, colorHex); }
+
+Guid Layer::getID(){ return id; }
+bool Layer::isVisible(){ return _isVisible; }
+void Layer::setVisible(bool isVisible){ _isVisible = isVisible; }
+bool Layer::isLock(){ return _isLock;}
+void Layer::setLock(bool isLock){ _isLock = isLock; }
+std::string Layer::getName() { return _name; }
+void Layer::setName(std::string name) { _name = name; }
 unsigned int Layer::getOpacity(){ return _opacity; }
 void Layer::setOpacity(unsigned int value){ _opacity = value; }
-
-unsigned int Layer::getPixel(int x, int y){ return getPixel(calcIndex(x,y)); }
-unsigned int Layer::getPixel(int index){ return _buffer[index]; }
-
-void Layer::putPixel(int x, int y, unsigned int colorHex){ putPixel(calcIndex(x, y), colorHex); }
-void Layer::putPixel(int index, unsigned int colorHex){ _buffer[index] = colorHex; }
-
-unsigned int Layer::calcIndex(int x, int y){ return x + y*_width; }
-
-Guid Layer::getID(){
-    return id;
-}
 
 
 using namespace emscripten;
@@ -98,8 +53,6 @@ EMSCRIPTEN_BINDINGS(layer_module){
     .function("setName", &Layer::setName)
     .function("getOpacity", &Layer::getOpacity)
     .function("setOpacity", &Layer::setOpacity)
-    .function("getWidth", &Layer::getWidth)
-    .function("getHeight", &Layer::getHeight)
     .function("setVisible", &Layer::setVisible)
     .function("isVisible", &Layer::isVisible)
     .function("setLock", &Layer::setLock)

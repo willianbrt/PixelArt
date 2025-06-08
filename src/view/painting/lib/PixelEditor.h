@@ -1,6 +1,6 @@
 #ifndef PIXEL_EDITOR
 #define PIXEL_EDITOR
-
+/*
 
 #include <emscripten.h>
 #include <emscripten/bind.h>
@@ -108,5 +108,5 @@ private:
     
     bool computeVisibleShape(int originalAxis, int originalSize, int viewportSize, int& outStartAxis, int& outEndAxis);
     void renderScreen();
-};
+};*/
 #endif

@@ -71,13 +71,6 @@ public:
             
             emscripten::val::global("remove_frame")(emscripten::val(id));
 
-            if(frames.size() == 0){
-                Frame* f = new Frame(_sketch.getWidth(), _sketch.getHeight());
-                f->addLayer(new Layer("Layer", f->getWidth(), f->getHeight()));
-                addFrame(f);
-                return;
-            }
-
             if(id.toString() == activeFrame->getID().toString()){
                 size_t activeIndex = std::min(frames.size()-1, std::max<size_t>(0, index));
                 changeActiveFrame(frames[activeIndex]->getID());

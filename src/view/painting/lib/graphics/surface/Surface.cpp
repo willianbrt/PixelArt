@@ -13,11 +13,7 @@ private:
 
 public:
     Surface(unsigned int width, unsigned int height){
-        _length = width*height;
-        _width = width;
-        _height = height;
-
-        _data = (unsigned int*)malloc(_length * sizeof(unsigned int));
+        setSize(width, height);
     }
     ~Surface(){
         free(_data);
@@ -49,6 +45,24 @@ public:
         }
 
         return dirtSurface;
+    }
+    unsigned int getPixel(int x, int y){ return getPixel(x + y*_width); }
+    unsigned int getPixel(int index){ return _data[index]; }
+    void putPixel(int x, int y, unsigned int colorHex){ putPixel(x + y*_width, colorHex); }
+    void putPixel(int index, unsigned int colorHex){ _data[index] = colorHex; }
+    void setSize(int width, int height){
+        _length = width*height;
+        _width = width;
+        _height = height;
+
+        _data = (unsigned int*) malloc(_length*sizeof(unsigned int));
+
+        if(!_data){
+            free(_data);
+            throw std::runtime_error("Impossível alocar memoria para layer");
+        }
+        
+        memset(_data, 0, _length*sizeof(unsigned int));
     }
 };
 #endif

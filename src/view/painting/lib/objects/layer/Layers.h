@@ -15,16 +15,14 @@
 
 #include "../../interfaces/ITile/ITile.h"
 #include "../../interfaces/IGraphic/IGraphic.h"
+#include "../../graphics/Surface/Surface.cpp"
 
 using namespace std;
 
 class Layer : public ITile {
 private: 
     Guid id;
-    unsigned int* _buffer;
-    unsigned int _width = 0;
-    unsigned int _height = 0;
-    unsigned int _length = 0;
+    Surface _sketch;
     bool _isVisible = true;
     bool _isLock = true;
     unsigned int _opacity = 100;
@@ -38,13 +36,13 @@ public:
     void move(int x, int y);
     void draw(IGraphic& graphic);
 
+    unsigned int* getBuffer();
     unsigned int getPixel(int x, int y);
     unsigned int getPixel(int index);
-
     void putPixel(int x, int y, unsigned int colorHex);
     void putPixel(int index, unsigned int colorHex);
-    unsigned int calcIndex(int x, int y);
     
+    Guid getID();
     bool isVisible();
     void setVisible(bool isVisible);
     bool isLock();
@@ -53,11 +51,5 @@ public:
     void setOpacity(unsigned int value);
     std::string getName();
     void setName(string name);
-    
-    unsigned int* getBuffer();
-    unsigned int getWidth();
-    unsigned int getHeight();
-    
-    Guid getID();
 };
 #endif

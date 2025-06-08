@@ -18,6 +18,8 @@
 #include "../layer/Layers.h"
 #include "../componding/CompoundingTiles.h"
 
+#include "../../graphics/GraphicsEngine/GraphicsEngine.cpp"
+
 const int MAX_LAYERS = 30;
 
 class Frame : public ITile
@@ -26,21 +28,12 @@ public:
     Frame(unsigned int width, unsigned int height);
     ~Frame();
 
+    void draw(IGraphic& graphic);
     void resize(int width, int height);
     void move(int offsetX, int offsetY);
-    void draw(IGraphic& graphic);
 
-    unsigned int getWidth();
-    unsigned int getHeight();
-
-    unsigned int getPixel(int x, int y);
     unsigned int getPixel(int index);
     unsigned int getPixel(int index, int fromIndex, int toIndex);
-
-    void putPixel(int x, int y, unsigned int colorHex);
-    void putPixel(int index, unsigned int colorHex);
-
-    unsigned int calcIndex(int x, int y);
 
     unsigned int getFrameDuration();
     
@@ -62,9 +55,6 @@ private:
     void blending(unsigned int& bottomColor, unsigned int topColor);
     
     unsigned int timeDuration = 800;
-    unsigned int _width = 0;
-    unsigned int _height = 0;
-
     // vector<Layer*> tiles = vector<Layer*>(MAX_LAYERS);
     vector<Layer*> layers;
     Layer* activeLayer = 0;
