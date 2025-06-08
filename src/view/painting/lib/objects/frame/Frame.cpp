@@ -1,6 +1,6 @@
 #include "Frame.h"
 
-Frame::Frame(unsigned int width, unsigned int height) : id(Guid::generateUUID()) {
+Frame::Frame() : id(Guid::generateUUID()) {
 }
 
 Frame::~Frame(){}
@@ -69,6 +69,8 @@ void Frame::bringLayerTo(Guid id, size_t toIndex){
         emscripten::val::global("move_layer_to")(emscripten::val(id), emscripten::val(toIndex));
 }
 void Frame::removeLayer(Guid id){
+    if(layers.size() == 1){ return; }
+
     auto it = getIteratorLayerByID(id);
     size_t index = it - layers.begin();
     if (it != layers.end()) {
@@ -115,7 +117,7 @@ EMSCRIPTEN_BINDINGS(frame_module){
     register_vector<Layer*>("VectorLayer");
 
     class_<Frame>("Frame")
-        .constructor<unsigned int, unsigned int>()
+        .constructor<>()
         .smart_ptr<std::shared_ptr<Frame>>("shared_ptr<Frame>")
         .function("getID", &Frame::getID)
         .function("resize", &Frame::resize)

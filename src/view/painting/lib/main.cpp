@@ -24,6 +24,7 @@ extern "C" {
 class Editor
 {
 private:
+    const std::string DEFAULT_NAME_LAYER = "Layer";
     Surface _screen;
     Surface _sketch;
     unsigned int _scale = 1;
@@ -66,15 +67,21 @@ public:
     void removeFrame(Guid id){
         auto it = getIteratorFrameByID(id);
         size_t index = it - frames.begin();
-        if (it != frames.end()) {
-            frames.erase(it);
-            
-            emscripten::val::global("remove_frame")(emscripten::val(id));
+        if (it == frames.end()) return;
 
-            if(id.toString() == activeFrame->getID().toString()){
-                size_t activeIndex = std::min(frames.size()-1, std::max<size_t>(0, index));
-                changeActiveFrame(frames[activeIndex]->getID());
-            }
+        frames.erase(it);
+        emscripten::val::global("remove_frame")(emscripten::val(id));
+
+        if(frames.size() == 0){
+            Frame* f = new Frame();
+            f->addLayer(new Layer(DEFAULT_NAME_LAYER, _sketch.getWidth(), _sketch.getHeight()));
+            addFrame(f);
+            return;
+        }
+
+        if(id.toString() == activeFrame->getID().toString()){
+            size_t activeIndex = std::min(frames.size()-1, std::max<size_t>(0, index));
+            changeActiveFrame(frames[activeIndex]->getID());
         }
     }
     void addFrame(Frame* frame){
@@ -108,6 +115,7 @@ public:
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
+    register_vector<Frame*>("VectorFrame");
     class_<Editor>("Editor")
         .constructor<unsigned int, unsigned int>()
         .smart_ptr<std::shared_ptr<Editor>>("shared_ptr<Editor>")

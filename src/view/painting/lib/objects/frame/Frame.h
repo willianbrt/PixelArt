@@ -25,7 +25,7 @@ const int MAX_LAYERS = 30;
 class Frame : public ITile
 {
 public:
-    Frame(unsigned int width, unsigned int height);
+    Frame();
     ~Frame();
 
     void draw(IGraphic& graphic);

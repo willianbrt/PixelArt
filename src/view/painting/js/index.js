@@ -43,9 +43,9 @@ window.onload = async ()=>{
 
     window.editor = new module.Editor(width, height);
 
-    let frame = new module.Frame(width, height);
+    let frame = new module.Frame();
     frame.addLayer(new module.Layer(DEFAULT_NAME_LAYER, width, height));
-    window.editor.addFrame(frame);
+    editor.addFrame(frame);
     
     let headerFrame = document.querySelector("#pane-footer .header");
     headerFrame.addEventListener("click", function(e){
@@ -58,23 +58,25 @@ window.onload = async ()=>{
     let btnMoveDownFrame = document.getElementById("move-down-frame");
     let btnMoveUpFrame = document.getElementById("move-up-frame");
     let btnRemoveFrame = document.getElementById("remove-frame");
-
-    btnAddFrame.addEventListener("click", ()=> {
-        let f = new module.Frame(width, height);
-        let l = new module.Layer("Layer", width, height);
+    
+    btnAddFrame.addEventListener("click", ()=>{
+        let f = new module.Frame();
+        let l = new module.Layer(DEFAULT_NAME_LAYER, width, height);
         f.addLayer(l);
         editor.addFrame(f);
         editor.changeActiveFrame(f.getID());
     });
-    btnRemoveFrame.addEventListener("click", ()=> { editor.removeFrame(editor.getActiveFrame().getID()); });
+    btnRemoveFrame.addEventListener("click", ()=> {
+        const activeFrame = editor.getActiveFrame();
+        editor.removeFrame(activeFrame.getID());
+    });
     btnMoveDownFrame.addEventListener("click", ()=> editor.bringFrameBack(editor.getActiveFrame().getID()));
     btnMoveUpFrame.addEventListener("click", ()=> editor.bringFrameToFoward(editor.getActiveFrame().getID()));
     btnCloneFrame.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
         activeFrame.cloneFrame(activeFrame.getID());
     });
-
-
+    
     let inpOpacity = document.querySelector("input[name='opacity-layer']");
     inpOpacity.addEventListener("input", function() {
         const activeFrame = editor.getActiveFrame();
