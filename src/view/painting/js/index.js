@@ -1,7 +1,8 @@
 import ModulePixelEditor from '../build/graphics/PixelEditor.js'
+import HandlerEvents from './handlerEvents.js'
 
 let width = 100;
-let height = 100;
+let height = 250;
 const DEFAULT_NAME_LAYER = "Layer";
 
 let listFrame = document.getElementById("list-frames");
@@ -76,7 +77,7 @@ window.onload = async ()=>{
         const activeFrame = editor.getActiveFrame();
         activeFrame.cloneFrame(activeFrame.getID());
     });
-    
+
     let inpOpacity = document.querySelector("input[name='opacity-layer']");
     inpOpacity.addEventListener("input", function() {
         const activeFrame = editor.getActiveFrame();
