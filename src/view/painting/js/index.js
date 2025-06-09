@@ -1,9 +1,10 @@
 import ModulePixelEditor from '../build/graphics/PixelEditor.js'
 import HandlerEvents from './handlerEvents.js'
 
-let width = 100;
-let height = 250;
+let width = 32;
+let height = 32;
 const DEFAULT_NAME_LAYER = "Layer";
+let targetScale = 1;
 
 let listFrame = document.getElementById("list-frames");
 let listLayer = document.getElementById("list-Layers");
@@ -22,12 +23,18 @@ window.onload = async ()=>{
     window.canvas = document.querySelector("canvas#painting");
 
     let {
-            clientWidth: viewportWidth, 
-            clientHeight: viewportHeight
+            offsetWidth: viewportWidth, 
+            offsetHeight: viewportHeight
         } = document.querySelector("#drawing-area");
 
-    canvas.height = viewportHeight;
-    canvas.width = viewportWidth;
+canvas.width = width;
+    canvas.height = height;
+
+    targetScale = Math.min(viewportWidth / width, viewportHeight / height);
+    canvas.style.position = `absolute`;
+    canvas.style.transform = `scale(${targetScale})`;
+    canvas.style.left = `${ ( (viewportWidth - width*targetScale)/ 2  )}px`;
+    canvas.style.top = `${0}`;
 
     window.module = await ModulePixelEditor({
         canvas,
