@@ -1,6 +1,8 @@
 #ifndef PIXEL
 #define PIXEL
 
+#include <emscripten/emscripten.h>
+#include <emscripten/bind.h>
 #include <iostream>
 // __builtin_bswap32();
 
@@ -76,4 +78,14 @@ struct Bounding{
     unsigned int getWidth(){ return end.x - start.x; }
     unsigned int getHeight(){ return end.y - start.y; }
 };
+
+// using namespace emscripten;
+
+// EMSCRIPTEN_BINDINGS(point_module){
+//     class_<Point>("Point")
+//         .constructor<int, int>()
+//         .property("x", &Point::x)
+//         .property("y", &Point::y);
+// };
+
 #endif

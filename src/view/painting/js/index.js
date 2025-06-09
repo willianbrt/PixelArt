@@ -1,3 +1,4 @@
+import Module from '../build/graphics/PixelEditor.js';
 import ModulePixelEditor from '../build/graphics/PixelEditor.js'
 import HandlerEvents from './handlerEvents.js'
 
@@ -8,6 +9,9 @@ let targetScale = 1;
 
 let listFrame = document.getElementById("list-frames");
 let listLayer = document.getElementById("list-Layers");
+
+const canvas = document.querySelector("canvas#painting");
+const handlerEvents = HandlerEvents(canvas);
 
 window.add_layer = addLayer;
 window.remove_layer = removeLayer;
@@ -20,14 +24,12 @@ window.change_active_frame = changeActiveFrame;
 window.move_frame_to = moveFrameTo;
 
 window.onload = async ()=>{
-    window.canvas = document.querySelector("canvas#painting");
-
     let {
             offsetWidth: viewportWidth, 
             offsetHeight: viewportHeight
         } = document.querySelector("#drawing-area");
 
-canvas.width = width;
+    canvas.width = width;
     canvas.height = height;
 
     targetScale = Math.min(viewportWidth / width, viewportHeight / height);
@@ -54,6 +56,7 @@ canvas.width = width;
     let frame = new module.Frame();
     frame.addLayer(new module.Layer(DEFAULT_NAME_LAYER, width, height));
     editor.addFrame(frame);
+    editor.render();
     
     let headerFrame = document.querySelector("#pane-footer .header");
     headerFrame.addEventListener("click", function(e){
@@ -121,6 +124,55 @@ canvas.width = width;
         
         activeFrame.cloneLayer(activeLayer.getID());
     });
+
+    // Mock
+    let paintStrategy = ()=>{
+        let activeFrame;
+        let activeLayer;
+        let previousPoint;
+
+        return {
+            onPressed:(point)=>{
+                activeFrame = editor.getActiveFrame();
+                activeLayer = activeFrame.getActiveLayer();
+
+                let line = new module.Line(activeLayer,
+                    point.x, point.y,
+                    point.x, point.y,
+                    0x00FF00FF);
+                line.draw();
+                
+                editor.render();
+
+                previousPoint = cursorToPixel(point);
+            },
+            onTracking: (point)=>{
+                point = cursorToPixel(point);
+                
+                let line = new module.Line(activeLayer,
+                    previousPoint.x, previousPoint.y,
+                    point.x, point.y,
+                    0x00FF00FF);
+                line.draw();
+                
+                editor.render();
+
+                previousPoint = point;
+            },
+            onRelease:(point)=>{
+                editor.render();
+            }
+        }
+    };
+
+    function cursorToPixel(point){
+        return {
+            x: point.x / targetScale,
+            y: point.y / targetScale,
+        }
+    }
+
+    handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
 }
 
 function addFrame(frame){

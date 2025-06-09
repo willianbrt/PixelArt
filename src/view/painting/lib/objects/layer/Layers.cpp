@@ -49,6 +49,8 @@ EMSCRIPTEN_BINDINGS(layer_module){
     .function("resize", &Layer::resize)
     .function("move", &Layer::move)
     .function("draw", &Layer::draw)
+    .function("putPixel", select_overload<void(int, int, unsigned int)>(&Layer::putPixel))
+    .function("getPixel", select_overload<unsigned int(int, int)>(&Layer::getPixel))
     .function("getName", &Layer::getName)
     .function("setName", &Layer::setName)
     .function("getOpacity", &Layer::getOpacity)

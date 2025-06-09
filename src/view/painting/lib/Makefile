@@ -19,6 +19,7 @@ TARGET_DIR = $(BUILD_DIR)/$(TARGET)
 
 SOURCES = $(wildcard $(SRC_DIR)/helpers/*/*.cpp) \
 			$(wildcard $(SRC_DIR)/interfaces/*/*.cpp) \
+			$(wildcard $(SRC_DIR)/tools/*.cpp) \
 			$(wildcard $(SRC_DIR)/command/*/*.cpp) \
 			$(wildcard $(SRC_DIR)/observers/*/*.cpp) \
 			$(wildcard $(SRC_DIR)/strategy/*/*.cpp) \

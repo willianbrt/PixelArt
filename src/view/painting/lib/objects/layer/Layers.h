@@ -24,7 +24,7 @@ private:
     Guid id;
     Surface _sketch;
     bool _isVisible = true;
-    bool _isLock = true;
+    bool _isLock = false;
     unsigned int _opacity = 100;
     std::string _name = nullptr;
     

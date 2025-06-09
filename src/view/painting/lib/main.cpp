@@ -16,6 +16,7 @@
 
 extern "C" {
     void draw(unsigned int* screen, size_t length, unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y);
+    void clear(unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y);
     unsigned int get_viewport_width();
     unsigned int get_viewport_height();
 }
@@ -27,16 +28,67 @@ private:
     const std::string DEFAULT_NAME_LAYER = "Layer";
     Surface _screen;
     Surface _sketch;
+    Point _sketchPosition;
     unsigned int _scale = 1;
     vector<Frame*> frames;
-    Frame* activeFrame;
+    Frame* activeFrame = nullptr;
 
 public:
     Editor(unsigned int width, unsigned int height) :_screen(get_viewport_width(), get_viewport_height()), _sketch(width, height) {
-        draw(_screen.getData(), _screen.getLength(), _screen.getWidth(), _screen.getHeight(), 0, 0);
+        _sketchPosition = getInitialPosition();
     }
     ~Editor(){
         // free(_screen);
+    }
+
+    Point getInitialPosition(){
+        Point p;
+        p.x = floor((_screen.getHeight() - (_sketch.getWidth())) / 2);
+        p.y = floor((_screen.getWidth() - (_sketch.getHeight())) / 2);
+        return p;
+    }
+
+    Bounding getSketchBounding(){
+        Point endPoint = Point(_sketchPosition.x + _sketch.getWidth(), _sketchPosition.y + _sketch.getHeight());
+        return Bounding(_sketchPosition, endPoint);
+    }
+
+    // void draw(IGraphic& graphic){
+    //     Frame* activeFrame = getActiveTile();
+    //     activeFrame->draw(graphic);
+    //     render();
+    // }
+
+    void render(){
+        Point endPoint = Point(_sketch.getWidth(), _sketch.getHeight());
+        Bounding boundingSketch = Bounding(Point(0,0), endPoint);
+
+        renderArea(boundingSketch);
+    }
+    void renderArea(Bounding area){
+        if(activeFrame == nullptr) return;
+    
+        int startLineIndex =  area.start.x + area.getWidth()*area.start.y;
+        int endOfLineIndex = startLineIndex + area.getWidth();
+        int endIndex = startLineIndex + area.getHeight()*area.end.y;
+        
+        int index = startLineIndex;
+
+        while(index < endIndex){
+            while (index < endOfLineIndex) {
+                unsigned int colorHex = activeFrame->getPixel(index);
+                swap_endian_uint32(&colorHex);
+                _sketch.putPixel(index, colorHex);
+
+                index++;
+            }
+
+            startLineIndex += _sketch.getWidth();
+            endOfLineIndex += _sketch.getWidth();
+            index = startLineIndex;
+        }
+
+        draw(_sketch.getData(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
     }
 
     void bringFrameToFoward(Guid id){
@@ -119,6 +171,7 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<Editor>("Editor")
         .constructor<unsigned int, unsigned int>()
         .smart_ptr<std::shared_ptr<Editor>>("shared_ptr<Editor>")
+        .function("render", &Editor::render)
         .function("bringFrameToFoward", &Editor::bringFrameToFoward)
         .function("bringFrameBack", &Editor::bringFrameBack)
         .function("bringFrameTo", &Editor::bringFrameTo)

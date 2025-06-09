@@ -1,6 +1,7 @@
 
 mergeInto(LibraryManager.library,{
     draw: draw,
+    clear: clear,
     get_viewport_width: getViewportWidth,
     get_viewport_height: getViewportHeight,
 });
@@ -17,6 +18,11 @@ function draw(screen, length, viewportWidth, viewportHeight, x, y){
 
     context.clearRect(x, y, width, height);
     context.putImageData(data, x, y);
+}
+
+function clear(viewportWidth, viewportHeight, x, y){
+    const context = Module.canvas.getContext("2d");
+    context.clearRect(x, y, viewportWidth, viewportHeight);
 }
 function getViewportWidth() { return Module.canvas.clientWidth; }
 function getViewportHeight(){ return Module.canvas.clientHeight; }
