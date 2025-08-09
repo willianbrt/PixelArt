@@ -284,15 +284,15 @@
         </section>
     </section>
 
-    <div class="modal hidden" id="modal-pallete-name">
+    <div class="modal hidden" id="modal-palette-name">
         <div class="modal-content">
             <div class="form-group row g-4">
                 <div class="input-group">
                     <span class="input-label">${Paleta}</span>
-                    <input name="name-pallete" type="text"/>
+                    <input name="name-palette" type="text"/>
                 </div>
 
-                <button class="btn-primary" id="add-pallete"><i class="fa fa-check"></i></button>
+                <button class="btn-primary" id="add-palette"><i class="fa fa-check"></i></button>
             </div>
         </div>
     </div>
@@ -341,35 +341,82 @@
         let activeColor = [0,0,0];
         let secondaryColor = [255,255,255];
        
-        window.palette = [{
-                name: "Default",
-                colors:[
-                    [255,0,0],
-                    [0,255,0],
-                ]
-            },
-            {
-                name: "Sombras",
-                colors:[
-                    [255,0,0],
-                    [255,255,0],
-                ]
-            },
-            {
-                name: "Luzes",
-                colors:[
-                    [255,0,0],
-                    [0,255,255],
-                ]
-            }];
-        
+        var PaletteFactory = function(){
+            let paletteConcrete = function(name){
+                let _colors = [];
+
+                return {
+                    name: name,
+                    getColor: function(color){
+                        let index = _colors.findIndex(color);
+                        if (index <= -1) return false;
+                        return _colors[index];
+                    },
+                    getAllColors: function(){
+                        return _colors;
+                    },
+                    addColor: function(color){
+                        _colors.push(color);
+                    },
+                    removeColor: function(color){
+                        let index = _colors.findIndex(color);
+                        if (index <= -1) return false;
+                        _colors.push(color);
+                    }
+                }
+            }
+
+            let paletteList = [];
+
+            let paletteDefault = paletteConcrete("Default");
+            paletteDefault.addColor([255,0,0]);
+            paletteDefault.addColor([0,255,0]);
+            paletteList.push(paletteDefault)
+
+            let paletteSombras = paletteConcrete("Sombras");
+            paletteSombras.addColor([255,0,0]);
+            paletteSombras.addColor([50,0,55]);
+            paletteList.push(paletteSombras)
+
+            let paletteLuzes = paletteConcrete("Luzes");
+            paletteLuzes.addColor([50,0,100]);
+            paletteLuzes.addColor([255,0,255]);
+            paletteList.push(paletteLuzes)
+
+            return {
+                createPalette: function(name){
+                    let newPalette = paletteConcrete(name);
+                    paletteList.push(newPalette);
+                },
+                removePalette: function(name){
+                    if(name === "Default")
+                        return false;
+
+                    let index = paletteList.findIndex((p)=> p.name == name);
+                    if (index <= -1) return false;
+                    
+                    paletteList.splice(index, 1);
+
+                    return true;
+                },
+                getPalette: function(name){
+                    const index = paletteList.findIndex((p)=> p.name === name);
+
+                    if (index <= -1) return false;
+
+                    return paletteList[index];
+                },
+                getAllPalette: ()=>{ return paletteList; }
+            }
+        }
+
         let selectColorPattern = document.querySelector("select[name='color-pattern']");
         let workPrimaryColor = document.querySelector(".work-color.primary-color");
         let workSecondaryColor = document.querySelector(".work-color.secondary-color");
 
         let btnOpenModalAddPalette = document.querySelector("#new-palette");
-        let modalPaletteName = document.querySelector("#modal-pallete-name");
-        let btnAddPalette = document.querySelector("#add-pallete");
+        let modalPaletteName = document.querySelector("#modal-palette-name");
+        let btnAddPalette = document.querySelector("#add-palette");
         let btnRemovePalette = document.querySelector("#trash-palette");
 
         let modalAddColor = document.querySelector("#modal-color-picker");
@@ -461,7 +508,8 @@
             
             loadColorPattern();
             
-            palette.forEach(p => loadPalette(p));
+            window.palette = PaletteFactory();
+            palette.getAllPalette().forEach(p => loadPalette(p));
             loadActivePalette();
         });
 
@@ -483,16 +531,10 @@
             swapActiveColor(secondaryColor);
         });
 
-        btnRemovePalette.addEventListener("click", removePalette);
-        btnAddPalette.addEventListener("click", function(e){
-            let newPalette = {
-                name: document.querySelector("input[name='name-pallete']").value,
-                colors:[]
-            };
-
-            palette.push(newPalette);
-            loadPalette(newPalette);
-            selectPalette.value = newPalette.name;
+        btnRemovePalette.addEventListener("click", function(){
+            palette.removePalette(selectPalette.value)
+            selectPalette.querySelector(`option[value=${selectPalette.value}]`).remove();
+            selectPalette.value = "Default";
             loadActivePalette();
         });
 
@@ -500,14 +542,48 @@
             modalPaletteName.classList.toggle("hidden", false);
 
             let abort = new AbortController();
-            window.addEventListener("mousedown", function(){
-                if (!btnOpenModalAddPalette.contains(event.target)
-                    && !modalPaletteName.contains(event.target)) {
-                    modalPaletteName.classList.toggle("hidden", true);
-                    abort.abort();
+            
+            abort.signal.addEventListener("abort", () => {
+                modalPaletteName.classList.toggle("hidden", true);
+            });
+
+            window.addEventListener("click", function(){
+                if(btnAddPalette.contains(event.target)){
+                    if(!addPalette()){
+                        return;
+                    }
                 }
+
+                if (btnOpenModalAddPalette.contains(event.target) || modalPaletteName.contains(event.target)
+                    && !btnAddPalette.contains(event.target)){
+                    return;
+                }
+                
+                abort.abort();
             }, { signal:abort.signal });
         });
+
+        function addPalette(){
+            try{
+                let inpNamePalette = document.querySelector("input[name='name-palette']");
+                let namePalette = inpNamePalette.value;
+                palette.createPalette(namePalette)
+
+                let paletteOption = document.createElement("option");
+                paletteOption.value = namePalette;
+                paletteOption.innerText = namePalette;
+                selectPalette.append(paletteOption);
+
+                selectPalette.value = namePalette;
+                loadActivePalette();
+                inpNamePalette.value = "";
+
+                return true;
+            } catch(e){
+                console.error(e);
+                return false;
+            }
+        }
 
         selectPalette.addEventListener("change", loadActivePalette);
 
@@ -518,14 +594,24 @@
 
             let color = [r, g, b];
 
+            const activePalette = palette.getPalette(selectPalette.value);
+            
+            if(activePalette.getAllColors().find((c)=> c === color)){
+                return;
+            }
+
+            activePalette.addColor(color);
+
             addColorElement(color);
             swapActiveColor(color);
         });
         
         function loadActivePalette(){
             listColors.querySelectorAll(".color").forEach((c)=>c.remove());
-            const activeIndex = palette.findIndex((p)=> p.name === selectPalette.value);
-            palette[activeIndex].colors.forEach(color => {
+            
+            let activePalette = palette.getPalette(selectPalette.value);
+            
+            activePalette.getAllColors().forEach(color => {
                 addColorElement(color);
 
                 if(isSameColor(activeColor, color)){    
@@ -533,14 +619,15 @@
                 }
             });
         }
+
+        function loadPalette(p){
+            let optionPalette = document.createElement("option");
+            optionPalette.value = p.name;
+            optionPalette.innerText = p.name;
+            selectPalette.append(optionPalette)
+        }
         
         function addColorElement(color){
-            const activeIndex = palette.findIndex((p)=> p.name === selectPalette.value);
-            console.log(palette[activeIndex])
-            if(palette[activeIndex].colors.find((c)=>  c != color)){
-                palette[activeIndex]["colors"].push(color);
-            }
-
             let spanColor = listColors.querySelector(`.color[data-color='rgb(${color[0]}, ${color[1]}, ${color[2]})']`);
 
             if(spanColor !== null) return;
@@ -588,25 +675,7 @@
             return (color1[0] === color2[0] && color1[1] === color2[1] && color1[2] === color2[2]);
         }
         
-        function loadPalette(p){
-            let optionPalette = document.createElement("option");
-            optionPalette.value = p.name;
-            optionPalette.innerText = p.name;
-            selectPalette.append(optionPalette)
-        }
     
-        function removePalette(){
-            if(selectPalette.value === "Default")
-                return;
-
-            let index = palette.findIndex((p)=> p.name == selectPalette.value);
-            if (index <= -1) return;
-            
-            palette.splice(index, 1);
-            selectPalette.querySelector(`option[value=${selectPalette.value}]`).remove();
-            selectPalette.value = "Default";
-            loadActivePalette();
-        }
     </script>
 </body>
 </html>
