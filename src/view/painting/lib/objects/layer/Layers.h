@@ -15,7 +15,7 @@
 
 #include "../../interfaces/ITile/ITile.h"
 #include "../../interfaces/IGraphic/IGraphic.h"
-#include "../../graphics/Surface/Surface.cpp"
+#include "../../graphics/Surface/Surface.h"
 
 using namespace std;
 
@@ -35,7 +35,7 @@ public:
     void resize(int width, int height);
     void move(int x, int y);
     void draw(IGraphic& graphic);
-
+    
     unsigned int* getBuffer();
     unsigned int getPixel(int x, int y);
     unsigned int getPixel(int index);

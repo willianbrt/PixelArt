@@ -18,7 +18,7 @@
 #include "../layer/Layers.h"
 #include "../componding/CompoundingTiles.h"
 
-#include "../../graphics/GraphicsEngine/GraphicsEngine.cpp"
+#include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 
 const int MAX_LAYERS = 30;
 

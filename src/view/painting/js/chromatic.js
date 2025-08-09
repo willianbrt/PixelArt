@@ -269,20 +269,24 @@ export function Chromatic(options){
 }
 
 export function ColorFactory(){
-    function buildByRGB(r,g,b){ 
+    function buildByRGB(r,g,b){
         return {
             rgb: {r, g, b},
             hsl: rgbToHsl(r, g, b),
-            hex: rgbToHex(r, g, b)
+            hex: rgbToHex(r,g,b),
+            hex16: rgbToHex16(r, g, b),
+            hex32: rgbToHex32(r, g, b)
         }
     }
     function buildByHSL(h,s,l){
         const {r,g,b} = hslToRgb(h,s,l);
-
+        
         return {
             rgb: {r,g,b},
             hsl: { h, s, l},
-            hex: rgbToHex(r,g,b)
+            hex: rgbToHex(r,g,b),
+            hex16: rgbToHex16(r, g, b),
+            hex32: rgbToHex32(r, g, b)
         };
     }
     function buildByHex(hex){
@@ -291,12 +295,20 @@ export function ColorFactory(){
         return {
             rgb: {r,g,b},
             hsl: rgbToHsl(r, g, b),
-            hex: hex
+            hex: hex,
+            hex16: rgbToHex16(r, g, b),
+            hex32: rgbToHex32(r, g, b)
         }
     }
     
     function rgbToHex(r, g, b) {
-        return "#" + (r << 16 | g << 8 | b).toString(16).padStart(6, "0");
+        return  "#" + rgbToHex16(r, g, b).toString(16).padStart(6, "0");
+    }
+    function rgbToHex16(r, g, b) {
+        return  (r << 16 | g << 8 | b);
+    }
+    function rgbToHex32(r, g, b) {
+        return ((r << 24) | (g << 16) | (b << 8) | (0xFF)) >>> 0;
     }
     function rgbToHsl(r, g, b) {
         r /= 255;

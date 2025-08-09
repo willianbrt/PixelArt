@@ -10,8 +10,8 @@
 #include "objects/layer/Layers.h"
 #include "objects/frame/Frame.h"
 #include "interfaces/IGraphic/IGraphic.h"
-#include "graphics/GraphicsEngine/GraphicsEngine.cpp"
-#include "graphics/Surface/Surface.cpp"
+#include "graphics/GraphicsEngine/GraphicsEngine.h"
+#include "graphics/Surface/Surface.h"
 #include "graphics/Pixel/Pixel.h"
 
 extern "C" {

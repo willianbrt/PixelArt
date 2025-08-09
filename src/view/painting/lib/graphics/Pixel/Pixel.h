@@ -79,13 +79,4 @@ struct Bounding{
     unsigned int getHeight(){ return end.y - start.y; }
 };
 
-// using namespace emscripten;
-
-// EMSCRIPTEN_BINDINGS(point_module){
-//     class_<Point>("Point")
-//         .constructor<int, int>()
-//         .property("x", &Point::x)
-//         .property("y", &Point::y);
-// };
-
 #endif

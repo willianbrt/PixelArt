@@ -246,6 +246,9 @@ body{
 .pane #pane-tool .tool img{
     width: 16px;
 }
+.pane #pane-tool button.tool.active {
+    background: #3d2745 !important;
+}
 
 .opacity{
     position: relative;

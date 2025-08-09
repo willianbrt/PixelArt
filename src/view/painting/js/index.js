@@ -63,7 +63,9 @@ window.onload = async ()=>{
         if(e.target.classList.contains("header"))
             this.parentNode.querySelector(".body").classList.toggle("hidden")
     });
-
+    
+    buildToolBar();
+    
     let btnAddFrame = document.getElementById("add-frame");
     let btnCloneFrame = document.getElementById("duplicate-frame");
     let btnMoveDownFrame = document.getElementById("move-down-frame");
@@ -126,49 +128,151 @@ window.onload = async ()=>{
     });
 
     // Mock
-    let paintStrategy = ()=>{
+    let paintStrategy = () => {
         let activeFrame;
         let activeLayer;
-        let previousPoint;
+        let flagFromPoint = null;
+        let flagToPoint = null;
+        let flagDir = null;
+        let line;
+
+        function direction(from, to){
+            if(from.y === to.y) return "H"
+            if(from.x === to.x) return "V"
+            return "D"
+        }
+        function distance(from, to){
+            return {
+                dx:to.x - from.x,
+                dy:to.y - from.y
+            }
+        }
 
         return {
-            onPressed:(point)=>{
+            onPressed: (point) => {
                 activeFrame = editor.getActiveFrame();
                 activeLayer = activeFrame.getActiveLayer();
 
-                let line = new module.Line(activeLayer,
-                    point.x, point.y,
-                    point.x, point.y,
-                    0x00FF00FF);
-                line.draw();
-                
-                editor.render();
-
-                previousPoint = cursorToPixel(point);
-            },
-            onTracking: (point)=>{
                 point = cursorToPixel(point);
-                
-                let line = new module.Line(activeLayer,
-                    previousPoint.x, previousPoint.y,
+
+                line = new module.Line(
+                    activeLayer,
                     point.x, point.y,
-                    0x00FF00FF);
+                    point.x, point.y,
+                    window.selectedColor
+                );
                 line.draw();
-                
                 editor.render();
 
-                previousPoint = point;
+
+                flagFromPoint = point;
+                flagToPoint = point;
+                flagDir = direction(flagFromPoint, flagToPoint);
             },
-            onRelease:(point)=>{
+
+            onTracking: (point) => {
+                point = cursorToPixel(point);
+                if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+                
+                let dir = direction(flagToPoint, point);
+                if (flagDir !== dir) {
+                    const flagDelta = distance(flagFromPoint, flagToPoint);
+                    const delta = distance(flagToPoint, point);
+
+                    console.log("to:", dir)
+                    activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                    
+                    // flagToPoint.y += Math.sign(delta.dy);
+                    // flagToPoint.x += Math.sign(delta.dx);
+                    flagFromPoint = flagToPoint;
+                    
+                    // if(dir == "D" && Math.abs(flagDelta.dy) >= 1){
+                    //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                    //     flagToPoint.y += Math.sign(delta.dy);
+                    //     flagToPoint.x += Math.sign(delta.dx);
+                    //     flagFromPoint = flagToPoint;
+                    // }
+
+                    // if(dir === "H" && Math.abs(flagDelta.dy) >= 1){
+                    //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                    //     flagToPoint.x += Math.sign(delta.dx);
+                    //     flagFromPoint = flagToPoint;
+                    // }
+                }
+
+
+                const line = new module.Line(
+                    activeLayer,
+                    flagToPoint.x, flagToPoint.y,
+                    point.x, point.y,
+                    window.selectedColor
+                );
+                line.draw();
+                console.log("to:",flagFromPoint ,"from:",point)
+                
+                // activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0x0000FFFF);
+                // activeLayer.putPixel(point.x, point.y, 0xFF0000FF);
+
+                editor.render();
+
+                flagToPoint = point;
+                flagDir = dir;
+            },
+
+            onRelease: () => {
                 editor.render();
             }
+        };
+    };
+
+
+    let squareStrategy = () => {
+        let activeFrame;
+        let activeLayer;
+
+        let markerTopLeft     = document.querySelector(".marker#m-top-left");
+        let markerTopRight    = document.querySelector(".marker#m-top-right");
+        let markerBottomLeft  = document.querySelector(".marker#m-bottom-left");
+        let markerBottomRight = document.querySelector(".marker#m-bottom-right");
+
+        return {
+            onPressed: (point) => {
+                activeFrame = editor.getActiveFrame();
+                activeLayer = activeFrame.getActiveLayer();
+
+                point = cursorToPixel(point);
+
+                markerTopLeft.addEventListener("mousedown", moveMarker);
+                markerTopRight.addEventListener("mousedown", moveMarker);
+                markerBottomLeft.addEventListener("mousedown", moveMarker);
+                markerBottomRight.addEventListener("mousedown", moveMarker);
+            },
+            onTracking: (point) => {
+                point = cursorToPixel(point);
+                if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+                
+
+            },
+            onRelease: () => {
+                editor.render();
+            }
+        };
+        function moveMarker(point){
+
         }
     };
 
     function cursorToPixel(point){
+        // const rect = canvas.getBoundingClientRect();
+
+        // const x = Math.floor(point.x * (canvas.width / rect.width));
+        // const y = Math.floor(point.y * (canvas.height / rect.height));
+        // console.log((canvas.height / rect.height), targetScale)
+        // return { x, y };
+
         return {
-            x: point.x / targetScale,
-            y: point.y / targetScale,
+            x: Math.floor(point.x / targetScale),
+            y: Math.floor(point.y / targetScale),
         }
     }
 
@@ -411,4 +515,63 @@ function hasLayerWithName(name){
         }
     }
     return false;
+}
+
+
+function buildToolBar(){    
+    const buttonPencil = document.querySelector(".tool-pencil");
+    buttonPencil.addEventListener("click", function(e){
+        changeSelectTool.call(this);
+    });
+    
+    const buttonEraser = document.querySelector(".tool-eraser");
+    buttonEraser.addEventListener("click", function(e){
+        changeSelectTool.call(this);
+    });
+    
+    const buttonDropper = document.querySelector(".tool-dropper");
+    buttonDropper.addEventListener("click", function(e){
+        changeSelectTool.call(this);
+    });
+    
+    const buttonLine = document.querySelector(".tool-line");
+    buttonLine.addEventListener("click", function(e){
+        changeSelectTool.call(this);
+    });
+    
+    
+    const buttonSquare = document.querySelector(".tool-square");
+    buttonSquare.addEventListener("click", function(e){
+        changeSelectTool.call(this);
+    });
+    
+    const buttonCircle = document.querySelector(".tool-circle");
+    buttonCircle.addEventListener("click", function(e){
+        changeSelectTool.call(this);
+    });
+    
+    const buttonBucket = document.querySelector(".tool-bucket");
+    buttonBucket.addEventListener("click", function(e){
+        changeSelectTool.call(this);
+    });
+    
+    
+    const buttonBrush = document.querySelector(".tool-brush");
+    buttonBrush.addEventListener("click", function(e){
+        changeSelectTool.call(this);
+    });
+    
+    const buttonUndo = document.querySelector("#undo");
+    buttonUndo.addEventListener("click", function(e){
+        history.undo();
+    });
+    
+    const buttonRedo = document.querySelector("#redo");
+    buttonRedo.addEventListener("click", function(e){
+        history.redo();
+    });
+    function changeSelectTool(){
+        document.querySelector(".tool.active")?.classList.toggle("active", false);
+        this.classList.toggle("active", true);
+    }
 }

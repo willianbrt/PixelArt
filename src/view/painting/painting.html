@@ -209,6 +209,11 @@
         <section id="drawing-area">
             <canvas id="painting" width="40" height="33"></canvas>
             <!-- <canvas id="preview" width="40" height="32"></canvas> -->
+             
+            <span class="marker" id="m-top-left"></span>
+            <span class="marker" id="m-top-right"></span>
+            <span class="marker" id="m-bottom-left"></span>
+            <span class="marker" id="m-bottom-right"></span>
         </section>
 
         <section class="pane" id="pane-right">
@@ -331,30 +336,32 @@
    
     <script type="module">
         import { Chromatic, ColorFactory } from "./js/chromatic.js"
+        let factoryColor = ColorFactory();
 
         let activeColor = [0,0,0];
         let secondaryColor = [255,255,255];
-        let palette = [{
-            name: "Default",
-            colors:[
-                [255,0,0],
-                [0,255,0],
-            ]
-        },
-        {
-            name: "Sombras",
-            colors:[
-                [255,0,0],
-                [255,255,0],
-            ]
-        },
-        {
-            name: "Luzes",
-            colors:[
-                [255,0,0],
-                [0,255,255],
-            ]
-        }];
+       
+        window.palette = [{
+                name: "Default",
+                colors:[
+                    [255,0,0],
+                    [0,255,0],
+                ]
+            },
+            {
+                name: "Sombras",
+                colors:[
+                    [255,0,0],
+                    [255,255,0],
+                ]
+            },
+            {
+                name: "Luzes",
+                colors:[
+                    [255,0,0],
+                    [0,255,255],
+                ]
+            }];
         
         let selectColorPattern = document.querySelector("select[name='color-pattern']");
         let workPrimaryColor = document.querySelector(".work-color.primary-color");
@@ -395,8 +402,7 @@
 
         function updateHex(){
             try{
-                let color = ColorFactory().buildByHex(this.value);
-                console.log(modalChromatic)
+                let color = factoryColor.buildByHex(this.value);
                 modalChromatic.setColor(color);
             } catch(e){
                 console.warn(e)
@@ -449,10 +455,11 @@
                 height:100,
                 onUpdateColor: onUpdateColor
             });
-            workPrimaryColor.style.background = `rgb(${ activeColor[0] }, ${activeColor[1]}, ${activeColor[2]})`;    
-            workSecondaryColor.style.background = `rgb(${ secondaryColor[0] }, ${secondaryColor[1]}, ${secondaryColor[2]})`;
+            
+            modalChromatic.setColor(factoryColor.buildByRGB(0,0,0));
+            changeSecondaryColor(secondaryColor);
+            
             loadColorPattern();
-            swapActiveColor(activeColor);
             
             palette.forEach(p => loadPalette(p));
             loadActivePalette();
@@ -469,16 +476,14 @@
             inpColorS.value = color.hsl.s;
             inpColorL.value = color.hsl.l;
             
-            let newColor = document.querySelector("#new-color");
-            newColor.style.background = color.hex;
+            changePrimaryColor([color.rgb.r, color.rgb.g,color.rgb.b]);
         }
 
         workSecondaryColor.addEventListener("click", function(e){
-            let spanColor = listColors.querySelector(`.color[data-color='rgb(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]})']`);
-            swapActiveColor.call(spanColor, secondaryColor);
+            swapActiveColor(secondaryColor);
         });
 
-        btnRemovePalette.addEventListener("click", ()=>removePalette());
+        btnRemovePalette.addEventListener("click", removePalette);
         btnAddPalette.addEventListener("click", function(e){
             let newPalette = {
                 name: document.querySelector("input[name='name-pallete']").value,
@@ -504,64 +509,83 @@
             }, { signal:abort.signal });
         });
 
-        selectPalette.addEventListener("change", ()=> loadActivePalette());
-        
+        selectPalette.addEventListener("change", loadActivePalette);
+
         btnAddColor.addEventListener("click", function(){
             let r = document.querySelector("input[name=r]").value;
             let g = document.querySelector("input[name=g]").value;
             let b = document.querySelector("input[name=b]").value;
 
             let color = [r, g, b];
-            activeColor = color;
-            addColor(color);
+
+            addColorElement(color);
+            swapActiveColor(color);
         });
         
         function loadActivePalette(){
             listColors.querySelectorAll(".color").forEach((c)=>c.remove());
             const activeIndex = palette.findIndex((p)=> p.name === selectPalette.value);
-            palette[activeIndex].colors.forEach(color => addColor(color));
+            palette[activeIndex].colors.forEach(color => {
+                addColorElement(color);
+
+                if(isSameColor(activeColor, color)){    
+                    swapActiveColor(color);
+                }
+            });
         }
         
-        function addColor(color){
+        function addColorElement(color){
             const activeIndex = palette.findIndex((p)=> p.name === selectPalette.value);
+            console.log(palette[activeIndex])
             if(palette[activeIndex].colors.find((c)=>  c != color)){
-                palette[activeIndex].colors.push(color);
+                palette[activeIndex]["colors"].push(color);
             }
 
             let spanColor = listColors.querySelector(`.color[data-color='rgb(${color[0]}, ${color[1]}, ${color[2]})']`);
 
-            if(spanColor === null){
-                spanColor = document.createElement("span");
-                spanColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                spanColor.className = "color";
-                spanColor.dataset.color = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                listColors.append(spanColor);
-                
-                spanColor.addEventListener("click", function(){
-                    swapActiveColor.call(this, color);
-                });
-            }
+            if(spanColor !== null) return;
 
-            if(activeColor[0] === color[0] && activeColor[1] === color[1] && activeColor[2] === color[2]){    
-                swapActiveColor.call(spanColor, color);
-            }
+            spanColor = document.createElement("span");
+            spanColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+            spanColor.className = "color";
+
+            spanColor.dataset.color = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+            listColors.append(spanColor);
+            
+            spanColor.addEventListener("click", function(){
+                swapActiveColor(color);
+            });
         }
         function swapActiveColor(color){
-            if(secondaryColor[0] === color[0] && secondaryColor[1] === color[1] && secondaryColor[2] === color[2]){    
-                workPrimaryColor.style.background = `rgb(${ secondaryColor[0] }, ${secondaryColor[1]}, ${secondaryColor[2]})`;
-                workSecondaryColor.style.background = `rgb(${ activeColor[0] }, ${activeColor[1]}, ${activeColor[2]})`;
-                secondaryColor = activeColor;
-            }
+            let flagActiveColor = activeColor;
+            changePrimaryColor(color);
+            changeSecondaryColor(flagActiveColor);
+        }
 
+        function changePrimaryColor(color){
             activeColor = color;
-            let selectedColor = document.querySelector(".work-color.primary-color");
-            let oldColor = document.querySelector("#old-color");
-
-            selectedColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-            oldColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+            window.selectedColor = factoryColor.buildByRGB(color[0], color[1], color[2]).hex32;
+            
+            let newColor = document.querySelector("#new-color");
+            workPrimaryColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+            newColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
 
             document.querySelector(".color.active")?.classList.remove("active");
-            this?.classList.toggle("active",true);
+            document.querySelector(`.color[data-color="rgb(${color[0]}, ${color[1]}, ${color[2]})"]`)?.classList.toggle("active",true);
+        }
+
+        function changeSecondaryColor(color){
+            if(isSameColor(selectedColor, color)){ return; }
+
+            secondaryColor = color;
+
+            let oldColor = document.querySelector("#old-color");
+            workSecondaryColor.style.background = `rgb(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]})`;
+            oldColor.style.background = `rgb(${secondaryColor[0]}, ${secondaryColor[1]}, ${secondaryColor[2]})`;
+        }
+
+        function isSameColor (color1,color2) {
+            return (color1[0] === color2[0] && color1[1] === color2[1] && color1[2] === color2[2]);
         }
         
         function loadPalette(p){
