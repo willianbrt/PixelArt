@@ -28,6 +28,9 @@ export default function HandlerEvents(canvas){
     function setRightButtonMousePressedEvent(strategy){
         rightButtonEvent = createPressedEvent(strategy);
     }
+    function setLeftButtonMousePressedEvent(strategy){
+        leftButtonEvent = createPressedEvent(strategy);
+    }
 
     let createPressedEvent = (strategy)=>{
         resetPointerTracking();
@@ -132,6 +135,7 @@ export default function HandlerEvents(canvas){
         setClickRightEvent,
         setClickLeftEvent,
         setRightButtonMousePressedEvent,
+        setLeftButtonMousePressedEvent,
         setGenericButtonMousePressedEvent,
         setScrollEvent
     });

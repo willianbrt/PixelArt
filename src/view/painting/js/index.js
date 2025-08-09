@@ -126,157 +126,6 @@ window.onload = async ()=>{
         
         activeFrame.cloneLayer(activeLayer.getID());
     });
-
-    // Mock
-    let paintStrategy = () => {
-        let activeFrame;
-        let activeLayer;
-        let flagFromPoint = null;
-        let flagToPoint = null;
-        let flagDir = null;
-        let line;
-
-        function direction(from, to){
-            if(from.y === to.y) return "H"
-            if(from.x === to.x) return "V"
-            return "D"
-        }
-        function distance(from, to){
-            return {
-                dx:to.x - from.x,
-                dy:to.y - from.y
-            }
-        }
-
-        return {
-            onPressed: (point) => {
-                activeFrame = editor.getActiveFrame();
-                activeLayer = activeFrame.getActiveLayer();
-
-                point = cursorToPixel(point);
-
-                line = new module.Line(
-                    activeLayer,
-                    point.x, point.y,
-                    point.x, point.y,
-                    window.selectedColor
-                );
-                line.draw();
-                editor.render();
-
-
-                flagFromPoint = point;
-                flagToPoint = point;
-                flagDir = direction(flagFromPoint, flagToPoint);
-            },
-
-            onTracking: (point) => {
-                point = cursorToPixel(point);
-                if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
-                
-                let dir = direction(flagToPoint, point);
-                if (flagDir !== dir) {
-                    const flagDelta = distance(flagFromPoint, flagToPoint);
-                    const delta = distance(flagToPoint, point);
-
-                    console.log("to:", dir)
-                    activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
-                    
-                    // flagToPoint.y += Math.sign(delta.dy);
-                    // flagToPoint.x += Math.sign(delta.dx);
-                    flagFromPoint = flagToPoint;
-                    
-                    // if(dir == "D" && Math.abs(flagDelta.dy) >= 1){
-                    //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
-                    //     flagToPoint.y += Math.sign(delta.dy);
-                    //     flagToPoint.x += Math.sign(delta.dx);
-                    //     flagFromPoint = flagToPoint;
-                    // }
-
-                    // if(dir === "H" && Math.abs(flagDelta.dy) >= 1){
-                    //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
-                    //     flagToPoint.x += Math.sign(delta.dx);
-                    //     flagFromPoint = flagToPoint;
-                    // }
-                }
-
-
-                const line = new module.Line(
-                    activeLayer,
-                    flagToPoint.x, flagToPoint.y,
-                    point.x, point.y,
-                    window.selectedColor
-                );
-                line.draw();
-                console.log("to:",flagFromPoint ,"from:",point)
-                
-                // activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0x0000FFFF);
-                // activeLayer.putPixel(point.x, point.y, 0xFF0000FF);
-
-                editor.render();
-
-                flagToPoint = point;
-                flagDir = dir;
-            },
-
-            onRelease: () => {
-                editor.render();
-            }
-        };
-    };
-
-
-    let squareStrategy = () => {
-        let activeFrame;
-        let activeLayer;
-
-        let markerTopLeft     = document.querySelector(".marker#m-top-left");
-        let markerTopRight    = document.querySelector(".marker#m-top-right");
-        let markerBottomLeft  = document.querySelector(".marker#m-bottom-left");
-        let markerBottomRight = document.querySelector(".marker#m-bottom-right");
-
-        return {
-            onPressed: (point) => {
-                activeFrame = editor.getActiveFrame();
-                activeLayer = activeFrame.getActiveLayer();
-
-                point = cursorToPixel(point);
-
-                markerTopLeft.addEventListener("mousedown", moveMarker);
-                markerTopRight.addEventListener("mousedown", moveMarker);
-                markerBottomLeft.addEventListener("mousedown", moveMarker);
-                markerBottomRight.addEventListener("mousedown", moveMarker);
-            },
-            onTracking: (point) => {
-                point = cursorToPixel(point);
-                if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
-                
-
-            },
-            onRelease: () => {
-                editor.render();
-            }
-        };
-        function moveMarker(point){
-
-        }
-    };
-
-    function cursorToPixel(point){
-        // const rect = canvas.getBoundingClientRect();
-
-        // const x = Math.floor(point.x * (canvas.width / rect.width));
-        // const y = Math.floor(point.y * (canvas.height / rect.height));
-        // console.log((canvas.height / rect.height), targetScale)
-        // return { x, y };
-
-        return {
-            x: Math.floor(point.x / targetScale),
-            y: Math.floor(point.y / targetScale),
-        }
-    }
-
-    handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
 }
 
 function addFrame(frame){
@@ -518,14 +367,238 @@ function hasLayerWithName(name){
 }
 
 
-function buildToolBar(){    
+
+// Mock
+function direction(from, to){
+    if(from.y === to.y) return "H"
+    if(from.x === to.x) return "V"
+    return "D"
+}
+function distance(from, to){
+    return {
+        dx:to.x - from.x,
+        dy:to.y - from.y
+    }
+}
+let paintStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+    let flagFromPoint = null;
+    let flagToPoint = null;
+    let flagDir = null;
+    let line;
+
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+
+            point = cursorToPixel(point);
+
+            line = new module.Line(
+                activeLayer,
+                point.x, point.y,
+                point.x, point.y,
+                window.selectedColor
+            );
+            line.draw();
+            editor.render();
+
+
+            flagFromPoint = point;
+            flagToPoint = point;
+            flagDir = direction(flagFromPoint, flagToPoint);
+        },
+
+        onTracking: (point) => {
+            point = cursorToPixel(point);
+            if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+            
+            let dir = direction(flagToPoint, point);
+            if (flagDir !== dir) {
+                const flagDelta = distance(flagFromPoint, flagToPoint);
+                const delta = distance(flagToPoint, point);
+
+                activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                
+                // flagToPoint.y += Math.sign(delta.dy);
+                // flagToPoint.x += Math.sign(delta.dx);
+                flagFromPoint = flagToPoint;
+                
+                // if(dir == "D" && Math.abs(flagDelta.dy) >= 1){
+                //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                //     flagToPoint.y += Math.sign(delta.dy);
+                //     flagToPoint.x += Math.sign(delta.dx);
+                //     flagFromPoint = flagToPoint;
+                // }
+
+                // if(dir === "H" && Math.abs(flagDelta.dy) >= 1){
+                //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                //     flagToPoint.x += Math.sign(delta.dx);
+                //     flagFromPoint = flagToPoint;
+                // }
+            }
+
+
+            const line = new module.Line(
+                activeLayer,
+                flagToPoint.x, flagToPoint.y,
+                point.x, point.y,
+                window.selectedColor
+            );
+            line.draw();
+            
+            // activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0x0000FFFF);
+            // activeLayer.putPixel(point.x, point.y, 0xFF0000FF);
+
+            editor.render();
+
+            flagToPoint = point;
+            flagDir = dir;
+        },
+
+        onRelease: () => {
+            editor.render();
+        }
+    };
+};
+let eraseStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+    let flagFromPoint = null;
+    let flagToPoint = null;
+    let flagDir = null;
+    let line;
+
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+
+            point = cursorToPixel(point);
+
+            line = new module.Line(
+                activeLayer,
+                point.x, point.y,
+                point.x, point.y,
+                0x0
+            );
+            line.draw();
+            editor.render();
+
+
+            flagFromPoint = point;
+            flagToPoint = point;
+            flagDir = direction(flagFromPoint, flagToPoint);
+        },
+
+        onTracking: (point) => {
+            point = cursorToPixel(point);
+            if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+            
+            let dir = direction(flagToPoint, point);
+            if (flagDir !== dir) {
+                const flagDelta = distance(flagFromPoint, flagToPoint);
+                const delta = distance(flagToPoint, point);
+
+                activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                
+                // flagToPoint.y += Math.sign(delta.dy);
+                // flagToPoint.x += Math.sign(delta.dx);
+                flagFromPoint = flagToPoint;
+                
+                // if(dir == "D" && Math.abs(flagDelta.dy) >= 1){
+                //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                //     flagToPoint.y += Math.sign(delta.dy);
+                //     flagToPoint.x += Math.sign(delta.dx);
+                //     flagFromPoint = flagToPoint;
+                // }
+
+                // if(dir === "H" && Math.abs(flagDelta.dy) >= 1){
+                //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                //     flagToPoint.x += Math.sign(delta.dx);
+                //     flagFromPoint = flagToPoint;
+                // }
+            }
+
+
+            const line = new module.Line(
+                activeLayer,
+                flagToPoint.x, flagToPoint.y,
+                point.x, point.y,
+                0x0
+            );
+            line.draw();
+            
+            // activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0x0000FFFF);
+            // activeLayer.putPixel(point.x, point.y, 0xFF0000FF);
+
+            editor.render();
+
+            flagToPoint = point;
+            flagDir = dir;
+        },
+
+        onRelease: () => {
+            editor.render();
+        }
+    };
+};
+
+let squareStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+
+    let markerTopLeft     = document.querySelector(".marker#m-top-left");
+    let markerTopRight    = document.querySelector(".marker#m-top-right");
+    let markerBottomLeft  = document.querySelector(".marker#m-bottom-left");
+    let markerBottomRight = document.querySelector(".marker#m-bottom-right");
+
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+
+            point = cursorToPixel(point);
+
+            markerTopLeft.addEventListener("mousedown", moveMarker);
+            markerTopRight.addEventListener("mousedown", moveMarker);
+            markerBottomLeft.addEventListener("mousedown", moveMarker);
+            markerBottomRight.addEventListener("mousedown", moveMarker);
+        },
+        onTracking: (point) => {
+            point = cursorToPixel(point);
+            if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+            
+
+        },
+        onRelease: () => {
+            editor.render();
+        }
+    };
+    function moveMarker(point){
+
+    }
+};
+
+function cursorToPixel(point){
+    return {
+        x: Math.floor(point.x / targetScale),
+        y: Math.floor(point.y / targetScale),
+    }
+}
+
+
+function buildToolBar(){
     const buttonPencil = document.querySelector(".tool-pencil");
     buttonPencil.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
         changeSelectTool.call(this);
     });
     
     const buttonEraser = document.querySelector(".tool-eraser");
     buttonEraser.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(eraseStrategy());
         changeSelectTool.call(this);
     });
     
@@ -570,6 +643,10 @@ function buildToolBar(){
     buttonRedo.addEventListener("click", function(e){
         history.redo();
     });
+    
+    handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
+    buttonPencil.click();
+
     function changeSelectTool(){
         document.querySelector(".tool.active")?.classList.toggle("active", false);
         this.classList.toggle("active", true);
