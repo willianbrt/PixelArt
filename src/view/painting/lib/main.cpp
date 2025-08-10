@@ -65,7 +65,20 @@ public:
 
         renderArea(boundingSketch);
     }
+    void render(int startX, int endX, int startY,int endY){
+        Bounding boundingSketch = Bounding(Point(startX,startY), Point(endX, endY));
+
+        renderArea(boundingSketch);
+    }
     void renderArea(Bounding area){
+        area.start.x = min(static_cast<int>(_sketch.getWidth()), max(area.start.x, 0));
+        area.start.y = min(static_cast<int>(_sketch.getHeight()), max(area.start.y, 0));
+        area.end.x = max(0, min(area.end.x, static_cast<int>(_sketch.getWidth())));
+        area.end.y = max(0, min(area.end.y, static_cast<int>(_sketch.getHeight())));
+
+        // if(area.end.y > _sketch.getHeight()) return;
+        // if(area.end.x > _sketch.getWidth()) return;
+        
         if(activeFrame == nullptr) return;
     
         int startLineIndex =  area.start.x + area.getWidth()*area.start.y;
@@ -171,7 +184,8 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<Editor>("Editor")
         .constructor<unsigned int, unsigned int>()
         .smart_ptr<std::shared_ptr<Editor>>("shared_ptr<Editor>")
-        .function("render", &Editor::render)
+        .function("renderArea", select_overload<void(int, int, int, int)>(&Editor::render))
+        .function("render", select_overload<void()>(&Editor::render))
         .function("bringFrameToFoward", &Editor::bringFrameToFoward)
         .function("bringFrameBack", &Editor::bringFrameBack)
         .function("bringFrameTo", &Editor::bringFrameTo)

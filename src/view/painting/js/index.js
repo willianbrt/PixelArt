@@ -1,6 +1,7 @@
 import Module from '../build/graphics/PixelEditor.js';
 import ModulePixelEditor from '../build/graphics/PixelEditor.js'
 import HandlerEvents from './handlerEvents.js'
+import { PositionHelper } from "../../../scripts/common/position.js";
 
 let width = 32;
 let height = 32;
@@ -587,9 +588,74 @@ function cursorToPixel(point){
         y: Math.floor(point.y / targetScale),
     }
 }
+const pattern = {
+    dot: [[0.5]],
+    brush_1: [
+        [0.4,0,0.05],
+        [0.03,0.2,0.05],
+        [0.15,0.4,0.1],
+    ],
+}
 
+var lineSize = 2;
+var pattern_selected = "brush_1";
+var dirtyFlag = {
+    startX:0,
+    startY:0,
+    endX:0,
+    endY:0,
+};
 
+let ctx = canvas.getContext("2d");
+ctx.beginPath(); 
+
+function drawBrush(cursorPosition,color){
+    let patternSelected = pattern[pattern_selected];
+
+    let startPixel = {
+        x: Math.round(cursorPosition.x - ((patternSelected.length) / 2 * lineSize)),
+        y: Math.round(cursorPosition.y - ((patternSelected[0].length) / 2* lineSize))
+    };
+    dirtyFlag.startX = startPixel.x;
+    dirtyFlag.startY = startPixel.y;
+
+    dirtyFlag.endX = cursorPosition.x + (patternSelected.length/ 2*lineSize);
+    dirtyFlag.endY = cursorPosition.y + (patternSelected[0].length/ 2*lineSize);
+    
+    let flagStartPixel = {
+        x: startPixel.x,
+        y: startPixel.y
+    };
+
+    for(let i = 0; i < patternSelected.length; i++){
+        let patternLine = patternSelected[i];
+        
+        startPixel.x = flagStartPixel.x;
+
+        for(let j = 0; j < patternLine.length; j++){
+            let patternCell = patternLine[j];
+
+            ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},${patternCell})`;
+            ctx.fillRect(startPixel.x, startPixel.y,lineSize,lineSize);
+            startPixel.x += lineSize;
+        }
+        startPixel.y += lineSize;
+    }
+}
 function buildToolBar(){
+        
+    canvas.addEventListener("mouseenter", function(e){
+    });
+    canvas.addEventListener("mouseleave", function(e){
+    });
+    canvas.addEventListener("mousemove", function(e){
+        const initialPixel = cursorToPixel(PositionHelper.getPositionCursor(e));
+
+        editor.renderArea(dirtyFlag.startX, dirtyFlag.startY, 
+                        dirtyFlag.endX, dirtyFlag.endY);
+        drawBrush(initialPixel, [0,0,0]);
+    });
+
     const buttonPencil = document.querySelector(".tool-pencil");
     buttonPencil.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(paintStrategy());

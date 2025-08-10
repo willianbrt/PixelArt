@@ -1,15 +1,13 @@
 MAKEFLAGS += --always-make --debug=v
-ifeq ($(OS),Windows_NT)
-    CC := mingw32-g++
-    RM := del /q
-    RMDIR := rmdir /s /q
-    MKDIR := if not exist "$(subst /,\,$(dir $@))" mkdir "$(subst /,\,$(dir $@))"
-else
-    CC := emcc
-    RM := rm -f
-    RMDIR := rm -rf
-    MKDIR := mkdir -p $(dir $@)
-endif
+
+CC := emcc
+RM := del /q
+# Remove diretórios usando cmd, ignora erro com 'exit 0'
+RMDIR = if exist "$(subst /,\\,$(1))" rmdir /s /q "$(subst /,\\,$(1))" || exit 0
+# Cria diretórios, remove barra final para cmd aceitar
+MKDIR = if not exist "$(subst /,\\,$(patsubst %\,%,$(subst /,\\,$(dir $@))))" mkdir "$(subst /,\\,$(patsubst %\,%,$(subst /,\\,$(dir $@))))"
+IGNORE_ERR = rem
+
 SRC_DIR = ./
 BUILD_DIR = ../build/graphics
 OBJ_DIR = $(BUILD_DIR)/obj
@@ -30,32 +28,29 @@ SOURCES = 	$(wildcard $(SRC_DIR)/helpers/*/*.cpp) \
 
 OBJECTS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 
-EMCC_COMPILE_FLAGS = -gsource-map \
-                     -O3 \
+EMCC_COMPILE_FLAGS = -gsource-map -O3
 
 EMCC_FLAGS = -s ENVIRONMENT=web \
              -s MODULARIZE=1 \
              -s EXPORT_ES6=1 \
              -s ALLOW_MEMORY_GROWTH=1 \
              -s STANDALONE_WASM=0 \
-			-lembind \
-			--js-library='./../js/library.js'
-			
-all: $(TARGET_DIR)
+			 -lembind \
+			 --js-library='./../js/library.js'
+
+all: clean $(TARGET_DIR)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@echo Compiling $<...
-	@if not exist "$(dir $@)" mkdir "$(dir $@)"
-	@emcc $(EMCC_COMPILE_FLAGS) -c $< -o $@
+	@$(MKDIR)
+	@$(RM) "$(subst /,\\,$@)" 2>nul || $(IGNORE_ERR)
+	@$(CC) $(EMCC_COMPILE_FLAGS) -c $< -o $@
 
 $(TARGET_DIR): $(OBJECTS)
 	@echo Linking $(TARGET)...
-	@emcc $(EMCC_FLAGS) $(OBJECTS) -o $@
-	@echo Removing object files...
-	@$(RMDIR) "$(OBJ_DIR)"
+	@$(CC) $(EMCC_FLAGS) $(OBJECTS) -o $@
 	@echo Build successful.
 
 clean:
 	@echo Cleaning objects and binaries...
-	@if exist "$(OBJ_DIR)" rmdir /S /Q "$(OBJ_DIR)" || echo "Directory $(OBJ_DIR) not found"
-	@echo Clean complete.
+	$(call RMDIR,$(OBJ_DIR))
