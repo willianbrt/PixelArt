@@ -69,7 +69,33 @@ void GraphicsEngine::blending(unsigned int& bottomColor, unsigned int topColor) 
         (static_cast<int>(alphaSrc * ((topColor >> 24) & 0xFF) + alphaDst * ((bottomColor >> 24) & 0xFF)) << 24) |
         (static_cast<int>(alphaSrc * ((topColor >> 16) & 0xFF) + alphaDst * ((bottomColor >> 16) & 0xFF)) << 16) |
         (static_cast<int>(alphaSrc * ((topColor >> 8) & 0xFF) + alphaDst * ((bottomColor >> 8) & 0xFF)) << 8) |
-        (static_cast<int>(alphaSrc * (topColor & 0xFF) + alphaDst * (bottomColor & 0xFF)));
+        (static_cast<int>(alphaSrc * (topColor  & 0xFF) + alphaDst * (bottomColor & 0xFF)));
+}
+unsigned int GraphicsEngine::blendColors(unsigned int bottomColor, unsigned int topColor) {
+    float aTop = (topColor & 0xFF) / 255.0f;
+    float aBottom = (bottomColor & 0xFF) / 255.0f;
+
+    float rTop = ((topColor >> 24) & 0xFF) / 255.0f;
+    float gTop = ((topColor >> 16) & 0xFF) / 255.0f;
+    float bTop = ((topColor >>  8) & 0xFF) / 255.0f;
+
+    float rBottom = ((bottomColor >> 24) & 0xFF) / 255.0f;
+    float gBottom = ((bottomColor >> 16) & 0xFF) / 255.0f;
+    float bBottom = ((bottomColor >>  8) & 0xFF) / 255.0f;
+
+    // Alpha compositing (Normal mode)
+    float outA = aTop + aBottom * (1.0f - aTop);
+    float outR = (rTop * aTop + rBottom * aBottom * (1.0f - aTop)) / outA;
+    float outG = (gTop * aTop + gBottom * aBottom * (1.0f - aTop)) / outA;
+    float outB = (bTop * aTop + bBottom * aBottom * (1.0f - aTop)) / outA;
+
+    unsigned int result =
+        (static_cast<unsigned int>(outR * 255) << 24) |
+        (static_cast<unsigned int>(outG * 255) << 16) |
+        (static_cast<unsigned int>(outB * 255) << 8)  |
+        (static_cast<unsigned int>(outA * 255));
+
+    return result;
 }
 bool GraphicsEngine::computeVisibleShape(int originalAxis, int originalSize, int viewportSize, int& outStartAxis, int& outEndAxis){
     if (originalAxis <= -originalSize || originalAxis >= viewportSize){

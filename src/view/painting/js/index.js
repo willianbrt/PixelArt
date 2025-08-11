@@ -369,18 +369,46 @@ function hasLayerWithName(name){
 
 
 
-// Mock
-function direction(from, to){
-    if(from.y === to.y) return "H"
-    if(from.x === to.x) return "V"
-    return "D"
+const pattern = {
+    dot: [[1]],
+    brush_1: [
+        [0.9,1,0.8],
+        [0.7,1,0.5],
+        [0.2,1,0.3],
+    ],
 }
-function distance(from, to){
-    return {
-        dx:to.x - from.x,
-        dy:to.y - from.y
+
+var lineSize = 1;
+var pattern_selected = "dot";
+var weight = 1;
+
+var dirtyFlag = {
+    start:{
+        x: 0,
+        y:0
+    },
+    end:{
+        x: 0,
+        y:0
     }
+};
+
+let ctx = canvas.getContext("2d");
+ctx.beginPath(); 
+
+function getPattern(jsPattern) {
+    let cppPattern = new module.VectorVectorFloat();
+
+    jsPattern.forEach(row => {
+        let rowVec = new module.VectorFloat();
+        row.forEach(v => rowVec.push_back(v*weight));
+        cppPattern.push_back(rowVec);
+    });
+
+    return cppPattern;
 }
+
+// Mock
 let paintStrategy = () => {
     let activeFrame;
     let activeLayer;
@@ -388,6 +416,7 @@ let paintStrategy = () => {
     let flagToPoint = null;
     let flagDir = null;
     let line;
+    pattern_selected = "dot";
 
     return {
         onPressed: (point) => {
@@ -395,12 +424,13 @@ let paintStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             point = cursorToPixel(point);
-
             line = new module.Line(
                 activeLayer,
                 point.x, point.y,
                 point.x, point.y,
-                window.selectedColor
+                getPattern(pattern[pattern_selected]),
+                window.selectedColor,
+                lineSize
             );
             line.draw();
             editor.render();
@@ -445,13 +475,78 @@ let paintStrategy = () => {
                 activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
-                window.selectedColor
+                getPattern(pattern[pattern_selected]),
+                window.selectedColor,
+                lineSize
             );
             line.draw();
             
             // activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0x0000FFFF);
             // activeLayer.putPixel(point.x, point.y, 0xFF0000FF);
 
+            editor.render();
+
+            flagToPoint = point;
+            flagDir = dir;
+        },
+
+        onRelease: () => {
+            editor.render();
+        }
+    };
+};
+let brushStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+    let flagFromPoint = null;
+    let flagToPoint = null;
+    let flagDir = null;
+    let line;
+    pattern_selected = "brush_1";
+
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+
+            point = cursorToPixel(point);
+            line = new module.Line(
+                activeLayer,
+                point.x, point.y,
+                point.x, point.y,
+                getPattern(pattern[pattern_selected]),
+                window.selectedColor,
+                lineSize
+            );
+            line.draw();
+            editor.render();
+
+
+            flagFromPoint = point;
+            flagToPoint = point;
+            flagDir = direction(flagFromPoint, flagToPoint);
+        },
+
+        onTracking: (point) => {
+            point = cursorToPixel(point);
+            if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+            
+            let dir = direction(flagToPoint, point);
+            if (flagDir !== dir) {
+                activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
+                
+                flagFromPoint = flagToPoint;
+            }
+            const line = new module.Line(
+                activeLayer,
+                flagToPoint.x, flagToPoint.y,
+                point.x, point.y,
+                getPattern(pattern[pattern_selected]),
+                window.selectedColor,
+                lineSize
+            );
+            line.draw();
+            
             editor.render();
 
             flagToPoint = point;
@@ -470,6 +565,7 @@ let eraseStrategy = () => {
     let flagToPoint = null;
     let flagDir = null;
     let line;
+    pattern_selected = "dot";
 
     return {
         onPressed: (point) => {
@@ -482,7 +578,9 @@ let eraseStrategy = () => {
                 activeLayer,
                 point.x, point.y,
                 point.x, point.y,
-                0x0
+                getPattern(pattern[pattern_selected]),
+                0x0,
+                lineSize
             );
             line.draw();
             editor.render();
@@ -499,27 +597,9 @@ let eraseStrategy = () => {
             
             let dir = direction(flagToPoint, point);
             if (flagDir !== dir) {
-                const flagDelta = distance(flagFromPoint, flagToPoint);
-                const delta = distance(flagToPoint, point);
-
                 activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
                 
-                // flagToPoint.y += Math.sign(delta.dy);
-                // flagToPoint.x += Math.sign(delta.dx);
                 flagFromPoint = flagToPoint;
-                
-                // if(dir == "D" && Math.abs(flagDelta.dy) >= 1){
-                //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
-                //     flagToPoint.y += Math.sign(delta.dy);
-                //     flagToPoint.x += Math.sign(delta.dx);
-                //     flagFromPoint = flagToPoint;
-                // }
-
-                // if(dir === "H" && Math.abs(flagDelta.dy) >= 1){
-                //     activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0);
-                //     flagToPoint.x += Math.sign(delta.dx);
-                //     flagFromPoint = flagToPoint;
-                // }
             }
 
 
@@ -527,13 +607,12 @@ let eraseStrategy = () => {
                 activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
-                0x0
+                getPattern(pattern[pattern_selected]),
+                0x0,
+                lineSize
             );
             line.draw();
             
-            // activeLayer.putPixel(flagToPoint.x, flagToPoint.y, 0x0000FFFF);
-            // activeLayer.putPixel(point.x, point.y, 0xFF0000FF);
-
             editor.render();
 
             flagToPoint = point;
@@ -545,7 +624,6 @@ let eraseStrategy = () => {
         }
     };
 };
-
 let squareStrategy = () => {
     let activeFrame;
     let activeLayer;
@@ -588,72 +666,94 @@ function cursorToPixel(point){
         y: Math.floor(point.y / targetScale),
     }
 }
-const pattern = {
-    dot: [[0.5]],
-    brush_1: [
-        [0.4,0,0.05],
-        [0.03,0.2,0.05],
-        [0.15,0.4,0.1],
-    ],
+function direction(from, to){
+    if(from.y === to.y) return "H"
+    if(from.x === to.x) return "V"
+    return "D"
+}
+function distance(from, to){
+    return {
+        dx:to.x - from.x,
+        dy:to.y - from.y
+    }
 }
 
-var lineSize = 2;
-var pattern_selected = "brush_1";
-var dirtyFlag = {
-    startX:0,
-    startY:0,
-    endX:0,
-    endY:0,
-};
-
-let ctx = canvas.getContext("2d");
-ctx.beginPath(); 
-
-function drawBrush(cursorPosition,color){
+function hoverBrush(cursorPosition){
     let patternSelected = pattern[pattern_selected];
 
     let startPixel = {
         x: Math.round(cursorPosition.x - ((patternSelected.length) / 2 * lineSize)),
         y: Math.round(cursorPosition.y - ((patternSelected[0].length) / 2* lineSize))
     };
-    dirtyFlag.startX = startPixel.x;
-    dirtyFlag.startY = startPixel.y;
 
-    dirtyFlag.endX = cursorPosition.x + (patternSelected.length/ 2*lineSize);
-    dirtyFlag.endY = cursorPosition.y + (patternSelected[0].length/ 2*lineSize);
-    
+    let heightPattern = patternSelected.length*lineSize;
+    let widthPattern = patternSelected[0].length*lineSize;
+
+    let newAxisX = {StartAxis:0, EndAxis:0};
+    let newAxisY = {StartAxis:0, EndAxis:0};
+
+    if(!computeVisibleShape(startPixel.x, widthPattern, width, newAxisX) || 
+       !computeVisibleShape(startPixel.y, heightPattern, height, newAxisY)){
+        dirtyFlag.start.x = newAxisX.StartAxis;
+        dirtyFlag.end.x = newAxisX.EndAxis;
+        dirtyFlag.start.y = newAxisY.StartAxis;
+        dirtyFlag.end.y = newAxisY.EndAxis;
+        
+        return;
+    }
+
+    dirtyFlag.start.x = newAxisX.StartAxis;
+    dirtyFlag.end.x = newAxisX.EndAxis;
+    dirtyFlag.start.y = newAxisY.StartAxis;
+    dirtyFlag.end.y = newAxisY.EndAxis;
+
     let flagStartPixel = {
-        x: startPixel.x,
-        y: startPixel.y
+        x: dirtyFlag.start.x,
+        y: dirtyFlag.start.y
     };
 
+    let y = dirtyFlag.start.y;
     for(let i = 0; i < patternSelected.length; i++){
         let patternLine = patternSelected[i];
         
-        startPixel.x = flagStartPixel.x;
+        let x = flagStartPixel.x;
 
-        for(let j = 0; j < patternLine.length; j++){
+        for(let j = 0; j < patternSelected[0].length; j++){
             let patternCell = patternLine[j];
 
-            ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},${patternCell})`;
-            ctx.fillRect(startPixel.x, startPixel.y,lineSize,lineSize);
-            startPixel.x += lineSize;
+            ctx.fillStyle = `rgba(${0},${0},${0},${patternCell*0.6})`;
+            ctx.fillRect(x, y,lineSize,lineSize);
+            x += lineSize;
         }
-        startPixel.y += lineSize;
+        y += lineSize;
     }
 }
+
+function computeVisibleShape(originalAxis, originalSize, viewportSize, outNewAxis){
+    if (originalAxis <= -originalSize || originalAxis >= viewportSize){
+        outNewAxis.EndAxis = 0;
+        outNewAxis.StartAxis = 0;
+        return false;
+    }
+
+    outNewAxis.StartAxis = Math.max(0, originalAxis);
+    outNewAxis.EndAxis = Math.min(viewportSize, originalAxis + originalSize);
+
+    return true;
+}
+
 function buildToolBar(){
         
-    canvas.addEventListener("mouseenter", function(e){
-    });
     canvas.addEventListener("mouseleave", function(e){
+        editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y, 
+                        dirtyFlag.end.x, dirtyFlag.end.y);
     });
     canvas.addEventListener("mousemove", function(e){
         const initialPixel = cursorToPixel(PositionHelper.getPositionCursor(e));
 
-        editor.renderArea(dirtyFlag.startX, dirtyFlag.startY, 
-                        dirtyFlag.endX, dirtyFlag.endY);
-        drawBrush(initialPixel, [0,0,0]);
+        editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y, 
+                        dirtyFlag.end.x, dirtyFlag.end.y);
+        hoverBrush(initialPixel);
     });
 
     const buttonPencil = document.querySelector(".tool-pencil");
@@ -697,6 +797,7 @@ function buildToolBar(){
     
     const buttonBrush = document.querySelector(".tool-brush");
     buttonBrush.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(brushStrategy());
         changeSelectTool.call(this);
     });
     
