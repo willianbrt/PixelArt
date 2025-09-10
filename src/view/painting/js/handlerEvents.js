@@ -21,6 +21,8 @@ export default function HandlerEvents(canvas){
     let leftButtonEvent = noEvent();
     let rightButtonEvent = noEvent();
     let otherButtonPressedEvent = noEvent();
+    let moveEvent = ()=>{};
+    let preventDefaultMoveEvent = false;
     
     function setGenericButtonMousePressedEvent(strategy){
         otherButtonPressedEvent = createPressedEvent(strategy);
@@ -39,10 +41,12 @@ export default function HandlerEvents(canvas){
                 strategy.onPressed(PositionHelper.getPositionCursor(event));
 
                 canvas.addEventListener("mousemove", (event)=>{
+                    preventDefaultMoveEvent = true;
                     requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event)));
                 }, { signal: abortPointerTrackingEvent.signal });
             },
             up:(event)=>{
+                preventDefaultMoveEvent = false;
                 resetPointerTracking();
 
                 requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event)));
@@ -115,15 +119,16 @@ export default function HandlerEvents(canvas){
         if(abortScroll.signal.aborted) abortScroll.abort();
         abortScroll = new AbortController();
     }
+    
+    function setMoveEvent(eventHandler){
+        moveEvent = eventHandler; 
+    }
 
-
-    canvas.addEventListener("mousemove", (event)=>{
+    canvas.addEventListener("mousemove", function (event){
         event.preventDefault();
-        // console.log(event)
-        // let cursor = event.getClientRect();
-        // let x =  event.clientX - cursor.left;
-        // let y =  event.clientY - cursor.top;
-        // scene.hover(x, y);
+
+        if(!preventDefaultMoveEvent)
+            moveEvent(PositionHelper.getPositionCursor(event));
     });
 
     canvas.addEventListener("mouseleave", (event)=>{
@@ -137,6 +142,13 @@ export default function HandlerEvents(canvas){
         setRightButtonMousePressedEvent,
         setLeftButtonMousePressedEvent,
         setGenericButtonMousePressedEvent,
-        setScrollEvent
+        setScrollEvent,
+        setMoveEvent,
+        preventDefaultMoveEvent: ()=>{
+            preventDefaultMoveEvent = false
+        },
+        unPreventDefaultMoveEvent: ()=>{
+            preventDefaultMoveEvent = false
+        }
     });
 }

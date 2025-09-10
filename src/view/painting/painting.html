@@ -209,11 +209,12 @@
         <section id="drawing-area">
             <canvas id="painting" width="40" height="33"></canvas>
             <!-- <canvas id="preview" width="40" height="32"></canvas> -->
-             
-            <span class="marker" id="m-top-left"></span>
-            <span class="marker" id="m-top-right"></span>
-            <span class="marker" id="m-bottom-left"></span>
-            <span class="marker" id="m-bottom-right"></span>
+            <div id="selected-area">
+                <span class="marker" id="m-top-left" style="display: none;"></span>
+                <span class="marker" id="m-top-right" style="background: red; display: none;"></span>
+                <span class="marker" id="m-bottom-left" style="display: none;"></span>
+                <span class="marker" id="m-bottom-right" style="background: red;display: none;"></span>
+            </div>
         </section>
 
         <section class="pane" id="pane-right">

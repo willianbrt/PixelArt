@@ -101,30 +101,22 @@ body{
     flex-direction: column;
 }
 .frame canvas{
-    --tile-size: 1px;
-    background-image: repeating-conic-gradient(
-        #fff 0% 25%, 
-        #ccc 0% 50%,
-        #fff 0% 75%,
-        #ccc 0% 100%);
-    background-size: calc(var(--tile-size) * 2) calc(var(--tile-size) * 2);
+    background-color: #ccc;
+    background-image: url('../../../resource/img/background_canvas.png');
+    background-size: 100%;
     image-rendering: pixelated;
     transform-origin: top left;
+    height: 96px;
+    width: 96px;
+    margin: 0;
 }
 
 #drawing-area canvas#painting{
-    --tile-size: 1px;
-    background-image: repeating-conic-gradient(
-        #fff 0% 25%, 
-        #ccc 0% 50%,
-        #fff 0% 75%,
-        #ccc 0% 100%);
-    background-size: calc(var(--tile-size) * 2) calc(var(--tile-size) * 2);
+    background-color: #ccc;
+    background-image: url('../../../resource/img/background_canvas.png');
     image-rendering: pixelated;
     transform-origin: top left;
     position: absolute;
-    /* width: 100%;
-    height: 100%; */
 }
 .content {
     height: 100%;
@@ -146,6 +138,10 @@ body{
     overflow-x: auto;
     background-color: var(--background-color);
     position: relative;
+}
+#selected-area .marker{
+    box-shadow: #441d51 0 0 0 2px inset;
+    background-color: #896a95;
 }
 #pane-top{
     grid-area: top;
@@ -463,12 +459,6 @@ select#time-all-frame::before {
   align-items: center;
   overflow: hidden;
 }
-.frame canvas{
-    height: 96px;
-    width: 96px;
-    background-color: aqua;
-    margin: 0;
-}
 div.frame{
     position: relative;
     display: flex;
@@ -512,12 +502,13 @@ div.frame.active::before{
     position: relative;
 }
 .marker{
+    --marker-size:10px;
     display: block;
-    height: 10px;
-    width: 10px;
+    height: var(--marker-size);
+    width:  var(--marker-size);
     border-radius: 100%;
-    border: #fff solid 2px;
     position: absolute;
+    box-shadow: #fff 0 0 0 2px inset;
 }
 #pane-wornking-colors .body{
     overflow-y: hidden;

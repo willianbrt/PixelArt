@@ -6,8 +6,10 @@ export function Chromatic(options){
 
     const canvas = document.getElementById("color-picker");
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    
+    let hueMarker = document.querySelector(".marker#hue");
+    let colorMarker = document.querySelector(".marker#color");
 
-    // TAMANHO PICKER
     const width = canvas.width;
     const height = canvas.height;
 
@@ -15,15 +17,11 @@ export function Chromatic(options){
     const cx = width / 2;
     const cy = height / 2;
     const outerRadius = Math.min(height, width)/2;
-    const strokeWidth = 10;
+    const strokeWidth = parseInt(hueMarker.offsetWidth) || 0;
     const innerRadius = outerRadius - strokeWidth;
     const centerRadius = innerRadius + strokeWidth/2;
     
-    // MARCADORES
-    let hueMarker = document.querySelector(".marker#hue");
-    let colorMarker = document.querySelector(".marker#color");
     let chromatic = buildChromatic(innerRadius-padding, {x: cx,y:cy}, 90);
-    
     (()=>{
         setColor(_color);
         drawColorWheel();

@@ -392,6 +392,16 @@ var dirtyFlag = {
         y:0
     }
 };
+let boundingSelectedArea = {
+    start:{x:-1,y:-1},
+    end:{x:-1,y:-1},
+    getWidth: function(){
+        return this.end.x - this.start.x;
+    },
+    getHeight: function(){
+        return this.end.y - this.start.y;
+    }
+}
 
 let ctx = canvas.getContext("2d");
 ctx.beginPath(); 
@@ -628,37 +638,290 @@ let squareStrategy = () => {
     let activeFrame;
     let activeLayer;
 
+    pattern_selected = "dot";
+
+    let bounding = {
+        start:{x:-1,y:-1},
+        end:{x:-1,y:-1}
+    }
+
+    let markerSize = targetScale;
+
     let markerTopLeft     = document.querySelector(".marker#m-top-left");
     let markerTopRight    = document.querySelector(".marker#m-top-right");
     let markerBottomLeft  = document.querySelector(".marker#m-bottom-left");
     let markerBottomRight = document.querySelector(".marker#m-bottom-right");
 
+    markerTopLeft.style.width = markerSize + "px";
+    markerTopRight.style.width = markerSize + "px";
+    markerBottomLeft.style.width = markerSize + "px";
+    markerBottomRight.style.width = markerSize + "px";
+
+    markerTopLeft.style.height = markerSize + "px";
+    markerTopRight.style.height = markerSize + "px";
+    markerBottomLeft.style.height = markerSize + "px";
+    markerBottomRight.style.height = markerSize + "px";
+
+    markerTopLeft.dataset.marker = 0;// tl
+    markerBottomLeft.dataset.marker = 1;// bl
+    markerTopRight.dataset.marker = 2;// tr
+    markerBottomRight.dataset.marker = 3;// br
+
+    let startDragging = false;
+    let intialPixel;
+
     return {
         onPressed: (point) => {
+            let pixel = cursorToPixel(point);
+            intialPixel = pixel;
             activeFrame = editor.getActiveFrame();
             activeLayer = activeFrame.getActiveLayer();
 
-            point = cursorToPixel(point);
+            if((pixel.x >= bounding.start.x && pixel.x <= bounding.end.x) &&
+               (pixel.y >= bounding.start.y && pixel.y <= bounding .end.y)){
+                startDragging = true;
+                return;
+            }
+            // if(bounding.start.x == -1 || bounding.start.y == -1 ||
+            //     bounding.end.x == -1 || bounding.end.y == -1){
+            //     return;
+            // }
+
+            markerTopLeft.style.display = "none";
+            markerTopRight.style.display = "none";
+            markerBottomLeft.style.display = "none";
+            markerBottomRight.style.display = "none";
+            
+            markerTopLeft.style.pointerEvents = "none";
+            markerTopRight.style.pointerEvents = "none";
+            markerBottomLeft.style.pointerEvents = "none";
+            markerBottomRight.style.pointerEvents = "none";
+
+            startDragging = false;
+
+            editor.renderArea(boundingSelectedArea.start.x, boundingSelectedArea.start.y,
+                            boundingSelectedArea.end.x, boundingSelectedArea.end.y);
+
+            bounding.start.x = -1;
+            bounding.start.y = -1;
+            bounding.end.x = -1;
+            bounding.end.y = -1;
+        },
+        onTracking: (point) => {
+            let pixel = cursorToPixel(point);
+
+            if(startDragging){
+                let delta = {x:0,y:0};
+                delta.x = pixel.x - intialPixel.x;
+                delta.y = pixel.y - intialPixel.y;
+
+                bounding.end.x += delta.x;
+                bounding.start.x += delta.x;
+                bounding.end.y += delta.y;
+                bounding.start.y += delta.y;
+
+                drawMarker(bounding);
+
+                translate(bounding);
+
+                intialPixel = pixel;
+                return;
+            }
+
+            if(intialPixel.x - pixel.x != 0 && intialPixel.y - pixel.y != 0){
+                markerTopLeft.style.display = "block";
+                markerTopRight.style.display = "block";
+                markerBottomLeft.style.display = "block";
+                markerBottomRight.style.display = "block";
+
+                bounding.start = intialPixel;
+                bounding.end = pixel;
+                drawMarker(bounding)
+            }
+        },
+        onRelease: (point) => {
+            if(bounding.start.x == -1 || bounding.start.y == -1 ||
+                bounding.end.x == -1 || bounding.end.y == -1){
+                // execute
+                
+                markerTopLeft.style.display = "none";
+                markerTopRight.style.display = "none";
+                markerBottomLeft.style.display = "none";
+                markerBottomRight.style.display = "none";
+
+                return;
+            }
+
+            startDragging = false;
+            markerTopLeft.style.pointerEvents = "auto";
+            markerTopRight.style.pointerEvents = "auto";
+            markerBottomLeft.style.pointerEvents = "auto";
+            markerBottomRight.style.pointerEvents = "auto";
+
+
+            markerTopLeft.removeEventListener("mousedown", moveMarker);
+            markerTopRight.removeEventListener("mousedown", moveMarker);
+            markerBottomLeft.removeEventListener("mousedown", moveMarker);
+            markerBottomRight.removeEventListener("mousedown", moveMarker);
 
             markerTopLeft.addEventListener("mousedown", moveMarker);
             markerTopRight.addEventListener("mousedown", moveMarker);
             markerBottomLeft.addEventListener("mousedown", moveMarker);
             markerBottomRight.addEventListener("mousedown", moveMarker);
-        },
-        onTracking: (point) => {
-            point = cursorToPixel(point);
-            if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
-            
-
-        },
-        onRelease: () => {
-            editor.render();
+            canvas.addEventListener("mousedown", translate);
         }
     };
-    function moveMarker(point){
+    function moveMarker(event){
+        let M = {
+            tl:0,
+            bl:1,
+            tr:2,
+            br:3
+        }
+        let eventDown = (event)=>{
+            let point = PositionHelper.getPositionCursor(event);
+            let pixel = cursorToPixel(point);
+
+            let markers = [
+                            {x: bounding.start.x, y: bounding.start.y}, // tl
+                            {x: bounding.start.x, y: bounding.end.y},   // bl
+                            {x: bounding.end.x, y: bounding.start.y},   // tr
+                            {x: bounding.end.x, y: bounding.end.y}      // br
+                        ];
+
+            switch (parseInt(this.dataset.marker)) {
+                case M.tl:
+                    markers[M.tl].x = pixel.x;
+                    markers[M.tl].y = pixel.y;
+                    
+                    markers[M.bl].x = pixel.x;
+                    markers[M.tr].y = pixel.y;
+                    break;
+
+                case M.bl:
+                    markers[M.bl].x = pixel.x
+                    markers[M.bl].y = pixel.y
+
+                    markers[M.tl].x = pixel.x;
+                    markers[M.br].y = pixel.y;
+                    break;
+
+                case M.tr:
+                    markers[M.tr].x = pixel.x
+                    markers[M.tr].y = pixel.y
+
+                    markers[M.br].x = pixel.x;
+                    markers[M.tl].y = pixel.y;
+                    break;
+
+                case M.br:
+                    markers[M.br].x = pixel.x
+                    markers[M.br].y = pixel.y
+
+                    markers[M.tr].x = pixel.x;
+                    markers[M.bl].y = pixel.y;
+                    break;
+            }
+
+            let tryBounding =  {
+                start: {x: markers[M.tl].x, y:markers[M.tl].y},
+                end:   {x: markers[M.br].x, y:markers[M.br].y}
+            };
+            
+            if(tryBounding.end.x - bounding.start.x == 0 || tryBounding.end.y - bounding.start.y == 0)
+                return;
+
+            bounding = tryBounding;
+            drawMarker(bounding);
+            resize(bounding);
+        };
+        canvas.addEventListener("mousemove", eventDown);
+        
+        window.addEventListener("mouseup", (event)=>{
+            let pixel = cursorToPixel(PositionHelper.getPositionCursor(event));
+            canvas.removeEventListener("mousemove", eventDown);
+            resize(bounding);
+        }, {once:true});
+    }
+
+
+    function translate(e){
+    }
+
+    function resize(bounding){
+    }
+    function rotate(point){
 
     }
+    function flipX(){
+
+    }
+    function flipY(){
+
+    }
+    function drawMarker(bounding){
+        let canvasLeft = parseFloat(canvas.style.left);
+        let canvasTop  = parseFloat(canvas.style.top) ;
+        let dirX = 1;
+        let dirY = 1;
+        if(bounding.end.x < bounding.start.x){
+            dirX = -1;
+        }
+        
+        if(bounding.end.y < bounding.start.y){
+            dirY = -1;
+        }
+
+        markerTopLeft.style.left = `${canvasLeft + bounding.start.x*(targetScale) - (markerSize/2) * dirX}px`;
+        markerTopLeft.style.top  = `${canvasTop  + bounding.start.y*(targetScale) - (markerSize/2) * dirY}px`;
+
+        markerBottomRight.style.left = `${canvasLeft + bounding.end.x*targetScale + (markerSize/2)* dirX}px`;
+        markerBottomRight.style.top  = `${canvasTop  + bounding.end.y*targetScale + (markerSize/2) * dirY}px`;
+
+        markerBottomLeft.style.left = `${canvasLeft + bounding.start.x*targetScale - (markerSize/2)* dirX}px`;
+        markerBottomLeft.style.top  = `${canvasTop  + bounding.end.y*targetScale + (markerSize/2) * dirY}px`;
+
+        markerTopRight.style.left = `${canvasLeft + bounding.end.x*targetScale + (markerSize/2)* dirX}px`;
+        markerTopRight.style.top  = `${canvasTop  + bounding.start.y*targetScale - (markerSize/2) * dirY}px`;
+        
+        editor.renderArea(boundingSelectedArea.start.x, boundingSelectedArea.start.y,
+                        boundingSelectedArea.end.x, boundingSelectedArea.end.y);
+
+
+        boundingSelectedArea = getNormalizedBounding(bounding);
+        ctx.fillStyle = `rgba(${0},${0},${0},${0.6})`;
+        ctx.beginPath();
+        ctx.moveTo(boundingSelectedArea.start.x , boundingSelectedArea.start.y);
+        ctx.lineTo((boundingSelectedArea.end.x+1), boundingSelectedArea.start.y);
+        ctx.lineTo((boundingSelectedArea.end.x+1), (boundingSelectedArea.end.y+1));
+        ctx.lineTo(boundingSelectedArea.start.x ,   (boundingSelectedArea.end.y+1));
+
+        ctx.closePath();
+        ctx.fill();
+    }
 };
+
+function getNormalizedBounding(bounding) {
+    let bound = {
+        start:
+        {
+            x: Math.min(bounding.start.x, bounding.end.x),
+            y: Math.min(bounding.start.y, bounding.end.y)
+        },
+        end:{
+            x: Math.max(bounding.start.x, bounding.end.x),
+            y: Math.max(bounding.start.y, bounding.end.y)
+        },
+        getWidth: function(){
+            return Math.abs(this.end.x - this.start.x)+1;
+        },
+        getHeight: function(){
+            return Math.abs(this.end.y - this.start.y)+1;
+        }
+    };
+    
+    return bound;
+}
 
 function cursorToPixel(point){
     return {
@@ -679,6 +942,19 @@ function distance(from, to){
 }
 
 function hoverBrush(cursorPosition){
+    cursorPosition = cursorToPixel(cursorPosition);
+
+    editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y, 
+                      dirtyFlag.end.x, dirtyFlag.end.y);
+    ctx.fillStyle = `rgba(${0},${0},${0},${0.6})`;
+    
+    ctx.moveTo(boundingSelectedArea.start.x , boundingSelectedArea.start.y);
+    ctx.lineTo((boundingSelectedArea.end.x+1), boundingSelectedArea.start.y);
+    ctx.lineTo((boundingSelectedArea.end.x+1), (boundingSelectedArea.end.y+1));
+    ctx.lineTo(boundingSelectedArea.start.x ,   (boundingSelectedArea.end.y+1));
+    ctx.closePath();
+    ctx.fill();
+
     let patternSelected = pattern[pattern_selected];
 
     let startPixel = {
@@ -720,7 +996,6 @@ function hoverBrush(cursorPosition){
 
         for(let j = 0; j < patternSelected[0].length; j++){
             let patternCell = patternLine[j];
-
             ctx.fillStyle = `rgba(${0},${0},${0},${patternCell*0.6})`;
             ctx.fillRect(x, y,lineSize,lineSize);
             x += lineSize;
@@ -743,18 +1018,11 @@ function computeVisibleShape(originalAxis, originalSize, viewportSize, outNewAxi
 }
 
 function buildToolBar(){
-        
-    canvas.addEventListener("mouseleave", function(e){
-        editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y, 
-                        dirtyFlag.end.x, dirtyFlag.end.y);
-    });
-    canvas.addEventListener("mousemove", function(e){
-        const initialPixel = cursorToPixel(PositionHelper.getPositionCursor(e));
-
-        editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y, 
-                        dirtyFlag.end.x, dirtyFlag.end.y);
-        hoverBrush(initialPixel);
-    });
+    // canvas.addEventListener("mouseleave", function(e){
+    //     editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y, 
+    //                     dirtyFlag.end.x, dirtyFlag.end.y);
+    // });
+    // handlerEvents.setMoveEvent(hoverBrush);
 
     const buttonPencil = document.querySelector(".tool-pencil");
     buttonPencil.addEventListener("click", function(e){
@@ -781,6 +1049,7 @@ function buildToolBar(){
     
     const buttonSquare = document.querySelector(".tool-square");
     buttonSquare.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(squareStrategy());
         changeSelectTool.call(this);
     });
     
@@ -812,7 +1081,8 @@ function buildToolBar(){
     });
     
     handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
-    buttonPencil.click();
+    buttonSquare.click();
+    // buttonPencil.click();
 
     function changeSelectTool(){
         document.querySelector(".tool.active")?.classList.toggle("active", false);
