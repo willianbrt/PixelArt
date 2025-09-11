@@ -828,8 +828,9 @@ let squareStrategy = () => {
                 end:   {x: markers[M.br].x, y:markers[M.br].y}
             };
             
-            if(tryBounding.end.x - bounding.start.x == 0 || tryBounding.end.y - bounding.start.y == 0)
+            if(tryBounding.end.x - tryBounding.start.x == 0 || tryBounding.end.y - tryBounding.start.y == 0){
                 return;
+            }
 
             bounding = tryBounding;
             drawMarker(bounding);
