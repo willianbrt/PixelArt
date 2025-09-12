@@ -667,109 +667,101 @@ let squareStrategy = () => {
     markerTopRight.dataset.marker = 2;// tr
     markerBottomRight.dataset.marker = 3;// br
 
-    let startDragging = false;
     let intialPixel;
 
-    return {
-        onPressed: (point) => {
-            let pixel = cursorToPixel(point);
-            intialPixel = pixel;
-            activeFrame = editor.getActiveFrame();
-            activeLayer = activeFrame.getActiveLayer();
+    let _onTrackingBounding = (point) => {
+        let pixel = cursorToPixel(point);
 
-            if((pixel.x >= bounding.start.x && pixel.x <= bounding.end.x) &&
-               (pixel.y >= bounding.start.y && pixel.y <= bounding .end.y)){
-                startDragging = true;
-                return;
-            }
-            // if(bounding.start.x == -1 || bounding.start.y == -1 ||
-            //     bounding.end.x == -1 || bounding.end.y == -1){
-            //     return;
-            // }
-
-            markerTopLeft.style.display = "none";
-            markerTopRight.style.display = "none";
-            markerBottomLeft.style.display = "none";
-            markerBottomRight.style.display = "none";
-            
-            markerTopLeft.style.pointerEvents = "none";
-            markerTopRight.style.pointerEvents = "none";
-            markerBottomLeft.style.pointerEvents = "none";
-            markerBottomRight.style.pointerEvents = "none";
-
-            startDragging = false;
-
-            editor.renderArea(boundingSelectedArea.start.x, boundingSelectedArea.start.y,
-                            boundingSelectedArea.end.x, boundingSelectedArea.end.y);
-
-            bounding.start.x = -1;
-            bounding.start.y = -1;
-            bounding.end.x = -1;
-            bounding.end.y = -1;
-        },
-        onTracking: (point) => {
-            let pixel = cursorToPixel(point);
-
-            if(startDragging){
-                let delta = {x:0,y:0};
-                delta.x = pixel.x - intialPixel.x;
-                delta.y = pixel.y - intialPixel.y;
-
-                bounding.end.x += delta.x;
-                bounding.start.x += delta.x;
-                bounding.end.y += delta.y;
-                bounding.start.y += delta.y;
-
-                drawMarker(bounding);
-
-                translate(bounding);
-
-                intialPixel = pixel;
-                return;
-            }
-
-            if(intialPixel.x - pixel.x != 0 && intialPixel.y - pixel.y != 0){
-                markerTopLeft.style.display = "block";
-                markerTopRight.style.display = "block";
-                markerBottomLeft.style.display = "block";
-                markerBottomRight.style.display = "block";
-
-                bounding.start = intialPixel;
-                bounding.end = pixel;
-                drawMarker(bounding)
-            }
-        },
-        onRelease: (point) => {
-            if(bounding.start.x == -1 || bounding.start.y == -1 ||
-                bounding.end.x == -1 || bounding.end.y == -1){
-                // execute
-                
-                markerTopLeft.style.display = "none";
-                markerTopRight.style.display = "none";
-                markerBottomLeft.style.display = "none";
-                markerBottomRight.style.display = "none";
-
-                return;
-            }
-
-            startDragging = false;
-            markerTopLeft.style.pointerEvents = "auto";
-            markerTopRight.style.pointerEvents = "auto";
-            markerBottomLeft.style.pointerEvents = "auto";
-            markerBottomRight.style.pointerEvents = "auto";
-
-
-            markerTopLeft.removeEventListener("mousedown", moveMarker);
-            markerTopRight.removeEventListener("mousedown", moveMarker);
-            markerBottomLeft.removeEventListener("mousedown", moveMarker);
-            markerBottomRight.removeEventListener("mousedown", moveMarker);
-
-            markerTopLeft.addEventListener("mousedown", moveMarker);
-            markerTopRight.addEventListener("mousedown", moveMarker);
-            markerBottomLeft.addEventListener("mousedown", moveMarker);
-            markerBottomRight.addEventListener("mousedown", moveMarker);
-            canvas.addEventListener("mousedown", translate);
+        if(intialPixel.x - pixel.x == 0 && intialPixel.y - pixel.y == 0){
+            return;
         }
+        markerTopLeft.style.display = "block";
+        markerTopRight.style.display = "block";
+        markerBottomLeft.style.display = "block";
+        markerBottomRight.style.display = "block";
+
+        bounding.start = intialPixel;
+        bounding.end = pixel;
+        drawMarker(bounding);
+    };
+    let _onTracking = _onTrackingBounding;
+
+    let _onPressed = (point) => {
+        let pixel = cursorToPixel(point);
+        intialPixel = pixel;
+        activeFrame = editor.getActiveFrame();
+        activeLayer = activeFrame.getActiveLayer();
+
+        if((pixel.x >= bounding.start.x && pixel.x <= bounding.end.x) &&
+            (pixel.y >= bounding.start.y && pixel.y <= bounding .end.y)){
+            startDragging = true;
+            _onTracking = _onTrackingMarker(point);
+            return;
+        }
+        _onTracking = _onTrackingBounding(point);
+
+
+        markerTopLeft.style.display = "none";
+        markerTopRight.style.display = "none";
+        markerBottomLeft.style.display = "none";
+        markerBottomRight.style.display = "none";
+        
+        markerTopLeft.style.pointerEvents = "none";
+        markerTopRight.style.pointerEvents = "none";
+        markerBottomLeft.style.pointerEvents = "none";
+        markerBottomRight.style.pointerEvents = "none";
+
+        editor.renderArea(boundingSelectedArea.start.x, boundingSelectedArea.start.y,
+                        boundingSelectedArea.end.x, boundingSelectedArea.end.y);
+        _onRelease = _onReleaseDone;
+    };
+    let _onTrackingMarker = (point) => {
+        let pixel = cursorToPixel(point);
+        let delta = {x:0,y:0};
+        delta.x = pixel.x - intialPixel.x;
+        delta.y = pixel.y - intialPixel.y;
+
+        bounding.end.x += delta.x;
+        bounding.start.x += delta.x;
+        bounding.end.y += delta.y;
+        bounding.start.y += delta.y;
+
+        drawMarker(bounding);
+
+        translate(bounding);
+
+        intialPixel = pixel;
+    }
+    let _onReleaseDone = (point) => {
+        markerTopLeft.style.display = "none";
+        markerTopRight.style.display = "none";
+        markerBottomLeft.style.display = "none";
+        markerBottomRight.style.display = "none";
+    }
+
+    let onReleaseBounding = (point) => {
+        markerTopLeft.style.pointerEvents = "auto";
+        markerTopRight.style.pointerEvents = "auto";
+        markerBottomLeft.style.pointerEvents = "auto";
+        markerBottomRight.style.pointerEvents = "auto";
+
+        markerTopLeft.removeEventListener("mousedown", moveMarker);
+        markerTopRight.removeEventListener("mousedown", moveMarker);
+        markerBottomLeft.removeEventListener("mousedown", moveMarker);
+        markerBottomRight.removeEventListener("mousedown", moveMarker);
+
+        markerTopLeft.addEventListener("mousedown", moveMarker);
+        markerTopRight.addEventListener("mousedown", moveMarker);
+        markerBottomLeft.addEventListener("mousedown", moveMarker);
+        markerBottomRight.addEventListener("mousedown", moveMarker);
+        canvas.addEventListener("mousedown", translate);
+    }
+    let _onRelease = onReleaseBounding;
+
+    return {
+        onPressed: _onPressed,
+        onTracking: _onTracking,
+        onRelease: _onRelease
     };
     function moveMarker(event){
         let M = {
