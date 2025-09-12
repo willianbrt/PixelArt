@@ -38,23 +38,23 @@ export default function HandlerEvents(canvas){
         resetPointerTracking();
         return {
             down:(event)=>{
-                strategy.onPressed(PositionHelper.getPositionCursor(event));
+                strategy.onPressed(PositionHelper.getPositionCursor(event,canvas));
 
-                canvas.addEventListener("mousemove", (event)=>{
+                window.addEventListener("mousemove", (event)=>{
                     preventDefaultMoveEvent = true;
-                    requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event)));
+                    requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event, canvas)));
                 }, { signal: abortPointerTrackingEvent.signal });
             },
             up:(event)=>{
                 preventDefaultMoveEvent = false;
                 resetPointerTracking();
 
-                requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event)));
+                requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event, canvas)));
             }
         }
     } 
 
-    canvas.addEventListener("mousedown", (event)=>{
+    window.addEventListener("mousedown", (event)=>{
         event.preventDefault();
         
         if(!(buttonMousePressed === undefined)) return;
@@ -128,7 +128,7 @@ export default function HandlerEvents(canvas){
         event.preventDefault();
 
         if(!preventDefaultMoveEvent)
-            moveEvent(PositionHelper.getPositionCursor(event));
+            moveEvent(PositionHelper.getPositionCursor(event,canvas));
     });
 
     canvas.addEventListener("mouseleave", (event)=>{
