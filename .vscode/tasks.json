@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build PixelEditor WASM",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset", "emscripten-mingw",
+                ";",
+                "cmake",
+                "--build", "${workspaceFolder}/build",
+                "--target", "ALL"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

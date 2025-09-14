@@ -1,0 +1,15 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "emscripten-mingw",
+      "displayName": "Emscripten with MinGW Makefiles",
+      "generator": "MinGW Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "C:/Users/User/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+        "CMAKE_CROSSCOMPILING_EMULATOR": "C:/Users/User/emsdk/node/20.18.0_64bit/bin/node.exe"
+      }
+    }
+  ]
+}

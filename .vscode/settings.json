@@ -63,5 +63,6 @@
         "xmemory": "cpp",
         "xtr1common": "cpp"
     },
-    "liveServer.settings.port": 5501
+    "liveServer.settings.port": 5501,
+    "cmake.generator": "MinGW Makefiles",
 }

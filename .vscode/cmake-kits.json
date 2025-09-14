@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Emscripten",
+    "compilers": {
+      "C": "emcc",
+      "CXX": "em++"
+    }
+  }
+]

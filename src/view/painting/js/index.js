@@ -1,5 +1,4 @@
-import Module from '../build/graphics/PixelEditor.js';
-import ModulePixelEditor from '../build/graphics/PixelEditor.js'
+import ModulePixelEditor from '../build/PixelEditor.js'
 import HandlerEvents from './handlerEvents.js'
 import { PositionHelper } from "../../../scripts/common/position.js";
 

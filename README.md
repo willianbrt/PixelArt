@@ -18,3 +18,10 @@ src
     ├── global.css 
 ├── view
 ```
+
+
+EXECUTAR:
+```plaintext
+emsdk activate latest --permanent
+cmake -B out/build 
+```
