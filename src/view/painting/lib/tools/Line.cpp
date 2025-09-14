@@ -103,54 +103,41 @@ vector<Pixel> Line::drawVerticalLine(){
 }
 
 void Line::stampPixel(Point pixel){
+    const unsigned int heightPattern = _pattern.size()*_size;
+    const unsigned int widthPattern = _pattern[0].size()*_size;
 
     Point startPixel = Point(
-        std::round(pixel.x - ((_pattern.size()) / 2 * _size)),
-        std::round(pixel.y - ((_pattern[0].size()) / 2* _size))
+        std::round(pixel.x - widthPattern / 2),
+        std::round(pixel.y - heightPattern / 2)
     );
 
-    unsigned int heightPattern = _pattern.size()*_size;
-    unsigned int widthPattern = _pattern[0].size()*_size;
+
+    unsigned int HEIGHT_SKETCH = 32;
+    unsigned int WIDTH_SKETCH = 32;
 
     Bounding boundingStamp;
-    if(!GraphicsEngine::computeVisibleShape(startPixel.x, widthPattern, 32, boundingStamp.start.x, boundingStamp.end.x) || 
-       !GraphicsEngine::computeVisibleShape(startPixel.y, heightPattern, 32, boundingStamp.start.y, boundingStamp.end.y)){
+    if(!GraphicsEngine::computeVisibleShape(startPixel.x, widthPattern, HEIGHT_SKETCH, boundingStamp.start.x, boundingStamp.end.x) || 
+       !GraphicsEngine::computeVisibleShape(startPixel.y, heightPattern, WIDTH_SKETCH, boundingStamp.start.y, boundingStamp.end.y)){
         return;
     }
+    
+    for(int patternY = 0, y = startPixel.y; patternY < heightPattern; patternY++, y += _size){
+        for(int patternX = 0, x = startPixel.x; patternX < widthPattern; patternX++, x += _size){
+            float alphaSrc = _pattern[patternY][patternX];
+            unsigned int topColor = (_newColorHex & 0xFFFFFF00) | static_cast<int>(alphaSrc * (_newColorHex & 0xFF));
 
-    Point flagStartPixel = boundingStamp.start;
+            for(int sy = std::max(0, boundingStamp.start.y - y); sy < std::min(_size, boundingStamp.end.y - y); sy++){
+                for(int sx = std::max(0, boundingStamp.start.x - x); sx < std::min(_size, boundingStamp.end.x - x); sx++){
+                    int px = x + sx;
+                    int py = y + sy;
 
-    int y = boundingStamp.start.y;
-    for(int i = 0; i < _pattern.size(); i++){
-        auto patternLine = _pattern[i];
-        
-        int x = flagStartPixel.x;
-
-        for(int j = 0; j < _pattern[0].size(); j++){
-            float alphaSrc = patternLine[j];
-            unsigned int topColor = (_newColorHex & 0xFFFFFF00) | static_cast<int>(alphaSrc * (_newColorHex & 0xFF) );
-            unsigned int bottomColor = _layer.getPixel(x, y);
-            unsigned int color = GraphicsEngine::blendColors(bottomColor, topColor);
-
-            // unsigned int color =(((_newColorHex >> 24) & 0xFF) << 24) |
-            //                     (((_newColorHex >> 16) & 0xFF) << 16) |
-            //                     (((_newColorHex >> 8) & 0xFF) << 8) |
-            //                    (static_cast<int>(alphaSrc * (_newColorHex & 0xFF)));
-            // unsigned int color = _newColorHex;
-            // GraphicsEngine::blendColor(color, alphaSrcBrush);
-            
-            
-            unsigned int oldColor = _layer.getPixel(x, y);
-            for(int sy = 0; sy < _size; sy++){
-                for(int sx = 0; sx < _size; sx++){
-                    _layer.putPixel(x+sx, y+sy, color);
-                    modifiedPixels.emplace_back(Point(x+sx, y+sy), oldColor);
+                    unsigned int oldColor = _layer.getPixel(px, py);
+                    unsigned int color = GraphicsEngine::blendColors(oldColor, topColor);
+                    _layer.putPixel(px, py, color);
+                    modifiedPixels.emplace_back(Point(px, py), oldColor);
                 }
             }
-
-            x++;
         }
-        y++;
     }
 }
 

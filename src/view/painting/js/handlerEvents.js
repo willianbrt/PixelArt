@@ -54,7 +54,7 @@ export default function HandlerEvents(canvas){
         }
     } 
 
-    window.addEventListener("mousedown", (event)=>{
+    document.getElementById("drawing-area").addEventListener("mousedown", (event)=>{
         event.preventDefault();
         
         if(!(buttonMousePressed === undefined)) return;
