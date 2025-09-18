@@ -608,19 +608,11 @@ let squareStrategy = () => {
         br:3,
         rotate:4
     }
-    let selectedInitialArea = [
-                    {x:-1, y: -1}, // tl
-                    {x:-1, y: -1}, // bl
-                    {x:-1, y: -1}, // tr
-                    {x:-1, y: -1}  // br
-                ];
-
-    let currentSelectedArea = selectedInitialArea;
-
     let bounding = {
         start:{x:-1,y:-1},
         end:{x:-1,y:-1}
     }
+    let rad = 0;
 
     let markerSize = targetScale;
     let markersElement = document.querySelectorAll("#selected-area .marker");
@@ -629,7 +621,9 @@ let squareStrategy = () => {
         e.style.height = markerSize + "px";
     });
 
-    let intialPixel;
+    let intialPixel = null;
+    let initialBounding = null;
+
     let commandList = [];
     let _onTracking = onTrackingBounding;
     let _onRelease = (point)=>{};
@@ -639,8 +633,18 @@ let squareStrategy = () => {
     let _onPressed = (point,event) => {
         let pixel = cursorToPixel(point);
         intialPixel = pixel;
+        initialBounding = {
+            start: { ...bounding.start },
+            end:   { ...bounding.end }
+        };
+
         activeFrame = editor.getActiveFrame();
         activeLayer = activeFrame.getActiveLayer();
+
+        if(parseInt(event.target.dataset.marker) === ENUM_MARKER.rotate){
+            _onTracking = onTrackingRotate.bind(event.target);
+            return;
+        }
 
         if(event.target.classList.contains("marker")){
             _onTracking = onTrackingResize.bind(event.target);
@@ -661,6 +665,7 @@ let squareStrategy = () => {
             // TODO: salvar alteração
             commandList = [];
         }
+        rad = 0;
         bounding = {
             start:{x:-1,y:-1},
             end:{x:-1,y:-1}
@@ -688,12 +693,6 @@ let squareStrategy = () => {
         });
         bounding.start = intialPixel;
         bounding.end = pixel;
-
-        selectedInitialArea[ENUM_MARKER.tl] = {x: bounding.start.x, y: bounding.start.y};
-        selectedInitialArea[ENUM_MARKER.bl] = {x: bounding.start.x, y: bounding.end.y};
-        selectedInitialArea[ENUM_MARKER.tr] = {x: bounding.end.x, y: bounding.start.y};
-        selectedInitialArea[ENUM_MARKER.br] = {x: bounding.end.x, y: bounding.end.y};
-        currentSelectedArea = selectedInitialArea;
         
         drawMarker(bounding);
     };
@@ -752,11 +751,8 @@ let squareStrategy = () => {
         resize(bounding);
     }
     function onTrackingTranslate(point){
-        console.log("translate")
         let pixel = cursorToPixel(point);
-        let delta = {x:0,y:0};
-        delta.x = pixel.x - intialPixel.x;
-        delta.y = pixel.y - intialPixel.y;
+        let delta = PositionHelper.getDelta(intialPixel, pixel);
 
         bounding.end.x += delta.x;
         bounding.start.x += delta.x;
@@ -766,6 +762,28 @@ let squareStrategy = () => {
         drawMarker(bounding);
 
         intialPixel = pixel;
+    }
+    function onTrackingRotate(point){
+        let pixel = cursorToPixel(point);
+        rad = PositionHelper.getRadBetweenTwoPoints(intialPixel, pixel);
+
+        let eixo = {
+            x: bounding.start.x + (bounding.end.x - bounding.start.x) / 2,
+            y: bounding.start.y + (bounding.end.y - bounding.start.y) / 2
+        }
+        
+        let startRot = { ...initialBounding.start };
+        let endRot   = { ...initialBounding.end };
+
+        PositionHelper.rotateByRad(startRot, rad, eixo);
+        PositionHelper.rotateByRad(endRot, rad, eixo);
+
+        bounding = {
+            start: startRot,
+            end: endRot
+        };
+
+        drawMarker(bounding);
     }
     
     return {
@@ -804,29 +822,67 @@ let squareStrategy = () => {
             dirY = -1;
         }
 
-        markersElement[ENUM_MARKER.tl].style.left = `${canvasLeft + bounding.start.x*(targetScale) - (markerSize/2) * dirX}px`;
-        markersElement[ENUM_MARKER.tl].style.top  = `${canvasTop  + bounding.start.y*(targetScale) - (markerSize/2) * dirY}px`;
+        let eixo = {
+            x: bounding.start.x + (bounding.end.x - bounding.start.x) / 2,
+            y: bounding.start.y + (bounding.end.y - bounding.start.y) / 2
+        }
 
-        markersElement[ENUM_MARKER.br].style.left = `${canvasLeft + bounding.end.x*targetScale + (markerSize/2)* dirX}px`;
-        markersElement[ENUM_MARKER.br].style.top  = `${canvasTop  + bounding.end.y*targetScale + (markerSize/2) * dirY}px`;
-
-        markersElement[ENUM_MARKER.bl].style.left = `${canvasLeft + bounding.start.x*targetScale - (markerSize/2)* dirX}px`;
-        markersElement[ENUM_MARKER.bl].style.top  = `${canvasTop  + bounding.end.y*targetScale + (markerSize/2) * dirY}px`;
-
-        markersElement[ENUM_MARKER.tr].style.left = `${canvasLeft + bounding.end.x*targetScale + (markerSize/2)* dirX}px`;
-        markersElement[ENUM_MARKER.tr].style.top  = `${canvasTop  + bounding.start.y*targetScale - (markerSize/2) * dirY}px`;
+        let markers = [];
+        markers[ENUM_MARKER.tl] = {x: bounding.start.x, y: bounding.start.y};
+        markers[ENUM_MARKER.bl] = {x: bounding.start.x, y: bounding.end.y};
+        markers[ENUM_MARKER.tr] = {x: bounding.end.x, y: bounding.start.y};
+        markers[ENUM_MARKER.br] = {x: bounding.end.x, y: bounding.end.y};
         
+        PositionHelper.rotateByRad(markers[ENUM_MARKER.tl], rad, eixo);
+        PositionHelper.rotateByRad(markers[ENUM_MARKER.bl], rad, eixo);
+        PositionHelper.rotateByRad(markers[ENUM_MARKER.tr], rad, eixo);
+        PositionHelper.rotateByRad(markers[ENUM_MARKER.br], rad, eixo);
+
+
+        markersElement[ENUM_MARKER.tl].style.left = `${canvasLeft + markers[ENUM_MARKER.tl].x*(targetScale) - (markerSize/2) * dirX}px`;
+        markersElement[ENUM_MARKER.tl].style.top  = `${canvasTop  + markers[ENUM_MARKER.tl].y*(targetScale) - (markerSize/2) * dirY}px`;
+
+        markersElement[ENUM_MARKER.br].style.left = `${canvasLeft + markers[ENUM_MARKER.br].x*targetScale + (markerSize/2)* dirX}px`;
+        markersElement[ENUM_MARKER.br].style.top  = `${canvasTop  + markers[ENUM_MARKER.br].y*targetScale + (markerSize/2) * dirY}px`;
+
+        markersElement[ENUM_MARKER.bl].style.left = `${canvasLeft + markers[ENUM_MARKER.bl].x*targetScale - (markerSize/2)* dirX}px`;
+        markersElement[ENUM_MARKER.bl].style.top  = `${canvasTop  + markers[ENUM_MARKER.bl].y*targetScale + (markerSize/2) * dirY}px`;
+
+        markersElement[ENUM_MARKER.tr].style.left = `${canvasLeft + markers[ENUM_MARKER.tr].x * targetScale + (markerSize/2)* dirX}px`;
+        markersElement[ENUM_MARKER.tr].style.top  = `${canvasTop  + markers[ENUM_MARKER.tr].y * targetScale - (markerSize/2) * dirY}px`;
+
+        let topCenter = {
+            x: (markers[ENUM_MARKER.tl].x + markers[ENUM_MARKER.tr].x) / 2,
+            y: (markers[ENUM_MARKER.tl].y + markers[ENUM_MARKER.tr].y) / 2
+        };
+
+        let offset = -1.5; 
+        let dx = markers[ENUM_MARKER.tr].x - markers[ENUM_MARKER.tl].x;
+        let dy = markers[ENUM_MARKER.tr].y - markers[ENUM_MARKER.tl].y;
+        let len = Math.sqrt(dx*dx + dy*dy);
+
+        let nx = -dy / len;
+        let ny =  dx / len;
+
+        let rotateMarker = {
+            x: topCenter.x + nx * offset,
+            y: topCenter.y + ny * offset
+        };
+
+        markersElement[ENUM_MARKER.rotate].style.left = `${canvasLeft + rotateMarker.x * targetScale}px`;
+        markersElement[ENUM_MARKER.rotate].style.top  = `${canvasTop  + rotateMarker.y * targetScale}px`;
+
+        boundingSelectedArea = getNormalizedBounding(bounding);
         editor.renderArea(boundingSelectedArea.start.x, boundingSelectedArea.start.y,
                         boundingSelectedArea.end.x, boundingSelectedArea.end.y);
 
 
-        boundingSelectedArea = getNormalizedBounding(bounding);
         ctx.fillStyle = `rgba(${0},${0},${0},${0.6})`;
         ctx.beginPath();
-        ctx.moveTo(boundingSelectedArea.start.x , boundingSelectedArea.start.y);
-        ctx.lineTo((boundingSelectedArea.end.x+1), boundingSelectedArea.start.y);
-        ctx.lineTo((boundingSelectedArea.end.x+1), (boundingSelectedArea.end.y+1));
-        ctx.lineTo(boundingSelectedArea.start.x ,   (boundingSelectedArea.end.y+1));
+        ctx.moveTo(markers[ENUM_MARKER.tl].x , markers[ENUM_MARKER.tl].y);
+        ctx.lineTo(markers[ENUM_MARKER.tr].x+1, markers[ENUM_MARKER.tr].y);
+        ctx.lineTo(markers[ENUM_MARKER.br].x+1, markers[ENUM_MARKER.br].y+1);
+        ctx.lineTo(markers[ENUM_MARKER.bl].x,  markers[ENUM_MARKER.bl].y+1);
 
         ctx.closePath();
         ctx.fill();
@@ -865,12 +921,6 @@ function direction(from, to){
     if(from.y === to.y) return "H"
     if(from.x === to.x) return "V"
     return "D"
-}
-function distance(from, to){
-    return {
-        dx:to.x - from.x,
-        dy:to.y - from.y
-    }
 }
 
 function getLineSize(){
