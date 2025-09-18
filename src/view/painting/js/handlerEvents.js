@@ -38,7 +38,7 @@ export default function HandlerEvents(canvas){
         resetPointerTracking();
         return {
             down:(event)=>{
-                strategy.onPressed(PositionHelper.getPositionCursor(event,canvas));
+                strategy.onPressed(PositionHelper.getPositionCursor(event,canvas),event);
 
                 window.addEventListener("mousemove", (event)=>{
                     preventDefaultMoveEvent = true;

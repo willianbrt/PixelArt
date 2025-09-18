@@ -601,45 +601,62 @@ let squareStrategy = () => {
 
     pattern_selected = "dot";
 
+    const ENUM_MARKER = {
+        tl:0,
+        bl:1,
+        tr:2,
+        br:3,
+        rotate:4
+    }
+    let selectedInitialArea = [
+                    {x:-1, y: -1}, // tl
+                    {x:-1, y: -1}, // bl
+                    {x:-1, y: -1}, // tr
+                    {x:-1, y: -1}  // br
+                ];
+
+    let currentSelectedArea = selectedInitialArea;
+
     let bounding = {
         start:{x:-1,y:-1},
         end:{x:-1,y:-1}
     }
 
     let markerSize = targetScale;
-
-    let markersElement     = document.querySelectorAll("#selected-area .marker");
+    let markersElement = document.querySelectorAll("#selected-area .marker");
     markersElement.forEach((e)=>{
         e.style.width = markerSize + "px";
         e.style.height = markerSize + "px";
-
     });
-    const ENUM_MARKER = {
-        tl:0,
-        bl:1,
-        tr:2,
-        br:3
-    }
+
     let intialPixel;
     let commandList = [];
-
-    window.addEventListener("beforeunload", abortBounding,{once:true});
+    let _onTracking = onTrackingBounding;
+    let _onRelease = (point)=>{};
     
-    let _onPressed = (point) => {
+    window.addEventListener("beforeunload", executeCommand,{once:true});
+
+    let _onPressed = (point,event) => {
         let pixel = cursorToPixel(point);
         intialPixel = pixel;
         activeFrame = editor.getActiveFrame();
         activeLayer = activeFrame.getActiveLayer();
 
-        if((pixel.x >=  Math.min(bounding.start.x,bounding.end.x)  && pixel.x <= Math.max(bounding.start.x,bounding.end.x)) &&
-            (pixel.y >= Math.min(bounding.start.y,bounding.end.y)  && pixel.y <= Math.max(bounding.start.y,bounding.end.y))){
-            _onTracking = _onTrackingTranslate;
+        if(event.target.classList.contains("marker")){
+            _onTracking = onTrackingResize.bind(event.target);
             return;
         }
-        abortBounding()
+
+        if((pixel.x >=  Math.min(bounding.start.x,bounding.end.x)  && pixel.x <= Math.max(bounding.start.x,bounding.end.x)) &&
+            (pixel.y >= Math.min(bounding.start.y,bounding.end.y)  && pixel.y <= Math.max(bounding.start.y,bounding.end.y))){
+            _onTracking = onTrackingTranslate;
+            return;
+        }
+
+        executeCommand();
     };
-    function abortBounding(e){
-        // console.log(e.target)
+
+    function executeCommand(e){
         if(commandList.length > 0){
             // TODO: salvar alteração
             commandList = [];
@@ -648,21 +665,18 @@ let squareStrategy = () => {
             start:{x:-1,y:-1},
             end:{x:-1,y:-1}
         }
-        _onTracking = _onTrackingBounding;
-        _onRelease = onReleaseBounding;
+
+        _onTracking = onTrackingBounding;
 
         markersElement.forEach((e)=>{
             e.style.display = "none";
-            e.style.pointerEvents = "none";
         });
 
         editor.renderArea(boundingSelectedArea.start.x, boundingSelectedArea.start.y,
                         boundingSelectedArea.end.x, boundingSelectedArea.end.y);
     }
-    let _onTracking = _onTrackingBounding;
-    let _onRelease = onReleaseBounding;
 
-    function _onTrackingBounding(point){
+    function onTrackingBounding(point){
         let pixel = cursorToPixel(point);
 
         if(intialPixel.x - pixel.x == 0 && intialPixel.y - pixel.y == 0){
@@ -672,53 +686,55 @@ let squareStrategy = () => {
         markersElement.forEach((e)=>{
             e.style.display = "block";
         });
-
         bounding.start = intialPixel;
         bounding.end = pixel;
+
+        selectedInitialArea[ENUM_MARKER.tl] = {x: bounding.start.x, y: bounding.start.y};
+        selectedInitialArea[ENUM_MARKER.bl] = {x: bounding.start.x, y: bounding.end.y};
+        selectedInitialArea[ENUM_MARKER.tr] = {x: bounding.end.x, y: bounding.start.y};
+        selectedInitialArea[ENUM_MARKER.br] = {x: bounding.end.x, y: bounding.end.y};
+        currentSelectedArea = selectedInitialArea;
+        
         drawMarker(bounding);
     };
-
-    function _onTrackingResize(point){
+    function onTrackingResize(point){
         let pixel = cursorToPixel(point);
 
-        let markers = [
-                        {x: bounding.start.x, y: bounding.start.y}, // tl
-                        {x: bounding.start.x, y: bounding.end.y},   // bl
-                        {x: bounding.end.x, y: bounding.start.y},   // tr
-                        {x: bounding.end.x, y: bounding.end.y}      // br
-                    ];
+        let markers = [];
+        markers[ENUM_MARKER.tl] = {x: bounding.start.x, y: bounding.start.y};
+        markers[ENUM_MARKER.bl] = {x: bounding.start.x, y: bounding.end.y};
+        markers[ENUM_MARKER.tr] = {x: bounding.end.x, y: bounding.start.y};
+        markers[ENUM_MARKER.br] = {x: bounding.end.x, y: bounding.end.y};
 
-        switch (parseInt(this.dataset.marker)) {
+        let currentMarker = parseInt(this.dataset.marker);
+        markers[currentMarker].x = pixel.x;
+        markers[currentMarker].y = pixel.y;
+        
+        switch (currentMarker) {
             case ENUM_MARKER.tl:
-                markers[ENUM_MARKER.tl].x = pixel.x;
-                markers[ENUM_MARKER.tl].y = pixel.y;
-                
+                break;
+            case ENUM_MARKER.tl:
                 markers[ENUM_MARKER.bl].x = pixel.x;
                 markers[ENUM_MARKER.tr].y = pixel.y;
                 break;
 
             case ENUM_MARKER.bl:
-                markers[ENUM_MARKER.bl].x = pixel.x
-                markers[ENUM_MARKER.bl].y = pixel.y
-
                 markers[ENUM_MARKER.tl].x = pixel.x;
                 markers[ENUM_MARKER.br].y = pixel.y;
                 break;
 
             case ENUM_MARKER.tr:
-                markers[ENUM_MARKER.tr].x = pixel.x
-                markers[ENUM_MARKER.tr].y = pixel.y
-
                 markers[ENUM_MARKER.br].x = pixel.x;
                 markers[ENUM_MARKER.tl].y = pixel.y;
                 break;
 
             case ENUM_MARKER.br:
-                markers[ENUM_MARKER.br].x = pixel.x
-                markers[ENUM_MARKER.br].y = pixel.y
-
                 markers[ENUM_MARKER.tr].x = pixel.x;
                 markers[ENUM_MARKER.bl].y = pixel.y;
+                break;
+            default:
+                console.error("MARKER DESCONHECIDO");
+                return;
                 break;
         }
 
@@ -735,8 +751,8 @@ let squareStrategy = () => {
         drawMarker(bounding);
         resize(bounding);
     }
-
-    function _onTrackingTranslate(point){
+    function onTrackingTranslate(point){
+        console.log("translate")
         let pixel = cursorToPixel(point);
         let delta = {x:0,y:0};
         delta.x = pixel.x - intialPixel.x;
@@ -751,33 +767,13 @@ let squareStrategy = () => {
 
         intialPixel = pixel;
     }
-    function onReleaseBounding(point) {
-        markersElement.forEach((e)=>{
-            e.style.pointerEvents = "auto";
-            e.removeEventListener("mousedown", moveMarker);
-            e.addEventListener("mousedown", moveMarker);
-        });
-        
-        if(commandList.length > 0){
-            // TODO: salvar alteração
-            commandList = [];
-        }
-    }
-    function moveMarker(event){
-        _onTracking = _onTrackingResize;
-        _onRelease = _onReleaseResize;
-    }
-    function _onReleaseResize(point){
-        _onRelease = onReleaseBounding;
-    }
-    function _onReleaseTranslate (point){
-        _onRelease = onReleaseBounding;
-    }
-
+    
     return {
-        onPressed: (point)=>{_onPressed(point);},
-        onTracking:(point)=>{_onTracking(point);},
-        onRelease: (point)=>{_onRelease(point);}
+        onPressed: _onPressed,
+        onTracking:(point)=>{
+            _onTracking(point);
+        },
+        onRelease: _onRelease
     };
 
 
@@ -785,7 +781,6 @@ let squareStrategy = () => {
     }
 
     function resize(bounding){
-        console.log("ds")
     }
     function rotate(point){
 
