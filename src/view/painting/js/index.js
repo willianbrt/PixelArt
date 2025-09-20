@@ -609,7 +609,8 @@ let squareStrategy = () => {
         rotate:4
     }
     let bounding = null
-    let corners = null;
+    let originalCorners = null;
+    let destinationCorners = null;
     let rad = 0;
 
     let markerSize = targetScale;
@@ -644,7 +645,7 @@ let squareStrategy = () => {
             return;
         }
         
-        if(isInsideRotatedBounding(pixel, corners)){
+        if(isInsideRotatedBounding(pixel, destinationCorners)){
             _onTracking = onTrackingTranslate;
             return;
         }
@@ -662,7 +663,8 @@ let squareStrategy = () => {
             start:{x:-1,y:-1},
             end:{x:-1,y:-1}
         }
-        corners = getCorners(bounding)
+        destinationCorners = null;
+        originalCorners = null;
 
         _onTracking = onTrackingBounding;
 
@@ -686,46 +688,47 @@ let squareStrategy = () => {
         });
         bounding.start = intialPixel;
         bounding.end = pixel;
-        corners = getCorners(bounding);
+        originalCorners = getCorners(bounding);
+        destinationCorners = {... originalCorners};
         
-        drawMarker(corners);
+        drawMarker(destinationCorners);
     };
     function onTrackingResize(point){
         let pixel = cursorToPixel(point);
 
         let currentMarker = parseInt(this.dataset.marker);
-        corners[currentMarker].x = pixel.x;
-        corners[currentMarker].y = pixel.y;
+        destinationCorners[currentMarker].x = pixel.x;
+        destinationCorners[currentMarker].y = pixel.y;
         
         switch (currentMarker) {
             case ENUM_MARKER.tl:
                 break;
             case ENUM_MARKER.tl:
-                corners[ENUM_MARKER.bl].x = pixel.x;
-                corners[ENUM_MARKER.tr].y = pixel.y;
+                destinationCorners[ENUM_MARKER.bl].x = pixel.x;
+                destinationCorners[ENUM_MARKER.tr].y = pixel.y;
                 break;
 
             case ENUM_MARKER.bl:
-                corners[ENUM_MARKER.tl].x = pixel.x;
-                corners[ENUM_MARKER.br].y = pixel.y;
+                destinationCorners[ENUM_MARKER.tl].x = pixel.x;
+                destinationCorners[ENUM_MARKER.br].y = pixel.y;
                 break;
 
             case ENUM_MARKER.tr:
-                corners[ENUM_MARKER.br].x = pixel.x;
-                corners[ENUM_MARKER.tl].y = pixel.y;
+                destinationCorners[ENUM_MARKER.br].x = pixel.x;
+                destinationCorners[ENUM_MARKER.tl].y = pixel.y;
                 break;
 
             case ENUM_MARKER.br:
-                corners[ENUM_MARKER.tr].x = pixel.x;
-                corners[ENUM_MARKER.bl].y = pixel.y;
+                destinationCorners[ENUM_MARKER.tr].x = pixel.x;
+                destinationCorners[ENUM_MARKER.bl].y = pixel.y;
                 break;
             default:
                 throw new Error("MARKER DESCONHECIDO");
         }
 
         let tryBounding =  {
-            start: {x: corners[ENUM_MARKER.tl].x, y:corners[ENUM_MARKER.tl].y},
-            end:   {x: corners[ENUM_MARKER.br].x, y:corners[ENUM_MARKER.br].y}
+            start: {x: destinationCorners[ENUM_MARKER.tl].x, y: destinationCorners[ENUM_MARKER.tl].y},
+            end:   {x: destinationCorners[ENUM_MARKER.br].x, y: destinationCorners[ENUM_MARKER.br].y}
         };
         
         if(tryBounding.end.x - tryBounding.start.x == 0 && tryBounding.end.y - tryBounding.start.y == 0){
@@ -733,19 +736,19 @@ let squareStrategy = () => {
         }
 
         bounding = tryBounding;
-        drawMarker(corners);
+        drawMarker(destinationCorners);
         resize(bounding);
     }
     function onTrackingTranslate(point){
         let pixel = cursorToPixel(point);
         let delta = PositionHelper.getDelta(intialPixel, pixel);
 
-        for (let key in corners) {
-            corners[key].x += delta.x;
-            corners[key].y += delta.y;
+        for (let key in destinationCorners) {
+            destinationCorners[key].x += delta.x;
+            destinationCorners[key].y += delta.y;
         }
 
-        drawMarker(corners);
+        drawMarker(destinationCorners);
 
         intialPixel = pixel;
     }
@@ -755,19 +758,19 @@ let squareStrategy = () => {
         let pixel = cursorToPixel(point);
 
         let eixo = {
-            x: (corners[ENUM_MARKER.tl].x + corners[ENUM_MARKER.br].x) * 0.5,
-            y: (corners[ENUM_MARKER.tl].y + corners[ENUM_MARKER.br].y) * 0.5,
+            x: (destinationCorners[ENUM_MARKER.tl].x + destinationCorners[ENUM_MARKER.br].x) * 0.5,
+            y: (destinationCorners[ENUM_MARKER.tl].y + destinationCorners[ENUM_MARKER.br].y) * 0.5,
         }
 
         let radMouse = PositionHelper.getRadBetweenTwoPoints(eixo, pixel) + (90*Math.PI/180);
         let deltaRad = radMouse - prevRad;
         prevRad = radMouse;
 
-        for (let key in corners) {
-            PositionHelper.rotateByRad(corners[key], deltaRad, eixo);
+        for (let key in destinationCorners) {
+            PositionHelper.rotateByRad(destinationCorners[key], deltaRad, eixo);
         }
 
-        drawMarker(corners);
+        drawMarker(destinationCorners);
     }
     function drawMarker(corners){
         let canvasLeft = parseFloat(canvas.style.left);
