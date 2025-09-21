@@ -421,7 +421,6 @@ function getPattern(jsPattern) {
 let paintStrategy = () => {
     let activeFrame;
     let activeLayer;
-    let flagFromPoint = null;
     let flagToPoint = null;
     let line;
     pattern_selected = "dot";
@@ -444,7 +443,6 @@ let paintStrategy = () => {
             editor.render();
 
 
-            flagFromPoint = point;
             flagToPoint = point;
         },
 
@@ -502,7 +500,6 @@ let brushStrategy = () => {
             editor.render();
 
 
-            flagFromPoint = point;
             flagToPoint = point;
         },
 
@@ -561,7 +558,6 @@ let eraseStrategy = () => {
             editor.render();
 
 
-            flagFromPoint = point;
             flagToPoint = point;
         },
 
