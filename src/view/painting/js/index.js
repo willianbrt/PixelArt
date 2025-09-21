@@ -595,19 +595,19 @@ let eraseStrategy = () => {
         }
     };
 };
+const ENUM_MARKER = {
+    tl:0,
+    bl:1,
+    tr:2,
+    br:3,
+    rotate:4
+}
 let squareStrategy = () => {
     let activeFrame;
     let activeLayer;
 
     pattern_selected = "dot";
 
-    const ENUM_MARKER = {
-        tl:0,
-        bl:1,
-        tr:2,
-        br:3,
-        rotate:4
-    }
     let bounding = null
     let originalCorners = null;
     let destinationCorners = null;
@@ -695,35 +695,49 @@ let squareStrategy = () => {
     };
     function onTrackingResize(point){
         let pixel = cursorToPixel(point);
-
         let currentMarker = parseInt(this.dataset.marker);
-        destinationCorners[currentMarker].x = pixel.x;
-        destinationCorners[currentMarker].y = pixel.y;
         
+        let center = {
+            x: (destinationCorners[ENUM_MARKER.tl].x + destinationCorners[ENUM_MARKER.br].x) * 0.5,
+            y: (destinationCorners[ENUM_MARKER.tl].y + destinationCorners[ENUM_MARKER.br].y) * 0.5,
+        };
+
+        let localPixel = PositionHelper.rotateByRad(pixel, -rad, center);
+
+        let localCorners = {};
+        for (let key in destinationCorners) {
+            localCorners[key] = PositionHelper.rotateByRad(destinationCorners[key], -rad, center);
+        }
+         
+        let delta =  PositionHelper.getDelta(localCorners[currentMarker], localPixel);
+        localCorners[ENUM_MARKER.br].x += delta.x;
+        localCorners[ENUM_MARKER.br].y += delta.y;
         switch (currentMarker) {
             case ENUM_MARKER.tl:
-                break;
-            case ENUM_MARKER.tl:
-                destinationCorners[ENUM_MARKER.bl].x = pixel.x;
-                destinationCorners[ENUM_MARKER.tr].y = pixel.y;
-                break;
+                localCorners[ENUM_MARKER.bl].x += delta.x;
+                localCorners[ENUM_MARKER.tr].y += delta.y;
+            break;
 
             case ENUM_MARKER.bl:
-                destinationCorners[ENUM_MARKER.tl].x = pixel.x;
-                destinationCorners[ENUM_MARKER.br].y = pixel.y;
+                localCorners[ENUM_MARKER.tl].x += delta.x;
+                localCorners[ENUM_MARKER.br].y += delta.y;
                 break;
 
             case ENUM_MARKER.tr:
-                destinationCorners[ENUM_MARKER.br].x = pixel.x;
-                destinationCorners[ENUM_MARKER.tl].y = pixel.y;
+                localCorners[ENUM_MARKER.br].x += delta.x;
+                localCorners[ENUM_MARKER.tl].y += delta.y;
                 break;
 
             case ENUM_MARKER.br:
-                destinationCorners[ENUM_MARKER.tr].x = pixel.x;
-                destinationCorners[ENUM_MARKER.bl].y = pixel.y;
+                localCorners[ENUM_MARKER.tr].x += delta.x;
+                localCorners[ENUM_MARKER.bl].y += delta.y;
                 break;
             default:
                 throw new Error("MARKER DESCONHECIDO");
+        }
+        
+        for (let key in localCorners) {
+            destinationCorners[key] = PositionHelper.rotateByRad(localCorners[key], rad, center);
         }
 
         let tryBounding =  {
@@ -762,13 +776,14 @@ let squareStrategy = () => {
             y: (destinationCorners[ENUM_MARKER.tl].y + destinationCorners[ENUM_MARKER.br].y) * 0.5,
         }
 
-        let radMouse = PositionHelper.getRadBetweenTwoPoints(eixo, pixel) + (90*Math.PI/180);
-        let deltaRad = radMouse - prevRad;
-        prevRad = radMouse;
+        rad = PositionHelper.getRadBetweenTwoPoints(eixo, pixel) + (90*Math.PI/180);
+        let deltaRad = rad - prevRad;
 
         for (let key in destinationCorners) {
-            PositionHelper.rotateByRad(destinationCorners[key], deltaRad, eixo);
+            destinationCorners[key] = PositionHelper.rotateByRad(destinationCorners[key], deltaRad, eixo);
         }
+
+        prevRad = rad;
 
         drawMarker(destinationCorners);
     }
@@ -776,56 +791,58 @@ let squareStrategy = () => {
         let canvasLeft = parseFloat(canvas.style.left);
         let canvasTop  = parseFloat(canvas.style.top) ;
         
+        
+        let middleMarkerSize = markerSize*0.5;
+        
+        let normalizedCornes = getNormalizedCorners(corners);
+        let normalizedBounding = getNormalizedBounding({
+            start: {x: normalizedCornes[ENUM_MARKER.tl].x, y:normalizedCornes[ENUM_MARKER.tl].y},
+            end:   {x: normalizedCornes[ENUM_MARKER.br].x, y:normalizedCornes[ENUM_MARKER.br].y}
+        });
+
         let dirX = (bounding.end.x < bounding.start.x) ? -1 : 1;
         let dirY = (bounding.end.y < bounding.start.y) ? -1 : 1;
         
 
-        markersElement[ENUM_MARKER.tl].style.left = `${canvasLeft + corners[ENUM_MARKER.tl].x*targetScale - markerSize/2 * dirX}px`;
-        markersElement[ENUM_MARKER.tl].style.top  = `${canvasTop  + corners[ENUM_MARKER.tl].y*targetScale - markerSize/2 * dirY}px`;
+        markersElement[ENUM_MARKER.tl].style.left = `${canvasLeft + corners[ENUM_MARKER.tl].x*targetScale - middleMarkerSize* dirX}px`;
+        markersElement[ENUM_MARKER.tl].style.top  = `${canvasTop  + corners[ENUM_MARKER.tl].y*targetScale - middleMarkerSize* dirY}px`;
 
-        markersElement[ENUM_MARKER.br].style.left = `${canvasLeft + corners[ENUM_MARKER.br].x*targetScale + markerSize/2 * dirX}px`;
-        markersElement[ENUM_MARKER.br].style.top  = `${canvasTop  + corners[ENUM_MARKER.br].y*targetScale + markerSize/2 * dirY}px`;
+        markersElement[ENUM_MARKER.br].style.left = `${canvasLeft + corners[ENUM_MARKER.br].x*targetScale + middleMarkerSize* dirX}px`;
+        markersElement[ENUM_MARKER.br].style.top  = `${canvasTop  + corners[ENUM_MARKER.br].y*targetScale + middleMarkerSize* dirY}px`;
 
-        markersElement[ENUM_MARKER.bl].style.left = `${canvasLeft + corners[ENUM_MARKER.bl].x*targetScale - markerSize/2 * dirX}px`;
-        markersElement[ENUM_MARKER.bl].style.top  = `${canvasTop  + corners[ENUM_MARKER.bl].y*targetScale + markerSize/2 * dirY}px`;
+        markersElement[ENUM_MARKER.bl].style.left = `${canvasLeft + corners[ENUM_MARKER.bl].x*targetScale - middleMarkerSize* dirX}px`;
+        markersElement[ENUM_MARKER.bl].style.top  = `${canvasTop  + corners[ENUM_MARKER.bl].y*targetScale + middleMarkerSize* dirY}px`;
 
-        markersElement[ENUM_MARKER.tr].style.left = `${canvasLeft + corners[ENUM_MARKER.tr].x*targetScale + markerSize/2 * dirX}px`;
-        markersElement[ENUM_MARKER.tr].style.top  = `${canvasTop  + corners[ENUM_MARKER.tr].y*targetScale - markerSize/2 * dirY}px`;
+        markersElement[ENUM_MARKER.tr].style.left = `${canvasLeft + corners[ENUM_MARKER.tr].x*targetScale + middleMarkerSize* dirX}px`;
+        markersElement[ENUM_MARKER.tr].style.top  = `${canvasTop  + corners[ENUM_MARKER.tr].y*targetScale - middleMarkerSize* dirY}px`;
+        
         let eixo = {
             x: (corners[ENUM_MARKER.tl].x + corners[ENUM_MARKER.tr].x) * 0.5,
             y: (corners[ENUM_MARKER.tl].y + corners[ENUM_MARKER.tr].y) * 0.5
         };
 
-        // desloca para fora (distância fixa) na direção da normal ao topo
-        let dx = corners[ENUM_MARKER.tr].x - corners[ENUM_MARKER.tl].x;
-        let dy = corners[ENUM_MARKER.tr].y - corners[ENUM_MARKER.tl].y;
-        let len = Math.sqrt(dx*dx + dy*dy);
-        let nx = -dy / len; // normal
-        let ny =  dx / len;
-
-        let offset = -2; // distância do marker de rotação em relação ao topo
         let rotateMarker = {
-            x: eixo.x + nx * offset,
-            y: eixo.y + ny * offset
+            x: eixo.x,
+            y: eixo.y - 2
         };
+        rotateMarker = PositionHelper.rotateByRad(rotateMarker, rad, eixo)
 
-        markersElement[ENUM_MARKER.rotate].style.left = `${canvasLeft + rotateMarker.x*targetScale - markerSize/2}px`;
-        markersElement[ENUM_MARKER.rotate].style.top  = `${canvasTop  + rotateMarker.y*targetScale - markerSize/2}px`;
+        markersElement[ENUM_MARKER.rotate].style.left = `${canvasLeft + rotateMarker.x*targetScale - middleMarkerSize}px`;
+        markersElement[ENUM_MARKER.rotate].style.top  = `${canvasTop  + rotateMarker.y*targetScale - middleMarkerSize}px`;
 
-        let boundings = getNormalizedBounding({
-            start: {x: corners[ENUM_MARKER.tl].x, y:corners[ENUM_MARKER.tl].y},
-            end:   {x: corners[ENUM_MARKER.br].x, y:corners[ENUM_MARKER.br].y}
-        });
-        editor.renderArea(boundings.start.x, boundings.start.y,
-                          boundings.end.x, boundings.end.y);
-
-
+        editor.renderArea(normalizedBounding.start.x,
+                          normalizedBounding.start.y,
+                          normalizedBounding.end.x,
+                          normalizedBounding.end.y);
+            
         ctx.fillStyle = `rgba(0,0,0,0.6)`;
         ctx.beginPath();
-        ctx.moveTo(corners[ENUM_MARKER.tl].x, corners[ENUM_MARKER.tl].y);
-        ctx.lineTo(corners[ENUM_MARKER.tr].x+1, corners[ENUM_MARKER.tr].y);
-        ctx.lineTo(corners[ENUM_MARKER.br].x+1, corners[ENUM_MARKER.br].y+1);
-        ctx.lineTo(corners[ENUM_MARKER.bl].x, corners[ENUM_MARKER.bl].y+1);
+
+        ctx.moveTo(normalizedCornes[ENUM_MARKER.tl].x,   normalizedCornes[ENUM_MARKER.tl].y);
+        ctx.lineTo(normalizedCornes[ENUM_MARKER.tr].x+1, normalizedCornes[ENUM_MARKER.tr].y);
+        ctx.lineTo(normalizedCornes[ENUM_MARKER.br].x+1, normalizedCornes[ENUM_MARKER.br].y+1);
+        ctx.lineTo(normalizedCornes[ENUM_MARKER.bl].x,   normalizedCornes[ENUM_MARKER.bl].y+1);
+
         ctx.closePath();
         ctx.fill();
     }
@@ -837,28 +854,6 @@ let squareStrategy = () => {
         },
         onRelease: _onRelease
     };
-    function getCorners(bounding){
-        return [
-            {x: bounding.start.x, y: bounding.start.y},
-            {x: bounding.start.x, y: bounding.end.y},
-            {x: bounding.end.x, y: bounding.start.y},
-            {x: bounding.end.x, y: bounding.end.y}
-        ];
-    }
-    function isInsideRotatedBounding(point, corners){
-        function cross(p1, p2, p3){
-            return (p1.x - p2.x) * (p3.y - p2.y) - (p1.y - p2.y) * (p3.x - p2.x);
-        }
-        if(corners === null) return false;
-
-        let b1 = cross(point, corners[ENUM_MARKER.tl], corners[ENUM_MARKER.tr]) >= 0;
-        let b2 = cross(point, corners[ENUM_MARKER.tr], corners[ENUM_MARKER.br]) >= 0;
-        let b3 = cross(point, corners[ENUM_MARKER.br], corners[ENUM_MARKER.bl]) >= 0;
-        let b4 = cross(point, corners[ENUM_MARKER.bl], corners[ENUM_MARKER.tl]) >= 0;
-
-        return (b1 && b2 && b3 && b4) || (!b1 && !b2 && !b3 && !b4);
-    }
-
     function translate(e){
     }
 
@@ -896,6 +891,51 @@ function getNormalizedBounding(bounding) {
     
     return bound;
 }
+function getNormalizedCorners(corners){
+    let normalizedCorners = {...corners};
+    if (normalizedCorners[ENUM_MARKER.tl].x > normalizedCorners[ENUM_MARKER.tr].x) {
+        [normalizedCorners[ENUM_MARKER.tl], normalizedCorners[ENUM_MARKER.tr]] =
+        [normalizedCorners[ENUM_MARKER.tr], normalizedCorners[ENUM_MARKER.tl]];
+    }
+
+    if (normalizedCorners[ENUM_MARKER.bl].x > normalizedCorners[ENUM_MARKER.br].x) {
+        [normalizedCorners[ENUM_MARKER.bl], normalizedCorners[ENUM_MARKER.br]] =
+        [normalizedCorners[ENUM_MARKER.br], normalizedCorners[ENUM_MARKER.bl]];
+    }
+
+    if (normalizedCorners[ENUM_MARKER.tl].y > normalizedCorners[ENUM_MARKER.bl].y) {
+        [normalizedCorners[ENUM_MARKER.tl], normalizedCorners[ENUM_MARKER.bl]] =
+        [normalizedCorners[ENUM_MARKER.bl], normalizedCorners[ENUM_MARKER.tl]];
+    }
+
+    if (normalizedCorners[ENUM_MARKER.tr].y > normalizedCorners[ENUM_MARKER.br].y) {
+        [normalizedCorners[ENUM_MARKER.tr], normalizedCorners[ENUM_MARKER.br]] =
+        [normalizedCorners[ENUM_MARKER.br], normalizedCorners[ENUM_MARKER.tr]];
+    }
+    return normalizedCorners;
+}
+function getCorners(bounding){
+    return [
+        {x: bounding.start.x, y: bounding.start.y},
+        {x: bounding.start.x, y: bounding.end.y},
+        {x: bounding.end.x, y: bounding.start.y},
+        {x: bounding.end.x, y: bounding.end.y}
+    ];
+}
+function isInsideRotatedBounding(point, corners){
+    function cross(p1, p2, p3){
+        return (p1.x - p2.x) * (p3.y - p2.y) - (p1.y - p2.y) * (p3.x - p2.x);
+    }
+    if(corners === null) return false;
+
+    let b1 = cross(point, corners[ENUM_MARKER.tl], corners[ENUM_MARKER.tr]) >= 0;
+    let b2 = cross(point, corners[ENUM_MARKER.tr], corners[ENUM_MARKER.br]) >= 0;
+    let b3 = cross(point, corners[ENUM_MARKER.br], corners[ENUM_MARKER.bl]) >= 0;
+    let b4 = cross(point, corners[ENUM_MARKER.bl], corners[ENUM_MARKER.tl]) >= 0;
+
+    return (b1 && b2 && b3 && b4) || (!b1 && !b2 && !b3 && !b4);
+}
+
 
 function cursorToPixel(point){
     return {

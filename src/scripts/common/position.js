@@ -12,15 +12,17 @@ export let PositionHelper = Object.freeze({
     },
     rotateByDeg: (point, deg, eixo = {x:0,y:0}) => {
         let rad = deg * Math.PI/180;
-        rotateByRad(point, rad, eixo);
+        return rotateByRad(point, rad, eixo);
     },
     rotateByRad: (point, rad, eixo = {x:0,y:0}) => {
         let {x, y} = point;
         x -= eixo.x;
         y -= eixo.y;
 
-        point.x = x * Math.cos(rad) - y * Math.sin(rad) + eixo.x;
-        point.y = x * Math.sin(rad) + y * Math.cos(rad) + eixo.y;
+        return {
+            x: x * Math.cos(rad) - y * Math.sin(rad) + eixo.x,
+            y: x * Math.sin(rad) + y * Math.cos(rad) + eixo.y,
+        }
     },
     getPositionCursor: (event,elem)=>{
         let elementPosition = elem.getBoundingClientRect();
