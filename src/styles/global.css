@@ -2,6 +2,36 @@
 @import url("./../resource/icons/fontawesome-free-6.7.2-web/css/all.css");
 @import url("./../resource/fonts/Jersey_10/Jersey-10.css");
 
+[data-theme="dark"] {
+    --background-color: #1E1326;
+    --navbar-color: #2f1438;
+    
+    --panel-outline-color: #3D1949;
+    --hover-color: #70497E;
+    
+    --primary-color:#53365E;
+    --secondary-color:#f0ca0e;
+    --emphasis-color:#e06900;
+    
+    --light-text-color:#e7deea;
+    --dark-text-color:#000;
+}
+
+[data-theme="white"] {
+    --background-color: #2f1438;
+    --navbar-color: #2f1438;
+    
+    --panel-outline-color: #3D1949;
+    --hover-color: #70497E;
+    
+    --primary-color:#53365E;
+    --secondary-color:#f0ca0e;
+    --emphasis-color:#e06900;
+    
+    --light-text-color:#e7deea;
+    --dark-text-color:#000;
+}
+
 html, body {
     align-content: center;
     padding: 0;
@@ -10,6 +40,7 @@ html, body {
 }
 body{
     background-color: var(--background-color);
+    color: var(--light-text-color);
 }
 .navbar {
     background-color: var(--navbar-color);
@@ -17,10 +48,11 @@ body{
     flex-direction: row;
     justify-content: space-between;
     padding: 8px 16px;
+    align-items: center;
 }
 .navbar .logo{
-    height: 24px;
-    width: 24px;
+    height: 1.3rem;
+    image-rendering: pixelated;
 }
 .dropdown-label, .dropdown-sub-label{
     display: flex;
@@ -30,7 +62,7 @@ body{
     padding: 0px;
     cursor: pointer;
     justify-content: space-between;
-
+    gap:4px;
 }
 .dropdown{
     position: relative;
@@ -42,7 +74,6 @@ body{
     font-family: "FontAwesome";
     color: var(--light-text-color);
     font-size: 10px;
-    margin-left: 10px;
 }
 .dropdown-label::after  {
     content:"\f078";
@@ -56,6 +87,7 @@ body{
     color: var(--light-text-color);
     border: 1px solid var(--hover-color);
     z-index: 1;
+    min-width: 100%;
 }
 .dropdown-menu.active{
     display: block !important;
@@ -66,6 +98,7 @@ body{
     position: absolute !important;
     left: 100%;
     top: 0;
+    min-width: auto;
 }
 .dropdown-item:hover {
     background-color: var(--hover-color);
@@ -86,17 +119,23 @@ button{
     align-items: center;
     justify-content: center;
     font-size: 1em;
-    /* align-self: baseline; */
+    font-family: "Jersey 10";
 }
 button.btn-primary {
     background-color: #350D44;
-    font-family: "Jersey 10";
     color: var(--light-text-color);
     border-radius: 4px;
 }
 button.btn-ghost {
     background-color: transparent;
 }
+button.btn-premium {
+    background-image: linear-gradient(to right, var(--emphasis-color) 0%, var(--secondary-color) 100%);
+    border-radius: 16px;
+    color: #2f1438;
+    padding: 4px 10px;
+}
+
 .row{
     display: flex;
     flex-direction: row;
@@ -111,12 +150,30 @@ button.btn-ghost {
 .col.center{
    align-items: center; 
 }
-.g-4{
-   gap: 8px 4px; 
+
+.row.g-4{
+   column-gap: 4px; 
 }
-.g-16{
-   gap: 16px 8px; 
+.row.g-8{
+   column-gap: 8px; 
 }
+.row.g-16{
+   column-gap: 16px; 
+}
+
+.col.g-4{
+   row-gap: 4px; 
+}
+.col.g-8{
+   row-gap: 8px; 
+}
+.col.g-16{
+   row-gap: 16px; 
+}
+
 .mb-4{
     margin-bottom: 4px;
+}
+.text-primary{
+    color: var(--secondary-color);
 }

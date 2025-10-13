@@ -6,46 +6,67 @@
     <title>Painting - PixelArt</title> 
     <script src="./js/index.js" type="module"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,700,0,0" rel="stylesheet"/>
-    <link href="./../../styles/themes/dark.css" rel="stylesheet" type="text/css"></link>     
     <link href="assets/painting.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body data-theme="dark">
     <section class="navbar">
-        <div class="dropdown">
-            <a class="dropdown-label">
-                <!-- <img src="../../resource/img/logo.png" class="logo"/> -->
-                <h3>File</h3>
-            </a>
-            
-            <div class="dropdown-menu">
-                <div class="dropdown-item">${novo}</div>
-                <div class="dropdown-item">${salvar}</div>
-
-                <div class="dropdown-item">
-                    <a class="dropdown-sub-label">${export-as}</a>
-                    
-                    <div class="dropdown-menu">
-                        <div class="dropdown-item">JPG</div>
-                        <div class="dropdown-item">PNG</div>
-                        <div class  ="dropdown-item">GIF</div>
-                    </div>
-                </div>
+        <div class="row g-16">
+            <div class="dropdown">
+                <a class="dropdown-label">${Arquivo}</a>
                 
-                <div class="dropdown-item">${redimensionar}</div>
-                <div class="dropdown-item">${atalhos}</div>
-                <div class="dropdown-item">${configuracoes}</div>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item">${novo}</div>
+                    <div class="dropdown-item">${abrir}</div>
+                    <div class="dropdown-item">${salvar}</div>
+    
+                    <div class="dropdown-item">
+                        <a class="dropdown-sub-label">${exportar como}</a>
+                        
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">JPG</div>
+                            <div class="dropdown-item">PNG</div>
+                            <div class  ="dropdown-item">GIF</div>
+                        </div>
+                    </div>
+                    
+                    <div class="dropdown-item">${redimensionar}</div>
+                    <div class="dropdown-item">${atalhos}</div>
+                    <div class="dropdown-item">${configuracoes}</div>
+                </div>
             </div>
+            <div class="dropdown">
+                <a class="dropdown-label">
+                    ${Ferramentas}
+                </a>
+                
+                <div class="dropdown-menu">
+                    <div class="dropdown-item">${redimensionar}</div>
+                    <div class="dropdown-item">${atalhos}</div>
+                    <div class="dropdown-item">${configuracoes}</div>
+                </div>
+            </div>
+
         </div>
 
-        <div class="row">
-            <button class="btn-ghost btn-premium"><img src="" /></button>
+        <a href="#">
+            <img src="../../resource/img/logomarca.png" class="logo"/>
+        </a>
+        
+        <div class="row g-8">
+            <button class="btn-premium">
+                <span class="material-symbols-outlined">crown</span>
+                Tornar-se Premium
+            </button>
             
              <div class="dropdown">
                 <a class="dropdown-label">
+                    <span class="text-primary">Olá, </span>
+                    <span>Guest_80800</span>
                     <img class="perfil-rounded" src="" />
                 </a>
                 
                 <div class="dropdown-menu">
+                    <div class="dropdown-item">${perfil}</div>
                     <div class="dropdown-item">${logout}</div>
                 </div>
             </div>
@@ -182,14 +203,14 @@
                                 </div>
                             </div>
 
-                            <button class="btn-primary" id="add-color"><i class="fa fa-plus"></i></button>
+                            <button class="btn-primary" id="add-color"><span class="material-symbols-outlined">add</span></button>
                         </div>
                     </div>
                     
                     <div class="top-pane">
                         <select name="palette"></select>
-                        <button class="btn-ghost-action" id="new-palette"><i class="fa fa-plus"></i></button>
-                        <button class="btn-ghost-action" id="trash-palette"><i class="fa fa-trash"></i></button>
+                        <button class="btn-ghost-action" id="new-palette"><span class="material-symbols-outlined">add</span></button>
+                        <button class="btn-ghost-action" id="trash-palette"><span class="material-symbols-outlined">delete</span></button>
                     </div>
 
                     <div class="" id="list-colors"></div>
@@ -197,10 +218,9 @@
 
                 <div class="footer">
                     <button class="btn-ghost-action">
-                        <i class="fa fa-file-import"></i>
+                        <span class="material-symbols-outlined">upload_file</span>
                     </button>
-                    <button class="btn-ghost-action">
-                        <i class="fa fa-file-export"></i>
+                    <button class="btn-ghost-action"><span class="material-symbols-outlined">file_export</span>
                     </button>
                 </div>
             </div>
@@ -233,12 +253,12 @@
                 </div>
                 
                 <div class="footer">
-                    <button class="btn-ghost-action" id="add-layer"><i class="fa fa-plus"></i></button>
-                    <button class="btn-ghost-action" id="duplicate-layer"><i class="fa fa-clone"></i></button>
-                    <button class="btn-ghost-action" id="move-up-layer"><i class="fa fa-angle-up"></i></button>
-                    <button class="btn-ghost-action" id="move-down-layer"><i class="fa fa-angle-down"></i></button>
-                    <button class="btn-ghost-action" id="merge-layer"><i class="fa fa-circle-half-stroke"></i></button>
-                    <button class="btn-ghost-action" id="remove-layer"><i class="fa fa-trash"></i></button>
+                    <button class="btn-ghost-action" id="add-layer"><span class="material-symbols-outlined">add</span></button>
+                    <button class="btn-ghost-action" id="duplicate-layer"><span class="material-symbols-outlined">content_copy</span></button>
+                    <button class="btn-ghost-action" id="move-up-layer"><span class="material-symbols-outlined">keyboard_arrow_up</span></button>
+                    <button class="btn-ghost-action" id="move-down-layer"><span class="material-symbols-outlined">keyboard_arrow_down</span></button>
+                    <button class="btn-ghost-action" id="merge-layer"><span class="material-symbols-outlined">stack_group</span></button>
+                    <button class="btn-ghost-action" id="remove-layer"><span class="material-symbols-outlined">delete</span></button>
                 </div>
             </div>
             
@@ -267,19 +287,19 @@
                         <option value="60">60 ms</option>
                     </select>
                     
-                    <button class="btn-ghost-action" id="animate-frames"><i class="fa fa-play"></i> Animar</button>
-                    <button class="btn-ghost-action" id="add-frame"><i class="fa fa-plus"></i> Adicionar</button>
-                    <button class="btn-ghost-action" id="remove-frame"><i class="fa fa-trash"></i> Remover</button>
+                    <button class="btn-ghost-action" id="animate-frames"><span class="material-symbols-outlined">play_arrow</span> Animar</button>
+                    <button class="btn-ghost-action" id="add-frame"><span class="material-symbols-outlined">add</span> Adicionar</button>
+                    <button class="btn-ghost-action" id="remove-frame"><span class="material-symbols-outlined">delete</span> Remover</button>
                 </div>
                 <div class="body hidden">
                     <div id="list-frames">
                     </div>
                     <div class="footer">
-                        <button class="btn-ghost-action" id="move-down-frame"><i class="fa fa-arrow-left"></i></button>
-                        <button class="btn-ghost-action" id="move-up-frame"><i class="fa fa-arrow-right"></i></button>
-                        <button class="btn-ghost-action" id="duplicate-frame"><i class="fa fa-clone"></i></button>
-                        <button class="btn-ghost-action" id="flip-x"><i class="fa fa-shuffle" style="transform: rotate(-90deg);"></i></button>
-                        <button class="btn-ghost-action" id="flip-y"><i class="fa fa-shuffle"></i></button>
+                        <button class="btn-ghost-action" id="move-down-frame"><span class="material-symbols-outlined">arrow_back</span></button>
+                        <button class="btn-ghost-action" id="move-up-frame"><span class="material-symbols-outlined">arrow_forward</span></button>
+                        <button class="btn-ghost-action" id="duplicate-frame"><span class="material-symbols-outlined">content_copy</span></button>
+                        <button class="btn-ghost-action" id="flip-x"><span class="material-symbols-outlined">swap_horiz</span></button>
+                        <button class="btn-ghost-action" id="flip-y"><span class="material-symbols-outlined">swap_vert</span></button>
                     </div>
                 </div>
             </div>
@@ -294,7 +314,7 @@
                     <input name="name-palette" type="text"/>
                 </div>
 
-                <button class="btn-primary" id="add-palette"><i class="fa fa-check"></i></button>
+                <button class="btn-primary" id="add-palette"><span class="material-symbols-outlined">check</span></button>
             </div>
         </div>
     </div>
@@ -323,7 +343,7 @@
             if (dropdownRect.bottom + contentRect.height > window.innerHeight) {
                 dropdownMenu.style.top = `-${contentRect.height}px`;
             } else {
-                dropdownMenu.style.top = '100%';
+                dropdownMenu.style.top = 'calc(100% + 8px)';
             }
 
             let abort = new AbortController();
