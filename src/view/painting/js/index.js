@@ -1,6 +1,7 @@
 import ModulePixelEditor from '../build/PixelEditor.js'
 import HandlerEvents from './handlerEvents.js'
 import { PositionHelper } from "../../../scripts/common/position.js";
+import { Chromatic, ColorFactory } from "./chromatic.js"
 
 let width = 32;
 let height = 32;
@@ -615,6 +616,27 @@ let bucketStrategy = () => {
         onRelease: () => {}
     };
 };
+
+let dropperStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+            point = cursorToPixel(point);
+        let factoryColor = ColorFactory();
+            let colorHex = activeLayer.getPixel(point.x, point.y).toString(16);
+            console.log(colorHex)
+            
+            modalChromatic.setColor(factoryColor.buildByHex(colorHex));
+        },
+
+        onTracking: (point) => {},
+
+        onRelease: () => {}
+    };
+};
 const ENUM_MARKER = {
     tl:0,
     bl:1,
@@ -1074,6 +1096,7 @@ function buildToolBar(){
     
     const buttonDropper = document.querySelector(".tool-dropper");
     buttonDropper.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(dropperStrategy());
         changeSelectTool.call(this);
     });
     
