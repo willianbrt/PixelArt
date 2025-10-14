@@ -15,7 +15,7 @@
 
 #include "../../interfaces/ITile/ITile.h"
 #include "../../interfaces/IGraphic/IGraphic.h"
-#include "../../graphics/Surface/Surface.h"
+#include "../../graphics/surface/Surface.h"
 
 using namespace std;
 

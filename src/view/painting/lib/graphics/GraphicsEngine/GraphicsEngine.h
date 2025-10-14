@@ -5,7 +5,7 @@
 #include <math.h>
 
 #include "../Pixel/Pixel.h"
-#include "../Surface/Surface.h"
+#include "../surface/Surface.h"
 
 struct GraphicsEngine{
     static void translation(Surface* surface, Bounding bound, int deltaX, int deltaY);

@@ -591,6 +591,30 @@ let eraseStrategy = () => {
         }
     };
 };
+
+let bucketStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+
+            point = cursorToPixel(point);
+            let bucket = new module.Bucket(
+                activeLayer,
+                point.x, point.y,
+                window.selectedColor
+            );
+            bucket.draw();
+            editor.render();
+        },
+
+        onTracking: (point) => {},
+
+        onRelease: () => {}
+    };
+};
 const ENUM_MARKER = {
     tl:0,
     bl:1,
@@ -1072,6 +1096,7 @@ function buildToolBar(){
     
     const buttonBucket = document.querySelector(".tool-bucket");
     buttonBucket.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(bucketStrategy());
         changeSelectTool.call(this);
     });
     

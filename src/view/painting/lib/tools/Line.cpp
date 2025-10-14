@@ -126,8 +126,8 @@ void Line::stampPixel(Point pixel){
             float alphaSrc = _pattern[patternY][patternX];
             unsigned int topColor = (_newColorHex & 0xFFFFFF00) | static_cast<int>(alphaSrc * (_newColorHex & 0xFF));
 
-            for(int sy = std::max(0, boundingStamp.start.y - y); sy < std::min(_size, boundingStamp.end.y - y); sy++){
-                for(int sx = std::max(0, boundingStamp.start.x - x); sx < std::min(_size, boundingStamp.end.x - x); sx++){
+            for(int sy = std::max(0, boundingStamp.start.y - y); sy < std::min<int>(_size, boundingStamp.end.y - y); sy++){
+                for(int sx = std::max(0, boundingStamp.start.x - x); sx < std::min<int>(_size, boundingStamp.end.x - x); sx++){
                     int px = x + sx;
                     int py = y + sy;
 
