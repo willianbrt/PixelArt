@@ -617,6 +617,45 @@ let bucketStrategy = () => {
     };
 };
 
+let circleStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+    let flagToPoint = null;
+
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+
+            point = cursorToPixel(point);
+            let c = new module.Circle(
+                activeLayer,
+                point.x, point.y,
+                window.selectedColor
+            );
+            c.draw(point.x, point.y,2);
+            editor.render();
+        },
+
+        onTracking: (point) => {
+            point = cursorToPixel(point);
+            if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+
+            if (!cursorIsInsideSkecth(point)) {
+                flagToPoint = point;
+                return;
+            }
+            
+            editor.render();
+
+            flagToPoint = point;
+        },
+
+        onRelease: () => {
+            editor.render();
+        }
+    };
+};
 let dropperStrategy = () => {
     let activeFrame;
     let activeLayer;
@@ -1114,6 +1153,7 @@ function buildToolBar(){
     
     const buttonCircle = document.querySelector(".tool-circle");
     buttonCircle.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(circleStrategy());
         changeSelectTool.call(this);
     });
     
