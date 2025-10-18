@@ -417,6 +417,9 @@ function getPattern(jsPattern) {
 
     return cppPattern;
 }
+function getLineSize(){
+    return parseInt(lineSize.value);
+}
 
 // Mock
 let paintStrategy = () => {
@@ -438,7 +441,7 @@ let paintStrategy = () => {
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
-                lineSize.value
+                getLineSize()
             );
             line.draw();
             editor.render();
@@ -451,18 +454,13 @@ let paintStrategy = () => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
 
-            if (!cursorIsInsideSkecth(point)) {
-                flagToPoint = point;
-                return;
-            }
-
             const line = new module.Line(
                 activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
-                lineSize.value
+                parseInt(getLineSize())
             );
             line.draw();
             
@@ -495,7 +493,7 @@ let brushStrategy = () => {
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
-                lineSize.value
+                getLineSize()
             );
             line.draw();
             editor.render();
@@ -508,18 +506,13 @@ let brushStrategy = () => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
 
-            if (!cursorIsInsideSkecth(point)) {
-                flagToPoint = point;
-                return;
-            }
-
             const line = new module.Line(
                 activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
-                lineSize.value
+                getLineSize()
             );
             line.draw();
             
@@ -553,7 +546,7 @@ let eraseStrategy = () => {
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 0x0,
-                lineSize.value
+                getLineSize()
             );
             line.draw();
             editor.render();
@@ -562,15 +555,9 @@ let eraseStrategy = () => {
             flagToPoint = point;
         },
 
-        onTracking: (point) => {
-            
+        onTracking: (point) => {    
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
-
-            if (!cursorIsInsideSkecth(point)) {
-                flagToPoint = point;
-                return;
-            }
             
             const line = new module.Line(
                 activeLayer,
@@ -578,7 +565,7 @@ let eraseStrategy = () => {
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 0x0,
-                lineSize.value
+                getLineSize()
             );
             line.draw();
             
@@ -628,24 +615,27 @@ let circleStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             point = cursorToPixel(point);
+
             let c = new module.Circle(
                 activeLayer,
                 point.x, point.y,
                 window.selectedColor
             );
-            c.draw(point.x, point.y,2);
+            c.draw(point.x, point.y,1);
             editor.render();
+            flagToPoint = point;
         },
 
         onTracking: (point) => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
 
-            if (!cursorIsInsideSkecth(point)) {
-                flagToPoint = point;
-                return;
-            }
-            
+            let c = new module.Circle(
+                activeLayer,
+                point.x, point.y,
+                window.selectedColor
+            );
+            c.draw(point.x, point.y,flagToPoint.x - point.x);
             editor.render();
 
             flagToPoint = point;
@@ -661,18 +651,17 @@ let dropperStrategy = () => {
     let activeLayer;
     return {
         onPressed: (point) => {
+            point = cursorToPixel(point);
+
             activeFrame = editor.getActiveFrame();
             activeLayer = activeFrame.getActiveLayer();
-            point = cursorToPixel(point);
-        let factoryColor = ColorFactory();
+
+            let factoryColor = ColorFactory();
             let colorHex = activeLayer.getPixel(point.x, point.y).toString(16);
-            console.log(colorHex)
-            
+
             modalChromatic.setColor(factoryColor.buildByHex(colorHex));
         },
-
         onTracking: (point) => {},
-
         onRelease: () => {}
     };
 };
@@ -1030,10 +1019,6 @@ function direction(from, to){
     return "D"
 }
 
-function getLineSize(){
-    return 
-}
-
 function cursorIsInsideSkecth(point){
     return point.x < width && point.y < height && point.x >= 0 && point.y >= 0
 }
@@ -1055,12 +1040,12 @@ function hoverBrush(cursorPosition){
     let patternSelected = pattern[pattern_selected];
 
     let startPixel = {
-        x: Math.round(cursorPosition.x - ((patternSelected.length) / 2 * lineSize.value)),
-        y: Math.round(cursorPosition.y - ((patternSelected[0].length) / 2* lineSize.value))
+        x: Math.round(cursorPosition.x - ((patternSelected.length) / 2 * getLineSize())),
+        y: Math.round(cursorPosition.y - ((patternSelected[0].length) / 2* getLineSize()))
     };
 
-    let heightPattern = patternSelected.length*lineSize.value;
-    let widthPattern = patternSelected[0].length*lineSize.value;
+    let heightPattern = patternSelected.length*getLineSize();
+    let widthPattern = patternSelected[0].length*getLineSize();
 
     let newAxisX = {StartAxis:0, EndAxis:0};
     let newAxisY = {StartAxis:0, EndAxis:0};
@@ -1094,10 +1079,10 @@ function hoverBrush(cursorPosition){
         for(let j = 0; j < patternSelected[0].length; j++){
             let patternCell = patternLine[j];
             ctx.fillStyle = `rgba(${0},${0},${0},${patternCell*0.6})`;
-            ctx.fillRect(x, y,lineSize.value,lineSize.value);
-            x += lineSize.value;
+            ctx.fillRect(x, y,getLineSize(),getLineSize());
+            x += getLineSize();
         }
-        y += lineSize.value;
+        y += getLineSize();
     }
 }
 
@@ -1180,8 +1165,8 @@ function buildToolBar(){
         history.redo();
     });
     
-    handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
-    buttonSquare.click();
+    // handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
+    // buttonSquare.click();
     // buttonPencil.click();
 
     function changeSelectTool(){

@@ -4,6 +4,9 @@
 #include <memory>
 #include <algorithm>
 #include "../Pixel/Pixel.h"
+#include <assert.h>
+
+// #define assertm(exp, msg) assert((void(msg), exp))
 
 class Surface{
 private:
@@ -21,9 +24,10 @@ public:
     unsigned int getLength();
     Surface crop(Bounding bound);
     unsigned int getPixel(int x, int y);
-    unsigned int getPixel(int index);
+    unsigned int getPixel(unsigned int index);
     void putPixel(int x, int y, unsigned int colorHex);
-    void putPixel(int index, unsigned int colorHex);
+    void putPixel(unsigned int index, unsigned int colorHex);
     void setSize(int width, int height);
+    bool isInsideSkecth(int x, int y);
 };
 #endif

@@ -23,8 +23,8 @@ void Bucket::draw(){
         queue.pop_back();
         const unsigned int currentColorHEX = _layer.getPixel(point.x, point.y);
 
-        const bool isItOutsideTheAxisX = point.x < 0 || point.x > _width;
-        const bool isItOutsideTheAxisY =  point.y < 0 || point.y > _height;
+        const bool isItOutsideTheAxisX = point.x < 0 || point.x >= _width;
+        const bool isItOutsideTheAxisY =  point.y < 0 || point.y >= _height;
 
         if(isItOutsideTheAxisX || isItOutsideTheAxisY || currentColorHEX != startColorHEX)
             continue;

@@ -346,6 +346,9 @@ export function ColorFactory(){
     }
     function hexToRgb(hex) {
         hex = hex.replace(/^#/, "").slice(0, 6);
+        if(hex == 0){
+            return {r: 0, g: 0, b: 0};
+        }
         if (!(/^[0-9A-Fa-f]{6}$/.test(hex)) && !(/^[0-9A-Fa-f]{3}$/.test(hex))) {
             throw new Error("Formato do hexadecimal inválido.");
         }

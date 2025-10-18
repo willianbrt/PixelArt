@@ -52,6 +52,7 @@ add_custom_command(
         -s ALLOW_MEMORY_GROWTH=1
         -s STANDALONE_WASM=0
         -lembind
+        -s ASSERTIONS
         --js-library=${SRC_DIR}/js/library.js
     DEPENDS ${OBJECTS}
 )
