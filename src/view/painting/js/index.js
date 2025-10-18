@@ -657,6 +657,7 @@ let dropperStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             let factoryColor = ColorFactory();
+            console.log(activeLayer.getPixel(point.x, point.y))
             let colorHex = activeLayer.getPixel(point.x, point.y).toString(16);
 
             modalChromatic.setColor(factoryColor.buildByHex(colorHex));

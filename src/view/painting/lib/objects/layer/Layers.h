@@ -19,10 +19,9 @@
 
 using namespace std;
 
-class Layer : public ITile {
+class Layer : public ITile, public Surface {
 private: 
     Guid id;
-    Surface _sketch;
     bool _isVisible = true;
     bool _isLock = false;
     unsigned int _opacity = 100;
@@ -36,11 +35,12 @@ public:
     void move(int x, int y);
     void draw(IGraphic& graphic);
     
-    unsigned int* getBuffer();
-    unsigned int getPixel(int x, int y);
-    unsigned int getPixel(int index);
-    void putPixel(int x, int y, unsigned int colorHex);
-    void putPixel(int index, unsigned int colorHex);
+    // unsigned int* getBuffer();
+    // Surface getSurface();
+    // unsigned int getPixel(int x, int y);
+    // unsigned int getPixel(int index);
+    // void putPixel(int x, int y, unsigned int colorHex);
+    // void putPixel(int index, unsigned int colorHex);
     
     Guid getID();
     bool isVisible();

@@ -4,18 +4,11 @@ Circle::Circle(Layer& layer, unsigned int x, unsigned int y, unsigned int newCol
     _point = Point(x,y);
     _newColorHex = newColorHex;
 }
-void Circle::draw(unsigned int cx_u, unsigned int cy_u, unsigned int r_u) {
-    
-    int cx = static_cast<int>(cx_u);
-    int cy = static_cast<int>(cy_u);
-    int r  = static_cast<int>(r_u);
-
+void Circle::draw(int cx, int cy, int r) {
     int x = 0;
     int y = -r;
     int p = -r;
 
-    const unsigned int _width = 32;
-    const unsigned int _height = 32;
     while(x < -y) {
 
         if(p > 0){
@@ -25,14 +18,14 @@ void Circle::draw(unsigned int cx_u, unsigned int cy_u, unsigned int r_u) {
             p+=2*x+1;
         }
 
-        _layer.putPixel(cx + _point.x, cy + _point.y, _newColorHex);
-        _layer.putPixel(cx - _point.x, cy + _point.y, _newColorHex);
-        _layer.putPixel(cx + _point.x, cy - _point.y, _newColorHex);
-        _layer.putPixel(cx - _point.x, cy - _point.y, _newColorHex);
-        _layer.putPixel(cx + _point.y, cy + _point.x, _newColorHex);
-        _layer.putPixel(cx + _point.y, cy - _point.x, _newColorHex);
-        _layer.putPixel(cx - _point.y, cy + _point.x, _newColorHex);
-        _layer.putPixel(cx - _point.y, cy - _point.x, _newColorHex);
+        _layer.putPixel(cx + x, cy + y, _newColorHex);
+        _layer.putPixel(cx - x, cy + y, _newColorHex);
+        _layer.putPixel(cx + x, cy - y, _newColorHex);
+        _layer.putPixel(cx - x, cy - y, _newColorHex);
+        _layer.putPixel(cx + y, cy + x, _newColorHex);
+        _layer.putPixel(cx + y, cy - x, _newColorHex);
+        _layer.putPixel(cx - y, cy + x, _newColorHex);
+        _layer.putPixel(cx - y, cy - x, _newColorHex);
         
         x+=1;
     }

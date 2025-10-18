@@ -1,12 +1,13 @@
-#ifndef SURFACE
-#define SURFACE
+#ifndef SURFACE_H
+#define SURFACE_H
+
+#include <emscripten/bind.h>
+using namespace emscripten;
 
 #include <memory>
 #include <algorithm>
 #include "../Pixel/Pixel.h"
 #include <assert.h>
-
-// #define assertm(exp, msg) assert((void(msg), exp))
 
 class Surface{
 private:
@@ -18,7 +19,8 @@ private:
 public:
     Surface(unsigned int width, unsigned int height);
     ~Surface();
-    unsigned int* getData();
+    
+    unsigned int* getBuffer();
     unsigned int getWidth();
     unsigned int getHeight();
     unsigned int getLength();

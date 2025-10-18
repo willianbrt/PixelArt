@@ -111,13 +111,9 @@ void Line::stampPixel(Point pixel){
         std::round(pixel.y - heightPattern / 2)
     );
 
-
-    unsigned int HEIGHT_SKETCH = 32;
-    unsigned int WIDTH_SKETCH = 32;
-
     Bounding boundingStamp;
-    if(!GraphicsEngine::computeVisibleShape(startPixel.x, widthPattern, HEIGHT_SKETCH, boundingStamp.start.x, boundingStamp.end.x) || 
-       !GraphicsEngine::computeVisibleShape(startPixel.y, heightPattern, WIDTH_SKETCH, boundingStamp.start.y, boundingStamp.end.y)){
+    if(!GraphicsEngine::computeVisibleShape(startPixel.x, widthPattern, _layer.getHeight(), boundingStamp.start.x, boundingStamp.end.x) || 
+       !GraphicsEngine::computeVisibleShape(startPixel.y, heightPattern, _layer.getWidth(), boundingStamp.start.y, boundingStamp.end.y)){
         return;
     }
     
@@ -128,13 +124,12 @@ void Line::stampPixel(Point pixel){
 
             for(int sy = std::max(0, boundingStamp.start.y - y); sy < std::min<int>(_size, boundingStamp.end.y - y); sy++){
                 for(int sx = std::max(0, boundingStamp.start.x - x); sx < std::min<int>(_size, boundingStamp.end.x - x); sx++){
-                    int px = x + sx;
-                    int py = y + sy;
+                    Point p = Point(x + sx, y + sy);
 
-                    unsigned int oldColor = _layer.getPixel(px, py);
+                    unsigned int oldColor = _layer.getPixel(p.x, p.y);
                     unsigned int color = GraphicsEngine::blendColors(oldColor, topColor);
-                    _layer.putPixel(px, py, color);
-                    modifiedPixels.emplace_back(Point(px, py), oldColor);
+                    _layer.putPixel(p.x, p.y, color);
+                    modifiedPixels.emplace_back(p, oldColor);
                 }
             }
         }

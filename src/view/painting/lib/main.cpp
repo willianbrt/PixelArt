@@ -81,11 +81,11 @@ public:
         
         if(activeFrame == nullptr) return;
     
-        int startLineIndex =  area.start.x + area.getWidth()*area.start.y;
-        int endOfLineIndex = startLineIndex + area.getWidth();
-        int endIndex = startLineIndex + area.getHeight()*area.end.y;
+        unsigned int startLineIndex =  area.start.x + area.getWidth()*area.start.y;
+        unsigned int endOfLineIndex = startLineIndex + area.getWidth();
+        unsigned int endIndex = startLineIndex + area.getHeight()*area.end.y;
         
-        int index = startLineIndex;
+        unsigned int index = startLineIndex;
 
         while(index < endIndex){
             while (index < endOfLineIndex) {
@@ -101,7 +101,7 @@ public:
             index = startLineIndex;
         }
 
-        draw(_sketch.getData(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
+        draw(_sketch.getBuffer(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
     }
 
     void bringFrameToFoward(Guid id){

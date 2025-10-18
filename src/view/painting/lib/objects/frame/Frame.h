@@ -32,8 +32,8 @@ public:
     void resize(int width, int height);
     void move(int offsetX, int offsetY);
 
-    unsigned int getPixel(int index);
-    unsigned int getPixel(int index, int fromIndex, int toIndex);
+    unsigned int getPixel(unsigned int index);
+    unsigned int getPixel(unsigned int index, int fromIndex, int toIndex);
 
     unsigned int getFrameDuration();
     

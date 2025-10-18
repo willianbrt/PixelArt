@@ -1,6 +1,9 @@
 #include "Layers.h"
 
-Layer::Layer(std::string name, unsigned int width, unsigned int height) : id(Guid::generateUUID()), _sketch(width, height){
+Layer::Layer(std::string name, unsigned int width, unsigned int height) : 
+id(Guid::generateUUID()),
+ Surface(width, height)
+ {
     _name = name;
 }
 Layer::~Layer(){}
@@ -22,12 +25,6 @@ void Layer::resize(int width, int height){
     // TODO: IMPLEMENTAR
 }
 
-unsigned int* Layer::getBuffer(){ return _sketch.getData(); }
-unsigned int Layer::getPixel(int x, int y){ return _sketch.getPixel(x, y); }
-unsigned int Layer::getPixel(int index){ return _sketch.getPixel(index); }
-void Layer::putPixel(int x, int y, unsigned int colorHex){ _sketch.putPixel(x, y, colorHex); }
-void Layer::putPixel(int index, unsigned int colorHex){ _sketch.putPixel(index, colorHex); }
-
 Guid Layer::getID(){ return id; }
 bool Layer::isVisible(){ return _isVisible; }
 void Layer::setVisible(bool isVisible){ _isVisible = isVisible; }
@@ -42,15 +39,13 @@ void Layer::setOpacity(unsigned int value){ _opacity = value; }
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(layer_module){
-    class_<Layer>("Layer")
+    class_<Layer, base<Surface>>("Layer")
     .constructor<std::string, unsigned int, unsigned int>()
     .smart_ptr<std::shared_ptr<Layer>>("shared_ptr<Layer>")
     .function("getID", &Layer::getID)
     .function("resize", &Layer::resize)
     .function("move", &Layer::move)
     .function("draw", &Layer::draw)
-    .function("putPixel", select_overload<void(int, int, unsigned int)>(&Layer::putPixel))
-    .function("getPixel", select_overload<unsigned int(int, int)>(&Layer::getPixel))
     .function("getName", &Layer::getName)
     .function("setName", &Layer::setName)
     .function("getOpacity", &Layer::getOpacity)

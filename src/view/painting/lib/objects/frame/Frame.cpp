@@ -19,8 +19,8 @@ void Frame::draw(IGraphic& graphic){
     activeLayer->draw(graphic);
 }
 
-unsigned int Frame::getPixel(int index){ return getPixel(index, 0, layers.size()); }
-unsigned int Frame::getPixel(int index, int fromIndex, int toIndex){
+unsigned int Frame::getPixel(unsigned int index){ return getPixel(index, 0, layers.size()); }
+unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
     unsigned int colorHex = 0;
     if(toIndex > layers.size()) throw std::runtime_error("ToIndex excede o tamanho maximo de Layers.");
     
