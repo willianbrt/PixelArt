@@ -608,6 +608,7 @@ let circleStrategy = () => {
     let activeFrame;
     let activeLayer;
     let flagToPoint = null;
+    let startPoint = null;
 
     return {
         onPressed: (point) => {
@@ -619,10 +620,12 @@ let circleStrategy = () => {
             let c = new module.Circle(
                 activeLayer,
                 point.x, point.y,
+                point.x, point.y,
                 window.selectedColor
             );
-            c.draw(point.x, point.y,1);
+            c.draw();
             editor.render();
+            startPoint = point;
             flagToPoint = point;
         },
 
@@ -632,10 +635,11 @@ let circleStrategy = () => {
 
             let c = new module.Circle(
                 activeLayer,
+                startPoint.x, startPoint.y,
                 point.x, point.y,
                 window.selectedColor
             );
-            c.draw(point.x, point.y,flagToPoint.x - point.x);
+            c.draw();
             editor.render();
 
             flagToPoint = point;

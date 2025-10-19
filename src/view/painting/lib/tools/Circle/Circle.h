@@ -12,15 +12,16 @@
 
 class Circle {
 public:
-    Circle(Layer& layer, unsigned int x, unsigned int y, unsigned int newColorHex);
+    Circle(Layer& layer, int from_x, int from_y, int to_x, int to_y, unsigned int newColorHex);
 
-    void draw(int cx, int cy, int r);
+    void draw();
 
 private:
     unsigned int _newColorHex;
     vector<unsigned int> modifiedPixels;
     Layer _layer ;
-    Point _point;
+    Point _fromPoint;
+    Point _toPoint;
 };
 
 #endif
