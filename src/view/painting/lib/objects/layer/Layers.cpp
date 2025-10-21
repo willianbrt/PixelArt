@@ -6,9 +6,22 @@ id(Guid::generateUUID()),
  {
     _name = name;
 }
+Layer::Layer(const Layer& layer) : 
+id(layer.getID()),
+ Surface(layer._width, layer._height)
+{
+    _data = new unsigned int[_length];;
+    memcpy(_data, layer._data, sizeof(unsigned int) *_length);
+    _name = layer._name;
+    _isVisible = layer._isVisible;
+    _isLock = layer._isLock;
+    _opacity = layer._opacity;
+}
 Layer::~Layer(){}
 
-void Layer::draw(IGraphic& graphic){ graphic.draw(*this); }
+void Layer::draw(IGraphic& graphic){ 
+    graphic.draw(*this);
+}
 void Layer::move(int x, int y){
     // TODO: IMPLEMENTAR
     // int offset = y*_width + x;
@@ -25,14 +38,14 @@ void Layer::resize(int width, int height){
     // TODO: IMPLEMENTAR
 }
 
-Guid Layer::getID(){ return id; }
-bool Layer::isVisible(){ return _isVisible; }
+Guid Layer::getID() const { return id; }
+bool Layer::isVisible() const { return _isVisible; }
 void Layer::setVisible(bool isVisible){ _isVisible = isVisible; }
-bool Layer::isLock(){ return _isLock;}
+bool Layer::isLock() const { return _isLock;}
 void Layer::setLock(bool isLock){ _isLock = isLock; }
-std::string Layer::getName() { return _name; }
+std::string Layer::getName() const { return _name; }
 void Layer::setName(std::string name) { _name = name; }
-unsigned int Layer::getOpacity(){ return _opacity; }
+unsigned int Layer::getOpacity() const { return _opacity; }
 void Layer::setOpacity(unsigned int value){ _opacity = value; }
 
 

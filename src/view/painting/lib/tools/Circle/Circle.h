@@ -10,16 +10,16 @@
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/layer/Layers.h"
 
-class Circle {
+class Circle : public IGraphic{
 public:
-    Circle(Layer& layer, int from_x, int from_y, int to_x, int to_y, unsigned int newColorHex);
+    Circle(int from_x, int from_y, int to_x, int to_y, unsigned int newColorHex);
 
-    void draw();
+    void draw(Layer& layer);
 
 private:
     unsigned int _newColorHex;
     vector<unsigned int> modifiedPixels;
-    Layer _layer ;
+    // Layer _layer;
     Point _fromPoint;
     Point _toPoint;
 };

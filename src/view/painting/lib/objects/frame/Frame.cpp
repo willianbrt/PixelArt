@@ -15,8 +15,13 @@ void Frame::move(int offsetX, int offsetY){
         layer->move(offsetX, offsetY);
     }
 }
+void Frame::preview(IGraphic& graphic){
+    previewLayer = new Layer(*activeLayer);
+    previewLayer->draw(graphic);
+}
 void Frame::draw(IGraphic& graphic){
     activeLayer->draw(graphic);
+    delete previewLayer;
 }
 
 unsigned int Frame::getPixel(unsigned int index){ return getPixel(index, 0, layers.size()); }
@@ -28,7 +33,12 @@ unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
         Layer* layer = layers.at(layerIndex);
         if(!layer->isVisible()) continue;
 
-        GraphicsEngine::blending(colorHex, layer->getPixel(index));
+
+        if(layer->getID().toString() == previewLayer->getID().toString()){
+            GraphicsEngine::blending(colorHex, previewLayer->getPixel(index));
+        }else{
+            GraphicsEngine::blending(colorHex, layer->getPixel(index));
+        }
     }
 
     return colorHex;

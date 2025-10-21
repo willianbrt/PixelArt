@@ -29,27 +29,21 @@ private:
     
 public:
     Layer(std::string name, unsigned int width, unsigned int height);
+    Layer(const Layer& layer);
     ~Layer();
 
     void resize(int width, int height);
     void move(int x, int y);
     void draw(IGraphic& graphic);
     
-    // unsigned int* getBuffer();
-    // Surface getSurface();
-    // unsigned int getPixel(int x, int y);
-    // unsigned int getPixel(int index);
-    // void putPixel(int x, int y, unsigned int colorHex);
-    // void putPixel(int index, unsigned int colorHex);
-    
-    Guid getID();
-    bool isVisible();
+    Guid getID() const;
+    bool isVisible() const;
     void setVisible(bool isVisible);
-    bool isLock();
+    bool isLock() const;
     void setLock(bool isLock);
-    unsigned int getOpacity();
+    unsigned int getOpacity() const;
     void setOpacity(unsigned int value);
-    std::string getName();
+    std::string getName() const;
     void setName(string name);
 };
 #endif

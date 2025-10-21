@@ -28,6 +28,7 @@ public:
     Frame();
     ~Frame();
 
+    void preview(IGraphic& graphic);
     void draw(IGraphic& graphic);
     void resize(int width, int height);
     void move(int offsetX, int offsetY);
@@ -58,6 +59,7 @@ private:
     // vector<Layer*> tiles = vector<Layer*>(MAX_LAYERS);
     vector<Layer*> layers;
     Layer* activeLayer = 0;
+    Layer* previewLayer = 0;
     
     Guid id;
 };
