@@ -10,7 +10,7 @@ using namespace emscripten;
 #include <assert.h>
 
 class Surface{
-private:
+protected:
     unsigned int* _data = nullptr;
     unsigned int _width = 0;
     unsigned int _height = 0;

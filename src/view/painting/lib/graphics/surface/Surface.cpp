@@ -7,16 +7,16 @@ Surface::~Surface(){
     free(_data);
 }
 
-unsigned int* Surface::getBuffer(){
+unsigned int* Surface::getBuffer() {
     return _data;
 }
-unsigned int Surface::getWidth(){
+unsigned int Surface::getWidth() {
     return _width;
 }
-unsigned int Surface::getHeight(){
+unsigned int Surface::getHeight() {
     return _height;
 }
-unsigned int Surface::getLength(){
+unsigned int Surface::getLength() {
     return _height*_width;
 }
 Surface Surface::crop(Bounding bound){
@@ -34,7 +34,7 @@ Surface Surface::crop(Bounding bound){
 
     return dirtSurface;
 }
-unsigned int Surface::getPixel(int x, int y){
+unsigned int Surface::getPixel(int x, int y) {
     if (!isInsideSkecth(x, y)) return 0;
 
     assert(x < _width && "error: x maior que a width;");
@@ -45,7 +45,7 @@ unsigned int Surface::getPixel(int x, int y){
 
     return getPixel(x + y*_width);
 }
-unsigned int Surface::getPixel(unsigned int index){
+unsigned int Surface::getPixel(unsigned int index) {
     if (index < 0 || index >= _length)  return 0;
 
     assert(index < _length && "error: index maior que o buffer;");
@@ -64,7 +64,7 @@ void Surface::putPixel(int x, int y, unsigned int colorHex){
 
     putPixel(x + y*_width, colorHex);
 }
-bool Surface::isInsideSkecth(int x, int y){
+bool Surface::isInsideSkecth(int x, int y) {
     return x < _width && y < _height && x >= 0 && y >= 0;
 }
 void Surface::putPixel(unsigned int index, unsigned int colorHex){

@@ -1,12 +1,12 @@
 
 mergeInto(LibraryManager.library,{
-    draw: draw,
+    renderCanvas: renderCanvas,
     clear: clear,
     get_viewport_width: getViewportWidth,
     get_viewport_height: getViewportHeight,
 });
 
-function draw(screen, length, viewportWidth, viewportHeight, x, y){
+function renderCanvas(screen, length, viewportWidth, viewportHeight, x, y){
     const context = Module.canvas.getContext("2d");
 
     const ptr = screen;

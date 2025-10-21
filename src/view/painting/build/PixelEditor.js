@@ -3275,20 +3275,6 @@ function dbg(...args) {
       }
     };
 
-  function _draw(screen, length, viewportWidth, viewportHeight, x, y){
-      const context = Module.canvas.getContext("2d");
-  
-      const ptr = screen;
-      const width = viewportWidth;
-      const height = viewportHeight;
-  
-      const buffer = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, length*4);
-      const data = new ImageData(buffer, width);
-  
-      context.clearRect(x, y, width, height);
-      context.putImageData(data, x, y);
-  }
-
   var getHeapMax = () =>
       // Stay one Wasm page short of 4GB: while e.g. Chrome is able to allocate
       // full 4GB Wasm memories, the size will wrap back to 0 bytes in Wasm side
@@ -3512,6 +3498,20 @@ function dbg(...args) {
       randomFill(HEAPU8.subarray(buffer, buffer + size));
       return 0;
     };
+
+  function _renderCanvas(screen, length, viewportWidth, viewportHeight, x, y){
+      const context = Module.canvas.getContext("2d");
+  
+      const ptr = screen;
+      const width = viewportWidth;
+      const height = viewportHeight;
+  
+      const buffer = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, length*4);
+      const data = new ImageData(buffer, width);
+  
+      context.clearRect(x, y, width, height);
+      context.putImageData(data, x, y);
+  }
 InternalError = Module['InternalError'] = class InternalError extends Error { constructor(message) { super(message); this.name = 'InternalError'; }};
 embind_init_charCodes();
 BindingError = Module['BindingError'] = class BindingError extends Error { constructor(message) { super(message); this.name = 'BindingError'; }};
@@ -3582,8 +3582,6 @@ var wasmImports = {
   /** @export */
   _tzset_js: __tzset_js,
   /** @export */
-  draw: _draw,
-  /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
   /** @export */
   environ_get: _environ_get,
@@ -3600,7 +3598,9 @@ var wasmImports = {
   /** @export */
   get_viewport_width: _get_viewport_width,
   /** @export */
-  random_get: _random_get
+  random_get: _random_get,
+  /** @export */
+  renderCanvas: _renderCanvas
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);

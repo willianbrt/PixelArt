@@ -607,6 +607,7 @@ let bucketStrategy = () => {
 let circleStrategy = () => {
     let activeFrame;
     let activeLayer;
+    let circleTool;
     let flagToPoint = null;
     let startPoint = null;
 
@@ -617,14 +618,8 @@ let circleStrategy = () => {
 
             point = cursorToPixel(point);
 
-            let c = new module.Circle(
-                activeLayer,
-                point.x, point.y,
-                point.x, point.y,
-                window.selectedColor
-            );
-            c.draw();
-            editor.render();
+            circleTool = new module.Circle(point.x, point.y, point.x, point.y, window.selectedColor);
+            editor.preview(circleTool);
             startPoint = point;
             flagToPoint = point;
         },
@@ -633,19 +628,19 @@ let circleStrategy = () => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
 
-            let c = new module.Circle(
-                activeLayer,
+            circleTool = new module.Circle(
                 startPoint.x, startPoint.y,
                 point.x, point.y,
                 window.selectedColor
             );
-            c.draw();
-            editor.render();
+            editor.preview(circleTool);
 
             flagToPoint = point;
         },
 
         onRelease: () => {
+            editor.draw(circleTool);
+
             editor.render();
         }
     };

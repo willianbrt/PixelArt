@@ -1,13 +1,14 @@
 #ifndef IGRAPHICS_H
 #define IGRAPHICS_H
 
+// #include "../../objects/layer/Layers.h"
 
-class ITile;
+class Layer;
 
 class IGraphic{
 public:
-    ~IGraphic() = default;
-    virtual void draw(ITile& tile) = 0;
+    virtual ~IGraphic() = default;
+    virtual void draw(Layer& layer) = 0;
 };
 
 #endif

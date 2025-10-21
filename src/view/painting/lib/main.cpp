@@ -11,11 +11,11 @@
 #include "objects/frame/Frame.h"
 #include "interfaces/IGraphic/IGraphic.h"
 #include "graphics/GraphicsEngine/GraphicsEngine.h"
-#include "graphics/Surface/Surface.h"
+#include "graphics/surface/Surface.h"
 #include "graphics/Pixel/Pixel.h"
 
 extern "C" {
-    void draw(unsigned int* screen, size_t length, unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y);
+    void renderCanvas(unsigned int* screen, size_t length, unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y);
     void clear(unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y);
     unsigned int get_viewport_width();
     unsigned int get_viewport_height();
@@ -53,11 +53,15 @@ public:
         return Bounding(_sketchPosition, endPoint);
     }
 
-    // void draw(IGraphic& graphic){
-    //     Frame* activeFrame = getActiveTile();
-    //     activeFrame->draw(graphic);
-    //     render();
-    // }
+    void preview(IGraphic& graphic){
+        activeFrame->preview(graphic);
+        render();
+    }
+
+    void draw(IGraphic& graphic){
+        activeFrame->draw(graphic);
+        render();
+    }
 
     void render(){
         Point endPoint = Point(_sketch.getWidth(), _sketch.getHeight());
@@ -101,7 +105,7 @@ public:
             index = startLineIndex;
         }
 
-        draw(_sketch.getBuffer(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
+        renderCanvas(_sketch.getBuffer(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
     }
 
     void bringFrameToFoward(Guid id){
@@ -185,6 +189,8 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .constructor<unsigned int, unsigned int>()
         .smart_ptr<std::shared_ptr<Editor>>("shared_ptr<Editor>")
         .function("renderArea", select_overload<void(int, int, int, int)>(&Editor::render))
+        .function("preview", &Editor::preview)
+        .function("draw", &Editor::draw)
         .function("render", select_overload<void()>(&Editor::render))
         .function("bringFrameToFoward", &Editor::bringFrameToFoward)
         .function("bringFrameBack", &Editor::bringFrameBack)
