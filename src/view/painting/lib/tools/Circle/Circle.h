@@ -3,6 +3,7 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/bind.h>
 #include <algorithm>
+#include <functional>
 
 #include "../../interfaces/ITile/ITile.h"
 #include "../../interfaces/IGraphic/IGraphic.h"
@@ -12,11 +13,20 @@
 
 class Circle : public IGraphic{
 public:
-    Circle(int from_x, int from_y, int to_x, int to_y, unsigned int newColorHex);
+    Circle(int from_x, int from_y, int to_x, int to_y,
+            bool isFilled, int thickness,
+            unsigned int newColorHex);
 
     void draw(Layer& layer);
 
 private:
+    int cx, cy;
+    int rx, ry;
+    int rx2, ry2;
+    bool _isFilled;
+    int _thickness;
+    std::function<void(int, int)> trace;
+
     unsigned int _newColorHex;
     vector<unsigned int> modifiedPixels;
     // Layer _layer;

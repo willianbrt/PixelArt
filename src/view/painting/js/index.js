@@ -618,8 +618,10 @@ let circleStrategy = () => {
 
             point = cursorToPixel(point);
 
-            circleTool = new module.Circle(point.x, point.y, point.x, point.y, window.selectedColor);
-            editor.preview(circleTool);
+            circleTool = new module.Circle(point.x, point.y, point.x, point.y, 
+                false, 1,
+                window.selectedColor);
+                editor.preview(circleTool);
             startPoint = point;
             flagToPoint = point;
         },
@@ -631,6 +633,7 @@ let circleStrategy = () => {
             circleTool = new module.Circle(
                 startPoint.x, startPoint.y,
                 point.x, point.y,
+                false, 3 ,
                 window.selectedColor
             );
             editor.preview(circleTool);

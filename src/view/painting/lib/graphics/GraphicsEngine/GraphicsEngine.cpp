@@ -2,7 +2,7 @@
 
 void GraphicsEngine::translation(Surface* surface, Bounding bound, int deltaX, int deltaY){
     int width = surface->getWidth();
-    unsigned int* data = surface->getData();
+    unsigned int* data = surface->getBuffer();
     for(int y = bound.start.y; y < bound.end.y; y++){
         for(int x = bound.start.x; x < bound.end.x; x++){
             int index = x + width*y;
@@ -21,7 +21,7 @@ void GraphicsEngine::interpolation(Surface* surface, Bounding bound, float scale
 
     int width = surface->getWidth();
 
-    unsigned int* data = surface->getData();
+    unsigned int* data = surface->getBuffer();
     for(int y = bound.start.y; y < bound.end.y; y++){
         for(int x = bound.start.x; x < bound.end.x; x++){
             int index = x + width*y;
@@ -37,7 +37,7 @@ void GraphicsEngine::rotate(Surface* surface, Surface* dirtSurface, Bounding bou
     // Point dirtEnd = rotate(bound.end, rad);
     // Bounding newBounding = Bounding(start, end);
     
-    unsigned int* data = surface->getData();
+    unsigned int* data = surface->getBuffer();
     int width = surface->getWidth();
     for(int y = bound.start.y; y < bound.end.y; y++){
         for(int x = bound.start.x; x < bound.end.x; x++){
@@ -46,7 +46,7 @@ void GraphicsEngine::rotate(Surface* surface, Surface* dirtSurface, Bounding bou
             int index = x + width*y;
 
             data[index] = 0x0;
-            data[rotatedIndex] = dirtSurface->getData()[index];
+            data[rotatedIndex] = dirtSurface->getBuffer()[index];
         }
     }
 }
