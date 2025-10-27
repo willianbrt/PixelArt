@@ -426,7 +426,7 @@ let paintStrategy = () => {
     let activeFrame;
     let activeLayer;
     let flagToPoint = null;
-    let line;
+    let brush;
     pattern_selected = "dot";
 
     return {
@@ -435,7 +435,7 @@ let paintStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             point = cursorToPixel(point);
-            line = new module.Line(
+            brush = new module.Brush(
                 activeLayer,
                 point.x, point.y,
                 point.x, point.y,
@@ -443,7 +443,7 @@ let paintStrategy = () => {
                 window.selectedColor,
                 getLineSize()
             );
-            line.draw();
+            brush.draw();
             editor.render();
 
 
@@ -454,7 +454,7 @@ let paintStrategy = () => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
 
-            const line = new module.Line(
+            brush = new module.Brush(
                 activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
@@ -462,7 +462,7 @@ let paintStrategy = () => {
                 window.selectedColor,
                 parseInt(getLineSize())
             );
-            line.draw();
+            brush.draw();
             
             editor.render();
 
@@ -478,7 +478,7 @@ let brushStrategy = () => {
     let activeFrame;
     let activeLayer;
     let flagToPoint = null;
-    let line;
+    let brush;
     pattern_selected = "brush_1";
 
     return {
@@ -487,7 +487,7 @@ let brushStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             point = cursorToPixel(point);
-            line = new module.Line(
+            brush = new module.Brush(
                 activeLayer,
                 point.x, point.y,
                 point.x, point.y,
@@ -495,7 +495,7 @@ let brushStrategy = () => {
                 window.selectedColor,
                 getLineSize()
             );
-            line.draw();
+            brush.draw();
             editor.render();
 
 
@@ -506,7 +506,7 @@ let brushStrategy = () => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
 
-            const line = new module.Line(
+            brush = new module.Brush(
                 activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
@@ -514,7 +514,7 @@ let brushStrategy = () => {
                 window.selectedColor,
                 getLineSize()
             );
-            line.draw();
+            brush.draw();
             
             editor.render();
 
@@ -530,7 +530,7 @@ let eraseStrategy = () => {
     let activeFrame;
     let activeLayer;
     let flagToPoint = null;
-    let line;
+    let erase;
     pattern_selected = "dot";
 
     return {
@@ -540,15 +540,14 @@ let eraseStrategy = () => {
 
             point = cursorToPixel(point);
 
-            line = new module.Line(
+            erase = new module.Erase(
                 activeLayer,
                 point.x, point.y,
                 point.x, point.y,
-                getPattern(pattern[pattern_selected]),
-                0x0,
-                getLineSize()
+                getLineSize(),
+                0.2
             );
-            line.draw();
+            erase.draw();
             editor.render();
 
 
@@ -559,15 +558,14 @@ let eraseStrategy = () => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
             
-            const line = new module.Line(
+            erase = new module.Erase(
                 activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
-                getPattern(pattern[pattern_selected]),
-                0x0,
-                getLineSize()
+                getLineSize(),
+                0.2
             );
-            line.draw();
+            erase.draw();
             
             editor.render();
 
@@ -648,6 +646,56 @@ let circleStrategy = () => {
         }
     };
 };
+
+let lineStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+    let lineTool;
+    let flagToPoint = null;
+    let startPoint = null;
+
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+
+            point = cursorToPixel(point);
+
+            lineTool = new module.Line(
+                point.x, point.y,
+                point.x, point.y,
+                window.selectedColor,
+                getLineSize()
+            );
+            editor.preview(lineTool);
+
+            startPoint = point;
+            flagToPoint = point;
+        },
+
+        onTracking: (point) => {
+            point = cursorToPixel(point);
+            if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+
+            lineTool = new module.Line(
+                startPoint.x, startPoint.y,
+                point.x, point.y,
+                window.selectedColor,
+                getLineSize()
+            );
+            editor.preview(lineTool);
+
+            flagToPoint = point;
+        },
+
+        onRelease: () => {
+            editor.draw(lineTool);
+
+            editor.render();
+        }
+    };
+};
+
 let dropperStrategy = () => {
     let activeFrame;
     let activeLayer;
@@ -1140,6 +1188,7 @@ function buildToolBar(){
     
     const buttonLine = document.querySelector(".tool-line");
     buttonLine.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(lineStrategy());
         changeSelectTool.call(this);
     });
     

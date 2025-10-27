@@ -1,17 +1,6 @@
-#include "Line.h"
+#include "Brush.h"
 
-Line::Line(Layer& layer, 
-    Point to, 
-    Point from, 
-    const vector<vector<float>> pattern,
-    unsigned int newColorHex, unsigned int size) : _layer(layer){
-    _to = to;
-    _from = from;
-    _pattern = pattern;
-    _newColorHex = newColorHex;
-    _size = size;
-}
-Line::Line(Layer& layer, 
+Brush::Brush(Layer& layer, 
     int toX, int toY, 
     int fromX, int fromY, 
     const vector<vector<float>> pattern,
@@ -24,23 +13,17 @@ Line::Line(Layer& layer,
     _newColorHex = newColorHex;
     _size = size;
 }
-// Line::Line(Layer& layer, Point from, int width, int deg, unsigned int newColorHex) : _layer(layer){
-//     _to = Point(abs((width + from.x) * tan(deg)), abs((width + from.y) * tan(deg)));;
-//     _from = from;
-//     _layer = layer;
-//     _newColorHex = newColorHex;
-// }
 
-void Line::draw(){
+void Brush::draw(){
     if (std::abs(_to.x - _from.x) > std::abs(_to.y - _from.y)) {
-        modifiedPixels = drawHorizontalLine();
+        modifiedPixels = drawHorizontalBrush();
     }
     else{
-        modifiedPixels = drawVerticalLine();
+        modifiedPixels = drawVerticalBrush();
     }
 }
 
-vector<Pixel> Line::drawHorizontalLine(){
+vector<Pixel> Brush::drawHorizontalBrush(){
     if(_to.x < _from.x){
         std::swap(_to, _from);
     }
@@ -55,10 +38,6 @@ vector<Pixel> Line::drawHorizontalLine(){
     int y = _from.y;
     
     for(int x = _from.x; x <= _to.x; x++){
-        // unsigned int oldColor = _layer.getPixel(x, y);
-        // modifiedPixels.emplace_back(Point(x, y), oldColor);
-        // _layer.putPixel(x, y, 
-        // );
 
         stampPixel(Point(x, y));
         
@@ -72,7 +51,7 @@ vector<Pixel> Line::drawHorizontalLine(){
     
     return modifiedPixels;
 }
-vector<Pixel> Line::drawVerticalLine(){
+vector<Pixel> Brush::drawVerticalBrush(){
     if(_to.y < _from.y){
         std::swap(_to, _from);
     }
@@ -87,9 +66,6 @@ vector<Pixel> Line::drawVerticalLine(){
     int x = _from.x;
     
     for(int y = _from.y; y <= _to.y; y++){
-        // unsigned int oldColor = _layer.getPixel(x, y);
-        // modifiedPixels.emplace_back(Point(x, y), oldColor);
-        // _layer.putPixel(x, y, _newColorHex);
         stampPixel(Point(x, y));
 
         if (D > 0){
@@ -102,7 +78,7 @@ vector<Pixel> Line::drawVerticalLine(){
     return modifiedPixels;
 }
 
-void Line::stampPixel(Point pixel){
+void Brush::stampPixel(Point pixel){
     const unsigned int heightPattern = _pattern.size()*_size;
     const unsigned int widthPattern = _pattern[0].size()*_size;
 
@@ -138,15 +114,13 @@ void Line::stampPixel(Point pixel){
 
 using namespace emscripten;
 
-EMSCRIPTEN_BINDINGS(line_module){
+EMSCRIPTEN_BINDINGS(brush_module){
     register_vector<Pixel>("VectorPixel");
     emscripten::register_vector<float>("VectorFloat");
     emscripten::register_vector<std::vector<float>>("VectorVectorFloat");
 
-    class_<Line>("Line")
+    class_<Brush>("Brush")
         .constructor<Layer&, int, int , int, int, const vector<vector<float>>, unsigned int, unsigned int>()
-        .smart_ptr<std::shared_ptr<Line>>("shared_ptr<Line>")
-        .function("draw", &Line::draw);
-        // .function("drawHorizontalLine", &Line::drawHorizontalLine)
-        // .function("drawVerticalLine", &Line::drawVerticalLine);
+        .smart_ptr<std::shared_ptr<Brush>>("shared_ptr<Brush>")
+        .function("draw", &Brush::draw);
 };
