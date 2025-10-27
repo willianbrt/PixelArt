@@ -10,6 +10,7 @@
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/layer/Layers.h"
+#include "../Bucket/Bucket.h"
 
 class Circle : public IGraphic{
 public:
@@ -21,8 +22,6 @@ public:
 
 private:
     int cx, cy;
-    int rx, ry;
-    int rx2, ry2;
     bool _isFilled;
     int _thickness;
     std::function<void(int, int)> trace;

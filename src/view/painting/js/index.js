@@ -619,7 +619,7 @@ let circleStrategy = () => {
             point = cursorToPixel(point);
 
             circleTool = new module.Circle(point.x, point.y, point.x, point.y, 
-                false, 1,
+                false, getLineSize(),
                 window.selectedColor);
                 editor.preview(circleTool);
             startPoint = point;
@@ -633,7 +633,7 @@ let circleStrategy = () => {
             circleTool = new module.Circle(
                 startPoint.x, startPoint.y,
                 point.x, point.y,
-                false, 3 ,
+                false, getLineSize(),
                 window.selectedColor
             );
             editor.preview(circleTool);
@@ -1109,6 +1109,17 @@ function buildToolBar(){
     // });
     // handlerEvents.setMoveEvent(hoverBrush);
 
+    // MOCK CIRCULO
+    let circleTool = new module.Circle(0, 0, 31, 31, 
+        true, 2,
+        window.selectedColor);
+    editor.draw(circleTool);
+
+    let circleTool2 = new module.Circle(10, 10, 15, 13, 
+        false, 2,
+        window.selectedColor);
+    editor.draw(circleTool2);
+        
     const buttonPencil = document.querySelector(".tool-pencil");
     buttonPencil.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
