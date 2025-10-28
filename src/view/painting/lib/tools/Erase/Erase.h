@@ -23,7 +23,7 @@ private:
     void stampPixel(Point pixel);
     
     unsigned int _size;
-    float _strength;
+    unsigned int _strength;
     Layer _layer ;
     Point _to, _from;
 };

@@ -381,6 +381,7 @@ const pattern = {
 var lineSize = document.querySelector("input[name='size']");
 var pattern_selected = "dot";
 var weight = document.querySelector("input[name='strength']");
+weight.value = 100;
 
 var dirtyFlag = {
     start:{
@@ -419,6 +420,9 @@ function getPattern(jsPattern) {
 }
 function getLineSize(){
     return parseInt(lineSize.value);
+}
+function getWeight(){
+    return parseFloat(weight.value) / 100.0;
 }
 
 // Mock
@@ -545,7 +549,7 @@ let eraseStrategy = () => {
                 point.x, point.y,
                 point.x, point.y,
                 getLineSize(),
-                0.2
+                getWeight()
             );
             erase.draw();
             editor.render();
@@ -563,7 +567,7 @@ let eraseStrategy = () => {
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
                 getLineSize(),
-                0.2
+                getWeight()
             );
             erase.draw();
             

@@ -10,7 +10,7 @@ Erase::Erase(Layer& layer,
     _to = Point(toX, toY);
     _from = Point(fromX, fromY);
     _size = size;
-    _strength = strength;
+    _strength = strength * 255.0f;
 }
 
 void Erase::draw(){
@@ -41,12 +41,9 @@ vector<Pixel> Erase::drawHorizontalErase(){
         for(int tx = x; tx < x+_size; tx++){
             for(int ty = y; ty < y+_size; ty++){
                 unsigned int oldColor = _layer.getPixel(tx, ty);
-                unsigned int alphaSrc = (oldColor & 0xFF);
-
-                float newAlpha = static_cast<float>(alphaSrc) - (_strength * 255.0f);
-                unsigned int a = static_cast<unsigned int>(std::clamp(newAlpha, 0.0f, 255.0f));
-
-                unsigned int color = (oldColor & 0xFFFFFF00) | a;
+                float alphaSrc = oldColor & 0xFF;
+                unsigned int alphaDst = static_cast<unsigned int>(std::clamp(alphaSrc - _strength, 0.0f, 255.0f));
+                unsigned int color = (oldColor & 0xFFFFFF00) | alphaDst;
 
                 _layer.putPixel(tx, ty, color);
             }
@@ -80,14 +77,10 @@ vector<Pixel> Erase::drawVerticalErase(){
 
         for(int tx = x; tx < x+_size; tx++){
             for(int ty = y; ty < y+_size; ty++){
-
                 unsigned int oldColor = _layer.getPixel(tx, ty);
-                unsigned int alphaSrc = oldColor & 0xFF;
-                
-                float newAlpha = static_cast<float>(alphaSrc) - (_strength * 255.0f);
-                unsigned int a = static_cast<unsigned int>(std::clamp(newAlpha, 0.0f, 255.0f));
-                
-                unsigned int color = (oldColor & 0xFFFFFF00) | a;
+                float alphaSrc = oldColor & 0xFF;
+                unsigned int alphaDst = static_cast<unsigned int>(std::clamp(alphaSrc - _strength, 0.0f, 255.0f));
+                unsigned int color = (oldColor & 0xFFFFFF00) | alphaDst;
 
                 _layer.putPixel(tx, ty, color);
             }
