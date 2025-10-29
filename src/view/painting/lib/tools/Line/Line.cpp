@@ -36,13 +36,14 @@ vector<Pixel> Line::drawHorizontalLine(Layer& layer){
         if (D >= 0){
             y+=dir;
             D -= 2*dx;
-        } else
-            D += 2*dy;
+        }
+        D += 2*dy;
     }
 
-    
     return modifiedPixels;
 }
+
+
 vector<Pixel> Line::drawVerticalLine(Layer& layer){
     if(_to.y < _from.y){
         std::swap(_to, _from);
@@ -63,8 +64,8 @@ vector<Pixel> Line::drawVerticalLine(Layer& layer){
         if (D > 0){
             x+=dir;
             D -= 2*dy;
-        } else
-            D += 2*dx;
+        }
+        D += 2*dx;
     }
     
     return modifiedPixels;

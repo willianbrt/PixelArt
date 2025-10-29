@@ -44,8 +44,8 @@ vector<Pixel> Brush::drawHorizontalBrush(){
         if (D >= 0){
             y+=dir;
             D -= 2*dx;
-        } else
-            D += 2*dy;
+        }
+        D += 2*dy;
     }
 
     
@@ -71,8 +71,8 @@ vector<Pixel> Brush::drawVerticalBrush(){
         if (D > 0){
             x+=dir;
             D -= 2*dy;
-        } else
-            D += 2*dx;
+        }
+        D += 2*dx;
     }
     
     return modifiedPixels;
