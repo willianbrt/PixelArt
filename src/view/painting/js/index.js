@@ -412,7 +412,7 @@ function getPattern(jsPattern) {
 
     jsPattern.forEach(row => {
         let rowVec = new module.VectorFloat();
-        row.forEach(v => rowVec.push_back(v*weight.value));
+        row.forEach(v => rowVec.push_back(v*getWeight()));
         cppPattern.push_back(rowVec);
     });
 
