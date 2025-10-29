@@ -606,6 +606,51 @@ let bucketStrategy = () => {
     };
 };
 
+let squareStrategy = () => {
+    let activeFrame;
+    let activeLayer;
+    let squareTool;
+    let flagToPoint = null;
+    let startPoint = null;
+
+    return {
+        onPressed: (point) => {
+            activeFrame = editor.getActiveFrame();
+            activeLayer = activeFrame.getActiveLayer();
+
+            point = cursorToPixel(point);
+
+            squareTool = new module.Square(point.x, point.y, point.x, point.y, 
+                false, getLineSize(),
+                window.selectedColor);
+            editor.preview(squareTool);
+            startPoint = point;
+            flagToPoint = point;
+        },
+
+        onTracking: (point) => {
+            point = cursorToPixel(point);
+            if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
+
+            squareTool = new module.Square(
+                startPoint.x, startPoint.y,
+                point.x, point.y,
+                true, getLineSize(),
+                window.selectedColor
+            );
+            editor.preview(squareTool);
+
+            flagToPoint = point;
+        },
+
+        onRelease: () => {
+            editor.draw(squareTool);
+
+            editor.render();
+        }
+    };
+};
+
 let circleStrategy = () => {
     let activeFrame;
     let activeLayer;
@@ -727,7 +772,7 @@ const ENUM_MARKER = {
     br:3,
     rotate:4
 }
-let squareStrategy = () => {
+let selectStrategy = () => {
     let activeFrame;
     let activeLayer;
 
