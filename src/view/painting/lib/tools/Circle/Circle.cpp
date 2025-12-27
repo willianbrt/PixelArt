@@ -19,10 +19,10 @@ inline void traceSymetricOutline(Layer& layer,
 
     for(int y = fromY; y <= toY; y++){
         for(int x = fromX; x <= toX; x++){
-            layer.putPixel(cx + x, cy + y, 0xFFFF00FF); // AM
-            layer.putPixel(cx - x, cy + y, 0x00FF00FF); // v
-            layer.putPixel(cx + x, cy - y, 0x0000FFFF); // AZ
-            layer.putPixel(cx - x, cy - y, 0xFF0000FF); // V
+            layer.putPixel(cx + x, cy + y, color); // AM
+            layer.putPixel(cx - x, cy + y, color); // v
+            layer.putPixel(cx + x, cy - y, color); // AZ
+            layer.putPixel(cx - x, cy - y, color); // V
         }
     }
 }

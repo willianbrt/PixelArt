@@ -123,6 +123,27 @@ body{
     box-shadow: #441d51 0 0 0 2px inset;
     background-color: #896a95;
 }
+#selected-area .marker#m-top-left{
+    left:0;
+    top:0;
+    transform: translate(-50%, -50%);
+}
+#selected-area .marker#m-top-right{
+    right:0;
+    top:0;
+    transform: translate(50%, -50%);
+}
+#selected-area .marker#m-bottom-right{
+    right:0;
+    bottom:0;
+    transform: translate(50%, 50%);
+}
+#selected-area .marker#m-bottom-left{
+    left:0;
+    bottom:0;
+    transform: translate(-50%, 50%);
+}
+
 #pane-top{
     grid-area: top;
 }

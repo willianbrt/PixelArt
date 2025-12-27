@@ -30,7 +30,7 @@ void GraphicsEngine::interpolation(Surface* surface, Bounding bound, float scale
         }
     }
 }
-void GraphicsEngine::rotate(Surface* surface, Surface* dirtSurface, Bounding bound, Point eixo, float radians){
+void GraphicsEngine::rotate(Surface* surface, Surface* dirtSurface, Bounding bound, float cx, float cy, float radians){
     // float radians = deg * std::M_PI/180;
     // Point eixo = Point(bound.start.x + bound.getWidth()/2, bound.start.y + bound.getHeight()/2);
     // Point dirtStart = rotate(bound.start, rad);
@@ -41,7 +41,7 @@ void GraphicsEngine::rotate(Surface* surface, Surface* dirtSurface, Bounding bou
     int width = surface->getWidth();
     for(int y = bound.start.y; y < bound.end.y; y++){
         for(int x = bound.start.x; x < bound.end.x; x++){
-            Point point = rotate(Point(x, y), eixo, radians);
+            Point point = rotate(Point(x, y), cx, cy, radians);
             int rotatedIndex = point.x + bound.getWidth()*point.y;
             int index = x + width*y;
 
@@ -50,15 +50,18 @@ void GraphicsEngine::rotate(Surface* surface, Surface* dirtSurface, Bounding bou
         }
     }
 }
-Point GraphicsEngine::rotate(Point point, Point eixo, float radians){
+Point GraphicsEngine::rotate(Point point, float cx, float cy, float radians){
     float cos = std::cos(radians);
-    float sin = 1 - cos;
+    float sin = std::sin(radians);
 
-    point.x -= eixo.x;
-    point.y -= eixo.y;
+    float dx = (float)point.x - cx;
+    float dy = (float)point.y - cy;
 
-    point.x = std::abs(point.x*cos - point.y*sin + eixo.x);
-    point.y = std::abs(point.x*sin + point.y*cos + eixo.y);
+    float rx = dx * cos + dy * -sin;
+    float ry = dx * sin + dy * cos;
+    
+    point.x = static_cast<int>(std::round(rx + cx));
+    point.y = static_cast<int>(std::round(ry + cy));
     return point;
 }
 void GraphicsEngine::blending(unsigned int& bottomColor, unsigned int topColor) {
