@@ -12,14 +12,13 @@
 
 class Bucket {
 public:
-    Bucket(Layer& layer, unsigned int x, unsigned int y, unsigned int newColorHex);
+    Bucket(unsigned int x, unsigned int y, unsigned int newColorHex);
 
-    void draw();
+    void draw(Layer& layer);
 
 private:
     unsigned int _newColorHex;
     vector<unsigned int> modifiedPixels;
-    Layer _layer ;
     Point _point;
 };
 

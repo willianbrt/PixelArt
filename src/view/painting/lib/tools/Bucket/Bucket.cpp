@@ -1,11 +1,11 @@
 #include "Bucket.h"
 
-Bucket::Bucket(Layer& layer, unsigned int x, unsigned int y, unsigned int newColorHex) : _layer(layer){
+Bucket::Bucket(unsigned int x, unsigned int y, unsigned int newColorHex) {
     _point = Point(x,y);
     _newColorHex = newColorHex;
 }
-void Bucket::draw(){
-    const unsigned int startColorHEX = _layer.getPixel(_point.x, _point.y);
+void Bucket::draw(Layer& layer){
+    const unsigned int startColorHEX = layer.getPixel(_point.x, _point.y);
 
     if(startColorHEX == _newColorHex)
         return;
@@ -16,12 +16,12 @@ void Bucket::draw(){
     while(queue.size() != 0) {
         Point point = queue.back();
         queue.pop_back();
-        const unsigned int currentColorHEX = _layer.getPixel(point.x, point.y);
+        const unsigned int currentColorHEX = layer.getPixel(point.x, point.y);
 
-        if(!_layer.isInsideSkecth(point.x, point.y) || currentColorHEX != startColorHEX)
+        if(!layer.isInsideSkecth(point.x, point.y) || currentColorHEX != startColorHEX)
             continue;
 
-        _layer.putPixel(point.x, point.y, _newColorHex);
+        layer.putPixel(point.x, point.y, _newColorHex);
         queue.push_back(Point(point.x+1, point.y));
         queue.push_back(Point(point.x-1, point.y));
         queue.push_back(Point(point.x,   point.y+1));
@@ -34,7 +34,7 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(bucket_module){
     class_<Bucket>("Bucket")
-        .constructor<Layer&, unsigned int,unsigned int,unsigned int>()
+        .constructor<unsigned int,unsigned int,unsigned int>()
         .smart_ptr<std::shared_ptr<Bucket>>("shared_ptr<Bucket>")
         .function("draw", &Bucket::draw);
 };

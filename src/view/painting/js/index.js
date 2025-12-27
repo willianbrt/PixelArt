@@ -591,12 +591,8 @@ let bucketStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             point = cursorToPixel(point);
-            let bucket = new module.Bucket(
-                activeLayer,
-                point.x, point.y,
-                window.selectedColor
-            );
-            bucket.draw();
+            let bucket = new module.Bucket(point.x, point.y, window.selectedColor);
+            bucket.draw(activeLayer);
             editor.render();
         },
 
