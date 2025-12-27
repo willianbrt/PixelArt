@@ -1,12 +1,11 @@
 #include "Brush.h"
 
-Brush::Brush(Layer& layer, 
+Brush::Brush(
     int toX, int toY, 
     int fromX, int fromY, 
     const vector<vector<float>> pattern,
     unsigned int newColorHex,
-    unsigned int size) : _layer(layer){
-    _layer=layer;
+    unsigned int size){
     _to = Point(toX, toY);
     _from = Point(fromX, fromY);
     _pattern = pattern;
@@ -14,16 +13,16 @@ Brush::Brush(Layer& layer,
     _size = size;
 }
 
-void Brush::draw(){
+void Brush::draw(Layer& layer){
     if (std::abs(_to.x - _from.x) > std::abs(_to.y - _from.y)) {
-        modifiedPixels = drawHorizontalBrush();
+        modifiedPixels = drawHorizontalBrush(layer);
     }
     else{
-        modifiedPixels = drawVerticalBrush();
+        modifiedPixels = drawVerticalBrush(layer);
     }
 }
 
-vector<Pixel> Brush::drawHorizontalBrush(){
+vector<Pixel> Brush::drawHorizontalBrush(Layer& layer){
     if(_to.x < _from.x){
         std::swap(_to, _from);
     }
@@ -39,7 +38,7 @@ vector<Pixel> Brush::drawHorizontalBrush(){
     
     for(int x = _from.x; x <= _to.x; x++){
 
-        stampPixel(Point(x, y));
+        stampPixel(Point(x, y), layer);
         
         if (D >= 0){
             y+=dir;
@@ -51,7 +50,7 @@ vector<Pixel> Brush::drawHorizontalBrush(){
     
     return modifiedPixels;
 }
-vector<Pixel> Brush::drawVerticalBrush(){
+vector<Pixel> Brush::drawVerticalBrush(Layer& layer){
     if(_to.y < _from.y){
         std::swap(_to, _from);
     }
@@ -66,7 +65,7 @@ vector<Pixel> Brush::drawVerticalBrush(){
     int x = _from.x;
     
     for(int y = _from.y; y <= _to.y; y++){
-        stampPixel(Point(x, y));
+        stampPixel(Point(x, y), layer);
 
         if (D > 0){
             x+=dir;
@@ -78,7 +77,7 @@ vector<Pixel> Brush::drawVerticalBrush(){
     return modifiedPixels;
 }
 
-void Brush::stampPixel(Point pixel){
+void Brush::stampPixel(Point pixel, Layer& layer){
     const unsigned int heightPattern = _pattern.size()*_size;
     const unsigned int widthPattern = _pattern[0].size()*_size;
 
@@ -88,8 +87,8 @@ void Brush::stampPixel(Point pixel){
     );
 
     Bounding boundingStamp;
-    if(!GraphicsEngine::computeVisibleShape(startPixel.x, widthPattern, _layer.getHeight(), boundingStamp.start.x, boundingStamp.end.x) || 
-       !GraphicsEngine::computeVisibleShape(startPixel.y, heightPattern, _layer.getWidth(), boundingStamp.start.y, boundingStamp.end.y)){
+    if(!GraphicsEngine::computeVisibleShape(startPixel.x, widthPattern, layer.getHeight(), boundingStamp.start.x, boundingStamp.end.x) || 
+       !GraphicsEngine::computeVisibleShape(startPixel.y, heightPattern, layer.getWidth(), boundingStamp.start.y, boundingStamp.end.y)){
         return;
     }
     
@@ -102,9 +101,9 @@ void Brush::stampPixel(Point pixel){
                 for(int sx = std::max(0, boundingStamp.start.x - x); sx < std::min<int>(_size, boundingStamp.end.x - x); sx++){
                     Point p = Point(x + sx, y + sy);
 
-                    unsigned int oldColor = _layer.getPixel(p.x, p.y);
+                    unsigned int oldColor = layer.getPixel(p.x, p.y);
                     unsigned int color = GraphicsEngine::blendColors(oldColor, topColor);
-                    _layer.putPixel(p.x, p.y, color);
+                    layer.putPixel(p.x, p.y, color);
                     modifiedPixels.emplace_back(p, oldColor);
                 }
             }
@@ -119,8 +118,8 @@ EMSCRIPTEN_BINDINGS(brush_module){
     emscripten::register_vector<float>("VectorFloat");
     emscripten::register_vector<std::vector<float>>("VectorVectorFloat");
 
-    class_<Brush>("Brush")
-        .constructor<Layer&, int, int , int, int, const vector<vector<float>>, unsigned int, unsigned int>()
+    class_<Brush, base<IGraphic>>("Brush")
+        .constructor<int, int , int, int, const vector<vector<float>>, unsigned int, unsigned int>()
         .smart_ptr<std::shared_ptr<Brush>>("shared_ptr<Brush>")
         .function("draw", &Brush::draw);
 };

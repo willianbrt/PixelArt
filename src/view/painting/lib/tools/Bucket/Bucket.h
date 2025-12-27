@@ -10,7 +10,7 @@
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/layer/Layers.h"
 
-class Bucket {
+class Bucket : public IGraphic {
 public:
     Bucket(unsigned int x, unsigned int y, unsigned int newColorHex);
 

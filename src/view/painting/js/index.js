@@ -440,16 +440,13 @@ let paintStrategy = () => {
 
             point = cursorToPixel(point);
             brush = new module.Brush(
-                activeLayer,
                 point.x, point.y,
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
                 getLineSize()
             );
-            brush.draw();
-            editor.render();
-
+            editor.draw(brush);
 
             flagToPoint = point;
         },
@@ -459,16 +456,13 @@ let paintStrategy = () => {
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
 
             brush = new module.Brush(
-                activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
                 parseInt(getLineSize())
             );
-            brush.draw();
-            
-            editor.render();
+            editor.draw(brush);
 
             flagToPoint = point;
         },
@@ -492,15 +486,13 @@ let brushStrategy = () => {
 
             point = cursorToPixel(point);
             brush = new module.Brush(
-                activeLayer,
                 point.x, point.y,
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
                 getLineSize()
             );
-            brush.draw();
-            editor.render();
+            editor.draw(brush);
 
 
             flagToPoint = point;
@@ -511,17 +503,13 @@ let brushStrategy = () => {
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
 
             brush = new module.Brush(
-                activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
                 getLineSize()
             );
-            brush.draw();
-            
-            editor.render();
-
+            editor.draw(brush);
             flagToPoint = point;
         },
 
@@ -545,14 +533,12 @@ let eraseStrategy = () => {
             point = cursorToPixel(point);
 
             erase = new module.Erase(
-                activeLayer,
                 point.x, point.y,
                 point.x, point.y,
                 getLineSize(),
                 getWeight()
             );
-            erase.draw();
-            editor.render();
+            editor.draw(erase);
 
 
             flagToPoint = point;
@@ -563,15 +549,12 @@ let eraseStrategy = () => {
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
             
             erase = new module.Erase(
-                activeLayer,
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
                 getLineSize(),
                 getWeight()
             );
-            erase.draw();
-            
-            editor.render();
+            editor.draw(erase);
 
             flagToPoint = point;
         },
@@ -592,8 +575,7 @@ let bucketStrategy = () => {
 
             point = cursorToPixel(point);
             let bucket = new module.Bucket(point.x, point.y, window.selectedColor);
-            bucket.draw(activeLayer);
-            editor.render();
+            editor.draw(bucket);
         },
 
         onTracking: (point) => {},

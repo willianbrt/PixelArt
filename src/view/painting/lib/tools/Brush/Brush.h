@@ -10,21 +10,20 @@
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/layer/Layers.h"
 
-class Brush {
+class Brush : public IGraphic {
 public:
-    Brush(Layer& layer, int toX, int toY, int fromX, int fromY, const vector<vector<float>> pattern, unsigned int newColorHex, unsigned int size);
+    Brush(int toX, int toY, int fromX, int fromY, const vector<vector<float>> pattern, unsigned int newColorHex, unsigned int size);
 
-    void draw();
+    void draw(Layer& layer);
 
 private:
     vector<Pixel> modifiedPixels;
-    vector<Pixel> drawHorizontalBrush();
-    vector<Pixel> drawVerticalBrush();
-    void stampPixel(Point pixel);
+    vector<Pixel> drawHorizontalBrush(Layer& layer);
+    vector<Pixel> drawVerticalBrush(Layer& layer);
+    void stampPixel(Point pixel, Layer& layer);
     
     unsigned int _newColorHex;
     unsigned int _size;
-    Layer _layer ;
     Point _to, _from;
     vector<vector<float>> _pattern;
 };

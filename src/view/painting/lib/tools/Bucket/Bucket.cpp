@@ -33,7 +33,7 @@ void Bucket::draw(Layer& layer){
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(bucket_module){
-    class_<Bucket>("Bucket")
+    class_<Bucket, base<IGraphic>>("Bucket")
         .constructor<unsigned int,unsigned int,unsigned int>()
         .smart_ptr<std::shared_ptr<Bucket>>("shared_ptr<Bucket>")
         .function("draw", &Bucket::draw);

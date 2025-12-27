@@ -10,21 +10,20 @@
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/layer/Layers.h"
 
-class Erase {
+class Erase : public IGraphic {
 public:
-    Erase(Layer& layer, int toX, int toY, int fromX, int fromY, unsigned int size, float strength);
+    Erase(int toX, int toY, int fromX, int fromY, unsigned int size, float strength);
 
-    void draw();
+    void draw(Layer& layer);
 
 private:
     vector<Pixel> modifiedPixels;
-    vector<Pixel> drawHorizontalErase();
-    vector<Pixel> drawVerticalErase();
-    void stampPixel(Point pixel);
+    vector<Pixel> drawHorizontalErase(Layer& layer);
+    vector<Pixel> drawVerticalErase(Layer& layer);
+    void stampPixel(Point pixel,Layer& layer);
     
     unsigned int _size;
     unsigned int _strength;
-    Layer _layer ;
     Point _to, _from;
 };
 

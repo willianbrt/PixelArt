@@ -1,28 +1,26 @@
 #include "Erase.h"
 
-Erase::Erase(Layer& layer, 
-    int toX, int toY, 
+Erase::Erase(int toX, int toY, 
     int fromX, int fromY, 
     unsigned int size,
     float strength
-) : _layer(layer){
-    _layer=layer;
+) {
     _to = Point(toX, toY);
     _from = Point(fromX, fromY);
     _size = size;
     _strength = strength * 255.0f;
 }
 
-void Erase::draw(){
+void Erase::draw(Layer& layer){
     if (std::abs(_to.x - _from.x) > std::abs(_to.y - _from.y)) {
-        modifiedPixels = drawHorizontalErase();
+        modifiedPixels = drawHorizontalErase(layer);
     }
     else{
-        modifiedPixels = drawVerticalErase();
+        modifiedPixels = drawVerticalErase(layer);
     }
 }
 
-vector<Pixel> Erase::drawHorizontalErase(){
+vector<Pixel> Erase::drawHorizontalErase(Layer& layer){
     if(_to.x < _from.x){
         std::swap(_to, _from);
     }
@@ -40,12 +38,12 @@ vector<Pixel> Erase::drawHorizontalErase(){
 
         for(int tx = x; tx < x+_size; tx++){
             for(int ty = y; ty < y+_size; ty++){
-                unsigned int oldColor = _layer.getPixel(tx, ty);
+                unsigned int oldColor = layer.getPixel(tx, ty);
                 float alphaSrc = oldColor & 0xFF;
                 unsigned int alphaDst = static_cast<unsigned int>(std::clamp(alphaSrc - _strength, 0.0f, 255.0f));
                 unsigned int color = (oldColor & 0xFFFFFF00) | alphaDst;
 
-                _layer.putPixel(tx, ty, color);
+                layer.putPixel(tx, ty, color);
             }
         }
         
@@ -59,7 +57,7 @@ vector<Pixel> Erase::drawHorizontalErase(){
     
     return modifiedPixels;
 }
-vector<Pixel> Erase::drawVerticalErase(){
+vector<Pixel> Erase::drawVerticalErase(Layer& layer){
     if(_to.y < _from.y){
         std::swap(_to, _from);
     }
@@ -77,12 +75,12 @@ vector<Pixel> Erase::drawVerticalErase(){
 
         for(int tx = x; tx < x+_size; tx++){
             for(int ty = y; ty < y+_size; ty++){
-                unsigned int oldColor = _layer.getPixel(tx, ty);
+                unsigned int oldColor = layer.getPixel(tx, ty);
                 float alphaSrc = oldColor & 0xFF;
                 unsigned int alphaDst = static_cast<unsigned int>(std::clamp(alphaSrc - _strength, 0.0f, 255.0f));
                 unsigned int color = (oldColor & 0xFFFFFF00) | alphaDst;
 
-                _layer.putPixel(tx, ty, color);
+                layer.putPixel(tx, ty, color);
             }
         }
 
@@ -99,8 +97,8 @@ vector<Pixel> Erase::drawVerticalErase(){
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(erase_module){
-    class_<Erase>("Erase")
-        .constructor<Layer&, int, int , int, int, unsigned int, float>()
+    class_<Erase, base<IGraphic>>("Erase")
+        .constructor<int, int , int, int, unsigned int, float>()
         .smart_ptr<std::shared_ptr<Erase>>("shared_ptr<Erase>")
         .function("draw", &Erase::draw);
 };
