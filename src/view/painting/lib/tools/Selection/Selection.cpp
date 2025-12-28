@@ -207,10 +207,7 @@ void Selection::draw(Layer& layer){
 
             unsigned int color = temp->getPixel(src.x, src.y);
 
-            if((color >> 24 & 0xFF) == 0) {
-                // layer.putPixel(dx, dy, 0x000000CC);
-                continue;
-            }
+            if((color & 0xFF) == 0) { continue; }
             // layer.putPixel(dx, dy, GraphicsEngine::blendColors(color, 0x000000CC));
             layer.putPixel(dx, dy, color);
         }
