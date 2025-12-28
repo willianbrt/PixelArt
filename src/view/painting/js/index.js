@@ -751,8 +751,6 @@ const ENUM_MARKER = {
     rotate:4
 }
 let selectStrategy = () => {
-    let activeFrame;
-    let activeLayer;
     let select;
     const CORNER_TOOL_ROTATE = "rotate";
     const CORNER_TOOL_RESIZE = "resize";
@@ -766,6 +764,8 @@ let selectStrategy = () => {
     let canvasTop  = parseFloat(canvas.style.top);
 
     let markerSize = targetScale;
+
+    let selectedArea = document.querySelector("#selected-area");
     let markersElement = document.querySelectorAll("#selected-area .marker");
     markersElement.forEach((e)=>{
         e.style.width = markerSize + "px";
@@ -777,9 +777,12 @@ let selectStrategy = () => {
     let _onTracking = onTrackingBounding;
     let _onRelease = (point)=>{};
     
-    // window.addEventListener("beforeunload", executeCommand,{once:true});
+    window.addEventListener("beforeunload", _onRelease, {once:true});
 
     let _onPressed = (point,event) => {
+        selectedArea.style.position = "absolute"
+        selectedArea.style.display = "block";
+
         intialPixel = cursorToPixel(point);
         
         if(select == null) return;
@@ -923,7 +926,12 @@ let selectStrategy = () => {
         onTracking:(point)=>{
             _onTracking(point);
         },
-        onRelease: _onRelease
+        onRelease: _onRelease,
+        dispatch: ()=>{
+            selectedArea.style.display = "none";
+            if(select != null)
+                editor.draw(select);
+        }
     };
 };
 function isInsideRotatedBounding(point, corners){

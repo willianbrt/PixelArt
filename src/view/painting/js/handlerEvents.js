@@ -9,7 +9,8 @@ export default function HandlerEvents(canvas){
     const noEvent = ()=>{
         return {
             down: ()=>{},
-            up:()=>{}
+            up:()=>{},
+            dispatch: ()=>{}
         }
     };
 
@@ -25,12 +26,15 @@ export default function HandlerEvents(canvas){
     let preventDefaultMoveEvent = false;
     
     function setGenericButtonMousePressedEvent(strategy){
+        otherButtonPressedEvent.dispatch?.();
         otherButtonPressedEvent = createPressedEvent(strategy);
     }
     function setRightButtonMousePressedEvent(strategy){
+        rightButtonEvent.dispatch?.();
         rightButtonEvent = createPressedEvent(strategy);
     }
     function setLeftButtonMousePressedEvent(strategy){
+        leftButtonEvent.dispatch?.();
         leftButtonEvent = createPressedEvent(strategy);
     }
 
@@ -50,7 +54,8 @@ export default function HandlerEvents(canvas){
                 resetPointerTracking();
 
                 requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event, canvas)));
-            }
+            },
+            dispatch: strategy.dispatch
         }
     } 
 
