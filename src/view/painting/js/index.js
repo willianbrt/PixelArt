@@ -229,10 +229,10 @@ function addLayer(layer){
     h5.innerText = layer.getName();
 
     btnHideLayer.className = "hide-layer";
-    btnHideLayer.innerHTML = `<i class=\"fa ${layer.isVisible() ? "fa-eye-slash" : "fa-eye"}\"></i>`;
+    btnHideLayer.innerHTML = `<i class=\"fa ${layer.isVisible() ? "fa-eye" : "fa-eye-slash" }\"></i>`;
 
     btnLockLayer.className = "lock-layer";
-    btnLockLayer.innerHTML = `<i class=\"fa ${layer.isLock() ?  "fa-lock" : "fa-unlock" }\"></i>`;
+    btnLockLayer.innerHTML = `<i class=\"fa ${layer.isLock() ? "fa-lock" : "fa-unlock" }\"></i>`;
 
     btnGrabLayer.className = "grab-layer";
     btnGrabLayer.innerHTML = "<i class=\"fa fa-grip-lines\"></i>";
@@ -253,16 +253,21 @@ function addLayer(layer){
     function toggleLockLayer(){
         let icon = this.querySelector("i");
 
+        layer.setLock(!layer.isLock());
+
         if(layer.isLock()){
-            icon.classList.replace("fa-lock", "fa-unlock");
+            icon.classList.replace("fa-unlock","fa-lock");
             return;
         }
-        icon.classList.replace("fa-unlock", "fa-lock");
+        icon.classList.replace("fa-lock", "fa-unlock");
     }
     function toggleHideLayer(){
         let icon = this.querySelector("i");
+
+        layer.setVisible(!layer.isVisible());
+        editor.render();
         
-        if(layer.isLock()){
+        if(layer.isVisible()){
             icon.classList.replace("fa-eye-slash", "fa-eye");
             layerElement.classList.toggle("hidden-layer", false);
             return;

@@ -24,11 +24,16 @@ void Frame::preview(IGraphic& graphic){
     }
 
     previewLayer = new Layer(*activeLayer);
+    
+    if(activeLayer->isLock()) return;
     previewLayer->draw(graphic);
 }
 void Frame::draw(IGraphic& graphic){
-    if (activeLayer)
+    if (activeLayer){
+        if(activeLayer->isLock()) return;
+
         activeLayer->draw(graphic);
+    }
 
     if (previewLayer) {
         delete previewLayer;
