@@ -318,6 +318,7 @@ function addLayer(layer){
 function removeLayer(id){    
     let frameElement = getLayerById(id);
     frameElement.remove();
+    editor.render();
 }
 function moveLayerTo(id, index){
     if(!activeFrameContainLayer(id))
