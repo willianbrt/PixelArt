@@ -79,16 +79,25 @@ window.onload = async ()=>{
         f.addLayer(l);
         editor.addFrame(f);
         editor.changeActiveFrame(f.getID());
+        editor.render();
     });
     btnRemoveFrame.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
         editor.removeFrame(activeFrame.getID());
+        editor.render();
     });
-    btnMoveDownFrame.addEventListener("click", ()=> editor.bringFrameBack(editor.getActiveFrame().getID()));
-    btnMoveUpFrame.addEventListener("click", ()=> editor.bringFrameToFoward(editor.getActiveFrame().getID()));
+    btnMoveDownFrame.addEventListener("click", ()=> {
+        editor.bringFrameBack(editor.getActiveFrame().getID());
+        editor.render();
+    });
+    btnMoveUpFrame.addEventListener("click", ()=> {
+        editor.bringFrameToFoward(editor.getActiveFrame().getID());
+        editor.render();
+    });
     btnCloneFrame.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
         activeFrame.cloneFrame(activeFrame.getID());
+        editor.render();
     });
 
     let inpOpacity = document.querySelector("input[name='opacity-layer']");
@@ -111,22 +120,26 @@ window.onload = async ()=>{
         const activeFrame = editor.getActiveFrame();
         const activeLayer = activeFrame.getActiveLayer();
         activeFrame.removeLayer(activeLayer.getID());
+        editor.render();
     });
     btnMoveDown.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
         const activeLayer = activeFrame.getActiveLayer();
         activeFrame.bringLayerBack(activeLayer.getID());
+        editor.render();
     });
     btnMoveUp.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
         const activeLayer = activeFrame.getActiveLayer();
         activeFrame.bringLayerToFoward(activeLayer.getID());
+        editor.render();
     });
     btnCloneLayer.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
         const activeLayer = activeFrame.getActiveLayer();
         
         activeFrame.cloneLayer(activeLayer.getID());
+        editor.render();
     });
 }
 
