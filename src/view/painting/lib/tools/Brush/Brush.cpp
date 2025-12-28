@@ -140,7 +140,7 @@ EMSCRIPTEN_BINDINGS(brush_module){
     emscripten::register_vector<std::vector<float>>("VectorVectorFloat");
 
     class_<Brush, base<IGraphic>>("Brush")
-        .constructor<int, int , int, int, const vector<vector<float>>, unsigned int, unsigned int>()
+        .constructor<int, int , int, int, const vector<vector<float>>, unsigned int, int>()
         .smart_ptr<std::shared_ptr<Brush>>("shared_ptr<Brush>")
         .function("draw", &Brush::draw);
 };

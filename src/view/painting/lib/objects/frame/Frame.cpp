@@ -16,12 +16,24 @@ void Frame::move(int offsetX, int offsetY){
     }
 }
 void Frame::preview(IGraphic& graphic){
+    if (!activeLayer) return;
+
+    if (previewLayer) {
+        delete previewLayer;
+        previewLayer = nullptr;
+    }
+
     previewLayer = new Layer(*activeLayer);
     previewLayer->draw(graphic);
 }
 void Frame::draw(IGraphic& graphic){
-    activeLayer->draw(graphic);
-    delete previewLayer;
+    if (activeLayer)
+        activeLayer->draw(graphic);
+
+    if (previewLayer) {
+        delete previewLayer;
+        previewLayer = nullptr;
+    }
 }
 
 unsigned int Frame::getPixel(unsigned int index){ return getPixel(index, 0, layers.size()); }
