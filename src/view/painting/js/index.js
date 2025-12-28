@@ -165,6 +165,7 @@ function changeActiveFrame(id){
             changeActiveLayer(layers.get(i));
         }
     }
+    editor.render();
 }
 function moveFrameTo(id, index){
     const listFrame = document.getElementById("list-frames");
@@ -180,10 +181,12 @@ function moveFrameTo(id, index){
     } else {
         frames[index].before(frameElement);
     }
+    editor.render();
 }
 function removeFrame(id){
     let frameElement = getFrameById(id);
     frameElement.remove();
+    editor.render();
 }
 function getFrameById(id){
     return listFrame.querySelector(`.frame[data-id="${id}"]`);
