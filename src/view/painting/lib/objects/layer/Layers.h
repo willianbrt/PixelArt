@@ -24,7 +24,7 @@ private:
     Guid id;
     bool _isVisible = true;
     bool _isLock = false;
-    unsigned int _opacity = 100;
+    float _opacity = 1.0f;
     std::string _name = nullptr;
     
 public:
@@ -41,8 +41,8 @@ public:
     void setVisible(bool isVisible);
     bool isLock() const;
     void setLock(bool isLock);
-    unsigned int getOpacity() const;
-    void setOpacity(unsigned int value);
+    float getOpacity() const;
+    void setOpacity(float value);
     std::string getName() const;
     void setName(string name);
 };

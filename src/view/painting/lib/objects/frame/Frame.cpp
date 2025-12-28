@@ -44,20 +44,25 @@ void Frame::draw(IGraphic& graphic){
 unsigned int Frame::getPixel(unsigned int index){ return getPixel(index, 0, layers.size()); }
 unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
     unsigned int colorHex = 0;
+    float weight = 1.0f;
     if(toIndex > layers.size()) throw std::runtime_error("ToIndex excede o tamanho maximo de Layers.");
     
     for(int layerIndex = fromIndex; layerIndex < toIndex; layerIndex++){
         Layer* layer = layers.at(layerIndex);
         if(!layer->isVisible()) continue;
 
-
+        unsigned int colorLayer;
         if(layer->getID().toString() == previewLayer->getID().toString()){
-            GraphicsEngine::blending(colorHex, previewLayer->getPixel(index));
+            weight = previewLayer->getOpacity();
+            colorLayer = previewLayer->getPixel(index);
         }else{
-            GraphicsEngine::blending(colorHex, layer->getPixel(index));
+            weight = layer->getOpacity();
+            colorLayer = layer->getPixel(index);
         }
+        colorLayer = (colorLayer & 0xFFFFFF00) | static_cast<int>(weight * (colorLayer & 0xFF));
+        GraphicsEngine::blending(colorHex, colorLayer);
     }
-
+    
     return colorHex;
 }
 

@@ -45,8 +45,8 @@ bool Layer::isLock() const { return _isLock;}
 void Layer::setLock(bool isLock){ _isLock = isLock; }
 std::string Layer::getName() const { return _name; }
 void Layer::setName(std::string name) { _name = name; }
-unsigned int Layer::getOpacity() const { return _opacity; }
-void Layer::setOpacity(unsigned int value){ _opacity = value; }
+float Layer::getOpacity() const { return _opacity; }
+void Layer::setOpacity(float value){ _opacity = value; }
 
 
 using namespace emscripten;
