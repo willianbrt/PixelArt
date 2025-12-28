@@ -1,6 +1,6 @@
 #include "Surface.h"
 
-Surface::Surface(unsigned int width, unsigned int height){
+Surface::Surface(int width, int height){
     setSize(width, height);
 }
 Surface::~Surface(){
@@ -10,10 +10,10 @@ Surface::~Surface(){
 unsigned int* Surface::getBuffer() {
     return _data;
 }
-unsigned int Surface::getWidth() {
+int Surface::getWidth() {
     return _width;
 }
-unsigned int Surface::getHeight() {
+int Surface::getHeight() {
     return _height;
 }
 unsigned int Surface::getLength() {
@@ -22,7 +22,7 @@ unsigned int Surface::getLength() {
 Surface Surface::crop(Bounding bound){
     Surface dirtSurface = Surface(bound.getWidth(), bound.getHeight());
     
-    unsigned int boundWidth = bound.getWidth();
+    int boundWidth = bound.getWidth();
     unsigned long length = boundWidth * sizeof(unsigned int);
     unsigned int* ptrDestination = dirtSurface.getBuffer();
     unsigned int* ptr = _data + (bound.start.x + boundWidth*bound.start.y);
@@ -91,7 +91,7 @@ void Surface::setSize(int width, int height){
 }
 EMSCRIPTEN_BINDINGS(surface_module){
     class_<Surface>("Surface")
-        .constructor<unsigned int, unsigned int>()
+        .constructor<int, int>()
         .function("putPixel",  select_overload<void(int, int, unsigned int)>(&Surface::putPixel))
         .function("getPixel", select_overload<unsigned int(int, int)>(&Surface::getPixel));
 }

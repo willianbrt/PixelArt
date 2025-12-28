@@ -12,7 +12,7 @@
 
 class Brush : public IGraphic {
 public:
-    Brush(int toX, int toY, int fromX, int fromY, const vector<vector<float>> pattern, unsigned int newColorHex, unsigned int size);
+    Brush(int toX, int toY, int fromX, int fromY, const vector<vector<float>> pattern, unsigned int newColorHex, int size);
 
     void draw(Layer& layer);
 
@@ -23,7 +23,7 @@ private:
     void stampPixel(Point pixel, Layer& layer);
     
     unsigned int _newColorHex;
-    unsigned int _size;
+    int _size;
     Point _to, _from;
     vector<vector<float>> _pattern;
 };

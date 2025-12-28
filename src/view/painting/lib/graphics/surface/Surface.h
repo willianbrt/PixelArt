@@ -12,17 +12,17 @@ using namespace emscripten;
 class Surface{
 protected:
     unsigned int* _data = nullptr;
-    unsigned int _width = 0;
-    unsigned int _height = 0;
+    int _width = 0;
+    int _height = 0;
     unsigned int _length = 0;
 
 public:
-    Surface(unsigned int width, unsigned int height);
+    Surface(int width, int height);
     ~Surface();
     
     unsigned int* getBuffer();
-    unsigned int getWidth();
-    unsigned int getHeight();
+    int getWidth();
+    int getHeight();
     unsigned int getLength();
     Surface crop(Bounding bound);
     unsigned int getPixel(int x, int y);

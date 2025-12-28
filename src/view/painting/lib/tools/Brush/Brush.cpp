@@ -5,7 +5,7 @@ Brush::Brush(
     int fromX, int fromY, 
     const vector<vector<float>> pattern,
     unsigned int newColorHex,
-    unsigned int size){
+    int size){
     _to = Point(toX, toY);
     _from = Point(fromX, fromY);
     _pattern = pattern;
@@ -78,35 +78,56 @@ vector<Pixel> Brush::drawVerticalBrush(Layer& layer){
 }
 
 void Brush::stampPixel(Point pixel, Layer& layer){
-    const unsigned int heightPattern = _pattern.size()*_size;
-    const unsigned int widthPattern = _pattern[0].size()*_size;
+    int heightPattern = (int)_pattern.size()*_size;
+    int widthPattern = (int)_pattern[0].size()*_size;
 
     Point startPixel = Point(
-        std::round(pixel.x - widthPattern / 2),
-        std::round(pixel.y - heightPattern / 2)
+        pixel.x - (widthPattern >> 1),
+        pixel.y - (heightPattern >> 1)
     );
+    
+    if(startPixel.x >= layer.getWidth() || startPixel.y >= layer.getHeight()) return;
+    if(startPixel.x < -widthPattern || startPixel.y < -heightPattern) return;
 
     Bounding boundingStamp;
-    if(!GraphicsEngine::computeVisibleShape(startPixel.x, widthPattern, layer.getHeight(), boundingStamp.start.x, boundingStamp.end.x) || 
-       !GraphicsEngine::computeVisibleShape(startPixel.y, heightPattern, layer.getWidth(), boundingStamp.start.y, boundingStamp.end.y)){
-        return;
-    }
+    boundingStamp.start.x = startPixel.x < 0 ? 0 : startPixel.x;
+    boundingStamp.start.y = startPixel.y < 0 ? 0 : startPixel.y;
     
-    for(int patternY = 0, y = startPixel.y; patternY < heightPattern; patternY++, y += _size){
-        for(int patternX = 0, x = startPixel.x; patternX < widthPattern; patternX++, x += _size){
-            float alphaSrc = _pattern[patternY][patternX];
+    boundingStamp.end.x = startPixel.x + widthPattern >= layer.getWidth() ? layer.getWidth() : startPixel.x + widthPattern;  
+    boundingStamp.end.y = startPixel.y + heightPattern >= layer.getHeight() ? layer.getHeight() : startPixel.y + heightPattern;
+    
+    int startSrcX = startPixel.x < 0 ? -startPixel.x  / _size : 0;
+    int startErrX = startPixel.x < 0 ? -startPixel.x % widthPattern : 0;
+    
+    int srcY =  startPixel.y < 0 ? -startPixel.y  / _size : 0;
+    int errY = startPixel.y < 0 ? -startPixel.y % heightPattern : 0;
+    
+    for(int y = boundingStamp.start.y; y < boundingStamp.end.y; y ++){
+            
+        int srcX = startSrcX;
+        int errX = startErrX;
+        for(int x =  boundingStamp.start.x; x <  boundingStamp.end.x; x ++){
+            float alphaSrc = _pattern[srcY][srcX];
             unsigned int topColor = (_newColorHex & 0xFFFFFF00) | static_cast<int>(alphaSrc * (_newColorHex & 0xFF));
+            
+            unsigned int oldColor = layer.getPixel(x, y);
+            unsigned int color = GraphicsEngine::blendColors(oldColor, topColor);
+            layer.putPixel(x, y, color);
+            
+            Point p = Point(x, y);
+            modifiedPixels.emplace_back(p, oldColor);
 
-            for(int sy = std::max(0, boundingStamp.start.y - y); sy < std::min<int>(_size, boundingStamp.end.y - y); sy++){
-                for(int sx = std::max(0, boundingStamp.start.x - x); sx < std::min<int>(_size, boundingStamp.end.x - x); sx++){
-                    Point p = Point(x + sx, y + sy);
-
-                    unsigned int oldColor = layer.getPixel(p.x, p.y);
-                    unsigned int color = GraphicsEngine::blendColors(oldColor, topColor);
-                    layer.putPixel(p.x, p.y, color);
-                    modifiedPixels.emplace_back(p, oldColor);
-                }
+            errX +=(int) _pattern[0].size();
+            if(errX >= widthPattern){
+                srcX++;
+                errX-=widthPattern;
             }
+        }
+
+        errY+= (int)_pattern.size();
+        if(errY >= heightPattern){
+            srcY++;
+            errY-=heightPattern;
         }
     }
 }
