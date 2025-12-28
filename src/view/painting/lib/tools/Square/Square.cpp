@@ -1,13 +1,5 @@
 #include "Square.h"
 
-inline void traceFilled(Layer& layer, int cx, int cy, int x, int y, unsigned int color) {
-    if(x<=0) return;
-    for (int xi = cx - x + 1 ; xi < cx + x; xi++) {
-        layer.putPixel(xi, cy + y, color);
-        layer.putPixel(xi, cy - y, color);
-    }
-}
-
 Square::Square(int from_x, int from_y,
                 int to_x, int to_y,
                 bool isFilled, int thickness,
@@ -27,33 +19,32 @@ Square::Square(int from_x, int from_y,
 
 }
 void Square::draw(Layer& layer) {
-// EXTERNO
     const int rx = ((_toPoint.x - _fromPoint.x) >> 1);
     const int ry = ((_toPoint.y - _fromPoint.y) >> 1);
 
     for(int x = 0; x <= rx; x++){
         for(int t = 0; t < _thickness; t++){
-            layer.putPixel(_fromPoint.x + x, _fromPoint.y + t, 0xFFFF00FF);
-            layer.putPixel(_fromPoint.x + x, _toPoint.y - t, 0x00FF00FF);
-            layer.putPixel(_toPoint.x - x, _fromPoint.y + t, 0xFFFF00FF);
-            layer.putPixel(_toPoint.x - x, _toPoint.y - t, 0x00FF00FF);
+            layer.putPixel(_fromPoint.x + x, _fromPoint.y + t, _newColorHex);
+            layer.putPixel(_fromPoint.x + x, _toPoint.y - t, _newColorHex);
+            layer.putPixel(_toPoint.x - x, _fromPoint.y + t, _newColorHex);
+            layer.putPixel(_toPoint.x - x, _toPoint.y - t, _newColorHex);
         }
     }
 
     for(int y = _thickness; y <= ry; y++){
         for(int t = 0; t < _thickness; t++){
-            layer.putPixel(_fromPoint.x + t, _fromPoint.y + y, 0xFF00FFFF);
-            layer.putPixel(_toPoint.x - t, _fromPoint.y + y, 0x0000FFFF);
+            layer.putPixel(_fromPoint.x + t, _fromPoint.y + y, _newColorHex);
+            layer.putPixel(_toPoint.x - t, _fromPoint.y + y, _newColorHex);
 
-            layer.putPixel(_fromPoint.x + t, _toPoint.y - y, 0xFF00FFFF);
-            layer.putPixel(_toPoint.x - t, _toPoint.y - y, 0x0000FFFF);
+            layer.putPixel(_fromPoint.x + t, _toPoint.y - y, _newColorHex);
+            layer.putPixel(_toPoint.x - t, _toPoint.y - y, _newColorHex);
         }
     }
 
     if(_isFilled){
         for(int y = _fromPoint.y + _thickness; y <= _toPoint.y - _thickness; y++){
             for(int x = _fromPoint.x+_thickness; x <= _toPoint.x - _thickness; x++){
-                layer.putPixel(x, y, 0xFFFFFFFF);
+                layer.putPixel(x, y, _newColorHex);
             }
         }
     }
