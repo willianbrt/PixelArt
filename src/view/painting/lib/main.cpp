@@ -107,7 +107,16 @@ public:
 
         renderCanvas(_sketch.getBuffer(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
     }
+    void cloneActiveFrame(){
+        Frame* cloneFrame = new Frame(*activeFrame);
+        cloneFrame->setID(Guid::generateUUID());
 
+        addFrame(cloneFrame);
+
+        size_t i = std::distance(frames.begin(), getIteratorFrameByID(activeFrame->getID()));
+        bringFrameTo(cloneFrame->getID(), i + 1);
+        changeActiveFrame(cloneFrame->getID());
+    }
     void bringFrameToFoward(Guid id){
         size_t i = std::distance(frames.begin(), getIteratorFrameByID(id));
         bringFrameTo(id, i + 1);
@@ -133,6 +142,7 @@ public:
         
         emscripten::val::global("move_frame_to")(emscripten::val(id), emscripten::val(toIndex));
     }
+    
     void removeFrame(Guid id){
         auto it = getIteratorFrameByID(id);
         size_t index = it - frames.begin();
@@ -196,6 +206,7 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("bringFrameBack", &Editor::bringFrameBack)
         .function("bringFrameTo", &Editor::bringFrameTo)
         .function("removeFrame", &Editor::removeFrame)
+        .function("cloneActiveFrame", &Editor::cloneActiveFrame)
         .function("addFrame", &Editor::addFrame, allow_raw_pointers())
         .function("getAllFrames", &Editor::getAllFrames, allow_raw_pointers())
         .function("getFrameByID", &Editor::getFrameByID, allow_raw_pointers())

@@ -1,6 +1,15 @@
 #include "Frame.h"
 
-Frame::Frame() : id(Guid::generateUUID()) {
+Frame::Frame() : _id(Guid::generateUUID()) {
+}
+
+Frame::Frame(const Frame& frame) : _id(frame.getID()) {
+    timeDuration = frame.getFrameDuration();
+
+    for(Layer* layer : frame.getAllLayers()){
+        layers.emplace_back(new Layer(*layer));
+    }
+    activeLayer = getLayerByID(frame.getActiveLayer()->getID());
 }
 
 Frame::~Frame(){}
@@ -15,6 +24,18 @@ void Frame::move(int offsetX, int offsetY){
         layer->move(offsetX, offsetY);
     }
 }
+void Frame::cloneActiveLayer(){
+    Layer* cloneLayer = new Layer(*activeLayer);
+    cloneLayer->setID(Guid::generateUUID());
+    cloneLayer->setName(cloneLayer->getName() + " cpy");
+    addLayer(cloneLayer);
+
+    size_t i = std::distance(layers.cbegin(), getIteratorLayerByID(activeLayer->getID()));
+    bringLayerTo(cloneLayer->getID(), i+1);
+    
+    changeActiveLayer(cloneLayer->getID());
+}
+
 void Frame::preview(IGraphic& graphic){
     if (!activeLayer) return;
 
@@ -67,19 +88,22 @@ unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
 }
 
 
-unsigned int Frame::getFrameDuration(){ return timeDuration; }
+unsigned int Frame::getFrameDuration() const{ return timeDuration; }
 
-Guid Frame::getID(){
-    return id;
+void Frame::setID(Guid id){
+    _id = id;
+}
+Guid Frame::getID() const{
+    return _id;
 }
 
 
 void Frame::bringLayerToFoward(Guid id){
-    size_t i = std::distance(layers.begin(), getIteratorLayerByID(id));
+    size_t i = std::distance(layers.cbegin(), getIteratorLayerByID(id));
     bringLayerTo(id, i + 1);
 }
 void Frame::bringLayerBack(Guid id){
-    size_t i = std::distance(layers.begin(), getIteratorLayerByID(id));
+    size_t i = std::distance(layers.cbegin(), getIteratorLayerByID(id));
     bringLayerTo(id, i - 1);
 }
 void Frame::bringLayerTo(Guid id, size_t toIndex){
@@ -87,7 +111,7 @@ void Frame::bringLayerTo(Guid id, size_t toIndex){
 
     if (from == layers.end()) return;
 
-    size_t fromIndex = std::distance(layers.begin(), from);
+    size_t fromIndex = std::distance(layers.cbegin(), from);
     
     if (fromIndex == toIndex || fromIndex >= layers.size() || toIndex >= layers.size()) return;
     
@@ -97,7 +121,7 @@ void Frame::bringLayerTo(Guid id, size_t toIndex){
         std::rotate(layers.begin() + toIndex, layers.begin() + fromIndex, layers.begin() + fromIndex + 1);
     }
 
-    if(activeLayer->getID().toString() == id.toString())
+    // if(activeLayer->getID().toString() == id.toString())
         emscripten::val::global("move_layer_to")(emscripten::val(id), emscripten::val(toIndex));
 }
 void Frame::removeLayer(Guid id){
@@ -124,24 +148,42 @@ void Frame::addLayer(Layer* layer){
         changeActiveLayer(layers[0]->getID());
     }
 }
-vector<Layer*> Frame::getAllLayers(){
+vector<Layer*> Frame::getAllLayers() const{
     return layers;
 }
-Layer* Frame::getLayerByID(Guid id){
+Layer* Frame::getLayerByID(Guid id) const{
     auto it = getIteratorLayerByID(id);
     return (it != layers.end()) ? *it : nullptr;
 }
-std::vector<Layer*>::iterator Frame::getIteratorLayerByID(Guid id){
+std::vector<Layer*>::const_iterator Frame::getIteratorLayerByID(Guid id) const{
     string idStr = id.toString();
-    return std::find_if(layers.begin(), layers.end(), [&idStr](Layer* f){ return f->getID().toString() == idStr; });
+    return std::find_if(layers.cbegin(), layers.cend(),
+     [&idStr](Layer* f){
+        return f->getID().toString() == idStr;
+    });
 }
-Layer* Frame::getActiveLayer(){
+Layer* Frame::getActiveLayer() const{
     return activeLayer;
 }
 void Frame::changeActiveLayer(Guid id){
     activeLayer = getLayerByID(id);
     emscripten::val::global("change_active_layer")(activeLayer);
 }
+
+std::string Frame::renameLayerIfDuplicate(std::string name){
+//     int cntr = std::count_if(layers.begin(), layers.end(),
+//                 [&name](Layer* f){
+//                     if(cntr > 0)
+//                         name = std::regex_replace(name, std::regex("(\\d+)$"), "("+ std::to_string(cntr) +")");
+                    
+//                         return f->getName() == name; 
+//                 });
+// // (/\(\d+\)$/, '')
+//     if(cntr > 0)
+//         name = std::regex_replace(name, std::regex("(\\d+)$"), "("+ std::to_string(cntr) +")");
+    return name;
+}
+
 
 
 using namespace emscripten;
@@ -154,6 +196,8 @@ EMSCRIPTEN_BINDINGS(frame_module){
         .function("getID", &Frame::getID)
         .function("resize", &Frame::resize)
         .function("move", &Frame::move)
+        .function("renameLayerIfDuplicate", &Frame::renameLayerIfDuplicate)
+        .function("cloneActiveLayer", &Frame::cloneActiveLayer)
         .function("draw", &Frame::draw)
         .function("getFrameDuration", &Frame::getFrameDuration)
         

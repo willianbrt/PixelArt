@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <array>
+#include <regex>
 
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../helpers/Guid/Guid.h"
@@ -26,31 +27,35 @@ class Frame : public ITile
 {
 public:
     Frame();
+    Frame(const Frame& frame);
     ~Frame();
 
     void preview(IGraphic& graphic);
     void draw(IGraphic& graphic);
     void resize(int width, int height);
     void move(int offsetX, int offsetY);
+    void cloneActiveLayer();
+    std::string renameLayerIfDuplicate(std::string name);
 
     unsigned int getPixel(unsigned int index);
     unsigned int getPixel(unsigned int index, int fromIndex, int toIndex);
 
-    unsigned int getFrameDuration();
+    unsigned int getFrameDuration() const;
     
-    Guid getID();
+    void setID(Guid id);
+    Guid getID() const;
     void bringLayerToFoward(Guid id);
     void bringLayerBack(Guid id);
     void bringLayerTo(Guid id, size_t to);
     void removeLayer(Guid id);
     void addLayer(Layer* tile);
-    vector<Layer*> getAllLayers();
-    Layer* getActiveLayer();
+    vector<Layer*> getAllLayers() const;
+    Layer* getActiveLayer() const;
     int getIndexFromActiveLayer();
     void changeActiveLayer(Guid id);
     size_t getNumberOfLayers();
-    Layer* getLayerByID(Guid id);
-    std::vector<Layer*>::iterator getIteratorLayerByID(Guid id);
+    Layer* getLayerByID(Guid id) const;
+    std::vector<Layer*>::const_iterator getIteratorLayerByID(Guid id) const;
 
 private:
     void blending(unsigned int& bottomColor, unsigned int topColor);
@@ -61,7 +66,7 @@ private:
     Layer* activeLayer = 0;
     Layer* previewLayer = 0;
     
-    Guid id;
+    Guid _id;
 };
 
 

@@ -1,13 +1,13 @@
 #include "Layers.h"
 
 Layer::Layer(std::string name, unsigned int width, unsigned int height) : 
-id(Guid::generateUUID()),
+_id(Guid::generateUUID()),
  Surface(width, height)
  {
     _name = name;
 }
 Layer::Layer(const Layer& layer) : 
-id(layer.getID()),
+_id(layer.getID()),
  Surface(layer._width, layer._height)
 {
     _data = new unsigned int[_length];;
@@ -38,7 +38,8 @@ void Layer::resize(int width, int height){
     // TODO: IMPLEMENTAR
 }
 
-Guid Layer::getID() const { return id; }
+void Layer::setID(Guid id) { _id = id; }
+Guid Layer::getID() const { return _id; }
 bool Layer::isVisible() const { return _isVisible; }
 void Layer::setVisible(bool isVisible){ _isVisible = isVisible; }
 bool Layer::isLock() const { return _isLock;}

@@ -21,7 +21,7 @@ using namespace std;
 
 class Layer : public ITile, public Surface {
 private: 
-    Guid id;
+    Guid _id;
     bool _isVisible = true;
     bool _isLock = false;
     float _opacity = 1.0f;
@@ -36,6 +36,7 @@ public:
     void move(int x, int y);
     void draw(IGraphic& graphic);
     
+    void setID(Guid id);
     Guid getID() const;
     bool isVisible() const;
     void setVisible(bool isVisible);

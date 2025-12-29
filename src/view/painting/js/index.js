@@ -95,8 +95,7 @@ window.onload = async ()=>{
         editor.render();
     });
     btnCloneFrame.addEventListener("click", ()=> {
-        const activeFrame = editor.getActiveFrame();
-        activeFrame.cloneFrame(activeFrame.getID());
+        editor.cloneActiveFrame();
         editor.render();
     });
 
@@ -136,9 +135,7 @@ window.onload = async ()=>{
     });
     btnCloneLayer.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
-        const activeLayer = activeFrame.getActiveLayer();
-        
-        activeFrame.cloneLayer(activeLayer.getID());
+        activeFrame.cloneActiveLayer();
         editor.render();
     });
 }
@@ -335,6 +332,7 @@ function removeLayer(id){
     editor.render();
 }
 function moveLayerTo(id, index){
+    console.log(id, index)
     if(!activeFrameContainLayer(id))
         return;
 
@@ -351,6 +349,7 @@ function moveLayerTo(id, index){
     } else {
         layers[index].before(layerElement);
     }
+    editor.render();
 }
 function getLayerById(id){
     return listLayer.querySelector(`.layer[data-id="${id}"]`);
