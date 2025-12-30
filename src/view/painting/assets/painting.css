@@ -334,6 +334,7 @@ input[type="range"].slider::-webkit-slider-runnable-track{
     display: flex;
     flex-direction: column;
     flex:1;
+    padding: 8px 0px;
 }
 #pane-layers{
     display: flex;
@@ -414,19 +415,46 @@ span.color.active{
 .hidden{
     display: none;
 }
-.layer.swap{
+.layer.after-indicator, .layer.before-indicator{
     position: relative;
     z-index: 1;
+    display: flex;
+    flex-direction: row;
 }
-.layer.swap::after {
+.layer.after-indicator::after {
     content: "";
     background: hsl(285 49% 24% / 1);
-    height: 2px;
+    background: transparent;
+    height: 100%;
     width: 100%;
     position: absolute;
-    border-radius: 0px;
-    bottom:0%;
+    border-radius: 3px;
+    bottom: 0px;
+    left: 0px;
+    box-shadow: 0px 3px 0px 0px rgb(240 202 14);
 }
+.layer.before-indicator::before {
+    content: "";
+    background: hsl(285 49% 24% / 1);
+    background: transparent;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    border-radius: 3px;
+    top: 0px;
+    left: 0px;
+    box-shadow: 0px -3px 0px 0px rgb(240 202 14);
+}
+.layer .grab-layer{
+    background-color: transparent;
+    cursor: pointer;
+    height: 100%;
+    padding: 8px;
+}
+.layer .grab-layer:hover{
+    background-color: transparent;
+}
+
 select#time-all-frame::before {
     content: "\f017";
     font-family: 'FontAwesome';

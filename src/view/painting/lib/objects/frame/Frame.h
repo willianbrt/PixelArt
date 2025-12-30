@@ -47,6 +47,7 @@ public:
     void bringLayerToFoward(Guid id);
     void bringLayerBack(Guid id);
     void bringLayerTo(Guid id, size_t to);
+    size_t getLayerIndex(Guid id) const;
     void removeLayer(Guid id);
     void addLayer(Layer* tile);
     vector<Layer*> getAllLayers() const;

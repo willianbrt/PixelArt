@@ -3,6 +3,20 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
+Guid::Guid(const std::string& str) {
+    if (str.size() != 36)
+        throw std::invalid_argument("Invalid UUID size");
+
+    char buf[32];
+    int j = 0;
+
+    for (char c : str)
+        if (c != '-') buf[j++] = c;
+
+    high = hexToUint64(buf);
+    low  = hexToUint64(buf + 16);
+
+};
 Guid::Guid(uint64_t high, uint64_t low) : high(high), low(low) {};
 
 Guid Guid::generateUUID() {
@@ -12,6 +26,23 @@ Guid Guid::generateUUID() {
     
     return Guid(dis(gen), dis(gen));
 };
+
+uint64_t Guid::hexToUint64(const char* p)
+{
+    uint64_t v = 0;
+    for (int i = 0; i < 16; i++)
+    {
+        char c = *p++;
+        v <<= 4;
+
+        if (c >= '0' && c <= '9') v |= (c - '0');
+        else if (c >= 'a' && c <= 'f') v |= (c - 'a' + 10);
+        else if (c >= 'A' && c <= 'F') v |= (c - 'A' + 10);
+        else throw std::invalid_argument("Invalid hex char");
+    }
+    return v;
+}
+
 
 std::string Guid::toString() {
     std::ostringstream ss;
@@ -29,5 +60,6 @@ std::string Guid::toString() {
 using namespace emscripten;
 EMSCRIPTEN_BINDINGS(guid_module){
     class_<Guid>("Guid")
+        .constructor<std::string>()
         .function("toString", &Guid::toString);
 };

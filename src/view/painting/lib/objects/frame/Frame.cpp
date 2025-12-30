@@ -106,6 +106,9 @@ void Frame::bringLayerBack(Guid id){
     size_t i = std::distance(layers.cbegin(), getIteratorLayerByID(id));
     bringLayerTo(id, i - 1);
 }
+size_t Frame::getLayerIndex(Guid id) const{
+    return std::distance(layers.cbegin(), getIteratorLayerByID(id));
+}
 void Frame::bringLayerTo(Guid id, size_t toIndex){
     auto from = getIteratorLayerByID(id);
 
@@ -201,6 +204,7 @@ EMSCRIPTEN_BINDINGS(frame_module){
         .function("draw", &Frame::draw)
         .function("getFrameDuration", &Frame::getFrameDuration)
         
+        .function("getLayerIndex", &Frame::getLayerIndex)
         .function("bringLayerToFoward", &Frame::bringLayerToFoward)
         .function("bringLayerBack", &Frame::bringLayerBack)
         .function("bringLayerTo", &Frame::bringLayerTo)

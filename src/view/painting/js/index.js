@@ -288,17 +288,55 @@ function addLayer(layer){
         layerElement.classList.toggle("hidden-layer", true);
     }
     function grabLayer(e){
-        let listLayer = document.getElementById("list-Layers");
+        let areaListLayer = document.getElementById("list-Layers");
+        let listLayer = areaListLayer.querySelectorAll("#list-Layers .layer");
         let abort = new AbortController();
         e.preventDefault();
-    
+        
         window.addEventListener("mousemove", (e)=> {
-            listLayer.querySelectorAll(".layer").forEach(el => el.classList.remove("swap"));
-            e.target.closest(".layer")?.classList.add("swap");
+            let elementLast;
+            listLayer.forEach(el => {
+                let box  = el.getBoundingClientRect();
+                
+                el.classList.remove("after-indicator")
+                el.classList.remove("before-indicator")
+                if(e.clientY > box.y){
+                    elementLast = el;
+                }
+            });
+            
+            if(!elementLast)
+                listLayer[0]?.classList.add("before-indicator");
+            else 
+                elementLast?.classList.add("after-indicator");
         },{signal: abort.signal});
+
         window.addEventListener("mouseup", (e)=>{
-            e.target?.closest(".layer").classList.remove("swap");
-            e.target?.closest(".layer").after(layerElement);
+            
+            let elementLast;
+            listLayer.forEach(el => {
+                let box  = el.getBoundingClientRect();
+                
+                el.classList.remove("swap")
+                if(e.clientY > box.y){
+                    elementLast = el;
+                }
+            });
+
+            let activeFrame = editor.getActiveFrame();
+            
+            if(elementLast){
+                elementLast?.classList.remove("after-indicator");
+                elementLast?.after(layerElement);
+            } else {
+                elementLast = listLayer[0];
+                elementLast?.classList.remove("before-indicator");
+                areaListLayer.prepend(layerElement);
+            }
+            
+            let indexDst = activeFrame.getLayerIndex(new module.Guid(elementLast.dataset.id));
+            activeFrame.bringLayerTo(layer.getID(), indexDst);
+
             abort.abort();
         }, { once: true });
     }
@@ -332,7 +370,6 @@ function removeLayer(id){
     editor.render();
 }
 function moveLayerTo(id, index){
-    console.log(id, index)
     if(!activeFrameContainLayer(id))
         return;
 
