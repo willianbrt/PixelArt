@@ -4,7 +4,7 @@ import { PositionHelper } from "../../../scripts/common/position.js";
 import { Chromatic, ColorFactory } from "./chromatic.js"
 
 let width = 32;
-let height = 32;
+let height = 31;
 const DEFAULT_NAME_LAYER = "Layer";
 let targetScale = 1;
 
@@ -72,6 +72,8 @@ window.onload = async ()=>{
     let btnMoveDownFrame = document.getElementById("move-down-frame");
     let btnMoveUpFrame = document.getElementById("move-up-frame");
     let btnRemoveFrame = document.getElementById("remove-frame");
+    let btnFlipXFrame = document.getElementById("flip-x");
+    let btnFlipYFrame = document.getElementById("flip-y");
     
     btnAddFrame.addEventListener("click", ()=>{
         let f = new module.Frame();
@@ -96,6 +98,18 @@ window.onload = async ()=>{
     });
     btnCloneFrame.addEventListener("click", ()=> {
         editor.cloneActiveFrame();
+        editor.render();
+    });
+
+    btnFlipXFrame.addEventListener("click", ()=>{
+        const activeFrame = editor.getActiveFrame();
+        activeFrame.flipX();
+        editor.render();
+    });
+
+    btnFlipYFrame.addEventListener("click", ()=>{
+        const activeFrame = editor.getActiveFrame();
+        activeFrame.flipY();
         editor.render();
     });
 

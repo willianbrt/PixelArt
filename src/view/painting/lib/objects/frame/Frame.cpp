@@ -35,6 +35,59 @@ void Frame::cloneActiveLayer(){
     
     changeActiveLayer(cloneLayer->getID());
 }
+void Frame::flipX(){
+    for(Layer* layer : layers){
+        unsigned int* buffer = layer->getBuffer();
+        unsigned int len = layer->getLength();
+        int width = layer->getWidth();
+        
+        if(width <= 0) return;
+
+        int incrementY = (width+1) >> 1;
+        int index = incrementY;
+        int oppositeIndex = width - 1 - index;
+        while(index < len){
+            printf("%i, %i\n", index, oppositeIndex);
+            std::swap(buffer[index], buffer[oppositeIndex]);
+
+            index++;
+            incrementY++;
+            
+            if(incrementY >= width){
+                incrementY = (width+1) >> 1;
+                index += incrementY;
+                oppositeIndex += width + ((width) >> 1) - 1;
+            } else {
+                oppositeIndex--;
+            }
+        }
+    }
+}
+void Frame::flipY(){
+    for(Layer* layer : layers){
+        unsigned int* buffer = layer->getBuffer();
+        unsigned int len = layer->getLength();
+        int width = layer->getWidth();
+        
+        int incrementX = 0;
+        int index = ((layer->getHeight() + 1) >> 1) * width;
+        int oppositeIndex = len - width - index;
+        while(index < len){
+            printf("%i, %i\n", index, oppositeIndex);
+            std::swap(buffer[index], buffer[oppositeIndex]);
+            
+            index++;
+            incrementX++;
+            
+            if(incrementX >= width){
+                oppositeIndex -=  width + width - 1;
+                incrementX = 0;
+            } else{
+                oppositeIndex++;
+            }
+        }
+    }
+}
 
 void Frame::preview(IGraphic& graphic){
     if (!activeLayer) return;
@@ -201,6 +254,8 @@ EMSCRIPTEN_BINDINGS(frame_module){
         .function("move", &Frame::move)
         .function("renameLayerIfDuplicate", &Frame::renameLayerIfDuplicate)
         .function("cloneActiveLayer", &Frame::cloneActiveLayer)
+        .function("flipX", &Frame::flipX)
+        .function("flipY", &Frame::flipY)
         .function("draw", &Frame::draw)
         .function("getFrameDuration", &Frame::getFrameDuration)
         

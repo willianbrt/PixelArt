@@ -35,6 +35,8 @@ public:
     void resize(int width, int height);
     void move(int offsetX, int offsetY);
     void cloneActiveLayer();
+    void flipX();
+    void flipY();
     std::string renameLayerIfDuplicate(std::string name);
 
     unsigned int getPixel(unsigned int index);
