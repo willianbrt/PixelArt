@@ -4,7 +4,7 @@ import { PositionHelper } from "../../../scripts/common/position.js";
 import { Chromatic, ColorFactory } from "./chromatic.js"
 
 let width = 32;
-let height = 31;
+let height = 10;
 const DEFAULT_NAME_LAYER = "Layer";
 let targetScale = 1;
 
@@ -37,7 +37,7 @@ window.onload = async ()=>{
     canvas.style.position = `absolute`;
     canvas.style.transform = `scale(${targetScale})`;
     canvas.style.left = `${ ( (viewportWidth - width*targetScale)/ 2  )}px`;
-    canvas.style.top = `${0}`;
+    canvas.style.top = `${ ( (viewportHeight - height*targetScale)/ 2  ) }px`;
 
     window.module = await ModulePixelEditor({
         canvas,

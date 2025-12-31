@@ -75,34 +75,22 @@ public:
         renderArea(boundingSketch);
     }
     void renderArea(Bounding area){
-        area.start.x = min(static_cast<int>(_sketch.getWidth()), max(area.start.x, 0));
-        area.start.y = min(static_cast<int>(_sketch.getHeight()), max(area.start.y, 0));
-        area.end.x = max(0, min(area.end.x, static_cast<int>(_sketch.getWidth())));
-        area.end.y = max(0, min(area.end.y, static_cast<int>(_sketch.getHeight())));
+        if(area.start.x > _sketch.getWidth() || area.start.y > _sketch.getHeight()) return;
 
-        // if(area.end.y > _sketch.getHeight()) return;
-        // if(area.end.x > _sketch.getWidth()) return;
-        
-        if(activeFrame == nullptr) return;
-    
-        unsigned int startLineIndex =  area.start.x + area.getWidth()*area.start.y;
-        unsigned int endOfLineIndex = startLineIndex + area.getWidth();
-        unsigned int endIndex = startLineIndex + area.getHeight()*area.end.y;
-        
-        unsigned int index = startLineIndex;
+        area.start.x = (area.start.x < 0) ? 0 : area.start.x;
+        area.start.y = (area.start.y < 0) ? 0 : area.start.y;
+        area.end.x = (area.end.x > _sketch.getWidth()) ? _sketch.getWidth() : area.end.x;
+        area.end.y = (area.end.y > _sketch.getHeight()) ? _sketch.getHeight() : area.end.y;
 
-        while(index < endIndex){
-            while (index < endOfLineIndex) {
+        for(int y = area.start.y; y < area.end.y; y++){
+            int index = y * _sketch.getWidth();
+            for(int x = area.start.x; x < area.end.x; x++){
                 unsigned int colorHex = activeFrame->getPixel(index);
                 swap_endian_uint32(&colorHex);
                 _sketch.putPixel(index, colorHex);
 
                 index++;
             }
-
-            startLineIndex += _sketch.getWidth();
-            endOfLineIndex += _sketch.getWidth();
-            index = startLineIndex;
         }
 
         renderCanvas(_sketch.getBuffer(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
