@@ -12,7 +12,8 @@ let listFrame = document.getElementById("list-frames");
 let listLayer = document.getElementById("list-Layers");
 
 const canvas = document.querySelector("canvas#painting");
-const handlerEvents = HandlerEvents(canvas);
+const drawingArea = document.querySelector("#drawing-area");
+const handlerEvents = HandlerEvents(drawingArea);
 
 window.add_layer = addLayer;
 window.remove_layer = removeLayer;
@@ -26,9 +27,9 @@ window.move_frame_to = moveFrameTo;
 
 window.onload = async ()=>{
     let {
-            offsetWidth: viewportWidth, 
+            offsetWidth: viewportWidth,
             offsetHeight: viewportHeight
-        } = document.querySelector("#drawing-area");
+        } = drawingArea;
 
     canvas.width = width;
     canvas.height = height;
@@ -58,15 +59,15 @@ window.onload = async ()=>{
     frame.addLayer(new module.Layer(DEFAULT_NAME_LAYER, width, height));
     editor.addFrame(frame);
     editor.render();
-    
+
     let headerFrame = document.querySelector("#pane-footer .header");
     headerFrame.addEventListener("click", function(e){
         if(e.target.classList.contains("header"))
             this.parentNode.querySelector(".body").classList.toggle("hidden")
     });
-    
+
     buildToolBar();
-    
+
     let btnAddFrame = document.getElementById("add-frame");
     let btnCloneFrame = document.getElementById("duplicate-frame");
     let btnMoveDownFrame = document.getElementById("move-down-frame");
@@ -74,7 +75,7 @@ window.onload = async ()=>{
     let btnRemoveFrame = document.getElementById("remove-frame");
     let btnFlipXFrame = document.getElementById("flip-x");
     let btnFlipYFrame = document.getElementById("flip-y");
-    
+
     btnAddFrame.addEventListener("click", ()=>{
         let f = new module.Frame();
         let l = new module.Layer(DEFAULT_NAME_LAYER, width, height);
@@ -177,7 +178,7 @@ function changeActiveFrame(id){
     listFrame.querySelectorAll("div.frame.active")
              .forEach((f)=>f.classList.remove("active"));
     frameElement?.classList.toggle("active", true);
-    
+
     listLayer.querySelectorAll(".layer")
              .forEach((e)=>e.remove());
 
@@ -200,7 +201,7 @@ function moveFrameTo(id, index){
     if (frameElement === frames[index] || index < 0 || index >= frames.length) {
         return;
     }
-    
+
     if (frameElement.compareDocumentPosition(frames[index]) & Node.DOCUMENT_POSITION_FOLLOWING) {
         frames[index].after(frameElement);
     } else {
@@ -246,7 +247,7 @@ function addLayer(layer){
     let btnHideLayer = document.createElement("button");
     let btnLockLayer = document.createElement("button");
     let btnGrabLayer = document.createElement("button");
-    
+
     layerElement.classList.add("layer");
     layerElement.dataset.id = layer.getID().toString();
     nameLayer.className = "text";
@@ -274,7 +275,7 @@ function addLayer(layer){
     btnHideLayer.addEventListener("click", toggleHideLayer);
     btnGrabLayer.addEventListener("mousedown", grabLayer);
     nameLayer.addEventListener("dblclick", renameLayer);
-    
+
     function toggleLockLayer(){
         let icon = this.querySelector("i");
 
@@ -291,13 +292,13 @@ function addLayer(layer){
 
         layer.setVisible(!layer.isVisible());
         editor.render();
-        
+
         if(layer.isVisible()){
             icon.classList.replace("fa-eye-slash", "fa-eye");
             layerElement.classList.toggle("hidden-layer", false);
             return;
         }
-    
+
         icon.classList.replace("fa-eye", "fa-eye-slash");
         layerElement.classList.toggle("hidden-layer", true);
     }
@@ -306,31 +307,31 @@ function addLayer(layer){
         let listLayer = areaListLayer.querySelectorAll("#list-Layers .layer");
         let abort = new AbortController();
         e.preventDefault();
-        
+
         window.addEventListener("mousemove", (e)=> {
             let elementLast;
             listLayer.forEach(el => {
                 let box  = el.getBoundingClientRect();
-                
+
                 el.classList.remove("after-indicator")
                 el.classList.remove("before-indicator")
                 if(e.clientY > box.y){
                     elementLast = el;
                 }
             });
-            
+
             if(!elementLast)
                 listLayer[0]?.classList.add("before-indicator");
-            else 
+            else
                 elementLast?.classList.add("after-indicator");
         },{signal: abort.signal});
 
         window.addEventListener("mouseup", (e)=>{
-            
+
             let elementLast;
             listLayer.forEach(el => {
                 let box  = el.getBoundingClientRect();
-                
+
                 el.classList.remove("swap")
                 if(e.clientY > box.y){
                     elementLast = el;
@@ -338,7 +339,7 @@ function addLayer(layer){
             });
 
             let activeFrame = editor.getActiveFrame();
-            
+
             if(elementLast){
                 elementLast?.classList.remove("after-indicator");
                 elementLast?.after(layerElement);
@@ -347,7 +348,7 @@ function addLayer(layer){
                 elementLast?.classList.remove("before-indicator");
                 areaListLayer.prepend(layerElement);
             }
-            
+
             let indexDst = activeFrame.getLayerIndex(new module.Guid(elementLast.dataset.id));
             activeFrame.bringLayerTo(layer.getID(), indexDst);
 
@@ -378,7 +379,7 @@ function addLayer(layer){
     }
     return layerElement;
 }
-function removeLayer(id){    
+function removeLayer(id){
     let frameElement = getLayerById(id);
     frameElement.remove();
     editor.render();
@@ -394,7 +395,7 @@ function moveLayerTo(id, index){
     if (layerElement === layers[index] || index < 0 || index >= layers.length) {
         return;
     }
-    
+
     if (layerElement.compareDocumentPosition(layers[index]) & Node.DOCUMENT_POSITION_FOLLOWING) {
         layers[index].after(layerElement);
     } else {
@@ -408,7 +409,7 @@ function getLayerById(id){
 function activeFrameContainLayer(layerID){
     let activeFrame = editor.getActiveFrame();
     const strIdLayer = layerID.toString();
-    
+
     let frames = activeFrame.getAllLayers();
     for(let i = 0; i < frames.size(); i++){
         if(frames.get(i).getID().toString() == strIdLayer){
@@ -475,7 +476,7 @@ let boundingSelectedArea = {
 }
 
 let ctx = canvas.getContext("2d");
-ctx.beginPath(); 
+ctx.beginPath();
 
 function getPattern(jsPattern) {
     let cppPattern = new module.VectorVectorFloat();
@@ -614,10 +615,10 @@ let eraseStrategy = () => {
             flagToPoint = point;
         },
 
-        onTracking: (point) => {    
+        onTracking: (point) => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
-            
+
             erase = new module.Erase(
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
@@ -668,7 +669,7 @@ let squareStrategy = () => {
 
             point = cursorToPixel(point);
 
-            squareTool = new module.Square(point.x, point.y, point.x, point.y, 
+            squareTool = new module.Square(point.x, point.y, point.x, point.y,
                 false, getLineSize(),
                 window.selectedColor);
             editor.preview(squareTool);
@@ -713,7 +714,7 @@ let circleStrategy = () => {
 
             point = cursorToPixel(point);
 
-            circleTool = new module.Circle(point.x, point.y, point.x, point.y, 
+            circleTool = new module.Circle(point.x, point.y, point.x, point.y,
                 false, getLineSize(),
                 window.selectedColor);
                 editor.preview(circleTool);
@@ -830,8 +831,8 @@ let selectStrategy = () => {
     pattern_selected = "dot";
 
     canvas.style.cursor = "crosshair";
-    let canvasLeft = parseFloat(canvas.style.left);
-    let canvasTop  = parseFloat(canvas.style.top);
+    let canvasLeft = canvas.offsetLeft;
+    let canvasTop  = canvas.offsetTop;
 
     let markerSize = targetScale;
 
@@ -846,7 +847,7 @@ let selectStrategy = () => {
 
     let _onTracking = onTrackingBounding;
     let _onRelease = (point)=>{};
-    
+
     window.addEventListener("beforeunload", _onRelease, {once:true});
 
     let _onPressed = (point,event) => {
@@ -854,9 +855,9 @@ let selectStrategy = () => {
         selectedArea.style.display = "block";
 
         intialPixel = cursorToPixel(point);
-        
+
         if(select == null) return;
-        
+
         if(event.target.classList.contains("marker")){
             if(cornerTool == CORNER_TOOL_RESIZE)
                 _onTracking = onTrackingResize.bind(event.target);
@@ -867,7 +868,7 @@ let selectStrategy = () => {
                 _onTracking = onTrackingRotate.bind(event.target);
             return;
         }
-       
+
         let corners = select.getDestinationCorners();
         if(isInsideRotatedBounding(intialPixel, corners)){
             _onTracking = onTrackingTranslate;
@@ -879,15 +880,15 @@ let selectStrategy = () => {
 
     function onTrackingBounding(point){
         let pixel = cursorToPixel(point);
-        
+
         if(intialPixel.x - pixel.x == 0 && intialPixel.y - pixel.y == 0){
             return;
         }
-        
+
         markersElement.forEach((e)=>{
             e.style.display = "block";
         });
-        
+
         select = new module.Selection(intialPixel.x, intialPixel.y, pixel.x, pixel.y);
         editor.preview(select);
         drawMarkers();
@@ -902,28 +903,28 @@ let selectStrategy = () => {
         drawMarkers();
         intialPixel = pixel;
     }
-    
+
     function onTrackingTranslate(point){
         let pixel = cursorToPixel(point);
 
         select.translate(pixel.x - intialPixel.x, pixel.y - intialPixel.y);
         intialPixel = pixel;
-        
+
         editor.preview(select);
         drawMarkers();
     }
 
     function onTrackingRotate(point){
         let pixel = cursorToPixel(point);
-        
+
         let dstCenter = select.getCenter();
-        
+
         let radBefore = PositionHelper.getRadBetweenTwoPoints(intialPixel, dstCenter);
         let radAfter  = PositionHelper.getRadBetweenTwoPoints(pixel, dstCenter);
-        
+
         let deltaRad = radAfter - radBefore;
         intialPixel = pixel;
-        
+
         select.rotate(deltaRad);
         editor.preview(select);
         drawMarkers();
@@ -932,7 +933,7 @@ let selectStrategy = () => {
     function drawMarkers2(){
         let _corners = select.getDestinationCorners();
         let height = select.getResizedHeight();
-        
+
         let rad = select.getRotateRad();
         let _sinA = Math.sin(rad);
         let _cosA = Math.cos(rad);
@@ -952,10 +953,10 @@ let selectStrategy = () => {
 
         markersElement[ENUM_MARKER.tr].style.left = `${canvasLeft + (_corners.topRight.x)*targetScale }px`;
         markersElement[ENUM_MARKER.tr].style.top  = `${canvasTop  + (_corners.topRight.y)*targetScale }px`;
-        
+
         markersElement[ENUM_MARKER.br].style.left = `${canvasLeft + (_corners.bottomRight.x)*targetScale }px`;
         markersElement[ENUM_MARKER.br].style.top  = `${canvasTop  + (_corners.bottomRight.y)*targetScale }px`;
-        
+
         let cornerRotate = {
             x: 0,
             y: 0
@@ -971,7 +972,7 @@ let selectStrategy = () => {
         markersElement[ENUM_MARKER.rotate].style.left = `${canvasLeft + (cornerRotate.x)*targetScale }px`;
         markersElement[ENUM_MARKER.rotate].style.top = `${canvasTop  + (cornerRotate.y)*targetScale }px`;
     }
-    function drawMarkers(){        
+    function drawMarkers(){
         let center = select.getCenter();
         let width = Math.abs(select.getResizedWidth());
         let height = Math.abs(select.getResizedHeight());
@@ -982,7 +983,7 @@ let selectStrategy = () => {
 
         let selectedArea = document.querySelector("#selected-area");
         selectedArea.style.position = "absolute"
-        
+
         selectedArea.style.width =  (width + 1) *targetScale  + "px"
         selectedArea.style.height = (height + 1) *targetScale + "px"
         selectedArea.style.left = canvasLeft - 1.5 + (center.x - 0.5 - hw)*targetScale + "px"
@@ -1021,8 +1022,8 @@ function isInsideRotatedBounding(point, corners){
 
 function cursorToPixel(point){
     return {
-        x: Math.floor(point.x / targetScale),
-        y: Math.floor(point.y / targetScale),
+        x: Math.floor((point.x - canvas.offsetLeft) / targetScale),
+        y: Math.floor((point.y - canvas.offsetTop) / targetScale),
     }
 }
 function direction(from, to){
@@ -1038,10 +1039,10 @@ function cursorIsInsideSkecth(point){
 function hoverBrush(cursorPosition){
     cursorPosition = cursorToPixel(cursorPosition);
 
-    editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y, 
+    editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y,
                       dirtyFlag.end.x, dirtyFlag.end.y);
     ctx.fillStyle = `rgba(${0},${0},${0},${0.6})`;
-    
+
     ctx.moveTo(boundingSelectedArea.start.x , boundingSelectedArea.start.y);
     ctx.lineTo((boundingSelectedArea.end.x+1), boundingSelectedArea.start.y);
     ctx.lineTo((boundingSelectedArea.end.x+1), (boundingSelectedArea.end.y+1));
@@ -1062,13 +1063,13 @@ function hoverBrush(cursorPosition){
     let newAxisX = {StartAxis:0, EndAxis:0};
     let newAxisY = {StartAxis:0, EndAxis:0};
 
-    if(!computeVisibleShape(startPixel.x, widthPattern, width, newAxisX) || 
+    if(!computeVisibleShape(startPixel.x, widthPattern, width, newAxisX) ||
        !computeVisibleShape(startPixel.y, heightPattern, height, newAxisY)){
         dirtyFlag.start.x = newAxisX.StartAxis;
         dirtyFlag.end.x = newAxisX.EndAxis;
         dirtyFlag.start.y = newAxisY.StartAxis;
         dirtyFlag.end.y = newAxisY.EndAxis;
-        
+
         return;
     }
 
@@ -1085,7 +1086,7 @@ function hoverBrush(cursorPosition){
     let y = dirtyFlag.start.y;
     for(let i = 0; i < patternSelected.length; i++){
         let patternLine = patternSelected[i];
-        
+
         let x = flagStartPixel.x;
 
         for(let j = 0; j < patternSelected[0].length; j++){
@@ -1113,12 +1114,15 @@ function computeVisibleShape(originalAxis, originalSize, viewportSize, outNewAxi
 
 function buildToolBar(){
     // canvas.addEventListener("mouseleave", function(e){
-    //     editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y, 
+    //     editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y,
     //                     dirtyFlag.end.x, dirtyFlag.end.y);
     // });
     // handlerEvents.setMoveEvent(hoverBrush);
 
     editor.draw(new module.Circle(10,10, 15,15, false, 2, 0xFF0000FF));
+
+    handlerEvents.setScrollEvent(onZoomStrategy());
+    handlerEvents.setGenericButtonMousePressedEvent(onPanningStrategy());
 
     handlerEvents.setRightButtonMousePressedEvent(selectStrategy());
 
@@ -1127,45 +1131,45 @@ function buildToolBar(){
         handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
         changeSelectTool.call(this);
     });
-    
+
     const buttonEraser = document.querySelector(".tool-eraser");
     buttonEraser.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(eraseStrategy());
         changeSelectTool.call(this);
     });
-    
+
     const buttonDropper = document.querySelector(".tool-dropper");
     buttonDropper.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(dropperStrategy());
         changeSelectTool.call(this);
     });
-    
+
     const buttonLine = document.querySelector(".tool-line");
     buttonLine.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(lineStrategy());
         changeSelectTool.call(this);
     });
-    
-    
+
+
     const buttonSquare = document.querySelector(".tool-square");
     buttonSquare.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(squareStrategy());
         changeSelectTool.call(this);
     });
-    
+
     const buttonCircle = document.querySelector(".tool-circle");
     buttonCircle.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(circleStrategy());
         changeSelectTool.call(this);
     });
-    
+
     const buttonBucket = document.querySelector(".tool-bucket");
     buttonBucket.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(bucketStrategy());
         changeSelectTool.call(this);
     });
-    
-    
+
+
     const buttonBrush = document.querySelector(".tool-brush");
     buttonBrush.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(brushStrategy());
@@ -1177,17 +1181,17 @@ function buildToolBar(){
         handlerEvents.setRightButtonMousePressedEvent(selectStrategy());
         changeSelectTool.call(this);
     });
-    
+
     const buttonUndo = document.querySelector("#undo");
     buttonUndo.addEventListener("click", function(e){
         history.undo();
     });
-    
+
     const buttonRedo = document.querySelector("#redo");
     buttonRedo.addEventListener("click", function(e){
         history.redo();
     });
-    
+
     // handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
     // buttonSquare.click();
     // buttonPencil.click();
@@ -1196,4 +1200,124 @@ function buildToolBar(){
         document.querySelector(".tool.active")?.classList.toggle("active", false);
         this.classList.toggle("active", true);
     }
+}
+
+let onZoomStrategy = ()=> {
+    function zoom(scale, positionCursor){
+        if(scale < 1) return;
+        
+        let {
+                offsetWidth: viewportWidth,
+                offsetHeight: viewportHeight
+            } = drawingArea;
+
+        let x, y;
+        if(width*scale <= viewportWidth){
+            x = (viewportWidth - width*scale) * 0.5;
+        }else{
+            let currentWidth = width*targetScale;
+            let endOfAxisX = canvas.offsetLeft + currentWidth;
+            let zoomPointX = Math.min(endOfAxisX, Math.max(canvas.offsetLeft, positionCursor.x));
+            x = zoomPointX - (zoomPointX - canvas.offsetLeft) * (scale / targetScale);
+        }
+
+        if(height*scale <= viewportHeight){
+            y = (viewportHeight - height*scale) * 0.5;
+        } else {
+            let currentHeight = height*targetScale;
+            let endOfAxisY = canvas.offsetTop + currentHeight;
+            let zoomPointY = Math.min(endOfAxisY, Math.max(canvas.offsetTop, positionCursor.y));
+            y = zoomPointY - (zoomPointY - canvas.offsetTop) * (scale / targetScale);
+        }
+
+
+        targetScale = scale;
+        canvas.style.position = `absolute`;
+        canvas.style.transform = `scale(${targetScale})`;
+
+        moveTo({x,y});
+    }
+
+
+    return {
+        onScrollUp: (cursor)=>{
+            zoom(targetScale+1, cursor)
+        },
+        onScrollDown:(cursor)=>{
+            zoom(targetScale - 1, cursor);
+        }
+    }
+}
+
+let onPanningStrategy = ()=> {
+    let startPositionCursor;
+    return {
+        onPressed: (cursor)=>{
+            startPositionCursor = cursor;
+            canvas.style.cursor = "grabbing";
+        },
+        onTracking:(cursor)=>{
+            let positionCursor = cursor;
+
+            let cursorDeltaX = positionCursor.x - startPositionCursor.x;
+            let cursorDeltaY = positionCursor.y - startPositionCursor.y;
+
+            moveTo({
+                x: canvas.offsetLeft+cursorDeltaX,
+                y: canvas.offsetTop+cursorDeltaY
+            });
+
+            startPositionCursor = positionCursor;
+        },
+        onRelease:()=>{
+            canvas.style.cursor = "";
+        }
+    }
+}
+
+function moveTo({x, y}){
+    let {
+            offsetWidth: viewportWidth,
+            offsetHeight: viewportHeight
+        } = drawingArea;
+ 
+    let initialPosition = getInitialPosition();
+
+    let currentWidth = width*targetScale;
+    let currentHeight= height*targetScale;
+
+    let minLeftOffset, minTopOffset; 
+    let maxLeftOffset , maxTopOffset;
+
+    if(currentWidth <= viewportWidth){
+        minLeftOffset = 0;
+        maxLeftOffset = drawingArea.offsetWidth - currentWidth;
+    } else {
+        maxLeftOffset = initialPosition.x;
+        minLeftOffset = drawingArea.offsetWidth - currentWidth - maxLeftOffset;
+    }
+
+    if(currentHeight <= viewportHeight){
+        minTopOffset = 0;
+        maxTopOffset = drawingArea.offsetHeight - currentHeight;
+    } else {
+        maxTopOffset = initialPosition.y;
+        minTopOffset = drawingArea.offsetHeight - currentHeight - maxTopOffset;
+    }
+
+    canvas.style.left = `${ Math.max(minLeftOffset, Math.min(maxLeftOffset,x))}px`;
+    canvas.style.top = `${ Math.max(minTopOffset, Math.min(maxTopOffset, y))}px`;
+}
+ function getInitialPosition(){
+    let {
+            offsetWidth: viewportWidth,
+            offsetHeight: viewportHeight
+        } = drawingArea;
+
+    let p = {x:0,y:0}
+    let minScale = Math.min(viewportWidth / width, viewportHeight / height);
+
+    p.x = Math.floor((viewportWidth - (width*minScale)) / 2);
+    p.y = Math.floor((viewportHeight - (height*minScale)) / 2);
+    return p;
 }

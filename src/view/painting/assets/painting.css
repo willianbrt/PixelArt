@@ -114,8 +114,9 @@ body{
 } 
 #drawing-area{
     grid-area: canvas;
-    overflow-y: auto;
-    overflow-x: auto;
+    /* overflow-y: auto;
+    overflow-x: auto; */
+    overflow: clip;
     background-color: var(--background-color);
     position: relative;
 }

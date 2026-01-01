@@ -59,7 +59,7 @@ export default function HandlerEvents(canvas){
         }
     } 
 
-    document.getElementById("drawing-area").addEventListener("mousedown", (event)=>{
+    canvas.addEventListener("mousedown", (event)=>{
         event.preventDefault();
         
         if(!(buttonMousePressed === undefined)) return;
@@ -116,7 +116,12 @@ export default function HandlerEvents(canvas){
 
         canvas.addEventListener("wheel", (event)=>{
             event.preventDefault();
-            requestAnimationFrame(()=>eventHandler.onScroll(event.deltaX, event.deltaY, PositionHelper.getPositionCursor(event)));
+            requestAnimationFrame(()=>{
+                if(event.deltaY < 0)
+                    eventHandler.onScrollUp(PositionHelper.getPositionCursor(event, canvas))
+                else
+                    eventHandler.onScrollDown(PositionHelper.getPositionCursor(event, canvas))
+            });
         }, { signal: abortScroll.signal });
     }
 
