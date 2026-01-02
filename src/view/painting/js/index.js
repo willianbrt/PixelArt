@@ -798,13 +798,6 @@ let dropperStrategy = () => {
     let activeFrame;
     let activeLayer;
 
-    function RGBAtoRGB(color) {
-        const r =  color >>> 24;
-        const g = (color >>> 8) & 0xFF;
-        const b = (color >>> 16) & 0xFF;
-        return (r << 16) | (g << 8) | b;
-    }
-
     return {
         onPressed: (point) => {
             point = cursorToPixel(point);
@@ -813,8 +806,8 @@ let dropperStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             let factoryColor = ColorFactory();
-            let colorHex = RGBAtoRGB(activeLayer.getPixel(point.x, point.y)).toString(16);
-            modalChromatic.setColor(factoryColor.buildByHex(colorHex));
+            let colorHex = activeLayer.getPixel(point.x, point.y);
+            modalChromatic.setColor(factoryColor.buildByDecimal(colorHex));
         },
         onTracking: (point) => {},
         onRelease: () => {}

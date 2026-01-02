@@ -267,6 +267,19 @@ export function Chromatic(options){
 }
 
 export function ColorFactory(){
+    function buildByDecimal(bigint){
+        const r =  bigint >>> 24;
+        const g = (bigint >>> 16) & 0xFF;
+        const b = (bigint >>> 8) & 0xFF;
+        
+        return {
+            rgb: {r, g, b},
+            hsl: rgbToHsl(r, g, b),
+            hex: rgbToHex(r,g,b),
+            hex16: rgbToHex16(r, g, b),
+            hex32: rgbToHex32(r, g, b)
+        }
+    }
     function buildByRGB(r,g,b){
         return {
             rgb: {r, g, b},
@@ -395,6 +408,7 @@ export function ColorFactory(){
     }
 
     return {
+        buildByDecimal,
         buildByRGB,
         buildByHSL,
         buildByHex
