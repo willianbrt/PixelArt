@@ -34,7 +34,7 @@ window.onload = async ()=>{
     canvas.width = width;
     canvas.height = height;
 
-    targetScale = Math.min(viewportWidth / width, viewportHeight / height);
+    targetScale = Math.floor(Math.min(viewportWidth / width, viewportHeight / height));
     canvas.style.position = `absolute`;
     canvas.style.transform = `scale(${targetScale})`;
     canvas.style.left = `${ ( (viewportWidth - width*targetScale)/ 2  )}px`;
@@ -1332,7 +1332,7 @@ function moveTo({x, y}){
         } = drawingArea;
 
     let p = {x:0,y:0}
-    let minScale = Math.min(viewportWidth / width, viewportHeight / height);
+    let minScale = Math.floor(Math.min(viewportWidth / width, viewportHeight / height));
 
     p.x = Math.floor((viewportWidth - (width*minScale)) / 2);
     p.y = Math.floor((viewportHeight - (height*minScale)) / 2);

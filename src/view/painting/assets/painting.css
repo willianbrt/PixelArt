@@ -92,11 +92,37 @@ body{
 }
 
 #drawing-area canvas#painting{
-    background-color: #ccc;
-    background-image: url('../../../resource/img/background_canvas.png');
+    --color-grid: #1e1326;
+    --color-plaid-primary: #ccc;
+    --color-plaid: white;
+    --plaid-size: 5px;
+    --stroke-grid: 0.08px;
+
+    background-color: var(--color-plaid-primary);
     image-rendering: pixelated;
     transform-origin: top left;
     position: absolute;
+
+    background-image:
+        linear-gradient(var(--color-grid) var(--stroke-grid), transparent var(--stroke-grid)),
+        linear-gradient(90deg, var(--color-grid) var(--stroke-grid), transparent var(--stroke-grid)),
+        linear-gradient(45deg, var(--color-plaid) 25%, transparent 25%, transparent 75%, var(--color-plaid) 75%, var(--color-plaid)),
+        linear-gradient(45deg, var(--color-plaid) 25%, transparent 25%, transparent 75%, var(--color-plaid) 75%, var(--color-plaid));
+
+    background-size:
+        var(--plaid-size) var(--plaid-size),
+        var(--plaid-size) var(--plaid-size),
+        calc(var(--plaid-size)*2) calc(var(--plaid-size)*2),
+        calc(var(--plaid-size)*2) calc(var(--plaid-size)*2);
+
+    background-position:
+        calc(50% - var(--plaid-size) * 0.5 - var(--stroke-grid) * 0.5)
+        calc(50% - var(--plaid-size) * 0.5 - var(--stroke-grid) * 0.5),
+        calc(50% - var(--plaid-size) * 0.5 - var(--stroke-grid) * 0.5)
+        calc(50% - var(--plaid-size) * 0.5 - var(--stroke-grid) * 0.5),
+        50% 50%,
+        calc(50% + var(--plaid-size)) calc(50% + var(--plaid-size));
+
 }
 .content {
     height: 100%;
