@@ -1119,12 +1119,13 @@ function buildToolBar(){
     // });
     // handlerEvents.setMoveEvent(hoverBrush);
 
-    editor.draw(new module.Circle(10,10, 15,15, false, 2, 0xFF0000FF));
 
-    handlerEvents.setScrollEvent(onZoomStrategy());
+    handlerEvents.setScrollEvent(onZoomStrategy(), false);
+    handlerEvents.setScrollEvent(onSizeStrategy(), true);
     handlerEvents.setGenericButtonMousePressedEvent(onPanningStrategy());
+    handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
+    handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
 
-    handlerEvents.setRightButtonMousePressedEvent(selectStrategy());
 
     const buttonPencil = document.querySelector(".tool-pencil");
     buttonPencil.addEventListener("click", function(e){
@@ -1192,13 +1193,23 @@ function buildToolBar(){
         history.redo();
     });
 
-    // handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
     // buttonSquare.click();
     // buttonPencil.click();
 
     function changeSelectTool(){
         document.querySelector(".tool.active")?.classList.toggle("active", false);
         this.classList.toggle("active", true);
+    }
+}
+
+let onSizeStrategy = ()=> {
+    return {
+        onScrollUp: (cursor)=>{
+            lineSize.value = Math.min(getLineSize() + 1, 20);
+        },
+        onScrollDown:(cursor)=>{
+            lineSize.value = Math.max(getLineSize() - 1, 1);
+        }
     }
 }
 
@@ -1248,6 +1259,7 @@ let onZoomStrategy = ()=> {
         }
     }
 }
+
 
 let onPanningStrategy = ()=> {
     let startPositionCursor;

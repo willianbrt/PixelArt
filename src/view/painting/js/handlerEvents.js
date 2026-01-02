@@ -22,6 +22,10 @@ export default function HandlerEvents(canvas){
     let leftButtonEvent = noEvent();
     let rightButtonEvent = noEvent();
     let otherButtonPressedEvent = noEvent();
+    let scrollEvents = {
+        default: { onScrollUp: ()=>{}, onScrollDown: ()=>{} },
+        ctrl: { onScrollUp: ()=>{}, onScrollDown: ()=>{} }
+    };
     let moveEvent = ()=>{};
     let preventDefaultMoveEvent = false;
     
@@ -38,7 +42,7 @@ export default function HandlerEvents(canvas){
         leftButtonEvent = createPressedEvent(strategy);
     }
 
-    let createPressedEvent = (strategy)=>{
+    function createPressedEvent(strategy) {
         resetPointerTracking();
         return {
             down:(event)=>{
@@ -73,7 +77,6 @@ export default function HandlerEvents(canvas){
         buttonMousePressed = event.button;
     });
     
-
     window.addEventListener("mouseup", (event)=>{
         event.preventDefault();
 
@@ -87,10 +90,32 @@ export default function HandlerEvents(canvas){
         
         buttonMousePressed = undefined;
     });
-
+    
     document.addEventListener("mouseleave", ()=>{
         resetPointerTracking();
     });
+    
+    canvas.addEventListener("wheel", (event)=>{
+        event.preventDefault();
+
+        let eventHandler = scrollEvents.default;
+
+        if (event.ctrlKey){
+            eventHandler = scrollEvents.ctrl
+        }
+
+        requestAnimationFrame(()=>{
+            if(event.deltaY < 0)
+                eventHandler.onScrollUp(PositionHelper.getPositionCursor(event, canvas))
+            else
+                eventHandler.onScrollDown(PositionHelper.getPositionCursor(event, canvas))
+        });
+    });
+
+    document.oncontextmenu = function() { return false; };
+    document.addEventListener("mousewheel", (event)=>{
+        event.preventDefault()
+    }, { passive: false });
     
     function setClickLeftEvent(handlerEvent){
         resetPointerTracking();
@@ -111,24 +136,15 @@ export default function HandlerEvents(canvas){
         abortPointerTrackingEvent = new AbortController();
     }
 
-    function setScrollEvent(eventHandler){
-        resetScroll();
 
-        canvas.addEventListener("wheel", (event)=>{
-            event.preventDefault();
-            requestAnimationFrame(()=>{
-                if(event.deltaY < 0)
-                    eventHandler.onScrollUp(PositionHelper.getPositionCursor(event, canvas))
-                else
-                    eventHandler.onScrollDown(PositionHelper.getPositionCursor(event, canvas))
-            });
-        }, { signal: abortScroll.signal });
+    function setScrollEvent(eventHandler, enableCtrlKey = false){
+        // resetScroll();
+        if (enableCtrlKey == true)
+            scrollEvents.ctrl = eventHandler;
+        else
+            scrollEvents.default = eventHandler;
     }
 
-    function resetScroll(){
-        if(abortScroll.signal.aborted) abortScroll.abort();
-        abortScroll = new AbortController();
-    }
     
     function setMoveEvent(eventHandler){
         moveEvent = eventHandler; 
