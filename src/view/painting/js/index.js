@@ -454,6 +454,12 @@ var pattern_selected = "dot";
 var weight = document.querySelector("input[name='strength']");
 weight.value = 100;
 
+var isPixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
+var isMirrorX = document.querySelector("#mirror-x input[type='checkbox']");
+var isMirrorY = document.querySelector("#mirror-y input[type='checkbox']");
+var isFill = document.querySelector("#fill input[type='checkbox']");
+
+
 var dirtyFlag = {
     start:{
         x: 0,
@@ -661,7 +667,7 @@ let squareStrategy = () => {
     let squareTool;
     let flagToPoint = null;
     let startPoint = null;
-
+    
     return {
         onPressed: (point) => {
             activeFrame = editor.getActiveFrame();
@@ -670,7 +676,7 @@ let squareStrategy = () => {
             point = cursorToPixel(point);
 
             squareTool = new module.Square(point.x, point.y, point.x, point.y,
-                false, getLineSize(),
+                 isFill.checked, getLineSize(),
                 window.selectedColor);
             editor.preview(squareTool);
             startPoint = point;
@@ -680,11 +686,11 @@ let squareStrategy = () => {
         onTracking: (point) => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
-
+            
             squareTool = new module.Square(
                 startPoint.x, startPoint.y,
                 point.x, point.y,
-                true, getLineSize(),
+                isFill.checked, getLineSize(),
                 window.selectedColor
             );
             editor.preview(squareTool);
@@ -715,7 +721,7 @@ let circleStrategy = () => {
             point = cursorToPixel(point);
 
             circleTool = new module.Circle(point.x, point.y, point.x, point.y,
-                false, getLineSize(),
+                isFill.checked, getLineSize(),
                 window.selectedColor);
                 editor.preview(circleTool);
             startPoint = point;
@@ -729,7 +735,7 @@ let circleStrategy = () => {
             circleTool = new module.Circle(
                 startPoint.x, startPoint.y,
                 point.x, point.y,
-                false, getLineSize(),
+                isFill.checked, getLineSize(),
                 window.selectedColor
             );
             editor.preview(circleTool);
