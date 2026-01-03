@@ -12,6 +12,7 @@ let listFrame = document.getElementById("list-frames");
 let listLayer = document.getElementById("list-Layers");
 
 const canvas = document.querySelector("canvas#painting");
+const renderArea = document.querySelector("#render-area");
 const drawingArea = document.querySelector("#drawing-area");
 const handlerEvents = HandlerEvents(drawingArea);
 
@@ -35,10 +36,11 @@ window.onload = async ()=>{
     canvas.height = height;
 
     targetScale = Math.floor(Math.min(viewportWidth / width, viewportHeight / height));
-    canvas.style.position = `absolute`;
-    canvas.style.transform = `scale(${targetScale})`;
-    canvas.style.left = `${ ( (viewportWidth - width*targetScale)/ 2  )}px`;
-    canvas.style.top = `${ ( (viewportHeight - height*targetScale)/ 2  ) }px`;
+
+    renderArea.style.position = `absolute`;
+    renderArea.style.scale = targetScale;
+    renderArea.style.left = `${ ( (viewportWidth - width*targetScale)/ 2  )}px`;
+    renderArea.style.top = `${ ( (viewportHeight - height*targetScale)/ 2  ) }px`;
 
     window.module = await ModulePixelEditor({
         canvas,
@@ -828,57 +830,150 @@ const ENUM_MARKER = {
 }
 let selectStrategy = () => {
     let select;
+    let intialPixel = null;
+
     const CORNER_TOOL_ROTATE = "rotate";
     const CORNER_TOOL_RESIZE = "resize";
-    // let cornerTool = CORNER_TOOL_ROTATE;
+    const CORNER_TOOL_CROP = "crop";
     let cornerTool = CORNER_TOOL_RESIZE;
 
     pattern_selected = "dot";
-
     canvas.style.cursor = "crosshair";
-    let canvasLeft = canvas.offsetLeft;
-    let canvasTop  = canvas.offsetTop;
 
-    let markerSize = targetScale;
 
     let selectedArea = document.querySelector("#selected-area");
     let markersElement = document.querySelectorAll("#selected-area .marker");
-    markersElement.forEach((e)=>{
-        e.style.width = markerSize + "px";
-        e.style.height = markerSize + "px";
-    });
 
-    let intialPixel = null;
+    function createFloatingToolbar() {
+        let selectedArea = document.querySelector(".floating-toolbar");
+        selectedArea?.remove();
+        
+        const toolbar = document.createElement("div");
+        toolbar.className = "floating-toolbar";
+
+        const grip = document.createElement("div");
+        grip.className = "grip";
+
+        const gripIcon = document.createElement("span");
+        gripIcon.className = "material-symbols-outlined";
+        gripIcon.textContent = "drag_indicator";
+
+        grip.appendChild(gripIcon);
+
+        const content = document.createElement("div");
+        content.className = "floating-toolbar-content";
+
+        const buttons = [
+            {
+                id: CORNER_TOOL_RESIZE,
+                icon: "resize",
+                label: "Redimensionar",
+                eventClick: function(){
+                    cornerTool = CORNER_TOOL_RESIZE;
+                    toolbar.querySelectorAll("button")
+                            .forEach((e)=> e.classList.remove("active"));
+                    this.classList.add("active");
+                }
+            },
+            {
+                id: CORNER_TOOL_ROTATE,
+                icon: "autorenew",
+                label: "Rotacionar",
+                eventClick: function(){
+                    cornerTool = CORNER_TOOL_ROTATE;
+                    toolbar.querySelectorAll("button")
+                            .forEach((e)=> e.classList.remove("active"));
+                    this.classList.add("active");
+                }
+            },
+            {
+                id: CORNER_TOOL_CROP,
+                icon: "crop",
+                label: "Cortar",
+                eventClick: function(){
+                    cornerTool = CORNER_TOOL_CROP;
+                    toolbar.querySelectorAll("button")
+                            .forEach((e)=> e.classList.remove("active"));
+                    this.classList.add("active");
+                }
+            },
+            {
+                id: "copy",
+                icon: "content_copy",
+                label: "Copiar",
+                eventClick: function(){
+                }
+            },
+            {
+                id: "tile-brush",
+                icon: "brush",
+                label: "Pincel",
+                eventClick: function(){
+                }
+            }
+        ];
+
+        buttons.forEach(addTool);
+
+        toolbar.appendChild(grip);
+        toolbar.appendChild(content);
+
+        drawingArea.appendChild(toolbar);
+
+        function addTool({ id, icon, label, eventClick }) {            
+            const btn = document.createElement("button");
+            if(cornerTool == id) btn.classList.add("active");
+            btn.id = id;
+            btn.classList.add("select-tool");
+            btn.addEventListener("click", eventClick);
+            
+            const span = document.createElement("span");
+            span.className = "material-symbols-outlined";
+            span.textContent = icon;
+            
+            btn.appendChild(span);
+            btn.append(label);
+
+            content.appendChild(btn);
+        }
+    }
+
+
 
     let _onTracking = onTrackingBounding;
     let _onRelease = (point)=>{};
-
-    window.addEventListener("beforeunload", _onRelease, {once:true});
-
     let _onPressed = (point,event) => {
         selectedArea.style.position = "absolute"
         selectedArea.style.display = "block";
 
         intialPixel = cursorToPixel(point);
 
-        if(select == null) return;
-
+        if(select == null){ 
+            createFloatingToolbar();
+            return;
+        }
+        
         if(event.target.classList.contains("marker")){
             if(cornerTool == CORNER_TOOL_RESIZE)
                 _onTracking = onTrackingResize.bind(event.target);
             else if(cornerTool == CORNER_TOOL_ROTATE)
                 _onTracking = onTrackingRotate.bind(event.target);
+            else if(cornerTool == CORNER_TOOL_CROP)
+                _onTracking = onTrackingCrop.bind(event.target);
 
-            if(parseInt(event.target.dataset.marker) == ENUM_MARKER.rotate)
-                _onTracking = onTrackingRotate.bind(event.target);
             return;
         }
+        
+        if(event.target.id !== "painting") {
+            _onTracking = ()=>{};
+            return;
+        } 
 
         let corners = select.getDestinationCorners();
         if(isInsideRotatedBounding(intialPixel, corners)){
             _onTracking = onTrackingTranslate;
         } else {
-            editor.draw(select);
+            done();
             _onTracking = onTrackingBounding;
         }
     };
@@ -890,19 +985,25 @@ let selectStrategy = () => {
             return;
         }
 
-        markersElement.forEach((e)=>{
-            e.style.display = "block";
-        });
-
         select = new module.Selection(intialPixel.x, intialPixel.y, pixel.x, pixel.y);
         editor.preview(select);
         drawMarkers();
     };
     function onTrackingResize(point){
-        let pixel = cursorToPixel(point);
+        let pixel = cursorToPixel(point, true);
         let currentMarker = parseInt(this.dataset.marker);
 
         select.resize(currentMarker, pixel.x, pixel.y);
+        editor.preview(select);
+
+        drawMarkers();
+        intialPixel = pixel;
+    }
+    function onTrackingCrop(point){
+        let pixel = cursorToPixel(point, true);
+        let currentMarker = parseInt(this.dataset.marker);
+
+        select.crop(currentMarker, pixel.x, pixel.y);
         editor.preview(select);
 
         drawMarkers();
@@ -920,7 +1021,7 @@ let selectStrategy = () => {
     }
 
     function onTrackingRotate(point){
-        let pixel = cursorToPixel(point);
+        let pixel = cursorToPixel(point, true);
 
         let dstCenter = select.getCenter();
 
@@ -935,79 +1036,65 @@ let selectStrategy = () => {
         drawMarkers();
     }
 
-    function drawMarkers2(){
-        let _corners = select.getDestinationCorners();
-        let height = select.getResizedHeight();
-
-        let rad = select.getRotateRad();
-        let _sinA = Math.sin(rad);
-        let _cosA = Math.cos(rad);
-
-        let selectedArea = document.querySelector("#selected-area");
-        selectedArea.style.position = ""
-        markersElement[ENUM_MARKER.tl].style.transform = "translate(-50%, -50%)";
-        markersElement[ENUM_MARKER.tr].style.transform = "translate(-50%, -50%)";
-        markersElement[ENUM_MARKER.bl].style.transform = "translate(-50%, -50%)";
-        markersElement[ENUM_MARKER.br].style.transform = "translate(-50%, -50%)";
-
-        markersElement[ENUM_MARKER.bl].style.left = `${canvasLeft + (_corners.bottomLeft.x)*targetScale }px`;
-        markersElement[ENUM_MARKER.bl].style.top  = `${canvasTop  + (_corners.bottomLeft.y)*targetScale }px`;
-
-        markersElement[ENUM_MARKER.tl].style.left = `${canvasLeft + (_corners.topLeft.x)*targetScale }px`;
-        markersElement[ENUM_MARKER.tl].style.top  = `${canvasTop  + (_corners.topLeft.y)*targetScale }px`;
-
-        markersElement[ENUM_MARKER.tr].style.left = `${canvasLeft + (_corners.topRight.x)*targetScale }px`;
-        markersElement[ENUM_MARKER.tr].style.top  = `${canvasTop  + (_corners.topRight.y)*targetScale }px`;
-
-        markersElement[ENUM_MARKER.br].style.left = `${canvasLeft + (_corners.bottomRight.x)*targetScale }px`;
-        markersElement[ENUM_MARKER.br].style.top  = `${canvasTop  + (_corners.bottomRight.y)*targetScale }px`;
-
-        let cornerRotate = {
-            x: 0,
-            y: 0
-        };
-        if(height < 0){
-            cornerRotate.x = (_corners.bottomRight.x + _corners.bottomLeft.x)*0.5  - _sinA * -3;
-            cornerRotate.y = (_corners.bottomRight.y + _corners.bottomLeft.y)*0.5 + _cosA * -3 ;
-        } else {
-            cornerRotate.x = (_corners.topRight.x + _corners.topLeft.x)*0.5  - _sinA * -3;
-            cornerRotate.y = (_corners.topRight.y + _corners.topLeft.y)*0.5 + _cosA * -3 ;
-        }
-
-        markersElement[ENUM_MARKER.rotate].style.left = `${canvasLeft + (cornerRotate.x)*targetScale }px`;
-        markersElement[ENUM_MARKER.rotate].style.top = `${canvasTop  + (cornerRotate.y)*targetScale }px`;
-    }
     function drawMarkers(){
-        let center = select.getCenter();
-        let width = Math.abs(select.getResizedWidth());
-        let height = Math.abs(select.getResizedHeight());
+        let _corners = select.getDestinationCorners();
 
-        let rad = select.getRotateRad();
-        let hw = Math.floor(width * 0.5);
-        let hh = Math.floor(height * 0.5);
+        markersElement[ENUM_MARKER.tl].style.translate = "-50% -50%";
+        markersElement[ENUM_MARKER.tr].style.translate = "-50% -50%";
+        markersElement[ENUM_MARKER.bl].style.translate = "-50% -50%";
+        markersElement[ENUM_MARKER.br].style.translate = "-50% -50%";
 
-        let selectedArea = document.querySelector("#selected-area");
-        selectedArea.style.position = "absolute"
+        markersElement[ENUM_MARKER.bl].style.left = `${(_corners.bottomLeft.x) }px`;
+        markersElement[ENUM_MARKER.bl].style.top  = `${(_corners.bottomLeft.y) }px`;
 
-        selectedArea.style.width =  (width + 1) *targetScale  + "px"
-        selectedArea.style.height = (height + 1) *targetScale + "px"
-        selectedArea.style.left = canvasLeft - 1.5 + (center.x - 0.5 - hw)*targetScale + "px"
-        selectedArea.style.top = canvasTop - 1.5+ (center.y - 0.5 - hh)*targetScale+ "px"
-        selectedArea.style.background = "rgba(0, 0, 0, 0.5)"
-        selectedArea.style.border = "dashed black 3px"
-        selectedArea.style.transform = "rotate("+ rad+"rad)"
+        markersElement[ENUM_MARKER.tl].style.left = `${(_corners.topLeft.x) }px`;
+        markersElement[ENUM_MARKER.tl].style.top  = `${(_corners.topLeft.y) }px`;
+
+        markersElement[ENUM_MARKER.tr].style.left = `${(_corners.topRight.x) }px`;
+        markersElement[ENUM_MARKER.tr].style.top  = `${(_corners.topRight.y) }px`;
+
+        markersElement[ENUM_MARKER.br].style.left = `${(_corners.bottomRight.x) }px`;
+        markersElement[ENUM_MARKER.br].style.top  = `${(_corners.bottomRight.y) }px`;
+
+        ctx.fillStyle = "rgba(0,0,0,0.5)"
+        ctx.beginPath();
+        ctx.moveTo(_corners.topLeft.x, _corners.topLeft.y);
+        ctx.lineTo(_corners.topRight.x, _corners.topRight.y);
+        ctx.lineTo(_corners.bottomRight.x, _corners.bottomRight.y);
+        ctx.lineTo(_corners.bottomLeft.x, _corners.bottomLeft.y);
+        ctx.closePath();
+        ctx.fill();
+        
+        selectedArea.style.position = ""
+        selectedArea.style.display = "block"
+        markersElement.forEach((e)=>{
+            e.style.display = "block";
+            e.style.width = 1 + "px";
+            e.style.height = 1 + "px";
+            e.style.scale =  0.5;
+        });
+
     }
+    function done(){
+        selectedArea.style.display = "none";
+        markersElement.forEach((e)=>{
+            e.style.display = "none";
+            e.style.width = 1 + "px";
+            e.style.height = 1 + "px";
+            e.style.scale =  0.5;
+        });
+        if(select != null)
+            editor.draw(select);
+        select = null;
+    }
+
     return {
         onPressed: _onPressed,
         onTracking:(point)=>{
             _onTracking(point);
         },
         onRelease: _onRelease,
-        dispatch: ()=>{
-            selectedArea.style.display = "none";
-            if(select != null)
-                editor.draw(select);
-        }
+        dispatch: done
     };
 };
 function isInsideRotatedBounding(point, corners){
@@ -1025,10 +1112,17 @@ function isInsideRotatedBounding(point, corners){
 }
 
 
-function cursorToPixel(point){
+function cursorToPixel(point, middlePoint=false){
+    let position = getPosition();
+    if(middlePoint){
+        return {
+            x: Math.floor((point.x - position.x) / targetScale + 0.5),
+            y: Math.floor((point.y - position.y) / targetScale + 0.5),
+        }
+    }
     return {
-        x: Math.floor((point.x - canvas.offsetLeft) / targetScale),
-        y: Math.floor((point.y - canvas.offsetTop) / targetScale),
+        x: Math.floor((point.x - position.x) / targetScale),
+        y: Math.floor((point.y - position.y) / targetScale),
     }
 }
 function direction(from, to){
@@ -1222,6 +1316,8 @@ let onZoomStrategy = ()=> {
     function zoom(scale, positionCursor){
         if(scale < 1) return;
         
+        let position = getPosition();
+        
         let {
                 offsetWidth: viewportWidth,
                 offsetHeight: viewportHeight
@@ -1232,24 +1328,24 @@ let onZoomStrategy = ()=> {
             x = (viewportWidth - width*scale) * 0.5;
         }else{
             let currentWidth = width*targetScale;
-            let endOfAxisX = canvas.offsetLeft + currentWidth;
-            let zoomPointX = Math.min(endOfAxisX, Math.max(canvas.offsetLeft, positionCursor.x));
-            x = zoomPointX - (zoomPointX - canvas.offsetLeft) * (scale / targetScale);
+            let endOfAxisX = position.x + currentWidth;
+            let zoomPointX = Math.min(endOfAxisX, Math.max(position.x, positionCursor.x));
+            x = zoomPointX - (zoomPointX - position.x) * (scale / targetScale);
         }
 
         if(height*scale <= viewportHeight){
             y = (viewportHeight - height*scale) * 0.5;
         } else {
             let currentHeight = height*targetScale;
-            let endOfAxisY = canvas.offsetTop + currentHeight;
-            let zoomPointY = Math.min(endOfAxisY, Math.max(canvas.offsetTop, positionCursor.y));
-            y = zoomPointY - (zoomPointY - canvas.offsetTop) * (scale / targetScale);
+            let endOfAxisY = position.y + currentHeight;
+            let zoomPointY = Math.min(endOfAxisY, Math.max(position.y, positionCursor.y));
+            y = zoomPointY - (zoomPointY - position.y) * (scale / targetScale);
         }
 
 
         targetScale = scale;
-        canvas.style.position = `absolute`;
-        canvas.style.transform = `scale(${targetScale})`;
+        renderArea.style.position = `absolute`;
+        renderArea.style.scale = targetScale;
 
         moveTo({x,y});
     }
@@ -1275,13 +1371,14 @@ let onPanningStrategy = ()=> {
         },
         onTracking:(cursor)=>{
             let positionCursor = cursor;
+            let position = getPosition();
 
             let cursorDeltaX = positionCursor.x - startPositionCursor.x;
             let cursorDeltaY = positionCursor.y - startPositionCursor.y;
 
             moveTo({
-                x: canvas.offsetLeft+cursorDeltaX,
-                y: canvas.offsetTop+cursorDeltaY
+                x: position.x+cursorDeltaX,
+                y: position.y+cursorDeltaY
             });
 
             startPositionCursor = positionCursor;
@@ -1322,8 +1419,8 @@ function moveTo({x, y}){
         minTopOffset = drawingArea.offsetHeight - currentHeight - maxTopOffset;
     }
 
-    canvas.style.left = `${ Math.max(minLeftOffset, Math.min(maxLeftOffset,x))}px`;
-    canvas.style.top = `${ Math.max(minTopOffset, Math.min(maxTopOffset, y))}px`;
+    renderArea.style.left = `${ Math.max(minLeftOffset, Math.min(maxLeftOffset,x))}px`;
+    renderArea.style.top = `${ Math.max(minTopOffset, Math.min(maxTopOffset, y))}px`;
 }
  function getInitialPosition(){
     let {
@@ -1337,4 +1434,11 @@ function moveTo({x, y}){
     p.x = Math.floor((viewportWidth - (width*minScale)) / 2);
     p.y = Math.floor((viewportHeight - (height*minScale)) / 2);
     return p;
+}
+
+function getPosition(){
+    return {
+        x: renderArea.offsetLeft,
+        y: renderArea.offsetTop
+    }
 }

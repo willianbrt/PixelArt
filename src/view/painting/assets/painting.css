@@ -95,7 +95,7 @@ body{
     --color-grid: #1e1326;
     --color-plaid-primary: #ccc;
     --color-plaid: white;
-    --plaid-size: 5px;
+    --plaid-size: 1px;
     --stroke-grid: 0.08px;
 
     background-color: var(--color-plaid-primary);
@@ -146,29 +146,34 @@ body{
     background-color: var(--background-color);
     position: relative;
 }
+#selected-area{
+    display: none;
+}
 #selected-area .marker{
-    box-shadow: #441d51 0 0 0 2px inset;
+    box-shadow: #441d51 0 0 0 0.1px;
     background-color: #896a95;
+    width: 1px;
+    height: 1px;
 }
 #selected-area .marker#m-top-left{
     left:0;
     top:0;
-    transform: translate(-50%, -50%);
+    translate: -50% -50%;
 }
 #selected-area .marker#m-top-right{
     right:0;
     top:0;
-    transform: translate(50%, -50%);
+    translate: 50% -50%;
 }
 #selected-area .marker#m-bottom-right{
     right:0;
     bottom:0;
-    transform: translate(50%, 50%);
+    translate: 50% 50%;
 }
 #selected-area .marker#m-bottom-left{
     left:0;
     bottom:0;
-    transform: translate(-50%, 50%);
+    translate: -50% 50%;
 }
 
 #pane-top{
@@ -647,4 +652,32 @@ select[name="color-pattern"]{
 }
 #add-color{
     align-self: baseline;
+}
+.floating-toolbar {
+    background: #795289;
+    position: absolute;
+    bottom: 10px;
+    margin: auto;
+    border-radius: 8px;
+    display: flex;
+    justify-self: center;
+    align-items: center;
+    overflow: clip;
+}
+.floating-toolbar .grip{
+    background: #2f1438;
+    padding: 8px;
+}
+.floating-toolbar .floating-toolbar-content {
+    display: flex;
+    gap: 2px;
+    align-self: stretch;
+}
+.floating-toolbar .floating-toolbar-content button.select-tool {
+    background: transparent;
+    color: var(--light-text-color);
+}
+.floating-toolbar .floating-toolbar-content button.select-tool.active {
+    background: #3d2745;
+    color: var(--light-text-color);
 }

@@ -137,7 +137,7 @@
                     <button class="tool tool-line"><img src="../../../src/resource/img/line.png" /></button>
                     <button class="tool tool-square"><img src="../../../src/resource/img/square.png" /></button>
                     <button class="tool tool-circle"><img src="../../../src/resource/img/circle.png" /></button>
-                    <button class="tool tool-select"><img src="../../../src/resource/img/square.png" /></button>
+                    <button class="tool tool-select"><img src="../../../src/resource/img/select.png" /></button>
                 </div>
             </div>
 
@@ -232,15 +232,17 @@
         </section>
         
         <section id="drawing-area">
-            <canvas id="painting" width="40" height="33"></canvas>
-            <!-- <canvas id="preview" width="40" height="32"></canvas> -->
-            <div id="selected-area">
-                <span class="marker" data-marker="0" id="m-top-left" style="background: rgb(2, 82, 255); display: none;"></span>
-                <span class="marker" data-marker="1" id="m-bottom-left" style="display: none;"></span>
-                <span class="marker" data-marker="2" id="m-top-right" style="background: rgb(238, 255, 2); display: none;"></span>
-                <span class="marker" data-marker="3" id="m-bottom-right" style="background: red;display: none;"></span>
-                <!-- <span class="marker" data-marker="4" id="m-rotate" style="background: green;display: none;"></span> -->
+            <div id="render-area">
+                <canvas id="painting"></canvas>
+                
+                <div id="selected-area">
+                    <span class="marker" data-marker="0" id="m-top-left" ></span>
+                    <span class="marker" data-marker="1" id="m-bottom-left"></span>
+                    <span class="marker" data-marker="2" id="m-top-right"></span>
+                    <span class="marker" data-marker="3" id="m-bottom-right"></span>
+                </div>
             </div>
+
         </section>
 
         <section class="pane" id="pane-right">
