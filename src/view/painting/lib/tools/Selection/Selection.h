@@ -33,6 +33,7 @@ public:
     void rotatePoint(Point& p, Point center);
     float getRotateRad();
     void resize(int marker, float deltaX, float deltaY);
+    void crop(int marker, float deltaX, float deltaY);
 private:
     float _dstCenterX;
     float _dstCenterY;

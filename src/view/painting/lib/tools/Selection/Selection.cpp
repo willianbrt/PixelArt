@@ -4,8 +4,8 @@ Selection::Selection(int from_start_x, int from_start_y, int to_start_x, int to_
     _originalBounding = Bounding(Point(from_start_x,from_start_y), Point(to_start_x+1, to_start_y+1));
 
     _destBounding = _originalBounding;
-    _origCenterX = std::floor((_originalBounding.start.x + _originalBounding.end.x) * 0.5f);
-    _origCenterY = std::floor((_originalBounding.start.y + _originalBounding.end.y) * 0.5f);
+    _origCenterX = (_originalBounding.start.x + _originalBounding.end.x) * 0.5f;
+    _origCenterY = (_originalBounding.start.y + _originalBounding.end.y) * 0.5f;
 
     _angleRad = 0;
     _cosA = std::cos(_angleRad);
@@ -66,6 +66,10 @@ void Selection::rotate(float rotateRad){
 
     _corners.bottomLeft.x = std::round(_dstCenterX - widthX + heightX);
     _corners.bottomLeft.y = std::round(_dstCenterY - widthY + heightY);
+    
+    // _angleRad = std::atan2(_corners.topRight.x - _corners.topLeft.x, _corners.topRight.y - _corners.topLeft.y);
+    // _cosA = std::cos(_angleRad);
+    // _sinA = std::sin(_angleRad);
 }
 void Selection::resize(int marker, float deltaX, float deltaY){
     Point pixel = Point(deltaX, deltaY);
@@ -139,8 +143,8 @@ void Selection::resize(int marker, float deltaX, float deltaY){
     _scaleX =  _resizedWidth / (float)_originalBounding.getWidth();
     _scaleY =  _resizedHeight / (float)_originalBounding.getHeight();
 
-    _dstCenterX = std::floor((_corners.topLeft.x + _corners.topRight.x + _corners.bottomLeft.x + _corners.bottomRight.x) * 0.25f);
-    _dstCenterY = std::floor((_corners.topLeft.y + _corners.topRight.y + _corners.bottomLeft.y + _corners.bottomRight.y) * 0.25f); 
+    _dstCenterX = (_corners.topLeft.x + _corners.topRight.x + _corners.bottomLeft.x + _corners.bottomRight.x) * 0.25f;
+    _dstCenterY = (_corners.topLeft.y + _corners.topRight.y + _corners.bottomLeft.y + _corners.bottomRight.y) * 0.25f; 
 }
 Point Selection::getCenter(){
     return Point(_dstCenterX, _dstCenterY);
@@ -186,29 +190,33 @@ void Selection::draw(Layer& layer){
     // printf("centerOrigem: (%f, %f), centerDest: (%f, %f) \n",  _origCenterX, _origCenterY,  _dstCenterX, _dstCenterY);
     // printf("scale: (%f, %f) \n",  _scaleX, _scaleY);
     // printf("angleRad: (%f) \n",  _angleRad);
-
+    
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         Point src;
-        float _dy = dy - _dstCenterY;
+        float _dy = dy + 0.5f - _dstCenterY;
 
         for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
-            float _dx = dx - _dstCenterX;
+            float _dx = dx + 0.5f - _dstCenterX;
             
             float localX = _cosA * _dx + _sinA * _dy;
-            float localY = -_sinA * _dx + _cosA * _dy ;
-            // printf("(%f,%f)\n", localX, localY);
+            float localY = -_sinA * _dx + _cosA * _dy;
+
+            // printf("(%f,%f) - orig center(%f,%f) - dest center(%f,%f)\n",
+            //      std::floor(localX), std::floor(localY),
+            //      _origCenterX, _origCenterY,
+            //      _dstCenterX, _dstCenterY
+            //     );
             
             if(localX < -hw || localX > hw || localY < -hh || localY > hh){
                 continue;
             }
 
-            src.x = std::round(localX / _scaleX + _origCenterX);
-            src.y = std::round(localY / _scaleY + _origCenterY);
+            src.x = std::floor(localX / _scaleX + _origCenterX);
+            src.y = std::floor(localY / _scaleY + _origCenterY);
 
             unsigned int color = temp->getPixel(src.x, src.y);
 
             if((color & 0xFF) == 0) { continue; }
-            // layer.putPixel(dx, dy, GraphicsEngine::blendColors(color, 0x000000CC));
             layer.putPixel(dx, dy, color);
         }
     }
