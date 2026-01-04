@@ -834,7 +834,6 @@ let selectStrategy = () => {
 
     const CORNER_TOOL_ROTATE = "rotate";
     const CORNER_TOOL_RESIZE = "resize";
-    const CORNER_TOOL_CROP = "crop";
     let cornerTool = CORNER_TOOL_RESIZE;
 
     pattern_selected = "dot";
@@ -881,17 +880,6 @@ let selectStrategy = () => {
                 label: "Rotacionar",
                 eventClick: function(){
                     cornerTool = CORNER_TOOL_ROTATE;
-                    toolbar.querySelectorAll("button")
-                            .forEach((e)=> e.classList.remove("active"));
-                    this.classList.add("active");
-                }
-            },
-            {
-                id: CORNER_TOOL_CROP,
-                icon: "crop",
-                label: "Cortar",
-                eventClick: function(){
-                    cornerTool = CORNER_TOOL_CROP;
                     toolbar.querySelectorAll("button")
                             .forEach((e)=> e.classList.remove("active"));
                     this.classList.add("active");
@@ -994,16 +982,6 @@ let selectStrategy = () => {
         let currentMarker = parseInt(this.dataset.marker);
 
         select.resize(currentMarker, pixel.x, pixel.y);
-        editor.preview(select);
-
-        drawMarkers();
-        intialPixel = pixel;
-    }
-    function onTrackingCrop(point){
-        let pixel = cursorToPixel(point, true);
-        let currentMarker = parseInt(this.dataset.marker);
-
-        select.crop(currentMarker, pixel.x, pixel.y);
         editor.preview(select);
 
         drawMarkers();

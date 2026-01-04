@@ -66,86 +66,96 @@ void Selection::rotate(float rotateRad){
 
     _corners.bottomLeft.x = std::round(_dstCenterX - widthX + heightX);
     _corners.bottomLeft.y = std::round(_dstCenterY - widthY + heightY);
-    
-    // _angleRad = std::atan2(_corners.topRight.x - _corners.topLeft.x, _corners.topRight.y - _corners.topLeft.y);
-    // _cosA = std::cos(_angleRad);
-    // _sinA = std::sin(_angleRad);
 }
 void Selection::resize(int marker, float deltaX, float deltaY){
     Point pixel = Point(deltaX, deltaY);
 
-    auto calcWidth = [&](Point& P, Point& C){
-        Point AP = Point(P.x - C.x, P.y - C.y);
-        return (float)AP.x * _cosA  + (float)AP.y * _sinA;
+    auto toLocal = [&](const Point& p, const Point& c) {
+        return Point(p.x - c.x, p.y - c.y);
     };
-
-    auto calcHeight = [&](Point& P, Point& C){
-        Point AP = Point(P.x - C.x, P.y - C.y);
-        return (float)AP.x * -_sinA  + (float)AP.y * _cosA;
+    auto projWidth = [&](const Point& ap) {
+        return  ap.x * _cosA + ap.y * _sinA;
     };
-    
-    auto projectHeight = [&](Point& P, Point& C){
-        Point AP = Point(P.x - C.x, P.y - C.y);
-        float t = (float)AP.x * _cosA  + (float)AP.y * _sinA;
-        
-        return Point(static_cast<int>(std::round(C.x + t * _cosA)), static_cast<int>(std::round(C.y + t * _sinA)));
+    auto projHeight = [&](const Point& ap) {
+        return -ap.x * _sinA + ap.y * _cosA;
     };
-    auto projectWidth = [&](Point& P, Point& C){
-        Point AP = Point(P.x - C.x, P.y - C.y);
-        float t = (float)AP.x * -_sinA  + (float)AP.y * _cosA;
-        
-        return Point(static_cast<int>(std::round(C.x + t * -_sinA)), static_cast<int>(std::round(C.y + t * _cosA)));
+    auto fromWidth = [&](float t, const Point& c) {
+        return Point(
+            static_cast<int>(std::round(c.x + t * _cosA)),
+            static_cast<int>(std::round(c.y + t * _sinA))
+        );
+    };
+    auto fromHeight = [&](float t, const Point& c) {
+        return Point(
+            static_cast<int>(std::round(c.x - t * _sinA)),
+            static_cast<int>(std::round(c.y + t * _cosA))
+        );
     };
 
     Point pivot;
-    if((ENUM_MARKER)marker ==  ENUM_MARKER::TOP_LEFT){
-        pivot = _corners.bottomRight;
+    float signW = 1.0f;
+    float signH = 1.0f;
 
-        _corners.topLeft = pixel;
-        _corners.topRight = projectWidth(pixel, pivot);
-        _corners.bottomLeft = projectHeight(pixel, pivot);
-        
-        _resizedWidth = -calcWidth(pixel, pivot);
-        _resizedHeight = -calcHeight(pixel, pivot);
-    } else if((ENUM_MARKER)marker ==ENUM_MARKER::TOP_RIGHT){
-        pivot = _corners.bottomLeft;
+    Point* dragged = nullptr;
+    Point* cornerH = nullptr;
+    Point* cornerW = nullptr;
 
-        _corners.topRight = pixel;
-        _corners.topLeft   = projectWidth(pixel, pivot);
-        _corners.bottomRight  = projectHeight(pixel, pivot);
+    switch ((ENUM_MARKER)marker) {
+        case ENUM_MARKER::TOP_LEFT:
+            pivot   = _corners.bottomRight;
+            dragged = &_corners.topLeft;
+            cornerH = &_corners.topRight;
+            cornerW = &_corners.bottomLeft;
+            signW = -1; signH = -1;
+            break;
 
-        _resizedWidth = calcWidth(pixel, pivot);
-        _resizedHeight = -calcHeight(pixel, pivot);
-    } else if((ENUM_MARKER)marker ==ENUM_MARKER::BOTTOM_RIGHT){
-        pivot = _corners.topLeft;
+        case ENUM_MARKER::TOP_RIGHT:
+            pivot   = _corners.bottomLeft;
+            dragged = &_corners.topRight;
+            cornerH = &_corners.topLeft;
+            cornerW = &_corners.bottomRight;
+            signW =  1; signH = -1;
+            break;
 
-        _corners.bottomRight = pixel;
-        _corners.bottomLeft = projectWidth(pixel, pivot);
-        _corners.topRight = projectHeight(pixel, pivot);
+        case ENUM_MARKER::BOTTOM_RIGHT:
+            pivot   = _corners.topLeft;
+            dragged = &_corners.bottomRight;
+            cornerH = &_corners.bottomLeft;
+            cornerW = &_corners.topRight;
+            signW =  1; signH =  1;
+            break;
 
-        _resizedWidth = calcWidth(pixel, pivot);
-        _resizedHeight = calcHeight(pixel, pivot);
-    } else if((ENUM_MARKER)marker ==ENUM_MARKER::BOTTOM_LEFT){
-        pivot = _corners.topRight;
-
-        _corners.bottomLeft = pixel;
-        _corners.bottomRight = projectWidth(pixel, pivot);
-        _corners.topLeft = projectHeight(pixel, pivot);
-            
-        _resizedWidth = -calcWidth(pixel, pivot);
-        _resizedHeight = calcHeight(pixel, pivot);
-    } else {
-        std::runtime_error("Corner inválido.");
-        return;
+        case ENUM_MARKER::BOTTOM_LEFT:
+            pivot   = _corners.topRight;
+            dragged = &_corners.bottomLeft;
+            cornerH = &_corners.bottomRight;
+            cornerW = &_corners.topLeft;
+            signW = -1; signH =  1;
+            break;
+    default:
+        throw std::runtime_error("Corner inválido");
     }
 
+    Point ap = toLocal(pixel, pivot);
 
+    _resizedWidth = signW * projWidth(ap);
+    _resizedHeight = signH * projHeight(ap);
+
+    *cornerW = fromWidth(signW * _resizedWidth, pivot);
+    *cornerH = fromHeight(signH * _resizedHeight, pivot);
+
+    (*dragged) = Point(
+                    cornerH->x + cornerW->x - pivot.x,
+                    cornerH->y + cornerW->y - pivot.y
+                );
+                
     _scaleX =  _resizedWidth / (float)_originalBounding.getWidth();
     _scaleY =  _resizedHeight / (float)_originalBounding.getHeight();
 
     _dstCenterX = (_corners.topLeft.x + _corners.topRight.x + _corners.bottomLeft.x + _corners.bottomRight.x) * 0.25f;
-    _dstCenterY = (_corners.topLeft.y + _corners.topRight.y + _corners.bottomLeft.y + _corners.bottomRight.y) * 0.25f; 
+    _dstCenterY = (_corners.topLeft.y + _corners.topRight.y + _corners.bottomLeft.y + _corners.bottomRight.y) * 0.25f;
 }
+
 Point Selection::getCenter(){
     return Point(_dstCenterX, _dstCenterY);
 }
@@ -190,7 +200,7 @@ void Selection::draw(Layer& layer){
     // printf("centerOrigem: (%f, %f), centerDest: (%f, %f) \n",  _origCenterX, _origCenterY,  _dstCenterX, _dstCenterY);
     // printf("scale: (%f, %f) \n",  _scaleX, _scaleY);
     // printf("angleRad: (%f) \n",  _angleRad);
-    
+
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         Point src;
         float _dy = dy + 0.5f - _dstCenterY;
@@ -224,17 +234,6 @@ void Selection::draw(Layer& layer){
     // printf("======================== \n");
 }
 
-
-void Selection::rotatePoint(Point& p, Point center){
-    float dx = p.x - center.x;
-    float dy = p.y - center.y;
-
-    float rx = dx * _cosA + dy * -_sinA;
-    float ry = dx * _sinA + dy * _cosA;
-
-    p.x = static_cast<int>(std::round(rx + center.x));
-    p.y = static_cast<int>(std::round(ry + center.y));
-};
 
 
 using namespace emscripten;
