@@ -1,24 +1,31 @@
 #include "Selection.h"
 
-Selection::Selection(int from_start_x, int from_start_y, int to_start_x, int to_start_y){
+Selection::Selection(int from_start_x, int from_start_y,
+                     int to_start_x, int to_start_y, 
+                     Surface& layer, 
+                     bool cleanTheArea)
+{
     _originalBounding = Bounding(Point(from_start_x,from_start_y), Point(to_start_x+1, to_start_y+1));
-
+    _data = layer.crop(_originalBounding);
+    
     _destBounding = _originalBounding;
     _origCenterX = (_originalBounding.start.x + _originalBounding.end.x) * 0.5f;
     _origCenterY = (_originalBounding.start.y + _originalBounding.end.y) * 0.5f;
+    
+    _cleanTheArea = cleanTheArea;
 
     _angleRad = 0;
     _cosA = std::cos(_angleRad);
     _sinA = std::sin(_angleRad);
-
+    
     _dstCenterX = _origCenterX;
     _dstCenterY = _origCenterY;
 
     _resizedWidth = _originalBounding.getWidth() ;
     _resizedHeight = _originalBounding.getHeight() ;
-
+    
     _corners = Corners();
-
+    
     _corners.topLeft     = Point(_originalBounding.start.x, _originalBounding.start.y);
     _corners.bottomRight = Point(_originalBounding.end.x, _originalBounding.end.y);
     _corners.topRight    = Point(_originalBounding.end.x, _originalBounding.start.y);
@@ -178,11 +185,11 @@ float Selection::getRotateRad(){
     return _angleRad;
 }
 void Selection::draw(Layer& layer){
-    Layer* temp = new Layer(layer);
-
-    for (int y = _originalBounding.start.y; y < _originalBounding.end.y; ++y) {
-        for (int x = _originalBounding.start.x; x < _originalBounding.end.x; ++x) {
-            layer.putPixel((int)x, (int)y, 0x0);
+    if(_cleanTheArea){
+        for (int y = _originalBounding.start.y; y < _originalBounding.end.y; ++y) {
+            for (int x = _originalBounding.start.x; x < _originalBounding.end.x; ++x) {
+                layer.putPixel((int)x, (int)y, 0x0);
+            }
         }
     }
 
@@ -193,14 +200,6 @@ void Selection::draw(Layer& layer){
     if (_resizedHeight < 0) hh = -hh;
 
     Bounding destBounding = _corners.getBounding();
-
-    // printf("======================== \n");
-    // printf("orig_inicio: (%i, %i), orig_fim: (%i, %i) \n",  _originalBounding.start.x,  _originalBounding.start.y, _originalBounding.end.x, _originalBounding.end.y);
-    // printf("dest_inicio: (%i, %i), dest_fim: (%i, %i) \n",  destBounding.start.x,  destBounding.start.y, destBounding.end.x, destBounding.end.y);
-    // printf("centerOrigem: (%f, %f), centerDest: (%f, %f) \n",  _origCenterX, _origCenterY,  _dstCenterX, _dstCenterY);
-    // printf("scale: (%f, %f) \n",  _scaleX, _scaleY);
-    // printf("angleRad: (%f) \n",  _angleRad);
-
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         Point src;
         float _dy = dy + 0.5f - _dstCenterY;
@@ -210,37 +209,70 @@ void Selection::draw(Layer& layer){
             
             float localX = _cosA * _dx + _sinA * _dy;
             float localY = -_sinA * _dx + _cosA * _dy;
-
-            // printf("(%f,%f) - orig center(%f,%f) - dest center(%f,%f)\n",
-            //      std::floor(localX), std::floor(localY),
-            //      _origCenterX, _origCenterY,
-            //      _dstCenterX, _dstCenterY
-            //     );
             
             if(localX < -hw || localX > hw || localY < -hh || localY > hh){
                 continue;
             }
 
-            src.x = std::floor(localX / _scaleX + _origCenterX);
-            src.y = std::floor(localY / _scaleY + _origCenterY);
-
-            unsigned int color = temp->getPixel(src.x, src.y);
+            src.x = std::floor(localX / _scaleX + _origCenterX - _originalBounding.start.x);
+            src.y = std::floor(localY / _scaleY + _origCenterY - _originalBounding.start.y);
+            
+            unsigned int color = _data->getPixel(src.x, src.y);
 
             if((color & 0xFF) == 0) { continue; }
             layer.putPixel(dx, dy, color);
         }
     }
-        
-    // printf("======================== \n");
 }
 
+void Selection::remove(){
+    _corners.topLeft     = Point(0, 0);
+    _corners.bottomRight = Point(0, 0);
+    _corners.topRight    = Point(0, 0);
+    _corners.bottomLeft  = Point(0, 0);
+}
+Surface* Selection::copy(){
+    float hw = _resizedWidth * 0.5f;
+    float hh = _resizedHeight * 0.5f;
+    
+    if (_resizedWidth < 0) hw = -hw;
+    if (_resizedHeight < 0) hh = -hh;
+    
+    Bounding destBounding = _corners.getBounding();
+    Surface* surface = new Surface(destBounding.getWidth(), destBounding.getHeight());
+    
+    for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
+        Point src;
+        float _dy = dy + 0.5f - _dstCenterY;
 
+        for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
+            float _dx = dx + 0.5f - _dstCenterX;
+            
+            float localX = _cosA * _dx + _sinA * _dy;
+            float localY = -_sinA * _dx + _cosA * _dy;
+            
+            if(localX < -hw || localX > hw || localY < -hh || localY > hh){
+                continue;
+            }
+
+            src.x = std::floor(localX / _scaleX + _origCenterX - _originalBounding.start.x);
+            src.y = std::floor(localY / _scaleY + _origCenterY - _originalBounding.start.y);
+            
+            unsigned int color = _data->getPixel(src.x, src.y);
+
+            if((color & 0xFF) == 0) { continue; }
+            surface->putPixel(dx-destBounding.start.x , dy-destBounding.start.y, color);
+        }
+    }
+
+    return surface;
+}
 
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(selection_module){
     class_<Selection, base<IGraphic>>("Selection")
-        .constructor<int, int, int, int>()
+        .constructor<int, int, int, int, Surface&, bool>()
         .smart_ptr<std::shared_ptr<Selection>>("shared_ptr<Selection>")
         .function("draw", &Selection::draw)
         .function("getBounding", &Selection::getBounding)
@@ -252,5 +284,7 @@ EMSCRIPTEN_BINDINGS(selection_module){
         .function("getResizedWidth", &Selection::getResizedWidth)
         .function("getResizedHeight", &Selection::getResizedHeight)
         .function("resize", &Selection::resize)
+        .function("remove", &Selection::remove)
+        .function("copy", &Selection::copy, allow_raw_pointers())
         ;
 };

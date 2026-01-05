@@ -26,7 +26,70 @@ window.remove_frame = removeFrame;
 window.change_active_frame = changeActiveFrame;
 window.move_frame_to = moveFrameTo;
 
+let clipboard;
+const channel = new BroadcastChannel("shared-buffer");
+channel.onmessage = (e) => {
+    if(e.data.action == "SET_CLIPBOARD"){
+        clipboard = e.data.clipboard;
+    }
+
+    if(e.data.action == "REQUEST_CLIPBOARD"){
+        channel.postMessage({ action:"SET_CLIPBOARD", clipboard: clipboard});
+    }
+};
+let _shortcuts = {
+    "contextmenu": ()=>{},
+    "control": {
+        "v": ()=>{
+            if(document.activeElement.tagName === "INPUT" ||
+                document.activeElement.tagName === "TEXTAREA" ||
+                document.activeElement.isContentEditable)
+                return;
+                let select = selectStrategy();
+                handlerEvents.setRightButtonMousePressedEvent(select);
+
+                select.paste();
+                changeSelectTool.call(document.querySelector(".tool-select"));
+        },
+        "shift": {
+            "alt": {
+
+            }
+        },
+    }
+};
+
+window.addEventListener("keydown", function(event){
+    let action;
+    if (event.ctrlKey){
+        action = _shortcuts.control;
+        
+        if (event.shiftKey){
+            action = action.shift;
+            
+            if (event.altKey){
+                action = _shortcuts.alt;
+            }
+        }
+    }
+
+    if(action?.hasOwnProperty(event.key.toLowerCase())){
+        event.preventDefault();
+        action[event.key.toLowerCase()]();
+    }
+});
+window.addEventListener("click", function(event){
+    if(event.target.tagName !== "INPUT" &&
+        event.target.tagName !== "TEXTAREA" &&
+        !event.target.isContentEditable){
+        document.activeElement.blur();
+    }
+});
+
+
 window.onload = async ()=>{
+    channel.postMessage({ action: "REQUEST_CLIPBOARD"});
+
     let {
             offsetWidth: viewportWidth,
             offsetHeight: viewportHeight
@@ -828,7 +891,7 @@ const ENUM_MARKER = {
     br:3,
     rotate:4
 }
-let selectStrategy = () => {
+function selectStrategy(){
     let select;
     let intialPixel = null;
 
@@ -839,94 +902,10 @@ let selectStrategy = () => {
     pattern_selected = "dot";
     canvas.style.cursor = "crosshair";
 
-
     let selectedArea = document.querySelector("#selected-area");
     let markersElement = document.querySelectorAll("#selected-area .marker");
 
-    function createFloatingToolbar() {
-        let selectedArea = document.querySelector(".floating-toolbar");
-        selectedArea?.remove();
-        
-        const toolbar = document.createElement("div");
-        toolbar.className = "floating-toolbar";
-
-        const grip = document.createElement("div");
-        grip.className = "grip";
-
-        const gripIcon = document.createElement("span");
-        gripIcon.className = "material-symbols-outlined";
-        gripIcon.textContent = "drag_indicator";
-
-        grip.appendChild(gripIcon);
-
-        const content = document.createElement("div");
-        content.className = "floating-toolbar-content";
-
-        const buttons = [
-            {
-                id: CORNER_TOOL_RESIZE,
-                icon: "resize",
-                label: "Redimensionar",
-                eventClick: function(){
-                    cornerTool = CORNER_TOOL_RESIZE;
-                    toolbar.querySelectorAll("button")
-                            .forEach((e)=> e.classList.remove("active"));
-                    this.classList.add("active");
-                }
-            },
-            {
-                id: CORNER_TOOL_ROTATE,
-                icon: "autorenew",
-                label: "Rotacionar",
-                eventClick: function(){
-                    cornerTool = CORNER_TOOL_ROTATE;
-                    toolbar.querySelectorAll("button")
-                            .forEach((e)=> e.classList.remove("active"));
-                    this.classList.add("active");
-                }
-            },
-            {
-                id: "copy",
-                icon: "content_copy",
-                label: "Copiar",
-                eventClick: function(){
-                }
-            },
-            {
-                id: "tile-brush",
-                icon: "brush",
-                label: "Pincel",
-                eventClick: function(){
-                }
-            }
-        ];
-
-        buttons.forEach(addTool);
-
-        toolbar.appendChild(grip);
-        toolbar.appendChild(content);
-
-        drawingArea.appendChild(toolbar);
-
-        function addTool({ id, icon, label, eventClick }) {            
-            const btn = document.createElement("button");
-            if(cornerTool == id) btn.classList.add("active");
-            btn.id = id;
-            btn.classList.add("select-tool");
-            btn.addEventListener("click", eventClick);
-            
-            const span = document.createElement("span");
-            span.className = "material-symbols-outlined";
-            span.textContent = icon;
-            
-            btn.appendChild(span);
-            btn.append(label);
-
-            content.appendChild(btn);
-        }
-    }
-
-
+    _shortcuts.control.c = copy;
 
     let _onTracking = onTrackingBounding;
     let _onRelease = (point)=>{};
@@ -966,14 +945,15 @@ let selectStrategy = () => {
         }
     };
 
-    function onTrackingBounding(point){
+    function onTrackingBounding(point){     
         let pixel = cursorToPixel(point);
 
         if(intialPixel.x - pixel.x == 0 && intialPixel.y - pixel.y == 0){
             return;
         }
-
-        select = new module.Selection(intialPixel.x, intialPixel.y, pixel.x, pixel.y);
+        const frame = editor.getActiveFrame();
+        
+        select = new module.Selection(intialPixel.x, intialPixel.y, pixel.x, pixel.y, frame.getActiveLayer(), true);
         editor.preview(select);
         drawMarkers();
     };
@@ -1053,6 +1033,41 @@ let selectStrategy = () => {
         });
 
     }
+
+
+    function copy(){
+        if(document.activeElement.tagName === "INPUT" ||
+            document.activeElement.tagName === "TEXTAREA" ||
+            document.activeElement.isContentEditable)
+            return;
+        if(select == null) return;
+
+        let surface = select.copy();
+
+        const buffer = new Uint8ClampedArray(module.HEAPU8.buffer, surface.getBufferPtr(), surface.getLength()*4);
+        
+        clipboard = { buffer: buffer.slice(), width: surface.getWidth() };
+        channel.postMessage({ action: "SET_CLIPBOARD", clipboard: clipboard});
+        
+        surface.delete();
+    }
+
+    function paste(){
+        if(!clipboard) return;
+
+        done();
+        createFloatingToolbar();
+        const { buffer, width } = clipboard;
+        const height = buffer.length / 4 / width;
+
+        let surface = new module.Surface(width, height);
+        module.HEAPU8.set(buffer, surface.getBufferPtr());
+
+        select = new module.Selection(0, 0, width-1, height-1, surface, false);
+        editor.preview(select);
+        drawMarkers();
+    }
+
     function done(){
         selectedArea.style.display = "none";
         markersElement.forEach((e)=>{
@@ -1061,9 +1076,100 @@ let selectStrategy = () => {
             e.style.height = 1 + "px";
             e.style.scale =  0.5;
         });
+        document.querySelector(".floating-toolbar")?.remove();
         if(select != null)
             editor.draw(select);
         select = null;
+        
+        delete _shortcuts.control.c;
+    }
+
+    function createFloatingToolbar() {
+        let selectedArea = document.querySelector(".floating-toolbar");
+        selectedArea?.remove();
+        
+        const toolbar = document.createElement("div");
+        toolbar.className = "floating-toolbar";
+
+        const grip = document.createElement("div");
+        grip.className = "grip";
+
+        const gripIcon = document.createElement("span");
+        gripIcon.className = "material-symbols-outlined";
+        gripIcon.textContent = "drag_indicator";
+
+        grip.appendChild(gripIcon);
+
+        const content = document.createElement("div");
+        content.className = "floating-toolbar-content";
+
+        const buttons = [
+            {
+                id: CORNER_TOOL_RESIZE,
+                icon: "resize",
+                label: "Redimensionar",
+                eventClick: function(){
+                    cornerTool = CORNER_TOOL_RESIZE;
+                    toolbar.querySelectorAll("button")
+                            .forEach((e)=> e.classList.remove("active"));
+                    this.classList.add("active");
+                }
+            },
+            {
+                id: CORNER_TOOL_ROTATE,
+                icon: "autorenew",
+                label: "Rotacionar",
+                eventClick: function(){
+                    cornerTool = CORNER_TOOL_ROTATE;
+                    toolbar.querySelectorAll("button")
+                            .forEach((e)=> e.classList.remove("active"));
+                    this.classList.add("active");
+                }
+            },
+            {
+                id: "copy",
+                icon: "content_copy",
+                label: "Copiar",
+                eventClick: copy
+            },
+            {
+                id: "paste",
+                icon: "content_paste",
+                label: "Colar",
+                eventClick: paste
+            },
+            {
+                id: "tile-brush",
+                icon: "brush",
+                label: "Pincel",
+                eventClick: function(){
+                }
+            }
+        ];
+
+        buttons.forEach(addTool);
+
+        toolbar.appendChild(grip);
+        toolbar.appendChild(content);
+
+        drawingArea.appendChild(toolbar);
+
+        function addTool({ id, icon, label, eventClick }) {            
+            const btn = document.createElement("button");
+            if(cornerTool == id) btn.classList.add("active");
+            btn.id = id;
+            btn.classList.add("select-tool");
+            btn.addEventListener("click", eventClick);
+            
+            const span = document.createElement("span");
+            span.className = "material-symbols-outlined";
+            span.textContent = icon;
+            
+            btn.appendChild(span);
+            btn.append(label);
+
+            content.appendChild(btn);
+        }
     }
 
     return {
@@ -1072,7 +1178,10 @@ let selectStrategy = () => {
             _onTracking(point);
         },
         onRelease: _onRelease,
-        dispatch: done
+        dispatch: done,
+        paste: paste,
+        copy: copy,
+        done: done
     };
 };
 function isInsideRotatedBounding(point, corners){
@@ -1273,12 +1382,12 @@ function buildToolBar(){
     // buttonSquare.click();
     // buttonPencil.click();
 
-    function changeSelectTool(){
-        document.querySelector(".tool.active")?.classList.toggle("active", false);
-        this.classList.toggle("active", true);
-    }
+    
 }
-
+function changeSelectTool(){
+    document.querySelector(".tool.active")?.classList.toggle("active", false);
+    this.classList.toggle("active", true);
+}
 let onSizeStrategy = ()=> {
     return {
         onScrollUp: (cursor)=>{

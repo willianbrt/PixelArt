@@ -20,7 +20,10 @@ public:
         BOTTOM_RIGHT = 3
     };
 
-    Selection(int from_start_x, int from_start_y, int to_start_x, int to_start_y);
+    Selection(int from_start_x, int from_start_y,
+            int to_start_x, int to_start_y,
+            Surface& layer,
+            bool cleanTheArea);
     Bounding getBounding();
     Corners getDestinationCorners();
     void draw(Layer& layer);
@@ -30,6 +33,8 @@ public:
 
     void translate(float deltaX, float deltaY);
     void rotate(float rotateRad);
+    void remove();
+    Surface* copy();
     float getRotateRad();
     void resize(int marker, float deltaX, float deltaY);
 private:
@@ -45,8 +50,10 @@ private:
     float _resizedHeight;
     float _origCenterX;
     float _origCenterY; 
+    bool _cleanTheArea;
 
     unsigned int _newColorHex;
+    Surface* _data;
     Bounding _originalBounding;
     Bounding _destBounding;
     Corners _corners;

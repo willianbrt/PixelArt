@@ -14,7 +14,7 @@ void GraphicsEngine::translation(Surface* surface, Bounding bound, int deltaX, i
     }
 }
 void GraphicsEngine::interpolation(Surface* surface, Bounding bound, float scaleX, float scaleY){
-    Surface dirtSurface =  surface->crop(bound);
+    Surface* dirtSurface =  surface->crop(bound);
 
     int resizedWidth = scaleX * bound.getWidth();
     int resizedHeight = scaleY * bound.getHeight();

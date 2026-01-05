@@ -7,6 +7,9 @@ Surface::~Surface(){
     free(_data);
 }
 
+uintptr_t Surface::getBufferPtr() {
+    return reinterpret_cast<uintptr_t>(_data);
+}
 unsigned int* Surface::getBuffer() {
     return _data;
 }
@@ -19,19 +22,20 @@ int Surface::getHeight() {
 unsigned int Surface::getLength() {
     return _height*_width;
 }
-Surface Surface::crop(Bounding bound){
-    Surface dirtSurface = Surface(bound.getWidth(), bound.getHeight());
+Surface* Surface::crop(Bounding bound){
+    Surface* dirtSurface = new Surface(bound.getWidth(), bound.getHeight());
     
     int boundWidth = bound.getWidth();
     unsigned long length = boundWidth * sizeof(unsigned int);
-    unsigned int* ptrDestination = dirtSurface.getBuffer();
-    unsigned int* ptr = _data + (bound.start.x + boundWidth*bound.start.y);
-    unsigned int* ptrEnd = _data + (bound.end.x + boundWidth*bound.end.y);
-    
-    for(; ptr <= ptrEnd; ptr += boundWidth){
-        std::copy(ptr, ptr+length, ptrDestination);
-    }
+    unsigned int* ptrDestination = dirtSurface->getBuffer();
+    unsigned int* ptr = _data + (bound.start.x + _width*bound.start.y);
+    unsigned int* ptrEnd = ptr + (_width*bound.end.y);
 
+    for (unsigned int* index = ptr; index < ptrEnd; index += _width) {
+        memcpy(ptrDestination, index, length);
+        ptrDestination += boundWidth;
+    }
+    
     return dirtSurface;
 }
 unsigned int Surface::getPixel(int x, int y) {
@@ -92,6 +96,11 @@ void Surface::setSize(int width, int height){
 EMSCRIPTEN_BINDINGS(surface_module){
     class_<Surface>("Surface")
         .constructor<int, int>()
+        .smart_ptr<std::shared_ptr<Surface>>("shared_ptr<Surface>")
+        .function("getWidth",  &Surface::getWidth)
+        .function("getHeight", &Surface::getHeight)
+        .function("getBufferPtr", &Surface::getBufferPtr)
+        .function("getLength", &Surface::getLength)
         .function("putPixel",  select_overload<void(int, int, unsigned int)>(&Surface::putPixel))
         .function("getPixel", select_overload<unsigned int(int, int)>(&Surface::getPixel));
 }
