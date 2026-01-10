@@ -177,6 +177,14 @@ public:
         activeFrame = getFrameByID(id);
         emscripten::val::global("change_active_frame")(emscripten::val(id));
     }
+
+    
+    int getWidth(){
+        return _screen.getWidth();
+    }
+    int getHeight(){
+        return _screen.getHeight();
+    }
 };
 
 using namespace emscripten;
@@ -199,5 +207,8 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("getAllFrames", &Editor::getAllFrames, allow_raw_pointers())
         .function("getFrameByID", &Editor::getFrameByID, allow_raw_pointers())
         .function("getActiveFrame", &Editor::getActiveFrame, allow_raw_pointers())
-        .function("changeActiveFrame", &Editor::changeActiveFrame);
+        .function("changeActiveFrame", &Editor::changeActiveFrame)
+        .function("getWidth", &Editor::getWidth)
+        .function("getHeight", &Editor::getHeight)
+;
 };

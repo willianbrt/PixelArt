@@ -2,9 +2,11 @@ import ModulePixelEditor from '../build/PixelEditor.js'
 import HandlerEvents from './handlerEvents.js'
 import { PositionHelper } from "../../../scripts/common/position.js";
 import { Chromatic, ColorFactory } from "./chromatic.js"
+import "https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"
 
 let width = 32;
 let height = 10;
+
 const DEFAULT_NAME_LAYER = "Layer";
 let targetScale = 1;
 
@@ -503,6 +505,77 @@ function hasLayerWithName(name){
     return false;
 }
 
+async function exportAsGIF(){
+    let gifLoading = fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js')
+    .then((response) => {
+        if (!response.ok)
+            throw new Error("Network response was not OK");
+        return response.blob();
+    }).then(workerBlob => {
+        let gif = new GIF({
+            workers: 2,
+            workerScript: URL.createObjectURL(workerBlob),
+            quality: 0,
+            width: editor.getWidth()*15,
+            height: editor.getHeight()*15
+        });
+            
+        gif.on('finished', async function (blob) {
+            let suggestedName = "abacadabra";
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = suggestedName;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+        return gif;
+    });
+
+    gifLoading.then(gif => {
+        let frames = editor.getAllFrames();
+        for(let i = 0; i < frames.size(); i++){
+            let frame = frames.get(i);
+            const bufferJS = frame.getBufferJS();
+            const buffer8 = new Uint8ClampedArray(
+                bufferJS.buffer,
+                bufferJS.byteOffset,
+                bufferJS.byteLength);
+            const imageData = new ImageData(buffer8, editor.getWidth(), editor.getHeight());
+            const bitmap = createImageBitmap(imageData);
+            gif.addFrame(imageData, { delay: 200, copy: true })
+        }
+        gif.render();
+    });
+}
+async function exportAs(mimetype){
+    let resizedWidth = editor.getWidth()*15;
+    let resizedHeight = editor.getHeight()*15;
+
+    const frame = editor.getActiveFrame();
+    const bufferJS = frame.getBufferJS();
+    const buffer8 = new Uint8ClampedArray(
+        bufferJS.buffer,
+        bufferJS.byteOffset,
+        bufferJS.byteLength);
+    const imageData = new ImageData(buffer8, editor.getWidth(), editor.getHeight());
+    const bitmap = await createImageBitmap(imageData);
+
+    const offscreenCanvas = new OffscreenCanvas(resizedWidth, resizedHeight);
+    const ctx = offscreenCanvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+    
+    ctx.drawImage(bitmap, 0, 0, resizedWidth, resizedHeight);
+
+    offscreenCanvas.convertToBlob().then(blob =>{
+        let suggestedName = "abacadabra";
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = suggestedName;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }, mimetype);
+
+}
 
 
 const pattern = {

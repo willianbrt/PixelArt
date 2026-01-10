@@ -140,7 +140,6 @@ unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
     return colorHex;
 }
 
-
 unsigned int Frame::getFrameDuration() const{ return timeDuration; }
 
 void Frame::setID(Guid id){
@@ -150,6 +149,38 @@ Guid Frame::getID() const{
     return _id;
 }
 
+emscripten::val Frame::getBufferJS() {
+    unsigned int* buffer = (unsigned int*) malloc(activeLayer->getLength() *sizeof(unsigned int));
+    memset(buffer, 0, activeLayer->getLength()*sizeof(unsigned int));
+
+    for(int layerIndex = 0; layerIndex < layers.size(); layerIndex++){
+        Layer* layer = layers.at(layerIndex);
+        if(!layer->isVisible()) continue;
+
+        Bounding dirtyArea = Bounding(Point(0,0), Point(layer->getWidth(), layer->getHeight()));
+
+        int index = dirtyArea.start.x + dirtyArea.start.y * layer->getWidth();
+        int incrementY = 0;
+
+        while(index < layer->getLength()){
+            unsigned int colorLayer = layer->getPixel(index);
+            GraphicsEngine::blending(buffer[index], colorLayer);
+            
+            swap_endian_uint32(&buffer[index]);
+
+            index++;
+            incrementY++;
+            if(incrementY >= dirtyArea.getWidth()){
+                index += layer->getWidth() + dirtyArea.start.x - dirtyArea.getWidth();
+                incrementY = 0;
+            }
+        }
+    }
+
+    return emscripten::val(
+        emscripten::typed_memory_view(activeLayer->getLength(), buffer)
+    );
+}
 
 void Frame::bringLayerToFoward(Guid id){
     size_t i = std::distance(layers.cbegin(), getIteratorLayerByID(id));
@@ -258,6 +289,7 @@ EMSCRIPTEN_BINDINGS(frame_module){
         .function("flipY", &Frame::flipY)
         .function("draw", &Frame::draw)
         .function("getFrameDuration", &Frame::getFrameDuration)
+        .function("getBufferJS", &Frame::getBufferJS)
         
         .function("getLayerIndex", &Frame::getLayerIndex)
         .function("bringLayerToFoward", &Frame::bringLayerToFoward)

@@ -3,6 +3,7 @@
 
 #include <emscripten.h>
 #include <emscripten/bind.h>
+#include <emscripten/val.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>
@@ -41,6 +42,7 @@ public:
 
     unsigned int getPixel(unsigned int index);
     unsigned int getPixel(unsigned int index, int fromIndex, int toIndex);
+    emscripten::val getBufferJS();
 
     unsigned int getFrameDuration() const;
     
