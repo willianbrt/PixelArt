@@ -280,6 +280,7 @@ EMSCRIPTEN_BINDINGS(frame_module){
     class_<Frame>("Frame")
         .constructor<>()
         .smart_ptr<std::shared_ptr<Frame>>("shared_ptr<Frame>")
+        .function("setID", &Frame::setID)
         .function("getID", &Frame::getID)
         .function("resize", &Frame::resize)
         .function("move", &Frame::move)

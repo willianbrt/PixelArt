@@ -34,7 +34,7 @@ private:
     Frame* activeFrame = nullptr;
 
 public:
-    Editor(unsigned int width, unsigned int height) :_screen(get_viewport_width(), get_viewport_height()), _sketch(width, height) {
+    Editor(int width, int height) :_screen(get_viewport_width(), get_viewport_height()), _sketch(width, height) {
         _sketchPosition = getInitialPosition();
     }
     ~Editor(){
@@ -95,6 +95,8 @@ public:
 
         renderCanvas(_sketch.getBuffer(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
     }
+    
+    
     void cloneActiveFrame(){
         Frame* cloneFrame = new Frame(*activeFrame);
         cloneFrame->setID(Guid::generateUUID());
@@ -180,10 +182,10 @@ public:
 
     
     int getWidth(){
-        return _screen.getWidth();
+        return _sketch.getWidth();
     }
     int getHeight(){
-        return _screen.getHeight();
+        return _sketch.getHeight();
     }
 };
 
@@ -192,7 +194,7 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     register_vector<Frame*>("VectorFrame");
     class_<Editor>("Editor")
-        .constructor<unsigned int, unsigned int>()
+        .constructor<int, int>()
         .smart_ptr<std::shared_ptr<Editor>>("shared_ptr<Editor>")
         .function("renderArea", select_overload<void(int, int, int, int)>(&Editor::render))
         .function("preview", &Editor::preview)
@@ -209,6 +211,5 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("getActiveFrame", &Editor::getActiveFrame, allow_raw_pointers())
         .function("changeActiveFrame", &Editor::changeActiveFrame)
         .function("getWidth", &Editor::getWidth)
-        .function("getHeight", &Editor::getHeight)
-;
+        .function("getHeight", &Editor::getHeight);
 };

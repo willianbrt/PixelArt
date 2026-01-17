@@ -4,9 +4,6 @@ import { PositionHelper } from "../../../scripts/common/position.js";
 import { Chromatic, ColorFactory } from "./chromatic.js"
 import "https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"
 
-let width = 32;
-let height = 10;
-
 const DEFAULT_NAME_LAYER = "Layer";
 let targetScale = 1;
 
@@ -42,6 +39,14 @@ channel.onmessage = (e) => {
 let _shortcuts = {
     "contextmenu": ()=>{},
     "control": {
+        "s": (event)=>{
+            // exportAs("image/png");
+            // exportAsGIF();
+            save();
+        },
+        "o": (event)=>{
+            importProject();
+        },
         "v": ()=>{
             if(document.activeElement.tagName === "INPUT" ||
                 document.activeElement.tagName === "TEXTAREA" ||
@@ -49,6 +54,15 @@ let _shortcuts = {
                 return;
                 let select = selectStrategy();
                 handlerEvents.setRightButtonMousePressedEvent(select);
+                window.addEventListener("mousedown", (e)=>{
+                    console.log(e.target, renderArea)
+                    if (!drawingArea.contains(e.target)) {
+                        console.log("fora")
+                        select.dispatch();
+                        return;
+                    }
+                    console.log("dentro")
+                });
 
                 select.paste();
                 changeSelectTool.call(document.querySelector(".tool-select"));
@@ -77,6 +91,7 @@ window.addEventListener("keydown", function(event){
 
     if(action?.hasOwnProperty(event.key.toLowerCase())){
         event.preventDefault();
+        event.stopPropagation();
         action[event.key.toLowerCase()]();
     }
 });
@@ -92,20 +107,6 @@ window.addEventListener("click", function(event){
 window.onload = async ()=>{
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});
 
-    let {
-            offsetWidth: viewportWidth,
-            offsetHeight: viewportHeight
-        } = drawingArea;
-
-    canvas.width = width;
-    canvas.height = height;
-
-    targetScale = Math.floor(Math.min(viewportWidth / width, viewportHeight / height));
-
-    renderArea.style.position = `absolute`;
-    renderArea.style.scale = targetScale;
-    renderArea.style.left = `${ ( (viewportWidth - width*targetScale)/ 2  )}px`;
-    renderArea.style.top = `${ ( (viewportHeight - height*targetScale)/ 2  ) }px`;
 
     window.module = await ModulePixelEditor({
         canvas,
@@ -120,12 +121,7 @@ window.onload = async ()=>{
         }
     });
 
-    window.editor = new module.Editor(width, height);
-
-    let frame = new module.Frame();
-    frame.addLayer(new module.Layer(DEFAULT_NAME_LAYER, width, height));
-    editor.addFrame(frame);
-    editor.render();
+    createProject(32, 10);
 
     let headerFrame = document.querySelector("#pane-footer .header");
     headerFrame.addEventListener("click", function(e){
@@ -221,6 +217,40 @@ window.onload = async ()=>{
         editor.render();
     });
 }
+
+function createProject(width, height){
+    window.editor = new module.Editor(width, height);
+    
+    let frame = new module.Frame();
+    frame.addLayer(new module.Layer(DEFAULT_NAME_LAYER, width, height));
+    editor.addFrame(frame);
+    editor.render();
+
+    loadingProject();
+}
+
+function loadingProject(){
+    window.width = editor.getWidth();
+    window.height = editor.getHeight();
+    let {
+            offsetWidth: viewportWidth,
+            offsetHeight: viewportHeight
+        } = drawingArea;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    targetScale = Math.floor(Math.min(viewportWidth / editor.getWidth(), viewportHeight / editor.getHeight()));
+
+    renderArea.style.position = `absolute`;
+    renderArea.style.scale = targetScale;
+    renderArea.style.left = `${ ( (viewportWidth - width*targetScale)/ 2  )}px`;
+    renderArea.style.top = `${ ( (viewportHeight - height*targetScale)/ 2  ) }px`;
+    
+    editor.render();
+}
+
+
 
 function addFrame(frame){
     const id = frame.getID();
@@ -576,6 +606,130 @@ async function exportAs(mimetype){
     }, mimetype);
 
 }
+async function save(){
+    const frames = editor.getAllFrames();
+    let project = {
+        application: "PRBT",
+        author: "https://preebit.com",
+        width: editor.getWidth(),
+        height: editor.getHeight(),
+        version: "0.0.0",
+        n_frames: frames.size(), 
+        frames: []
+    };
+
+    for(let frameIndex = 0; frameIndex < frames.size(); frameIndex++){
+        const frame = frames.get(frameIndex);
+        const layers = frame.getAllLayers();
+
+        let dataFrame = {
+            id: frame.getID().toString(),
+            duration: frame.getFrameDuration(),
+            n_layers: layers.size(),
+            layers: []
+        };
+        
+        
+        for(let layerIndex = 0; layerIndex < layers.size(); layerIndex++){
+            const layer = layers.get(layerIndex);
+            
+            let dataLayer = {
+                id: layer.getID().toString(),
+                name: layer.getName(),
+                opacity: layer.getOpacity(),
+                is_lock: layer.isLock(),
+                is_visible: layer.isVisible(),
+                compression: 1,
+                buffer: ""
+            };
+            let index = 0, cnt = 0;
+            let flagColorLayer = layer.getPixelByIndex(index);
+            console.log(layer.getLength())
+            while(index < layer.getLength()){
+                let colorLayer = layer.getPixelByIndex(index);
+                
+                if(flagColorLayer != colorLayer){
+                    dataLayer.buffer +=  cnt + ":" + flagColorLayer + ",";
+                    cnt = 1;
+                    flagColorLayer = colorLayer;
+                } else {
+                    cnt++;
+                }
+                index++;
+            }
+            dataLayer.buffer +=  cnt + ":" + flagColorLayer;
+            dataFrame.layers.push(dataLayer);
+        }
+        project.frames.push(dataFrame);
+    }
+    console.log(project)
+    
+
+    const blob = new Blob([JSON.stringify(project)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "output.preebit";
+    a.click();
+}
+async function importProject(){
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".preebit";
+    input.multiple = false;
+    input.excludeAcceptAllOption = true;
+
+    input.onchange = async () => {
+        input.files[0].text().then(text => {
+            const data = JSON.parse(text);
+            if(data.application !== "PRBT") throw new Error("Formato inválido.");
+            switch(data.version){
+                case "0.0.0":
+                    loadVersion000(data);
+                break;
+                default: throw new Error("Versão não identificada.");
+            }
+        });
+    };
+
+    input.click();
+}
+function loadVersion000(data){
+    let local_editor = new module.Editor(data.width, data.height);
+
+    for(let frameIndex = 0; frameIndex < data.frames.length; frameIndex++){
+        const dataFrame = data.frames[frameIndex];
+        let frame = new module.Frame();
+        frame.setID(new module.Guid(dataFrame.id));
+
+        if(dataFrame.n_layers !== dataFrame.layers.length) throw new Error("Arquivo corrompido.");
+        
+        for(let layerIndex = 0; layerIndex < dataFrame.layers.length; layerIndex++){
+            const dataLayer = dataFrame.layers[layerIndex];
+
+            let layer = new module.Layer(dataLayer.name, data.width, data.height);
+            layer.setID(new module.Guid(dataLayer.id));
+            layer.setLock(dataLayer.is_lock);
+            layer.setVisible(dataLayer.is_visible);
+            layer.setOpacity(dataLayer.opacity);
+            
+            let buffer = dataLayer.buffer.split(",");
+            let index = 0;
+            for(let i = 0; i < buffer.length; i++){
+                let pixelInfo = buffer[i].split(":");
+                for(let j = 0; j < pixelInfo[0]; j++){
+                    layer.putPixelByIndex(Number(index) >>> 0, Number(pixelInfo[1]) >>> 0);
+                    index++;
+                }
+            }
+
+            frame.addLayer(layer);
+        }
+        local_editor.addFrame(frame);
+    }
+    window.editor = local_editor;
+    loadingProject();
+}
+
 
 
 const pattern = {

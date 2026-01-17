@@ -102,5 +102,8 @@ EMSCRIPTEN_BINDINGS(surface_module){
         .function("getBufferPtr", &Surface::getBufferPtr)
         .function("getLength", &Surface::getLength)
         .function("putPixel",  select_overload<void(int, int, unsigned int)>(&Surface::putPixel))
-        .function("getPixel", select_overload<unsigned int(int, int)>(&Surface::getPixel));
+        .function("putPixelByIndex",  select_overload<void(unsigned int, unsigned int)>(&Surface::putPixel))
+        .function("getPixel", select_overload<unsigned int(int, int)>(&Surface::getPixel))
+        .function("getPixelByIndex", select_overload<unsigned int(unsigned int)>(&Surface::getPixel))
+        ;
 }
