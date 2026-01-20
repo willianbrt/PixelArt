@@ -814,6 +814,7 @@ function loadVersion000(data){
         }
         local_editor.addFrame(frame);
     }
+    editor?.delete();
     editor = local_editor;
 
     loadingProject();
