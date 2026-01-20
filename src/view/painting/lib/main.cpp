@@ -38,7 +38,9 @@ public:
         _sketchPosition = getInitialPosition();
     }
     ~Editor(){
-        // free(_screen);
+        for (auto* f : frames) delete f;
+        frames.clear();
+        delete activeFrame;
     }
 
     Point getInitialPosition(){
@@ -96,25 +98,6 @@ public:
         renderCanvas(_sketch.getBuffer(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
     }
     
-    
-    void cloneActiveFrame(){
-        Frame* cloneFrame = new Frame(*activeFrame);
-        cloneFrame->setID(Guid::generateUUID());
-
-        addFrame(cloneFrame);
-
-        size_t i = std::distance(frames.begin(), getIteratorFrameByID(activeFrame->getID()));
-        bringFrameTo(cloneFrame->getID(), i + 1);
-        changeActiveFrame(cloneFrame->getID());
-    }
-    void bringFrameToFoward(Guid id){
-        size_t i = std::distance(frames.begin(), getIteratorFrameByID(id));
-        bringFrameTo(id, i + 1);
-    }
-    void bringFrameBack(Guid id){
-        size_t i = std::distance(frames.begin(), getIteratorFrameByID(id));
-        bringFrameTo(id, i - 1);
-    }
     void bringFrameTo(Guid id, size_t toIndex){
         auto from = getIteratorFrameByID(id);
 
@@ -129,25 +112,16 @@ public:
         } else {
             std::rotate(frames.begin() + toIndex, frames.begin() + fromIndex, frames.begin() + fromIndex + 1);
         }
-        
-        emscripten::val::global("move_frame_to")(emscripten::val(id), emscripten::val(toIndex));
     }
     
     void removeFrame(Guid id){
         auto it = getIteratorFrameByID(id);
         size_t index = it - frames.begin();
-        if (it == frames.end()) return;
+
+        if (it > frames.end()) return;
 
         frames.erase(it);
-        emscripten::val::global("remove_frame")(emscripten::val(id));
-
-        if(frames.size() == 0){
-            Frame* f = new Frame();
-            f->addLayer(new Layer(DEFAULT_NAME_LAYER, _sketch.getWidth(), _sketch.getHeight()));
-            addFrame(f);
-            return;
-        }
-
+        
         if(id.toString() == activeFrame->getID().toString()){
             size_t activeIndex = std::min(frames.size()-1, std::max<size_t>(0, index));
             changeActiveFrame(frames[activeIndex]->getID());
@@ -155,7 +129,6 @@ public:
     }
     void addFrame(Frame* frame){
         frames.emplace_back(frame);
-        emscripten::val::global("add_frame")(emscripten::val(*frame));
         
         if(frames.size() == 1){
             changeActiveFrame(frames[0]->getID());
@@ -168,6 +141,9 @@ public:
         auto it = getIteratorFrameByID(id);
         return (it != frames.end()) ? *it : nullptr;
     }
+    size_t getFrameIndex(Guid id){
+        return std::distance(frames.begin(), getIteratorFrameByID(id));
+    }
     std::vector<Frame*>::iterator getIteratorFrameByID(Guid id){
         string idStr = id.toString();
         return std::find_if(frames.begin(), frames.end(), [&idStr](Frame* f){ return f->getID().toString() == idStr; });
@@ -177,7 +153,6 @@ public:
     }
     void changeActiveFrame(Guid id){
         activeFrame = getFrameByID(id);
-        emscripten::val::global("change_active_frame")(emscripten::val(id));
     }
 
     
@@ -200,11 +175,9 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("preview", &Editor::preview)
         .function("draw", &Editor::draw)
         .function("render", select_overload<void()>(&Editor::render))
-        .function("bringFrameToFoward", &Editor::bringFrameToFoward)
-        .function("bringFrameBack", &Editor::bringFrameBack)
         .function("bringFrameTo", &Editor::bringFrameTo)
+        .function("getFrameIndex", &Editor::getFrameIndex)
         .function("removeFrame", &Editor::removeFrame)
-        .function("cloneActiveFrame", &Editor::cloneActiveFrame)
         .function("addFrame", &Editor::addFrame, allow_raw_pointers())
         .function("getAllFrames", &Editor::getAllFrames, allow_raw_pointers())
         .function("getFrameByID", &Editor::getFrameByID, allow_raw_pointers())

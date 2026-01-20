@@ -15,6 +15,8 @@ const renderArea = document.querySelector("#render-area");
 const drawingArea = document.querySelector("#drawing-area");
 const handlerEvents = HandlerEvents(drawingArea);
 
+let editor;
+
 window.add_layer = addLayer;
 window.remove_layer = removeLayer;
 window.change_active_layer = changeActiveLayer;
@@ -140,29 +142,63 @@ window.onload = async ()=>{
     let btnFlipYFrame = document.getElementById("flip-y");
 
     btnAddFrame.addEventListener("click", ()=>{
-        let f = new module.Frame();
-        let l = new module.Layer(DEFAULT_NAME_LAYER, width, height);
-        f.addLayer(l);
-        editor.addFrame(f);
-        editor.changeActiveFrame(f.getID());
-        editor.render();
+        let frame = new module.Frame();
+        let layer = new module.Layer(DEFAULT_NAME_LAYER, width, height);
+        frame.addLayer(layer);
+        editor.addFrame(frame);
+        editor.changeActiveFrame(frame.getID());
+        addFrame(frame);
+        changeActiveFrame(editor.getActiveFrame());
     });
     btnRemoveFrame.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
-        editor.removeFrame(activeFrame.getID());
-        editor.render();
+        const id = activeFrame.getID();
+        editor.removeFrame(id);
+        removeFrame(id);
+        
+        let frames = editor.getAllFrames();
+        let n_frames = frames.size();
+
+        if(n_frames == 0){
+            let frame = new module.Frame();
+            let layer = new module.Layer(DEFAULT_NAME_LAYER, width, height);
+            frame.addLayer(layer);
+            editor.addFrame(frame);
+            addFrame(frame);
+        }
+
+        changeActiveFrame(editor.getActiveFrame());
     });
     btnMoveDownFrame.addEventListener("click", ()=> {
-        editor.bringFrameBack(editor.getActiveFrame().getID());
+        const frameId = editor.getActiveFrame().getID();
+        const i = Math.max(editor.getFrameIndex(frameId) - 1, 0) ;
+        editor.bringFrameTo(frameId, i);
         editor.render();
+        moveFrameTo(frameId, i);
     });
     btnMoveUpFrame.addEventListener("click", ()=> {
-        editor.bringFrameToFoward(editor.getActiveFrame().getID());
+        const frameId = editor.getActiveFrame().getID();
+        const i = Math.min(editor.getFrameIndex(frameId) + 1, editor.getAllFrames().size()-1);
+        editor.bringFrameTo(frameId, i);
         editor.render();
+        moveFrameTo(frameId, i);
     });
     btnCloneFrame.addEventListener("click", ()=> {
-        editor.cloneActiveFrame();
+        let frame = editor.getActiveFrame();
+        let cloneFrame = frame.clone();
+        cloneFrame.setID( module.Guid.generateUUID());
+
+        editor.addFrame(cloneFrame);
+
+        let i = editor.getFrameIndex(frame.getID());
+        editor.bringFrameTo(cloneFrame.getID(), i + 1);
+        editor.changeActiveFrame(cloneFrame.getID());
+
         editor.render();
+        
+        addFrame(cloneFrame);
+        moveFrameTo(cloneFrame.getID(), i);
+        changeActiveFrame(cloneFrame);
     });
 
     btnFlipXFrame.addEventListener("click", ()=>{
@@ -192,44 +228,91 @@ window.onload = async ()=>{
     let btnMoveDown = document.getElementById("move-down-layer");
     let btnMoveUp = document.getElementById("move-up-layer");
 
-    btnAddLayer.addEventListener("click", ()=> editor.getActiveFrame().addLayer(new module.Layer(findTitle(DEFAULT_NAME_LAYER), width, height)));
+    btnAddLayer.addEventListener("click", ()=> {
+        const layer = new module.Layer(findTitle(DEFAULT_NAME_LAYER), width, height);
+        const frame = editor.getActiveFrame();
+        frame.addLayer(layer);
+        addLayer(layer);
+        editor.render();
+    });
     btnRemoveLayer.addEventListener("click", ()=> {
-        const activeFrame = editor.getActiveFrame();
-        const activeLayer = activeFrame.getActiveLayer();
-        activeFrame.removeLayer(activeLayer.getID());
+        const frame = editor.getActiveFrame();
+        const layer = frame.getActiveLayer();
+        
+        const layers = frame.getAllLayers();
+        const n_layers = layers.size();
+
+        if(n_layers == 0) return;
+
+        frame.removeLayer(layer.getID());
+        removeLayer(layer.getID());
+        
+        if(frame.getAllLayers().size() == 0){
+            const layer = new module.Layer(findTitle(DEFAULT_NAME_LAYER), width, height);
+            frame.addLayer(layer);
+            addLayer(layer);
+            frame.changeActiveLayer(layer.getID());
+        }
+        changeActiveLayer(frame.getActiveLayer());
+        
         editor.render();
     });
     btnMoveDown.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
-        const activeLayer = activeFrame.getActiveLayer();
-        activeFrame.bringLayerBack(activeLayer.getID());
+        const activeLayer = activeFrame.getActiveLayer();        
+        const layerId = activeLayer.getID();
+        const i = Math.max(activeFrame.getLayerIndex(layerId) - 1, 0);
+        activeFrame.bringLayerTo(layerId, i);
         editor.render();
+        moveLayerTo(layerId, i);
     });
     btnMoveUp.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
-        const activeLayer = activeFrame.getActiveLayer();
-        activeFrame.bringLayerToFoward(activeLayer.getID());
+        const activeLayer = activeFrame.getActiveLayer();        
+        const layerId = activeLayer.getID();
+        const i = Math.min(activeFrame.getLayerIndex(layerId) + 1, activeFrame.getAllLayers().size()-1);
+        activeFrame.bringLayerTo(layerId, i);
         editor.render();
+        moveLayerTo(layerId, i);
     });
     btnCloneLayer.addEventListener("click", ()=> {
-        const activeFrame = editor.getActiveFrame();
-        activeFrame.cloneActiveLayer();
+        let frame = editor.getActiveFrame();
+        const layer = frame.getActiveLayer();
+
+        let cloneLayer = layer.clone();
+        cloneLayer.setID(module.Guid.generateUUID());
+        cloneLayer.setName(findTitle(cloneLayer.getName()));
+
+        frame.addLayer(cloneLayer);
+
+        let i = frame.getLayerIndex(layer.getID());
+        frame.bringLayerTo(cloneLayer.getID(), i + 1);
+        frame.changeActiveLayer(cloneLayer.getID());
+
         editor.render();
+        
+        addLayer(cloneLayer);
+        moveLayerTo(cloneLayer.getID(), i + 1);
+        changeActiveLayer(cloneLayer);
     });
 }
 
 function createProject(width, height){
-    window.editor = new module.Editor(width, height);
+    editor?.delete();
+    editor = new module.Editor(width, height);
     
     let frame = new module.Frame();
-    frame.addLayer(new module.Layer(DEFAULT_NAME_LAYER, width, height));
+    let layer = new module.Layer(DEFAULT_NAME_LAYER, width, height);
+    frame.addLayer(layer);
     editor.addFrame(frame);
-    editor.render();
 
-    loadingProject();
+    loadingProject(editor);
 }
 
 function loadingProject(){
+    listFrame.replaceChildren();
+    listLayer.replaceChildren();
+
     window.width = editor.getWidth();
     window.height = editor.getHeight();
     let {
@@ -246,8 +329,12 @@ function loadingProject(){
     renderArea.style.scale = targetScale;
     renderArea.style.left = `${ ( (viewportWidth - width*targetScale)/ 2  )}px`;
     renderArea.style.top = `${ ( (viewportHeight - height*targetScale)/ 2  ) }px`;
-    
-    editor.render();
+
+    const frames = editor.getAllFrames();
+    for(let i = 0; i < frames.size(); i++ ){
+        addFrame(frames.get(i));
+    }
+    changeActiveFrame(editor.getActiveFrame());
 }
 
 
@@ -264,14 +351,15 @@ function addFrame(frame){
     frameElement.append(canvas);
     listFrame.append(frameElement);
 
-    frameElement.addEventListener("click", ()=> editor.changeActiveFrame(id));
+    frameElement.addEventListener("click", ()=>{ 
+        editor.changeActiveFrame(id);
+        changeActiveFrame(editor.getActiveFrame());
+    });
 }
-function changeActiveFrame(id){
-    const activeFrame = editor.getActiveFrame();
+function changeActiveFrame(activeFrame){
     const activeLayer = activeFrame.getActiveLayer();
-    const activeLayerID =  activeLayer.getID().toString();
 
-    let frameElement = getFrameById(id.toString());
+    let frameElement = getFrameById(activeFrame.getID().toString());
     listFrame.querySelectorAll("div.frame.active")
              .forEach((f)=>f.classList.remove("active"));
     frameElement?.classList.toggle("active", true);
@@ -282,12 +370,8 @@ function changeActiveFrame(id){
     let layers = activeFrame.getAllLayers();
     for(let i = 0; i < layers.size(); i++){
         addLayer(layers.get(i));
-
-        if(activeLayerID ==  layers.get(i).getID().toString())
-        {
-            changeActiveLayer(layers.get(i));
-        }
     }
+    changeActiveLayer(activeLayer);
     editor.render();
 }
 function moveFrameTo(id, index){
@@ -367,7 +451,11 @@ function addLayer(layer){
     layerElement.append(btnGrabLayer);
     listLayer.prepend(layerElement);
 
-    layerElement.addEventListener("click", ()=>editor.getActiveFrame().changeActiveLayer(layer.getID()));
+    layerElement.addEventListener("click", ()=>{
+        const frame = editor.getActiveFrame();
+        frame.changeActiveLayer(layer.getID());
+        changeActiveLayer(layer);
+    });
     btnLockLayer.addEventListener("click", toggleLockLayer);
     btnHideLayer.addEventListener("click", toggleHideLayer);
     btnGrabLayer.addEventListener("mousedown", grabLayer);
@@ -726,7 +814,8 @@ function loadVersion000(data){
         }
         local_editor.addFrame(frame);
     }
-    window.editor = local_editor;
+    editor = local_editor;
+
     loadingProject();
 }
 

@@ -61,5 +61,6 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(guid_module){
     class_<Guid>("Guid")
         .constructor<std::string>()
+        .class_function("generateUUID", &Guid::generateUUID)
         .function("toString", &Guid::toString);
 };

@@ -34,6 +34,7 @@ public:
 
     void resize(int width, int height);
     void move(int x, int y);
+    Layer clone() const;
     void draw(IGraphic& graphic);
     
     void setID(Guid id);

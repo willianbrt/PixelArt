@@ -34,8 +34,12 @@ void Layer::move(int x, int y){
     //     _buffer[i] = _buffer[offset + i];
     // }
 }
+
 void Layer::resize(int width, int height){
     // TODO: IMPLEMENTAR
+}
+Layer Layer::clone() const {
+    return Layer(*this);
 }
 
 void Layer::setID(Guid id) { _id = id; }
@@ -60,6 +64,7 @@ EMSCRIPTEN_BINDINGS(layer_module){
     .function("getID", &Layer::getID)
     .function("resize", &Layer::resize)
     .function("move", &Layer::move)
+    .function("clone", &Layer::clone)
     .function("draw", &Layer::draw)
     .function("getName", &Layer::getName)
     .function("setName", &Layer::setName)

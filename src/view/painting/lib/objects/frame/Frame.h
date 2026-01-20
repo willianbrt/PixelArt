@@ -35,10 +35,9 @@ public:
     void draw(IGraphic& graphic);
     void resize(int width, int height);
     void move(int offsetX, int offsetY);
-    void cloneActiveLayer();
+    Frame clone() const;
     void flipX();
     void flipY();
-    std::string renameLayerIfDuplicate(std::string name);
 
     unsigned int getPixel(unsigned int index);
     unsigned int getPixel(unsigned int index, int fromIndex, int toIndex);
@@ -48,8 +47,6 @@ public:
     
     void setID(Guid id);
     Guid getID() const;
-    void bringLayerToFoward(Guid id);
-    void bringLayerBack(Guid id);
     void bringLayerTo(Guid id, size_t to);
     size_t getLayerIndex(Guid id) const;
     void removeLayer(Guid id);
