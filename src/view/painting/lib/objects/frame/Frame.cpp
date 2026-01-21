@@ -161,7 +161,7 @@ emscripten::val Frame::getBufferJS() {
             unsigned int colorLayer = layer->getPixel(index);
             GraphicsEngine::blending(buffer[index], colorLayer);
             
-            swap_endian_uint32(&buffer[index]);
+            // swap_endian_uint32(&buffer[index]);
 
             index++;
             incrementY++;
@@ -170,6 +170,12 @@ emscripten::val Frame::getBufferJS() {
                 incrementY = 0;
             }
         }
+    }
+
+    int index = 0;
+    while(index < activeLayer->getLength()){
+        swap_endian_uint32(&buffer[index]);
+        index++;
     }
 
     return emscripten::val(

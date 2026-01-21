@@ -269,6 +269,7 @@ function buildPaneLayers(){
         frame.addLayer(layer);
         addLayer(layer);
         editor.render();
+        updateFramePreview(editor.getActiveFrame());
     });
     btnRemoveLayer.addEventListener("click", ()=> {
         const frame = editor.getActiveFrame();
@@ -291,6 +292,7 @@ function buildPaneLayers(){
         changeActiveLayer(frame.getActiveLayer());
         
         editor.render();
+        updateFramePreview(editor.getActiveFrame());
     });
     btnMoveDown.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
@@ -300,6 +302,7 @@ function buildPaneLayers(){
         activeFrame.bringLayerTo(layerId, i);
         editor.render();
         moveLayerTo(layerId, i);
+        updateFramePreview(editor.getActiveFrame());
     });
     btnMoveUp.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
@@ -309,6 +312,7 @@ function buildPaneLayers(){
         activeFrame.bringLayerTo(layerId, i);
         editor.render();
         moveLayerTo(layerId, i);
+        updateFramePreview(editor.getActiveFrame());
     });
     btnCloneLayer.addEventListener("click", ()=> {
         let frame = editor.getActiveFrame();
@@ -329,6 +333,7 @@ function buildPaneLayers(){
         addLayer(cloneLayer);
         moveLayerTo(cloneLayer.getID(), i + 1);
         changeActiveLayer(cloneLayer);
+        updateFramePreview(editor.getActiveFrame());
     });
 }
 
@@ -388,6 +393,7 @@ function addFrame(frame){
         editor.changeActiveFrame(id);
         changeActiveFrame(editor.getActiveFrame());
     });
+    updateFramePreview(frame);
 }
 function changeActiveFrame(activeFrame){
     const activeLayer = activeFrame.getActiveLayer();
@@ -847,13 +853,32 @@ function loadVersion000(data){
         }
         local_editor.addFrame(frame);
     }
-    editor?.delete();
+    // editor?.delete();
     editor = local_editor;
 
     loadingProject();
 }
+function updateFramePreview(frame){
+    const width = editor.getWidth();
+    const height = editor.getHeight();
 
+    const id = frame.getID().toString();
+    const bufferJS = frame.getBufferJS();
+    const buffer8 = new Uint8ClampedArray(
+        bufferJS.buffer,
+        bufferJS.byteOffset,
+        bufferJS.byteLength);
+    const imageData = new ImageData(buffer8, width, height);
 
+    let frameElement = listFrame.querySelector(`.frame[data-id="${id}"]`);
+    let frameCanvas = frameElement.querySelector(`canvas`);
+    frameCanvas.width = width;
+    frameCanvas.height = height;
+
+    let ctx = frameCanvas.getContext("2d");
+    ctx.clearRect(0, 0, width, height);
+    ctx.putImageData(imageData, 0, 0);
+}
 
 
 function getPattern(jsPattern) {
@@ -896,7 +921,7 @@ let paintStrategy = () => {
                 getLineSize()
             );
             editor.draw(brush);
-
+            updateFramePreview(activeFrame);
             flagToPoint = point;
         },
 
@@ -912,6 +937,7 @@ let paintStrategy = () => {
                 parseInt(getLineSize())
             );
             editor.draw(brush);
+            updateFramePreview(activeFrame);
 
             flagToPoint = point;
         },
@@ -942,6 +968,7 @@ let brushStrategy = () => {
                 getLineSize()
             );
             editor.draw(brush);
+            updateFramePreview(activeFrame);
 
 
             flagToPoint = point;
@@ -959,6 +986,7 @@ let brushStrategy = () => {
                 getLineSize()
             );
             editor.draw(brush);
+            updateFramePreview(activeFrame);
             flagToPoint = point;
         },
 
@@ -988,6 +1016,7 @@ let eraseStrategy = () => {
                 getWeight()
             );
             editor.draw(erase);
+            updateFramePreview(activeFrame);
 
 
             flagToPoint = point;
@@ -1004,6 +1033,7 @@ let eraseStrategy = () => {
                 getWeight()
             );
             editor.draw(erase);
+            updateFramePreview(activeFrame);
 
             flagToPoint = point;
         },
@@ -1025,6 +1055,7 @@ let bucketStrategy = () => {
             point = cursorToPixel(point);
             let bucket = new module.Bucket(point.x, point.y, window.selectedColor);
             editor.draw(bucket);
+            updateFramePreview(activeFrame);
         },
 
         onTracking: (point) => {},
@@ -1072,6 +1103,7 @@ let squareStrategy = () => {
 
         onRelease: () => {
             editor.draw(squareTool);
+            updateFramePreview(activeFrame);
 
             editor.render();
         }
@@ -1117,6 +1149,7 @@ let circleStrategy = () => {
 
         onRelease: () => {
             editor.draw(circleTool);
+            updateFramePreview(activeFrame);
 
             editor.render();
         }
@@ -1166,6 +1199,7 @@ let lineStrategy = () => {
 
         onRelease: () => {
             editor.draw(lineTool);
+            updateFramePreview(activeFrame);
 
             editor.render();
         }
@@ -1199,6 +1233,7 @@ const ENUM_MARKER = {
     rotate:4
 }
 function selectStrategy(){
+    let activeFrame;
     let select;
     let intialPixel = null;
 
@@ -1258,9 +1293,9 @@ function selectStrategy(){
         if(intialPixel.x - pixel.x == 0 && intialPixel.y - pixel.y == 0){
             return;
         }
-        const frame = editor.getActiveFrame();
+        activeFrame = editor.getActiveFrame();
         
-        select = new module.Selection(intialPixel.x, intialPixel.y, pixel.x, pixel.y, frame.getActiveLayer(), true);
+        select = new module.Selection(intialPixel.x, intialPixel.y, pixel.x, pixel.y, activeFrame.getActiveLayer(), true);
         editor.preview(select);
         drawMarkers();
     };
@@ -1384,8 +1419,10 @@ function selectStrategy(){
             e.style.scale =  0.5;
         });
         document.querySelector(".floating-toolbar")?.remove();
-        if(select != null)
+        if(select != null){
             editor.draw(select);
+            updateFramePreview(activeFrame);
+        }
         select = null;
         
         delete _shortcuts.control.c;
