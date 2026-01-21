@@ -5,7 +5,7 @@ import { Chromatic, ColorFactory } from "./chromatic.js"
 import "https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"
 
 const DEFAULT_NAME_LAYER = "Layer";
-let targetScale = 1;
+let editor;
 
 let listFrame = document.getElementById("list-frames");
 let listLayer = document.getElementById("list-Layers");
@@ -15,17 +15,50 @@ const renderArea = document.querySelector("#render-area");
 const drawingArea = document.querySelector("#drawing-area");
 const handlerEvents = HandlerEvents(drawingArea);
 
-let editor;
+let targetScale = 1;
+const pattern = {
+    dot: [[1]],
+    brush_1: [
+        [0.9,1,0.8],
+        [0.7,1,0.5],
+        [0.2,1,0.3],
+    ],
+}
+var pattern_selected = "dot";
 
-window.add_layer = addLayer;
-window.remove_layer = removeLayer;
-window.change_active_layer = changeActiveLayer;
-window.move_layer_to = moveLayerTo;
+const lineSize = document.querySelector("input[name='size']");
+const weight = document.querySelector("input[name='strength']");
+weight.value = 100;
 
-window.add_frame = addFrame;
-window.remove_frame = removeFrame;
-window.change_active_frame = changeActiveFrame;
-window.move_frame_to = moveFrameTo;
+var isPixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
+var isMirrorX = document.querySelector("#mirror-x input[type='checkbox']");
+var isMirrorY = document.querySelector("#mirror-y input[type='checkbox']");
+var isFill = document.querySelector("#fill input[type='checkbox']");
+
+
+var dirtyFlag = {
+    start:{
+        x: 0,
+        y:0
+    },
+    end:{
+        x: 0,
+        y:0
+    }
+};
+let boundingSelectedArea = {
+    start:{x:-1,y:-1},
+    end:{x:-1,y:-1},
+    getWidth: function(){
+        return this.end.x - this.start.x;
+    },
+    getHeight: function(){
+        return this.end.y - this.start.y;
+    }
+}
+
+let ctx = canvas.getContext("2d");
+ctx.beginPath();
 
 let clipboard;
 const channel = new BroadcastChannel("shared-buffer");
@@ -105,10 +138,8 @@ window.addEventListener("click", function(event){
     }
 });
 
-
 window.onload = async ()=>{
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});
-
 
     window.module = await ModulePixelEditor({
         canvas,
@@ -125,13 +156,16 @@ window.onload = async ()=>{
 
     createProject(32, 10);
 
+    buildPaneToolBar();
+    buildPaneFrames();
+    buildPaneLayers();
+}
+function buildPaneFrames(){
     let headerFrame = document.querySelector("#pane-footer .header");
     headerFrame.addEventListener("click", function(e){
         if(e.target.classList.contains("header"))
             this.parentNode.querySelector(".body").classList.toggle("hidden")
     });
-
-    buildToolBar();
 
     let btnAddFrame = document.getElementById("add-frame");
     let btnCloneFrame = document.getElementById("duplicate-frame");
@@ -212,7 +246,8 @@ window.onload = async ()=>{
         activeFrame.flipY();
         editor.render();
     });
-
+}
+function buildPaneLayers(){
     let inpOpacity = document.querySelector("input[name='opacity-layer']");
     inpOpacity.addEventListener("input", function() {
         const activeFrame = editor.getActiveFrame();
@@ -336,8 +371,6 @@ function loadingProject(){
     }
     changeActiveFrame(editor.getActiveFrame());
 }
-
-
 
 function addFrame(frame){
     const id = frame.getID();
@@ -822,49 +855,6 @@ function loadVersion000(data){
 
 
 
-const pattern = {
-    dot: [[1]],
-    brush_1: [
-        [0.9,1,0.8],
-        [0.7,1,0.5],
-        [0.2,1,0.3],
-    ],
-}
-
-var lineSize = document.querySelector("input[name='size']");
-var pattern_selected = "dot";
-var weight = document.querySelector("input[name='strength']");
-weight.value = 100;
-
-var isPixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
-var isMirrorX = document.querySelector("#mirror-x input[type='checkbox']");
-var isMirrorY = document.querySelector("#mirror-y input[type='checkbox']");
-var isFill = document.querySelector("#fill input[type='checkbox']");
-
-
-var dirtyFlag = {
-    start:{
-        x: 0,
-        y:0
-    },
-    end:{
-        x: 0,
-        y:0
-    }
-};
-let boundingSelectedArea = {
-    start:{x:-1,y:-1},
-    end:{x:-1,y:-1},
-    getWidth: function(){
-        return this.end.x - this.start.x;
-    },
-    getHeight: function(){
-        return this.end.y - this.start.y;
-    }
-}
-
-let ctx = canvas.getContext("2d");
-ctx.beginPath();
 
 function getPattern(jsPattern) {
     let cppPattern = new module.VectorVectorFloat();
@@ -1615,7 +1605,7 @@ function computeVisibleShape(originalAxis, originalSize, viewportSize, outNewAxi
     return true;
 }
 
-function buildToolBar(){
+function buildPaneToolBar(){
     // canvas.addEventListener("mouseleave", function(e){
     //     editor.renderArea(dirtyFlag.start.x, dirtyFlag.start.y,
     //                     dirtyFlag.end.x, dirtyFlag.end.y);
