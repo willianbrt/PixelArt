@@ -515,6 +515,7 @@ function addLayer(layer){
         let icon = this.querySelector("i");
 
         layer.setVisible(!layer.isVisible());
+        updateFramePreview(activeFrame);
         editor.render();
 
         if(layer.isVisible()){
@@ -575,7 +576,9 @@ function addLayer(layer){
 
             let indexDst = activeFrame.getLayerIndex(new module.Guid(elementLast.dataset.id));
             activeFrame.bringLayerTo(layer.getID(), indexDst);
-
+            updateFramePreview(activeFrame);
+            editor.render();
+                        
             abort.abort();
         }, { once: true });
     }
