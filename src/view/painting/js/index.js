@@ -1056,6 +1056,9 @@ let bucketStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             point = cursorToPixel(point);
+            
+            if(point.x < 0 || point.x >= editor.getWidth() || point.y < 0 || point.y >= editor.getHeight()) return;
+
             let bucket = new module.Bucket(point.x, point.y, window.selectedColor);
             editor.draw(bucket);
             updateFramePreview(activeFrame);
