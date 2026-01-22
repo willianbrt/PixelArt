@@ -1056,7 +1056,7 @@ let bucketStrategy = () => {
             activeLayer = activeFrame.getActiveLayer();
 
             point = cursorToPixel(point);
-            
+
             if(point.x < 0 || point.x >= editor.getWidth() || point.y < 0 || point.y >= editor.getHeight()) return;
 
             let bucket = new module.Bucket(point.x, point.y, window.selectedColor);
@@ -1215,6 +1215,7 @@ let lineStrategy = () => {
 let dropperStrategy = () => {
     let activeFrame;
     let activeLayer;
+    let factoryColor = ColorFactory();
 
     return {
         onPressed: (point) => {
@@ -1223,11 +1224,15 @@ let dropperStrategy = () => {
             activeFrame = editor.getActiveFrame();
             activeLayer = activeFrame.getActiveLayer();
 
-            let factoryColor = ColorFactory();
             let colorHex = activeLayer.getPixel(point.x, point.y);
             modalChromatic.setColor(factoryColor.buildByDecimal(colorHex));
         },
-        onTracking: (point) => {},
+        onTracking: (point) => {
+            point = cursorToPixel(point);
+
+            let colorHex = activeLayer.getPixel(point.x, point.y);
+            modalChromatic.setColor(factoryColor.buildByDecimal(colorHex));
+        },
         onRelease: () => {}
     };
 };
