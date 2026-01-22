@@ -15,7 +15,7 @@ Frame::Frame(const Frame& frame) : _id(frame.getID()) {
 Frame::~Frame(){
     for (auto* l : layers) delete l;
     layers.clear();
-    delete activeLayer;
+    activeLayer = nullptr;
     delete previewLayer;
 }
 
@@ -160,7 +160,7 @@ emscripten::val Frame::getBufferJS() {
         while(index < layer->getLength()){
             unsigned int colorLayer = layer->getPixel(index);
             buffer[index] = GraphicsEngine::blendColors(buffer[index], colorLayer);
-            
+
             index++;
             incrementY++;
             if(incrementY >= dirtyArea.getWidth()){

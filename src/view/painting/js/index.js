@@ -231,7 +231,6 @@ function buildPaneFrames(){
         editor.render();
         
         addFrame(cloneFrame);
-        moveFrameTo(cloneFrame.getID(), i);
         changeActiveFrame(cloneFrame);
     });
 
@@ -331,7 +330,6 @@ function buildPaneLayers(){
         editor.render();
         
         addLayer(cloneLayer);
-        moveLayerTo(cloneLayer.getID(), i + 1);
         changeActiveLayer(cloneLayer);
         updateFramePreview(editor.getActiveFrame());
     });
@@ -379,7 +377,9 @@ function loadingProject(){
 
 function addFrame(frame){
     const id = frame.getID();
+    let index = editor.getFrameIndex(frame.getID());
 
+    let frames = listFrame.querySelectorAll("div.frame");
     let frameElement = document.createElement("div");
     let canvas = document.createElement("canvas");
 
@@ -387,7 +387,10 @@ function addFrame(frame){
     frameElement.dataset.id = id.toString();
 
     frameElement.append(canvas);
-    listFrame.append(frameElement);
+    if(frames.length > 0)
+        frames[index-1].after(frameElement);
+    else
+        listFrame.append(frameElement);
 
     frameElement.addEventListener("click", ()=>{ 
         editor.changeActiveFrame(id);
@@ -460,7 +463,11 @@ function addLayer(layer){
     if(!activeFrameContainLayer(layer.getID()))
         return;
 
+    let index = activeFrame.getLayerIndex(layer.getID());
+
     let listLayer = document.getElementById("list-Layers");
+    let layers = listLayer.querySelectorAll("div.layer");
+
     let layerElement = document.createElement("div");
     let nameLayer = document.createElement("div");
     let h5 = document.createElement("h5");
@@ -488,7 +495,11 @@ function addLayer(layer){
     layerElement.append(nameLayer);
     layerElement.append(btnLockLayer);
     layerElement.append(btnGrabLayer);
-    listLayer.prepend(layerElement);
+    
+    if(layers.length > 0)
+        layers[layers.length-index].before(layerElement);
+    else
+        listLayer.prepend(layerElement);
 
     layerElement.addEventListener("click", ()=>{
         const frame = editor.getActiveFrame();

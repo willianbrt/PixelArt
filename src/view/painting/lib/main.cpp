@@ -40,7 +40,7 @@ public:
     ~Editor(){
         for (auto* f : frames) delete f;
         frames.clear();
-        delete activeFrame;
+        activeFrame = nullptr;
     }
 
     Point getInitialPosition(){
