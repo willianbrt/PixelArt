@@ -64,16 +64,6 @@ Point GraphicsEngine::rotate(Point point, float cx, float cy, float radians){
     point.y = static_cast<int>(std::round(ry + cy));
     return point;
 }
-void GraphicsEngine::blending(unsigned int& bottomColor, unsigned int topColor) {
-    const float alphaSrc = (topColor & 0xFF) / 255.0f;
-    const float alphaDst = 1.0f - alphaSrc;
-
-    bottomColor = 
-        (static_cast<int>(alphaSrc * ((topColor >> 24) & 0xFF) + alphaDst * ((bottomColor >> 24) & 0xFF)) << 24) |
-        (static_cast<int>(alphaSrc * ((topColor >> 16) & 0xFF) + alphaDst * ((bottomColor >> 16) & 0xFF)) << 16) |
-        (static_cast<int>(alphaSrc * ((topColor >> 8) & 0xFF) + alphaDst * ((bottomColor >> 8) & 0xFF)) << 8) |
-        (static_cast<int>(alphaSrc * (topColor  & 0xFF) + alphaDst * (bottomColor & 0xFF)));
-}
 unsigned int GraphicsEngine::blendColors(unsigned int bottomColor, unsigned int topColor) {
     float aTop = (topColor & 0xFF) / 255.0f;
     float aBottom = (bottomColor & 0xFF) / 255.0f;

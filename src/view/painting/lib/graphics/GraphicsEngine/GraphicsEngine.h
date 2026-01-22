@@ -12,7 +12,6 @@ struct GraphicsEngine{
     static void interpolation(Surface* surface, Bounding bound, float scaleX, float scaleY);
     static void rotate(Surface* surface, Surface* dirtSurface, Bounding bound, float cx, float cy, float radians);
     static Point rotate(Point point, float cx, float cy, float radians);
-    static void blending(unsigned int& bottomColor, unsigned int topColor);
     static unsigned int blendColors(unsigned int bottomColor, unsigned int topColor) ;
     static bool computeVisibleShape(int originalAxis, int originalSize, int viewportSize, int& outStartAxis, int& outEndAxis);
 };
