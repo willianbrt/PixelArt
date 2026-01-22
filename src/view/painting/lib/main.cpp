@@ -84,10 +84,16 @@ public:
         area.end.x = (area.end.x > _sketch.getWidth()) ? _sketch.getWidth() : area.end.x;
         area.end.y = (area.end.y > _sketch.getHeight()) ? _sketch.getHeight() : area.end.y;
 
+        size_t activeIndex = getFrameIndex(activeFrame->getID());
+        Frame* previousFrame = frames[activeIndex > 0 ? activeIndex - 1 : 0];
+        float opacity = 0.5;
         for(int y = area.start.y; y < area.end.y; y++){
             int index = y * _sketch.getWidth();
             for(int x = area.start.x; x < area.end.x; x++){
-                unsigned int colorHex = activeFrame->getPixel(index);
+                unsigned int previousColorHex = previousFrame->getPixel(index);
+                previousColorHex = (previousColorHex & 0xFFFFFF00) | static_cast<int>(opacity * (previousColorHex & 0xFF));
+
+                unsigned int colorHex = GraphicsEngine::blendColors(previousColorHex, activeFrame->getPixel(index));
                 swap_endian_uint32(&colorHex);
                 _sketch.putPixel(index, colorHex);
 
