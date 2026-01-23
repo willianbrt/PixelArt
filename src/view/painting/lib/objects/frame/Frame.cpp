@@ -113,7 +113,6 @@ void Frame::draw(IGraphic& graphic){
 unsigned int Frame::getPixel(unsigned int index){ return getPixel(index, 0, layers.size()); }
 unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
     unsigned int colorHex = 0;
-    float weight = 1.0f;
     if(toIndex > layers.size()) throw std::runtime_error("ToIndex excede o tamanho maximo de Layers.");
     
     for(int layerIndex = fromIndex; layerIndex < toIndex; layerIndex++){
@@ -122,13 +121,11 @@ unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
 
         unsigned int colorLayer;
         if(layer->getID().toString() == previewLayer->getID().toString()){
-            weight = previewLayer->getOpacity();
             colorLayer = previewLayer->getPixel(index);
         }else{
-            weight = layer->getOpacity();
             colorLayer = layer->getPixel(index);
         }
-        colorLayer = (colorLayer & 0xFFFFFF00) | static_cast<int>(weight * (colorLayer & 0xFF));
+        
         colorHex = GraphicsEngine::blendColors(colorHex, colorLayer);
     }
     
@@ -261,6 +258,7 @@ EMSCRIPTEN_BINDINGS(frame_module){
         .function("flipY", &Frame::flipY)
         .function("draw", &Frame::draw)
         .function("getFrameDuration", &Frame::getFrameDuration)
+        .function("getPixel",  select_overload<unsigned int(unsigned int)>(&Frame::getPixel))
         .function("getBufferJS", &Frame::getBufferJS)
         
         .function("getLayerIndex", &Frame::getLayerIndex)

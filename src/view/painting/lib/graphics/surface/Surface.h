@@ -29,7 +29,7 @@ public:
     unsigned int getLength();
     Surface* crop(Bounding bound);
     unsigned int getPixel(int x, int y);
-    unsigned int getPixel(unsigned int index);
+    virtual unsigned int getPixel(unsigned int index);
     void putPixel(int x, int y, unsigned int colorHex);
     void putPixel(unsigned int index, unsigned int colorHex);
     void setSize(int width, int height);

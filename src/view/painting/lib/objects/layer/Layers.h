@@ -32,10 +32,10 @@ public:
     Layer(const Layer& layer);
     ~Layer();
 
-    void resize(int width, int height);
-    void move(int x, int y);
+    void resize(int width, int height) override;
+    void move(int x, int y) override;
     Layer clone() const;
-    void draw(IGraphic& graphic);
+    void draw(IGraphic& graphic) override;
     
     void setID(Guid id);
     Guid getID() const;
@@ -47,5 +47,6 @@ public:
     void setOpacity(float value);
     std::string getName() const;
     void setName(string name);
+    unsigned int getPixel(unsigned int index) override;
 };
 #endif
