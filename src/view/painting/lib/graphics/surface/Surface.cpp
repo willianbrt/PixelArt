@@ -23,6 +23,11 @@ unsigned int Surface::getLength() {
     return _height*_width;
 }
 Surface* Surface::crop(Bounding bound){
+    bound.start.x = std::min(_width, std::max(0 ,bound.start.x));
+    bound.start.y = std::min(_height, std::max(0, bound.start.y));
+    bound.end.x = std::min(_width, std::max(0, bound.end.x));
+    bound.end.y = std::min(_height, std::max(0, bound.end.y));
+
     Surface* dirtSurface = new Surface(bound.getWidth(), bound.getHeight());
     
     int boundWidth = bound.getWidth();

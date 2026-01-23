@@ -199,12 +199,15 @@ void Selection::draw(Layer& layer){
     if (_resizedWidth < 0) hw = -hw;
     if (_resizedHeight < 0) hh = -hh;
 
+    const int offsetX = -_originalBounding.start.x + std::min(_originalBounding.start.x, 0);
+    const int offsetY = -_originalBounding.start.y + std::min(_originalBounding.start.y, 0);
+
     Bounding destBounding = _corners.getBounding();
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         Point src;
         float _dy = dy + 0.5f - _dstCenterY;
-
-        for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
+        
+        for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {            
             float _dx = dx + 0.5f - _dstCenterX;
             
             float localX = _cosA * _dx + _sinA * _dy;
@@ -214,9 +217,9 @@ void Selection::draw(Layer& layer){
                 continue;
             }
 
-            src.x = std::floor(localX / _scaleX + _origCenterX - _originalBounding.start.x);
-            src.y = std::floor(localY / _scaleY + _origCenterY - _originalBounding.start.y);
-            
+            src.x = std::floor(localX / _scaleX + _origCenterX + offsetX);
+            src.y = std::floor(localY / _scaleY + _origCenterY + offsetY);
+
             unsigned int color = _data->getPixel(src.x, src.y);
 
             if((color & 0xFF) == 0) { continue; }
