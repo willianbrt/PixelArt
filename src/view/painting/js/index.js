@@ -1295,11 +1295,6 @@ function selectStrategy(){
             return;
         }
         
-        if(event.target.id !== "painting") {
-            _onTracking = ()=>{};
-            return;
-        } 
-
         let corners = select.getDestinationCorners();
         if(isInsideRotatedBounding(intialPixel, corners)){
             _onTracking = onTrackingTranslate;
@@ -1309,7 +1304,7 @@ function selectStrategy(){
         }
     };
 
-    function onTrackingBounding(point){     
+    function onTrackingBounding(point){   
         let pixel = cursorToPixel(point);
 
         if(intialPixel.x - pixel.x == 0 && intialPixel.y - pixel.y == 0){
@@ -1555,6 +1550,7 @@ function isInsideRotatedBounding(point, corners){
         return (p1.x - p2.x) * (p3.y - p2.y) - (p1.y - p2.y) * (p3.x - p2.x);
     }
     if(corners === null) return false;
+    console.log(point, corners)
 
     let b1 = cross(point, corners.topLeft, corners.topRight) >= 0;
     let b2 = cross(point, corners.topRight, corners.bottomRight) >= 0;
