@@ -560,7 +560,7 @@ function addLayer(layer){
                 el.classList.remove("after-indicator")
                 el.classList.remove("before-indicator")
                 
-                if((e.touches[0].clientY ?? e.clientY) > box.y){
+                if((e?.touches?.[0].clientY ?? e?.clientY) > box.y){
                     elementLast = el;
                 }
             });
@@ -576,7 +576,7 @@ function addLayer(layer){
                 let box  = el.getBoundingClientRect();
 
                 el.classList.remove("swap")
-                if((e.changedTouches[0].clientY ?? e.clientY) > box.y){
+                if((e?.changedTouches?.[0].clientY ?? e?.clientY) > box.y){
                     elementLast = el;
                 }
             });
