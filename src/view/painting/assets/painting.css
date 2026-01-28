@@ -408,6 +408,7 @@ input[type="range"].slider::-webkit-slider-runnable-track{
     align-items: center;
     transition: background 0.3s;
     box-shadow: 0px 0px 10px 1px #0000004d inset;
+    text-wrap-mode: nowrap;
 }
 .btn-choice:has(input[type="checkbox"]:checked) {
     outline: #301439 2px solid;
@@ -680,4 +681,35 @@ select[name="color-pattern"]{
 .floating-toolbar .floating-toolbar-content button.select-tool.active {
     background: #3d2745;
     color: var(--light-text-color);
+}
+
+
+@media screen and (max-width:800px) {
+    
+.content {
+    grid-template-areas: "top top right"
+                        "left canvas right"
+                         "footer footer right";
+    grid-template-columns: auto 1fr 0px;
+    grid-template-rows: auto 1fr auto;
+} 
+section#pane-left{
+    grid-template-columns: auto;
+}
+section#pane-left #pane-colors{
+    display: none;
+    display: block;
+}
+section#pane-right{
+    
+}
+section#drawing-area{
+    
+}
+section#pane-top{
+
+}
+section#pane-footer{
+
+}
 }

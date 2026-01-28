@@ -24,13 +24,12 @@ export let PositionHelper = Object.freeze({
             y: x * Math.sin(rad) + y * Math.cos(rad) + eixo.y,
         }
     },
-    getPositionCursor: (event,elem)=>{
+    getPositionCursor: (positionX, positionY,elem)=>{
         let elementPosition = elem.getBoundingClientRect();
-        // let elementPosition = event.srcElement.getBoundingClientRect();
         
         return Object.freeze({
-            x: Math.floor(event.clientX - elementPosition.left),
-            y: Math.floor(event.clientY - elementPosition.top) 
+            x: Math.floor(positionX - elementPosition.left),
+            y: Math.floor(positionY - elementPosition.top) 
         });
     }
 });

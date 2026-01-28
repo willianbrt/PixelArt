@@ -1,4 +1,5 @@
 export function Chromatic(options){
+    const RAD_360 = 2 * Math.PI;
     const RAD_TO_DEG = 180 / Math.PI;
     const DEG_TO_RAD = Math.PI / 180;
 
@@ -7,8 +8,8 @@ export function Chromatic(options){
     const canvas = document.getElementById("color-picker");
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     
-    let hueMarker = document.querySelector(".marker#hue");
-    let colorMarker = document.querySelector(".marker#color");
+    let hueMarkerPosition = { x:0, y:0 };
+    let colorMarkerPosition = { x:0, y:0 };
 
     const width = canvas.width;
     const height = canvas.height;
@@ -16,81 +17,116 @@ export function Chromatic(options){
     const padding = 5;
     const cx = width / 2;
     const cy = height / 2;
-    const outerRadius = Math.min(height, width)/2;
-    const strokeWidth = parseInt(hueMarker.offsetWidth) || 0;
+    const offset = 10;
+    const outerRadius = Math.min(height, width)/2 - offset;
+    const strokeWidth = outerRadius*0.1;
     const innerRadius = outerRadius - strokeWidth;
     const centerRadius = innerRadius + strokeWidth/2;
+    const markerWidth = strokeWidth*0.3;
+    const markerRadius = strokeWidth-markerWidth*2;
     
     let chromatic = buildChromatic(innerRadius-padding, {x: cx,y:cy}, 90);
     (()=>{
         setColor(_color);
-        drawColorWheel();
         drawChromaticTriangle();
     })();
 
-    hueMarker.addEventListener("mousedown", onUpdateHue);
-    colorMarker.addEventListener("mousedown", onUpdateColor);
-    
-    canvas.addEventListener("mousedown", function(e){
+    let touchID;
+    canvas.addEventListener("mousedown", (e)=>{ 
         e.preventDefault();
-        let cursorX = e.clientX - canvas.getBoundingClientRect().left;
-        let cursorY = e.clientY - canvas.getBoundingClientRect().top;
+        let rect = canvas.getBoundingClientRect();
+        let cursorX = e.clientX - rect.left;
+        let cursorY = e.clientY - rect.top;
 
+        eventPressPicker(cursorX, cursorY);
+    });
+    canvas.addEventListener("touchstart", (e)=>{ 
+        e.preventDefault();
+
+        if(e.touches.length > 1)
+            return;
+
+        touchID = e.changedTouches[0].identifier;
+        let rect = canvas.getBoundingClientRect();
+        let cursorX = e.touches[0].clientX - rect.left;
+        let cursorY = e.touches[0].clientY - rect.top;
+
+        eventPressPicker(cursorX, cursorY);
+    });
+    function eventPressPicker(cursorX, cursorY){
         const distance = Math.sqrt((cursorX - cx) ** 2 + (cursorY - cy) ** 2);
 
-        if(distance >= innerRadius && distance <= outerRadius)
+        if(distance >= innerRadius && distance <= outerRadius+offset)
         {
-            onUpdateHue(e);
+            onUpdateHue(cursorX, cursorY);
         }
-        // else if(chromatic.isInside(chromatic.getBarycentric({x:cursorX, y:cursorY})))
         else if(chromatic.isInside({x:cursorX, y:cursorY}))
         {
-            onUpdateColor(e);
+            onUpdateColor(cursorX, cursorY);
         }
-    });
-
-    function onUpdateColor(e){
-        e.preventDefault();
+    }
+    function onUpdateColor(cursorX, cursorY){
         let abort = new AbortController();
-        const rect = canvas.getBoundingClientRect();
-
-        let x = e.clientX - rect.left;
-        let y = e.clientY - rect.top;
         
-        setColorByPoint(x, y);
-        
-        window.addEventListener("mousemove", function(event){
-            event.preventDefault();
+        setColorByPoint(cursorX, cursorY);
 
-            x = event.clientX - rect.left;
-            y = event.clientY - rect.top;
-            
-            setColorByPoint(x, y);
+        window.addEventListener("mousemove", (e)=>{
+            let rect = canvas.getBoundingClientRect();
+            let cursorX = e.clientX - rect.left;
+            let cursorY = e.clientY - rect.top;
+
+            setColorByPoint(cursorX, cursorY);
+        }, { signal: abort.signal });
+
+        window.addEventListener("touchmove", (e)=>{
+            let rect = canvas.getBoundingClientRect();
+            let cursorX = e.touches[0].clientX - rect.left;
+            let cursorY = e.touches[0].clientY - rect.top;
+            setColorByPoint(cursorX, cursorY);
         }, { signal: abort.signal });
 
         window.addEventListener("mouseup", ()=>abort.abort(), {once:true});
-        window.addEventListener("blur", ()=>{abort.abort()}, {once:true}); 
+        window.addEventListener("touchend", (e)=>{
+            for(let i = 0; i < e.changedTouches.length; i++){
+                if(e.changedTouches[i].identifier == touchID){
+                    abort.abort()
+                }
+            }
+        }, {once:true});
+        window.addEventListener("blur", ()=>{abort.abort()}, {once:true});
     }
-    function onUpdateHue(e){
-        e.preventDefault();
-        
+    function onUpdateHue(cursorX, cursorY){
         let abort = new AbortController();
-        const rect = canvas.getBoundingClientRect();
-    
-        let cursorX = e.clientX - rect.left;
-        let cursorY = e.clientY - rect.top;
         setHueByPosition(cursorX, cursorY);
+        
+        window.addEventListener("mousemove", (e)=>{
+            let rect = canvas.getBoundingClientRect();
+            let cursorX = e.clientX - rect.left;
+            let cursorY = e.clientY - rect.top;
 
-        window.addEventListener("mousemove", function(ev){
-            ev.preventDefault();
-
-            cursorX = ev.clientX - rect.left;
-            cursorY = ev.clientY - rect.top;
             setHueByPosition(cursorX, cursorY);
             options?.onUpdateColor(_color);
         }, { signal: abort.signal });
 
+        window.addEventListener("touchmove", (e)=>{
+            let rect = canvas.getBoundingClientRect();
+            let cursorX = e.touches[0].clientX - rect.left;
+            let cursorY = e.touches[0].clientY - rect.top;
+
+            setHueByPosition(cursorX, cursorY);
+            options?.onUpdateColor(_color);
+        }, { signal: abort.signal });
+        
+
         window.addEventListener("mouseup", ()=>abort.abort(), {once:true});
+        window.addEventListener("touchend", (e)=>{
+            for(let i = 0; i < e.changedTouches.length; i++){
+                if(e.changedTouches[i].identifier == touchID){
+                    abort.abort()
+                }
+            }
+        }, {once:true});
+
         window.addEventListener("blur", ()=>{abort.abort()}, {once:true});
     }
     function setHueByPosition(x, y){
@@ -99,19 +135,16 @@ export function Chromatic(options){
         const rad = Math.atan2(dy, dx);
         const degree = (rad * RAD_TO_DEG + 360) % 360;
 
-        const markerX = Math.cos(rad) * centerRadius + cx;
-        const markerY = Math.sin(rad) * centerRadius + cy;
-
-        hueMarker.style.top = `${markerY - hueMarker.offsetHeight/2}px`;
-        hueMarker.style.left = `${markerX - hueMarker.offsetWidth/2}px`;
+        hueMarkerPosition.x = Math.cos(rad) * centerRadius + cx;
+        hueMarkerPosition.y = Math.sin(rad) * centerRadius + cy;
 
         _color = ColorFactory().buildByHSL(degree, _color.hsl.s,_color.hsl.l);
         chromatic.setColor(degree);
 
-        requestAnimationFrame(() => drawChromaticTriangle());
+        requestAnimationFrame(drawChromaticTriangle);
     }
     function drawChromaticTriangle(){
-        const imageData = ctx.getImageData(chromatic.bounding.min.x, chromatic.bounding.min.y, chromatic.bounding.width, chromatic.bounding.height);
+        const imageData = new ImageData(chromatic.bounding.width, chromatic.bounding.height);
         const data = imageData.data;
 
         for (let y = chromatic.bounding.min.y; y < chromatic.bounding.max.y; y++) {
@@ -129,44 +162,27 @@ export function Chromatic(options){
                 }
             }
         }
-        ctx.clearRect(chromatic.bounding.min.x, chromatic.bounding.min.y, chromatic.bounding.width, chromatic.bounding.height);
+
+        ctx.clearRect(0, 0, width, height);
         ctx.putImageData(imageData, chromatic.bounding.min.x, chromatic.bounding.min.y);
-    }
-    
-    function setColorByPoint(x, y){
-        let colorMarkerPosition = chromatic.clampped(x, y);
-        _color = chromatic.getColor(colorMarkerPosition);
         
-        colorMarker.style.left = `${(colorMarkerPosition.x - colorMarker.offsetWidth/2)}px`;
-        colorMarker.style.top = `${(colorMarkerPosition.y - colorMarker.offsetHeight/2)}px`;
+        drawColorWheel();
 
-        options?.onUpdateColor(_color);
+
+        ctx.beginPath();
+        ctx.lineWidth = markerWidth;
+        ctx.strokeStyle  = "white";
+        ctx.arc(colorMarkerPosition.x, colorMarkerPosition.y, markerRadius, 0, RAD_360);
+        ctx.stroke();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.lineWidth = markerWidth;
+        ctx.strokeStyle  = "white";
+        ctx.arc(hueMarkerPosition.x, hueMarkerPosition.y, markerRadius, 0, RAD_360);
+        ctx.stroke();
+        ctx.closePath();
     }
-    function setColor(color){
-        try{
-            _color = color;
-            const position = chromatic.getPositionColor(_color.hsl.s, _color.hsl.l);
-
-            colorMarker.style.left = `${(position.x - colorMarker.offsetWidth / 2)}px`;
-            colorMarker.style.top = `${(position.y - colorMarker.offsetHeight / 2)}px`;
-
-            const rad = _color.hsl.h * DEG_TO_RAD;
-            
-            const markerX = Math.cos(rad) * centerRadius + cx;
-            const markerY = Math.sin(rad) * centerRadius + cy;
-
-            hueMarker.style.top = `${markerY - hueMarker.offsetHeight/2}px`;
-            hueMarker.style.left = `${markerX - hueMarker.offsetWidth/2}px`;
-
-            chromatic.setColor(_color.hsl.h);
-            requestAnimationFrame(() => drawChromaticTriangle());
-        } catch(e){
-            console.warn(e);
-        }
-
-        options?.onUpdateColor(_color);
-    }
-    
     function drawColorWheel(){
         let gradient = ctx.createConicGradient(0, cx, cy);
         let endColor = 0;
@@ -180,11 +196,36 @@ export function Chromatic(options){
         ctx.beginPath();
         ctx.lineWidth = strokeWidth;
         ctx.strokeStyle = gradient;
-        ctx.arc(cx, cy, outerRadius-strokeWidth/2, 0, 2 * Math.PI);
+        ctx.arc(cx, cy, outerRadius-strokeWidth/2, 0, RAD_360);
         ctx.stroke();
         ctx.closePath();
     }
+    function setColorByPoint(x, y){
+        colorMarkerPosition = chromatic.clampped(x, y);
+        _color = chromatic.getColor(colorMarkerPosition);
+        
+        requestAnimationFrame(drawChromaticTriangle);
+        options?.onUpdateColor(_color);
+    }
+    function setColor(color){
+        try{
+            _color = color;
+            colorMarkerPosition = chromatic.getPositionColor(_color.hsl.s, _color.hsl.l);;
 
+            const rad = _color.hsl.h * DEG_TO_RAD;
+            
+            hueMarkerPosition.x = Math.cos(rad) * centerRadius + cx;
+            hueMarkerPosition.y = Math.sin(rad) * centerRadius + cy;
+
+            chromatic.setColor(_color.hsl.h);
+            requestAnimationFrame(drawChromaticTriangle);
+        } catch(e){
+            console.warn(e);
+        }
+
+        options?.onUpdateColor(_color);
+    }
+    
     function buildChromatic(radius, centerPosition){
         let colorFactory = ColorFactory();
         let targetColor = colorFactory.buildByHSL(0, 100, 50);

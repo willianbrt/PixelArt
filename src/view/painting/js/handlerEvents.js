@@ -6,63 +6,143 @@ export default function HandlerEvents(canvas){
         WHELL_BUTTON:1,
         LEFT_BUTTON:2,
     };
-    const noEvent = ()=>{
-        return {
-            down: ()=>{},
-            up:()=>{},
-            dispatch: ()=>{}
-        }
+    const noEvent = {
+        down: ()=>{},
+        move: ()=>{},
+        up:()=>{},
+        dispatch: ()=>{}
     };
-
-    let abortPointerTrackingEvent = new AbortController();
-    let abortScroll = new AbortController();
     
     let buttonMousePressed = undefined;
+    let touchID = undefined;
+    let touchTimer = null;
 
-    let leftButtonEvent = noEvent();
-    let rightButtonEvent = noEvent();
-    let otherButtonPressedEvent = noEvent();
+    let leftButtonEvent = noEvent;
+    let rightButtonEvent = noEvent;
+    let otherButtonPressedEvent = noEvent;
     let scrollEvents = {
         default: { onScrollUp: ()=>{}, onScrollDown: ()=>{} },
         ctrl: { onScrollUp: ()=>{}, onScrollDown: ()=>{} }
     };
+    let noTouchEvents = {
+        down: (firstTouche, secondTouche)=>{},
+        move: (firstTouche, secondTouche)=>{},
+        up: (firstTouche, secondTouche)=>{}
+    };
+    let singleTouchEvent = noTouchEvents;
+    let doubleTouchEvent = noTouchEvents;
     let moveEvent = ()=>{};
     let preventDefaultMoveEvent = false;
     
+    function setScrollEvent(eventHandler, enableCtrlKey = false){
+        if (enableCtrlKey == true)
+            scrollEvents.ctrl = eventHandler;
+        else
+            scrollEvents.default = eventHandler;
+    }
+    function setMoveEvent(eventHandler){
+        moveEvent = eventHandler; 
+    }
+    function setClickLeftEvent(handlerEvent){
+        leftButtonEvent.down = noEvent;
+        leftButtonEvent.up = handlerEvent.click;
+    }  
+    function setClickRightEvent(handlerEvent){
+        rightButtonEvent.down = noEvent;
+        rightButtonEvent.up = handlerEvent.click;
+    }
     function setGenericButtonMousePressedEvent(strategy){
         otherButtonPressedEvent.dispatch?.();
-        otherButtonPressedEvent = createPressedEvent(strategy);
+        otherButtonPressedEvent = createMousePressedEvent(strategy);
     }
     function setRightButtonMousePressedEvent(strategy){
         rightButtonEvent.dispatch?.();
-        rightButtonEvent = createPressedEvent(strategy);
+        rightButtonEvent = createMousePressedEvent(strategy);
+        setSingleTouchEvent(strategy);
     }
     function setLeftButtonMousePressedEvent(strategy){
         leftButtonEvent.dispatch?.();
-        leftButtonEvent = createPressedEvent(strategy);
+        leftButtonEvent = createMousePressedEvent(strategy);
     }
 
-    function createPressedEvent(strategy) {
-        resetPointerTracking();
+    function createMousePressedEvent(strategy) {
         return {
             down:(event)=>{
-                strategy.onPressed(PositionHelper.getPositionCursor(event,canvas),event);
-
-                window.addEventListener("mousemove", (event)=>{
-                    preventDefaultMoveEvent = true;
-                    requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event, canvas)));
-                }, { signal: abortPointerTrackingEvent.signal });
+                strategy.onPressed(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas),event);
+            },
+            move:(event)=>{
+                preventDefaultMoveEvent = true;
+                requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas)));
             },
             up:(event)=>{
                 preventDefaultMoveEvent = false;
-                resetPointerTracking();
-
-                requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event, canvas)));
+                requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas)));
             },
             dispatch: strategy.dispatch
-        }
-    } 
+        };
+    }
+    function setSingleTouchEvent(strategy){
+        singleTouchEvent.dispatch?.();
+        singleTouchEvent = {
+            down:(event)=>{
+                strategy.onPressed(PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas),event);
+            },
+            move:(event)=>{
+                preventDefaultMoveEvent = true;
+                requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas)));
+            },
+            up:(event)=>{
+                preventDefaultMoveEvent = false;
+                requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event.changedTouches[0].clientX, event.changedTouches[0].clientY, canvas)));
+            },
+            dispatch: strategy.dispatch
+        };
+    }
+    function setDoubleTouchEvent(strategy){
+        doubleTouchEvent.dispatch?.();
+        doubleTouchEvent = {
+            down:(event)=>{
+                strategy.onPressed(
+                    PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas),
+                    PositionHelper.getPositionCursor(event.touches[1].clientX, event.touches[1].clientY, canvas)
+                );
+            },
+            move:(event)=>{
+                requestAnimationFrame(()=>strategy.onTracking(
+                    PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas),
+                    PositionHelper.getPositionCursor(event.touches[1].clientX, event.touches[1].clientY, canvas)
+                ));
+            },
+            up:( event)=>{
+                requestAnimationFrame(()=>strategy.onRelease(
+                    PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas),
+                    PositionHelper.getPositionCursor(event.changedTouches[0].clientX, event.changedTouches[0].clientY, canvas)
+                ));
+            },
+            dispatch: strategy.dispatch
+        };
+    }
+    
 
+    canvas.addEventListener("mouseleave", (event)=>{
+        event.preventDefault();
+    });
+    canvas.addEventListener("wheel", (event)=>{
+        event.preventDefault();
+
+        let eventHandler = scrollEvents.default;
+
+        if (event.ctrlKey){
+            eventHandler = scrollEvents.ctrl
+        }
+
+        requestAnimationFrame(()=>{
+            if(event.deltaY < 0)
+                eventHandler.onScrollUp(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas))
+            else
+                eventHandler.onScrollDown(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas))
+        });
+    });
     canvas.addEventListener("mousedown", (event)=>{
         event.preventDefault();
         
@@ -76,11 +156,23 @@ export default function HandlerEvents(canvas){
 
         buttonMousePressed = event.button;
     });
-    
+    canvas.addEventListener("mousemove", function (event){
+        event.preventDefault();
+        // if(!preventDefaultMoveEvent)
+        //     moveEvent(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas));
+
+        if(buttonMousePressed === undefined) return;
+
+        switch(buttonMousePressed){
+            case KEY_MOUSE.RIGHT_BUTTON: rightButtonEvent.move(event); break;
+            case KEY_MOUSE.LEFT_BUTTON: leftButtonEvent.move(event); break;
+            default: otherButtonPressedEvent.move(event); break;
+        }
+    });
     window.addEventListener("mouseup", (event)=>{
         event.preventDefault();
 
-        if(!(buttonMousePressed == event.button)) return;
+        if(buttonMousePressed != event.button) return;
         
         switch(event.button){
             case KEY_MOUSE.RIGHT_BUTTON: rightButtonEvent.up(event); break;
@@ -90,79 +182,67 @@ export default function HandlerEvents(canvas){
         
         buttonMousePressed = undefined;
     });
-    
-    document.addEventListener("mouseleave", ()=>{
-        resetPointerTracking();
+    window.addEventListener("mouseleave", ()=>{
     });
-    
-    canvas.addEventListener("wheel", (event)=>{
-        event.preventDefault();
-
-        let eventHandler = scrollEvents.default;
-
-        if (event.ctrlKey){
-            eventHandler = scrollEvents.ctrl
-        }
-
-        requestAnimationFrame(()=>{
-            if(event.deltaY < 0)
-                eventHandler.onScrollUp(PositionHelper.getPositionCursor(event, canvas))
-            else
-                eventHandler.onScrollDown(PositionHelper.getPositionCursor(event, canvas))
-        });
-    });
-
-    document.oncontextmenu = function() { return false; };
-    document.addEventListener("mousewheel", (event)=>{
+    window.addEventListener("mousewheel", (event)=>{
         event.preventDefault()
     }, { passive: false });
-    
-    function setClickLeftEvent(handlerEvent){
-        resetPointerTracking();
 
-        leftButtonEvent.down = noEvent();
-        leftButtonEvent.up = handlerEvent.click;
-    }
-    
-    function setClickRightEvent(handlerEvent){
-        resetPointerTracking();
-
-        rightButtonEvent.down = noEvent();
-        rightButtonEvent.up = handlerEvent.click;
-    }
-
-    function resetPointerTracking(){
-        if(abortPointerTrackingEvent.signal) abortPointerTrackingEvent.abort();
-        abortPointerTrackingEvent = new AbortController();
-    }
-
-
-    function setScrollEvent(eventHandler, enableCtrlKey = false){
-        // resetScroll();
-        if (enableCtrlKey == true)
-            scrollEvents.ctrl = eventHandler;
-        else
-            scrollEvents.default = eventHandler;
-    }
-
-    
-    function setMoveEvent(eventHandler){
-        moveEvent = eventHandler; 
-    }
-
-    canvas.addEventListener("mousemove", function (event){
-        event.preventDefault();
-
-        if(!preventDefaultMoveEvent)
-            moveEvent(PositionHelper.getPositionCursor(event,canvas));
+    canvas.addEventListener("touchleave", (event)=>{
     });
-
-    canvas.addEventListener("mouseleave", (event)=>{
+    canvas.addEventListener("touchstart", (event)=>{
         event.preventDefault();
-    });
+        if(event.touches.length == 1){
+            touchTimer = setTimeout(() => {
+                singleTouchEvent.down(event);
+                touchID = event.touches[0].identifier;
+            }, 40);
+        }
+        else if(event.touches.length == 2){
+            clearTimeout(touchTimer);
+            singleTouchEvent.up(event);
+            touchID = undefined;
 
+            doubleTouchEvent.down(event);
+        } else 
+            return;
+    });
+    canvas.addEventListener("touchmove", function (event){
+        if(event.touches.length == 1 && event.changedTouches[0].identifier == touchID){
+            singleTouchEvent.move(event);
+        } else if(event.touches.length == 2){
+            doubleTouchEvent.move(event);
+        } else 
+            return;
+    });
+    window.addEventListener("touchend", (event)=>{
+        if(event.touches.length == 1)
+            doubleTouchEvent.up(event);
+
+        for(let i = 0; i < event.changedTouches.length; i++){
+            if(event.changedTouches[i].identifier == touchID){
+                singleTouchEvent.up(event);
+                touchID = undefined;
+            }
+        }
+    });
+    window.addEventListener("touchcancel", (event)=>{
+        singleTouchEvent.up(event);
+    });
+    window.addEventListener("mouseleave", ()=>{
+        buttonMousePressed = undefined;
+    });
+    window.addEventListener("mousewheel", (event)=>{
+        event.preventDefault()
+    }, { passive: false });
+
+
+    window.oncontextmenu = function() { return false; };
+    
     
     return Object.seal({
+        setSingleTouchEvent,
+        setDoubleTouchEvent,
         setClickRightEvent,
         setClickLeftEvent,
         setRightButtonMousePressedEvent,

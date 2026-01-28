@@ -89,17 +89,8 @@ let _shortcuts = {
                 return;
                 let select = selectStrategy();
                 handlerEvents.setRightButtonMousePressedEvent(select);
-                window.addEventListener("mousedown", (e)=>{
-                    console.log(e.target, renderArea)
-                    if (!drawingArea.contains(e.target)) {
-                        console.log("fora")
-                        select.dispatch();
-                        return;
-                    }
-                    console.log("dentro")
-                });
-
                 select.paste();
+
                 changeSelectTool.call(document.querySelector(".tool-select"));
         },
         "shift": {
@@ -508,8 +499,25 @@ function addLayer(layer){
     });
     btnLockLayer.addEventListener("click", toggleLockLayer);
     btnHideLayer.addEventListener("click", toggleHideLayer);
+
     btnGrabLayer.addEventListener("mousedown", grabLayer);
+    btnGrabLayer.addEventListener("touchstart", grabLayer);
+
+    let editing = false;
+    let dbl = false;
     nameLayer.addEventListener("dblclick", renameLayer);
+    nameLayer.addEventListener("touchstart", (e)=>{
+        if(e.touches.length > 1) return;
+
+        if(!dbl){
+            setTimeout(()=>{
+                dbl = false;
+            }, 250);
+            dbl = true;
+            return;
+        }
+        renameLayer(e)
+    });
 
     function toggleLockLayer(){
         let icon = this.querySelector("i");
@@ -543,15 +551,16 @@ function addLayer(layer){
         let listLayer = areaListLayer.querySelectorAll("#list-Layers .layer");
         let abort = new AbortController();
         e.preventDefault();
-
-        window.addEventListener("mousemove", (e)=> {
+        
+        let onTracking = (e)=> {
             let elementLast;
             listLayer.forEach(el => {
                 let box  = el.getBoundingClientRect();
 
                 el.classList.remove("after-indicator")
                 el.classList.remove("before-indicator")
-                if(e.clientY > box.y){
+                
+                if((e.touches[0].clientY ?? e.clientY) > box.y){
                     elementLast = el;
                 }
             });
@@ -560,16 +569,14 @@ function addLayer(layer){
                 listLayer[0]?.classList.add("before-indicator");
             else
                 elementLast?.classList.add("after-indicator");
-        },{signal: abort.signal});
-
-        window.addEventListener("mouseup", (e)=>{
-
+        }
+        let onRelease = (e)=>{
             let elementLast;
             listLayer.forEach(el => {
                 let box  = el.getBoundingClientRect();
 
                 el.classList.remove("swap")
-                if(e.clientY > box.y){
+                if((e.changedTouches[0].clientY ?? e.clientY) > box.y){
                     elementLast = el;
                 }
             });
@@ -591,28 +598,40 @@ function addLayer(layer){
             editor.render();
                         
             abort.abort();
-        }, { once: true });
+        }
+
+        window.addEventListener("mousemove", onTracking, {signal: abort.signal});
+        window.addEventListener("touchmove", onTracking, {signal: abort.signal});
+
+        window.addEventListener("mouseup", onRelease, { once: true });
+        window.addEventListener("touchend", onRelease, { once: true });
+
     }
     function renameLayer(e){
+        if(editing) return;
+        editing = true;
+        
         let inpNameLayer = document.createElement("input");
         inpNameLayer.value = layer.getName();
         inpNameLayer.type = "text";
 
         nameLayer.replaceChild(inpNameLayer, h5);
         inpNameLayer.focus();
-        inpNameLayer.addEventListener("blur", function(){
-            if(inpNameLayer.value == "" || inpNameLayer.value == layer.getName()){
-                nameLayer.replaceChild(h5, inpNameLayer);
-                return;
+
+        function done(){
+            if(inpNameLayer.value != "" && inpNameLayer.value != layer.getName()){
+                let nome = findTitle(inpNameLayer.value);
+                layer.setName(nome);
+                h5.innerText = layer.getName();
             }
-            let nome = findTitle(inpNameLayer.value);
-            layer.setName(nome);
-            h5.innerText = layer.getName();
+
             nameLayer.replaceChild(h5, inpNameLayer);
-        });
+            editing = false;
+        }
+        inpNameLayer.addEventListener("blur", done);
         inpNameLayer.addEventListener("keypress", function(e){
             if(e.keyCode == 13)
-                inpNameLayer.blur();
+                done();
         });
     }
     return layerElement;
@@ -785,7 +804,7 @@ async function save(){
             };
             let index = 0, cnt = 0;
             let flagColorLayer = layer.getPixelByIndex(index);
-            console.log(layer.getLength())
+            
             while(index < layer.getLength()){
                 let colorLayer = layer.getPixelByIndex(index);
                 
@@ -803,7 +822,6 @@ async function save(){
         }
         project.frames.push(dataFrame);
     }
-    console.log(project)
     
 
     const blob = new Blob([JSON.stringify(project)], { type: "application/json" });
@@ -1266,6 +1284,7 @@ function selectStrategy(){
     pattern_selected = "dot";
     canvas.style.cursor = "crosshair";
 
+    let toolbar;
     let selectedArea = document.querySelector("#selected-area");
     let markersElement = document.querySelectorAll("#selected-area .marker");
 
@@ -1278,8 +1297,8 @@ function selectStrategy(){
         selectedArea.style.display = "block";
 
         intialPixel = cursorToPixel(point);
-
-        if(select == null){ 
+        
+        if(select == null){
             createFloatingToolbar();
             return;
         }
@@ -1298,7 +1317,7 @@ function selectStrategy(){
         let corners = select.getDestinationCorners();
         if(isInsideRotatedBounding(intialPixel, corners)){
             _onTracking = onTrackingTranslate;
-        } else {
+        } else if(!toolbar.contains(event.target)){
             done();
             _onTracking = onTrackingBounding;
         }
@@ -1312,8 +1331,13 @@ function selectStrategy(){
         }
         activeFrame = editor.getActiveFrame();
         
+        if(select !== null && select !== undefined) select.delete();
+        
         select = new module.Selection(intialPixel.x, intialPixel.y, pixel.x, pixel.y, activeFrame.getActiveLayer(), true);
         editor.preview(select);
+
+        if(toolbar === null || toolbar === undefined) createFloatingToolbar();
+
         drawMarkers();
     };
     function onTrackingResize(point){
@@ -1414,6 +1438,8 @@ function selectStrategy(){
     function paste(){
         if(!clipboard) return;
 
+        activeFrame = editor.getActiveFrame();
+
         done();
         createFloatingToolbar();
         const { buffer, width } = clipboard;
@@ -1435,21 +1461,23 @@ function selectStrategy(){
             e.style.height = 1 + "px";
             e.style.scale =  0.5;
         });
-        document.querySelector(".floating-toolbar")?.remove();
+        toolbar?.remove();
+        toolbar = null;
+
         if(select != null){
             editor.draw(select);
             updateFramePreview(activeFrame);
         }
+        select.delete();
         select = null;
         
         delete _shortcuts.control.c;
     }
 
     function createFloatingToolbar() {
-        let selectedArea = document.querySelector(".floating-toolbar");
-        selectedArea?.remove();
+        toolbar?.remove();
         
-        const toolbar = document.createElement("div");
+        toolbar = document.createElement("div");
         toolbar.className = "floating-toolbar";
 
         const grip = document.createElement("div");
@@ -1521,6 +1549,7 @@ function selectStrategy(){
             btn.id = id;
             btn.classList.add("select-tool");
             btn.addEventListener("click", eventClick);
+            btn.addEventListener("touchstart", eventClick);
             
             const span = document.createElement("span");
             span.className = "material-symbols-outlined";
@@ -1550,7 +1579,6 @@ function isInsideRotatedBounding(point, corners){
         return (p1.x - p2.x) * (p3.y - p2.y) - (p1.y - p2.y) * (p3.x - p2.x);
     }
     if(corners === null) return false;
-    console.log(point, corners)
 
     let b1 = cross(point, corners.topLeft, corners.topRight) >= 0;
     let b2 = cross(point, corners.topRight, corners.bottomRight) >= 0;
@@ -1668,25 +1696,16 @@ function buildPaneToolBar(){
     // handlerEvents.setMoveEvent(hoverBrush);
 
 
-    handlerEvents.setScrollEvent(onZoomStrategy(), false);
-    handlerEvents.setScrollEvent(onSizeStrategy(), true);
-    handlerEvents.setGenericButtonMousePressedEvent(onPanningStrategy());
-    handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
-    handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
-
-
     const buttonPencil = document.querySelector(".tool-pencil");
     buttonPencil.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
         changeSelectTool.call(this);
     });
-
     const buttonEraser = document.querySelector(".tool-eraser");
     buttonEraser.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(eraseStrategy());
         changeSelectTool.call(this);
     });
-
     const buttonDropper = document.querySelector(".tool-dropper");
     buttonDropper.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(dropperStrategy());
@@ -1698,8 +1717,6 @@ function buildPaneToolBar(){
         handlerEvents.setRightButtonMousePressedEvent(lineStrategy());
         changeSelectTool.call(this);
     });
-
-
     const buttonSquare = document.querySelector(".tool-square");
     buttonSquare.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(squareStrategy());
@@ -1718,13 +1735,11 @@ function buildPaneToolBar(){
         changeSelectTool.call(this);
     });
 
-
     const buttonBrush = document.querySelector(".tool-brush");
     buttonBrush.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(brushStrategy());
         changeSelectTool.call(this);
     });
-
     const buttonSelect = document.querySelector(".tool-select");
     buttonSelect.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(selectStrategy());
@@ -1741,10 +1756,15 @@ function buildPaneToolBar(){
         history.redo();
     });
 
-    // buttonSquare.click();
-    // buttonPencil.click();
+    handlerEvents.setScrollEvent(onZoomScrollStrategy(), false);
+    handlerEvents.setDoubleTouchEvent(onZoomDoubleTouchStrategy(), false);
+    handlerEvents.setDoubleTouchEvent(onZoomDoubleTouchStrategy(), false);
+    handlerEvents.setScrollEvent(onSizeStrategy(), true);
+    handlerEvents.setGenericButtonMousePressedEvent(onPanningStrategy());
+    handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
+    // handlerEvents.setRightButtonMousePressedEvent(onPanningStrategy());
 
-    
+    buttonPencil.click();    
 }
 function changeSelectTool(){
     document.querySelector(".tool.active")?.classList.toggle("active", false);
@@ -1761,53 +1781,96 @@ let onSizeStrategy = ()=> {
     }
 }
 
-let onZoomStrategy = ()=> {
-    function zoom(scale, positionCursor){
-        if(scale < 1) return;
-        
-        let position = getPosition();
-        
-        let {
-                offsetWidth: viewportWidth,
-                offsetHeight: viewportHeight
-            } = drawingArea;
-
-        let x, y;
-        if(width*scale <= viewportWidth){
-            x = (viewportWidth - width*scale) * 0.5;
-        }else{
-            let currentWidth = width*targetScale;
-            let endOfAxisX = position.x + currentWidth;
-            let zoomPointX = Math.min(endOfAxisX, Math.max(position.x, positionCursor.x));
-            x = zoomPointX - (zoomPointX - position.x) * (scale / targetScale);
-        }
-
-        if(height*scale <= viewportHeight){
-            y = (viewportHeight - height*scale) * 0.5;
-        } else {
-            let currentHeight = height*targetScale;
-            let endOfAxisY = position.y + currentHeight;
-            let zoomPointY = Math.min(endOfAxisY, Math.max(position.y, positionCursor.y));
-            y = zoomPointY - (zoomPointY - position.y) * (scale / targetScale);
-        }
-
-
-        targetScale = scale;
-        renderArea.style.position = `absolute`;
-        renderArea.style.scale = targetScale;
-
-        moveTo({x,y});
-    }
-
-
+let onZoomScrollStrategy = ()=> {
     return {
         onScrollUp: (cursor)=>{
-            zoom(targetScale+1, cursor)
+            zoom(targetScale*1.1, cursor)
         },
         onScrollDown:(cursor)=>{
-            zoom(targetScale - 1, cursor);
+            zoom(targetScale/1.1, cursor);
         }
     }
+}
+let onZoomDoubleTouchStrategy = ()=> {
+    let flagInitalDelta;
+    let flagScale;
+    let startPositionCursor;
+    let cursor = {x:0, y:0};
+    return {
+        onPressed: (firstTouch, secondTouch)=>{
+            cursor.x = (firstTouch.x + firstTouch.x) * 0.5;
+            cursor.y = (firstTouch.y + firstTouch.y) * 0.5;
+
+            const deltaX = (secondTouch.x - firstTouch.x);
+            const deltaY = (secondTouch.y - firstTouch.y);
+            const delta =  Math.hypot(deltaX, deltaY);
+            flagInitalDelta = delta;
+            flagScale = delta / flagInitalDelta;
+            startPositionCursor = cursor;
+        },
+        onTracking: (firstTouch, secondTouch)=>{
+            cursor.x = (firstTouch.x + firstTouch.x) * 0.5;
+            cursor.y = (firstTouch.y + firstTouch.y) * 0.5;
+
+            const deltaX = (secondTouch.x - firstTouch.x);
+            const deltaY = (secondTouch.y - firstTouch.y);
+            const delta = Math.hypot(deltaX, deltaY);
+            let scale = delta / flagInitalDelta;
+
+            zoom(targetScale * (1+scale-flagScale), cursor);
+
+            let position = getPosition();
+
+            let cursorDeltaX = cursor.x - startPositionCursor.x;
+            let cursorDeltaY = cursor.y - startPositionCursor.y;
+
+            moveTo({
+                x: position.x+cursorDeltaX,
+                y: position.y+cursorDeltaY
+            });
+
+            flagScale = scale;
+        },
+        onRelease: (firstTouch, secondTouch)=>{
+        }
+    }
+}
+
+function zoom(scale, positionCursor){
+    if(scale < 1) return;
+    
+    let position = getPosition();
+    
+    let {
+            offsetWidth: viewportWidth,
+            offsetHeight: viewportHeight
+        } = drawingArea;
+
+    let x, y;
+    if(width*scale <= viewportWidth){
+        x = (viewportWidth - width*scale) * 0.5;
+    }else{
+        let currentWidth = width*targetScale;
+        let endOfAxisX = position.x + currentWidth;
+        let zoomPointX = Math.min(endOfAxisX, Math.max(position.x, positionCursor.x));
+        x = zoomPointX - (zoomPointX - position.x) * (scale / targetScale);
+    }
+
+    if(height*scale <= viewportHeight){
+        y = (viewportHeight - height*scale) * 0.5;
+    } else {
+        let currentHeight = height*targetScale;
+        let endOfAxisY = position.y + currentHeight;
+        let zoomPointY = Math.min(endOfAxisY, Math.max(position.y, positionCursor.y));
+        y = zoomPointY - (zoomPointY - position.y) * (scale / targetScale);
+    }
+
+
+    targetScale = scale;
+    renderArea.style.position = `absolute`;
+    renderArea.style.scale = targetScale;
+
+    moveTo({x,y});
 }
 
 
