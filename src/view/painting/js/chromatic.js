@@ -309,9 +309,9 @@ export function Chromatic(options){
 
 export function ColorFactory(){
     function buildByDecimal(bigint){
-        const r =  bigint >>> 24;
-        const g = (bigint >>> 16) & 0xFF;
-        const b = (bigint >>> 8) & 0xFF;
+        const r =  bigint & 0xFF;
+        const g = (bigint >>> 8) & 0xFF;
+        const b = (bigint >>> 16) & 0xFF;
         
         return {
             rgb: {r, g, b},

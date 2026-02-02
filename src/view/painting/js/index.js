@@ -1285,11 +1285,26 @@ let dropperStrategy = () => {
             activeFrame = editor.getActiveFrame();
             activeLayer = activeFrame.getActiveLayer();
 
+            if(point.x >= canvas.clientWidth || point.y >= canvas.clientHeight || point.x < 0 || point.y < 0){
+                modalChromatic.setColor(factoryColor.buildByRGB(0,0,0));
+                return;
+            }
+
+            point.x %= activeLayer.getWidth();
+            point.y %= activeLayer.getHeight();
             let colorHex = activeLayer.getPixel(point.x, point.y);
             modalChromatic.setColor(factoryColor.buildByDecimal(colorHex));
         },
         onTracking: (point) => {
             point = cursorToPixel(point);
+
+            if(point.x >= canvas.clientWidth || point.y >= canvas.clientHeight || point.x < 0 || point.y < 0){
+                modalChromatic.setColor(factoryColor.buildByRGB(0,0,0));
+                return;
+            }
+
+            point.x %= activeLayer.getWidth();
+            point.y %= activeLayer.getHeight();
 
             let colorHex = activeLayer.getPixel(point.x, point.y);
             modalChromatic.setColor(factoryColor.buildByDecimal(colorHex));
