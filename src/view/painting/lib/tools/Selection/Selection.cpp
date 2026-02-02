@@ -231,11 +231,16 @@ void Selection::draw(Layer& layer){
     const int offsetY = -_originalBounding.start.y + std::min(_originalBounding.start.y, 0);
 
     Bounding destBounding = _corners.getBounding();
+    destBounding.start.y = std::max(destBounding.start.y,0);
+    destBounding.start.x = std::max(destBounding.start.x,0);
+    destBounding.end.y = std::min(destBounding.end.y,screenHeight);
+    destBounding.end.x = std::min(destBounding.end.x,screenWidth);
+
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         Point src;
         float _dy = dy + 0.5f - _dstCenterY;
         
-        for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {            
+        for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {  
             float _dx = dx + 0.5f - _dstCenterX;
             
             float localX = _cosA * _dx + _sinA * _dy;
@@ -251,27 +256,27 @@ void Selection::draw(Layer& layer){
             unsigned int color = _data->getPixel(src.x, src.y);
 
             if((color >> 24 & 0xFF) == 0) { continue; }
-            
-            putPixel(layer, dx, dy, color, screenWidth, screenHeight);
+
+
+            Point clampedPoint;
+            clampedPoint.x = GraphicsEngine::clampedTilePoint(dx, layer.getWidth());
+            clampedPoint.y = GraphicsEngine::clampedTilePoint(dy, layer.getHeight());
+            putPixel(layer, clampedPoint.x, clampedPoint.y, color);
         }
     }
 }
 
-void Selection::putPixel(Layer& layer, int x, int y, unsigned int color, int screenWidth, int screenHeight){
-    Point p;
-    p.x = GraphicsEngine::clampedTilePoint(x, layer.getWidth());
-    p.y = GraphicsEngine::clampedTilePoint(y, layer.getHeight());
-
-    layer.putPixel(p.x, p.y, color);
+void Selection::putPixel(Layer& layer, int x, int y, unsigned int color){
+    layer.putPixel(x, y, color);
     
-    int pointMirrorX = GraphicsEngine::pointMirrored(p.x, layer.getWidth());
-    int pointMirrorY = GraphicsEngine::pointMirrored(p.x, layer.getHeight());
+    int pointMirrorX = GraphicsEngine::pointMirrored(x, layer.getWidth());
+    int pointMirrorY = GraphicsEngine::pointMirrored(y, layer.getHeight());
 
     if(_isMirrorX){
-        layer.putPixel(pointMirrorX, p.y, color);
+        layer.putPixel(pointMirrorX, y, color);
     }            
     if(_isMirrorY){
-        layer.putPixel(p.x, pointMirrorY, color);
+        layer.putPixel(x, pointMirrorY, color);
     }
     if(_isMirrorX && _isMirrorY){
         layer.putPixel(pointMirrorX, pointMirrorY, color);

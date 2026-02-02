@@ -42,7 +42,7 @@ public:
     float getRotateRad();
     void resize(int marker, float deltaX, float deltaY);
 private:
-    void putPixel(Layer& layer, int x, int y, unsigned int color, int screenWidth, int screenHeight);
+    void putPixel(Layer& layer, int x, int y, unsigned int color);
 
     float _dstCenterX;
     float _dstCenterY;
