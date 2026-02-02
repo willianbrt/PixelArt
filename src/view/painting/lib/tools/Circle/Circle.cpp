@@ -1,36 +1,14 @@
 #include "Circle.h"
 
-inline void traceFilled(Layer& layer, int cx, int cy, int x, int y, unsigned int color) {
-    if(x<=0) return;
-    for (int xi = cx - x + 1 ; xi < cx + x; xi++) {
-        layer.putPixel(xi, cy + y, color);
-        layer.putPixel(xi, cy - y, color);
-    }
-}
 
-inline void traceSymetricOutline(Layer& layer,
-    int cx, int cy,
-    int toX, int toY,
-    int fromX, int fromY,
-    unsigned int color, int thickness) {
-
-    if (fromX > toX) std::swap(fromX, toX);
-    if (fromY > toY) std::swap(fromY, toY);
-
-    for(int y = fromY; y <= toY; y++){
-        for(int x = fromX; x <= toX; x++){
-            layer.putPixel(cx + x, cy + y, color); // AM
-            layer.putPixel(cx - x, cy + y, color); // v
-            layer.putPixel(cx + x, cy - y, color); // AZ
-            layer.putPixel(cx - x, cy - y, color); // V
-        }
-    }
-}
-
-Circle::Circle(int from_x, int from_y,
-                int to_x, int to_y,
-                bool isFilled, int thickness,
-                unsigned int newColorHex){
+Circle::Circle(
+    int from_x, int from_y,
+    int to_x, int to_y,
+    bool isFilled, int thickness,
+    unsigned int newColorHex,
+    bool isMirrorX, bool isMirrorY, 
+    int nRows, int nCols) : IGraphic(isMirrorX, isMirrorY, nRows, nCols)
+{
     _fromPoint = Point(from_x,from_y);
     _toPoint = Point(to_x,to_y);
 
@@ -41,11 +19,13 @@ Circle::Circle(int from_x, int from_y,
     _thickness = thickness-1;
     _isFilled = isFilled;
 
-    cx = (_toPoint.x + _fromPoint.x) >> 1;
-    cy = (_toPoint.y + _fromPoint.y) >> 1;
-
+    cx = (_toPoint.x + _fromPoint.x) / 2.0f + 0.5f;
+    cy = (_toPoint.y + _fromPoint.y) / 2.0f + 0.5f;
 }
 void Circle::draw(Layer& layer) {
+    const int screenWidth = layer.getWidth()*_nRows;
+    const int screenHeight = layer.getHeight()*_nCols;
+    
 // EXTERNO
     const int rx = ((_toPoint.x - _fromPoint.x) >> 1);
     const int ry = ((_toPoint.y - _fromPoint.y) >> 1);
@@ -81,8 +61,8 @@ void Circle::draw(Layer& layer) {
     int piy = twoRix2 * yi;
     
     while(px < py){
-        traceSymetricOutline(layer, cx, cy, x, y, xi, yi, _newColorHex, _thickness);
-        if(_isFilled) traceFilled(layer, cx, cy, xi, yi, _newColorHex);
+        traceSymetricOutline(layer, x, y, xi, yi, _newColorHex, _thickness, screenWidth, screenHeight);
+        if(_isFilled) traceFilled(layer, xi, yi, _newColorHex, screenWidth, screenHeight);
         
         x++;
         px += twoRy2;
@@ -114,8 +94,8 @@ void Circle::draw(Layer& layer) {
     pi = riy2 * xi*xi + rix2 * yi*(yi - 1) + (rix2 >> 2) - rix2*riy2;
 
     while (y >= 0){
-        traceSymetricOutline(layer, cx, cy, x, y, xi, yi, _newColorHex, _thickness);
-        if(_isFilled) traceFilled(layer, cx, cy, xi, yi, _newColorHex);
+        traceSymetricOutline(layer, x, y, xi, yi, _newColorHex, _thickness, screenWidth, screenHeight);
+        if(_isFilled) traceFilled(layer, xi, yi, _newColorHex, screenWidth, screenHeight);
 
         y--;
         py -= twoRx2;
@@ -143,11 +123,61 @@ void Circle::draw(Layer& layer) {
     }
 }
 
+
+void Circle::traceFilled(Layer& layer, int x, int y, unsigned int color, int screenWidth, int screenHeight) {
+    if(x<=0) return;
+    for (int xi = std::floor(cx - x + 1) ; xi < cx + x; xi++) {
+        putPixel(layer, xi, std::floor(cy + y), color, screenWidth, screenHeight);
+        putPixel(layer, xi, std::floor(cy - y), color, screenWidth, screenHeight);
+    }
+}
+
+void Circle::traceSymetricOutline(Layer& layer,
+    int toX, int toY,
+    int fromX, int fromY,
+    unsigned int color, int thickness, 
+    int screenWidth, int screenHeight) {
+
+    if (fromX > toX) std::swap(fromX, toX);
+    if (fromY > toY) std::swap(fromY, toY);
+
+    for(int y = fromY; y <= toY; y++){
+        for(int x = fromX; x <= toX; x++){
+            putPixel(layer, std::floor(cx + fromX), std::floor(cy + fromY), color, screenWidth, screenHeight);
+            putPixel(layer, std::floor(cx - fromX), std::floor(cy + fromY), color, screenWidth, screenHeight);
+            putPixel(layer, std::floor(cx + fromX), std::floor(cy - fromY), color, screenWidth, screenHeight);
+            putPixel(layer, std::floor(cx - fromX), std::floor(cy - fromY), color, screenWidth, screenHeight);
+        }
+    }
+}
+void Circle::putPixel(Layer& layer, int x, int y, unsigned int color, int screenWidth, int screenHeight){
+    if(x >= screenWidth || y >= screenHeight || x < 0 || y < 0) return;
+
+    Point p;
+    p.x = GraphicsEngine::clampedTilePoint(x, layer.getWidth());
+    p.y = GraphicsEngine::clampedTilePoint(y, layer.getHeight());
+
+    layer.putPixel(p.x, p.y, color);
+    
+    int pointMirrorX = GraphicsEngine::pointMirrored(p.x, layer.getWidth());
+    int pointMirrorY = GraphicsEngine::pointMirrored(p.y, layer.getHeight());
+
+    if(_isMirrorX){
+        layer.putPixel(pointMirrorX, p.y, color);
+    }            
+    if(_isMirrorY){
+        layer.putPixel(p.x, pointMirrorY, color);
+    }
+    if(_isMirrorX && _isMirrorY){
+        layer.putPixel(pointMirrorX, pointMirrorY, color);
+    }
+}
+
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(circle_module){
     class_<Circle, base<IGraphic>>("Circle")
-        .constructor<int, int, int, int, bool,int, unsigned int>()
+        .constructor<int, int, int, int, bool,int, unsigned int, bool, bool, int, int>()
         .smart_ptr<std::shared_ptr<Circle>>("shared_ptr<Circle>")
         .function("draw", &Circle::draw);
 };

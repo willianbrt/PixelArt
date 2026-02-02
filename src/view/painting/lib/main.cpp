@@ -15,11 +15,11 @@
 #include "graphics/Pixel/Pixel.h"
 
 extern "C" {
-    void renderCanvas(unsigned int* screen, size_t length, unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y);
+    void renderCanvas(unsigned int projectWidth, unsigned int projectHeight, unsigned int* screen, size_t length, unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y, int nRows, int nCols);
     void clear(unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y);
     unsigned int get_viewport_width();
     unsigned int get_viewport_height();
-}
+};
 
 
 class Editor
@@ -30,6 +30,8 @@ private:
     Surface _sketch;
     Point _sketchPosition;
     unsigned int _scale = 1;
+    int _rows = 1;
+    int _cols = 1;
     vector<Frame*> frames;
     Frame* activeFrame = nullptr;
 
@@ -53,6 +55,11 @@ public:
     Bounding getSketchBounding(){
         Point endPoint = Point(_sketchPosition.x + _sketch.getWidth(), _sketchPosition.y + _sketch.getHeight());
         return Bounding(_sketchPosition, endPoint);
+    }
+
+    void setNumberTiles(int rol, int col){
+        _rows = rol; 
+        _cols = col; 
     }
 
     void preview(IGraphic& graphic){
@@ -94,14 +101,19 @@ public:
                 previousColorHex = (previousColorHex & 0xFFFFFF00) | static_cast<int>(opacity * (previousColorHex & 0xFF));
 
                 unsigned int colorHex = GraphicsEngine::blendColors(previousColorHex, activeFrame->getPixel(index));
-                swap_endian_uint32(&colorHex);
+                // swap_endian_uint32(&colorHex);
                 _sketch.putPixel(index, colorHex);
 
                 index++;
             }
         }
 
-        renderCanvas(_sketch.getBuffer(), _sketch.getLength(), _sketch.getWidth(), _sketch.getHeight(), 0, 0);
+        renderCanvas(
+            _sketch.getWidth(), _sketch.getHeight(),
+            _sketch.getBuffer(), _sketch.getLength(), 
+            _sketch.getWidth(), _sketch.getHeight(), 
+            area.start.x, area.start.y,
+            _rows, _cols);
     }
     
     void bringFrameTo(Guid id, size_t toIndex){
@@ -180,6 +192,7 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("renderArea", select_overload<void(int, int, int, int)>(&Editor::render))
         .function("preview", &Editor::preview)
         .function("draw", &Editor::draw)
+        .function("setNumberTiles", &Editor::setNumberTiles)
         .function("render", select_overload<void()>(&Editor::render))
         .function("bringFrameTo", &Editor::bringFrameTo)
         .function("getFrameIndex", &Editor::getFrameIndex)

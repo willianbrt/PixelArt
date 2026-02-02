@@ -1,12 +1,35 @@
 #include "Selection.h"
 
-Selection::Selection(int from_start_x, int from_start_y,
-                     int to_start_x, int to_start_y, 
-                     Surface& layer, 
-                     bool cleanTheArea)
+Selection::Selection(
+    int from_start_x, int from_start_y,
+    int to_start_x, int to_start_y, 
+    Surface& layer, 
+    bool cleanTheArea,
+    bool isMirrorX, bool isMirrorY, 
+    int nRows, int nCols) : IGraphic(isMirrorX, isMirrorY, nRows, nCols)
 {
-    _originalBounding = Bounding(Point(from_start_x,from_start_y), Point(to_start_x+1, to_start_y+1));
-    _data = layer.crop(_originalBounding);
+    _originalBounding = Bounding(
+        Point(from_start_x,from_start_y),
+        Point(to_start_x+1, to_start_y+1)
+    );
+    const int screenWidth = layer.getWidth()*_nRows;
+    const int screenHeight = layer.getHeight()*_nCols;
+    
+    _originalBounding.start.x = std::min(screenWidth, std::max(0 ,_originalBounding.start.x));
+    _originalBounding.start.y = std::min(screenHeight, std::max(0, _originalBounding.start.y));
+    _originalBounding.end.x = std::min(screenWidth, std::max(0, _originalBounding.end.x));
+    _originalBounding.end.y = std::min(screenHeight, std::max(0, _originalBounding.end.y));
+
+    _data = new Surface(_originalBounding.getWidth(), _originalBounding.getHeight());
+    
+    for (int y = 0; y < _originalBounding.getHeight(); ++y) {
+        Point p;
+        p.y = (_originalBounding.start.y + y) %layer.getHeight();
+        for (int x = 0; x < _originalBounding.getWidth(); ++x){
+            p.x = (_originalBounding.start.x + x)%layer.getWidth();
+            _data->putPixel(x, y, layer.getPixel(p.x , p.y));
+        }
+    }
     
     _destBounding = _originalBounding;
     _origCenterX = (_originalBounding.start.x + _originalBounding.end.x) * 0.5f;
@@ -31,7 +54,9 @@ Selection::Selection(int from_start_x, int from_start_y,
     _corners.topRight    = Point(_originalBounding.end.x, _originalBounding.start.y);
     _corners.bottomLeft  = Point(_originalBounding.start.x, _originalBounding.end.y);
 }
-
+Selection::~Selection(){
+    free(_data);
+}
 void Selection::translate(float deltaX, float deltaY){
     _corners.topLeft.x += deltaX;
     _corners.topLeft.y += deltaY;
@@ -185,10 +210,13 @@ float Selection::getRotateRad(){
     return _angleRad;
 }
 void Selection::draw(Layer& layer){
+    const int screenWidth = layer.getWidth()*_nRows;
+    const int screenHeight = layer.getHeight()*_nCols;
+
     if(_cleanTheArea){
         for (int y = _originalBounding.start.y; y < _originalBounding.end.y; ++y) {
             for (int x = _originalBounding.start.x; x < _originalBounding.end.x; ++x) {
-                layer.putPixel((int)x, (int)y, 0x0);
+                layer.putPixel((int)x%layer.getWidth(), (int)y%layer.getHeight(), 0x0);
             }
         }
     }
@@ -222,12 +250,33 @@ void Selection::draw(Layer& layer){
 
             unsigned int color = _data->getPixel(src.x, src.y);
 
-            if((color & 0xFF) == 0) { continue; }
-            layer.putPixel(dx, dy, color);
+            if((color >> 24 & 0xFF) == 0) { continue; }
+            
+            putPixel(layer, dx, dy, color, screenWidth, screenHeight);
         }
     }
 }
 
+void Selection::putPixel(Layer& layer, int x, int y, unsigned int color, int screenWidth, int screenHeight){
+    Point p;
+    p.x = GraphicsEngine::clampedTilePoint(x, layer.getWidth());
+    p.y = GraphicsEngine::clampedTilePoint(y, layer.getHeight());
+
+    layer.putPixel(p.x, p.y, color);
+    
+    int pointMirrorX = GraphicsEngine::pointMirrored(p.x, layer.getWidth());
+    int pointMirrorY = GraphicsEngine::pointMirrored(p.x, layer.getHeight());
+
+    if(_isMirrorX){
+        layer.putPixel(pointMirrorX, p.y, color);
+    }            
+    if(_isMirrorY){
+        layer.putPixel(p.x, pointMirrorY, color);
+    }
+    if(_isMirrorX && _isMirrorY){
+        layer.putPixel(pointMirrorX, pointMirrorY, color);
+    }
+}
 void Selection::remove(){
     _corners.topLeft     = Point(0, 0);
     _corners.bottomRight = Point(0, 0);
@@ -275,7 +324,7 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(selection_module){
     class_<Selection, base<IGraphic>>("Selection")
-        .constructor<int, int, int, int, Surface&, bool>()
+        .constructor<int, int, int, int, Surface&, bool, bool, bool, int, int>()
         .smart_ptr<std::shared_ptr<Selection>>("shared_ptr<Selection>")
         .function("draw", &Selection::draw)
         .function("getBounding", &Selection::getBounding)

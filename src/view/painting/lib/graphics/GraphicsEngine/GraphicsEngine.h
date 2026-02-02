@@ -5,12 +5,12 @@
 #include <math.h>
 
 #include "../Pixel/Pixel.h"
-#include "../surface/Surface.h"
 
 struct GraphicsEngine{
-    static void translation(Surface* surface, Bounding bound, int deltaX, int deltaY);
-    static void interpolation(Surface* surface, Bounding bound, float scaleX, float scaleY);
-    static void rotate(Surface* surface, Surface* dirtSurface, Bounding bound, float cx, float cy, float radians);
+    static int clampedTilePoint(int point, int comprimento);
+    static int pointMirrored(int point, int comprimento);
+    static int pointMirrored(float point, float comprimento);
+    static int pointMirrored(int point, int center, int comprimento);
     static Point rotate(Point point, float cx, float cy, float radians);
     static unsigned int blendColors(unsigned int bottomColor, unsigned int topColor) ;
     static bool computeVisibleShape(int originalAxis, int originalSize, int viewportSize, int& outStartAxis, int& outEndAxis);

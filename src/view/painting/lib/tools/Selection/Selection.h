@@ -23,7 +23,11 @@ public:
     Selection(int from_start_x, int from_start_y,
             int to_start_x, int to_start_y,
             Surface& layer,
-            bool cleanTheArea);
+            bool cleanTheArea,
+            bool isMirrorX, bool isMirrorY, 
+            int nRows, int nCol);
+
+    ~Selection();
     Bounding getBounding();
     Corners getDestinationCorners();
     void draw(Layer& layer);
@@ -38,6 +42,8 @@ public:
     float getRotateRad();
     void resize(int marker, float deltaX, float deltaY);
 private:
+    void putPixel(Layer& layer, int x, int y, unsigned int color, int screenWidth, int screenHeight);
+
     float _dstCenterX;
     float _dstCenterY;
     float _scaleX = 1.0f;

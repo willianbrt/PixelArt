@@ -121,9 +121,9 @@ unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
 
         unsigned int colorLayer;
         if(layer->getID().toString() == previewLayer->getID().toString()){
-            colorLayer = previewLayer->getPixel(index);
+            colorLayer = previewLayer->getFilteredPixel(index);
         }else{
-            colorLayer = layer->getPixel(index);
+            colorLayer = layer->getFilteredPixel(index);
         }
         
         colorHex = GraphicsEngine::blendColors(colorHex, colorLayer);
@@ -155,7 +155,7 @@ emscripten::val Frame::getBufferJS() {
         int incrementY = 0;
 
         while(index < layer->getLength()){
-            unsigned int colorLayer = layer->getPixel(index);
+            unsigned int colorLayer = layer->getFilteredPixel(index);
             buffer[index] = GraphicsEngine::blendColors(buffer[index], colorLayer);
 
             index++;
@@ -165,12 +165,6 @@ emscripten::val Frame::getBufferJS() {
                 incrementY = 0;
             }
         }
-    }
-
-    int index = 0;
-    while(index < activeLayer->getLength()){
-        swap_endian_uint32(&buffer[index]);
-        index++;
     }
 
     return emscripten::val(

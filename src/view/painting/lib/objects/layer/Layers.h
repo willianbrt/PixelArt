@@ -47,6 +47,6 @@ public:
     void setOpacity(float value);
     std::string getName() const;
     void setName(string name);
-    unsigned int getPixel(unsigned int index) override;
+    unsigned int getFilteredPixel(unsigned int index);
 };
 #endif

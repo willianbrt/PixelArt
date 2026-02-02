@@ -62,6 +62,23 @@ unsigned int Surface::getPixel(unsigned int index) {
     
     return _data[index];
 }
+void Surface::putPixel(int x, int y, unsigned int colorHex,
+     int nRows, int nCols,
+     bool isMirrorX, bool isMirrorY){
+    if(x >= _width*nRows || y >= _height*nCols || x < 0 || y < 0) return;
+
+    x %= _width;
+    y %= _height;
+
+    putPixel(x + y*_width, colorHex);
+    
+    if(isMirrorX)
+        putPixel((_width - x - 1) + y*_width, colorHex);
+    if(isMirrorY)
+        putPixel(x + (_height - y - 1)*_width, colorHex);
+    if(isMirrorX && isMirrorY)
+        putPixel((_width - x - 1) + (_height - y - 1)*_width, colorHex);
+}
 void Surface::putPixel(int x, int y, unsigned int colorHex){    
     if (!isInsideSkecth(x, y)) return;
 
@@ -98,6 +115,19 @@ void Surface::setSize(int width, int height){
     
     memset(_data, 0, _length*sizeof(unsigned int));
 }
+
+void Surface::translation(Bounding bound, int deltaX, int deltaY){
+    for(int y = bound.start.y; y < bound.end.y; y++){
+        for(int x = bound.start.x; x < bound.end.x; x++){
+            int index = x + _width*y;
+            int newIndex = (x + deltaX) + _width*(y + deltaY);
+
+            _data[newIndex] = _data[index];
+            _data[index] = 0x0;
+        }
+    }
+}
+
 EMSCRIPTEN_BINDINGS(surface_module){
     class_<Surface>("Surface")
         .constructor<int, int>()

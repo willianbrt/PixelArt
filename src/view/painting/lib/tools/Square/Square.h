@@ -15,12 +15,15 @@ class Square : public IGraphic{
 public:
     Square(int from_x, int from_y, int to_x, int to_y,
             bool isFilled, int thickness,
-            unsigned int newColorHex);
+            unsigned int newColorHex,
+            bool isMirrorX, bool isMirrorY, 
+            int nRows, int nCols);
 
     void draw(Layer& layer);
 
 private:
-    int cx, cy;
+    void putPixel(Layer& layer, int x, int y, unsigned int color, int screenWidth, int screenHeight);
+    
     bool _isFilled;
     int _thickness;
 

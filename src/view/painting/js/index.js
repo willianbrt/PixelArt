@@ -105,10 +105,10 @@ window.addEventListener("keydown", function(event){
     let action;
     if (event.ctrlKey){
         action = _shortcuts.control;
-        
+
         if (event.shiftKey){
             action = action.shift;
-            
+
             if (event.altKey){
                 action = _shortcuts.alt;
             }
@@ -146,6 +146,19 @@ window.onload = async ()=>{
     });
 
     createProject(32, 10);
+    editor.setNumberTiles(2,2);
+    editor.render();
+
+    let {
+            offsetWidth: viewportWidth,
+            offsetHeight: viewportHeight
+        } = drawingArea;
+    targetScale = Math.floor(Math.min(viewportWidth / canvas.clientWidth, viewportHeight / canvas.clientHeight));
+
+    renderArea.style.position = `absolute`;
+    renderArea.style.scale = targetScale;
+    renderArea.style.left = `${ ( (viewportWidth - canvas.clientWidth*targetScale)/ 2  )}px`;
+    renderArea.style.top = `${ ( (viewportHeight - canvas.clientHeight*targetScale)/ 2  ) }px`;
 
     buildPaneToolBar();
     buildPaneFrames();
@@ -180,7 +193,7 @@ function buildPaneFrames(){
         const id = activeFrame.getID();
         editor.removeFrame(id);
         removeFrame(id);
-        
+
         let frames = editor.getAllFrames();
         let n_frames = frames.size();
 
@@ -220,7 +233,7 @@ function buildPaneFrames(){
         editor.changeActiveFrame(cloneFrame.getID());
 
         editor.render();
-        
+
         addFrame(cloneFrame);
         changeActiveFrame(cloneFrame);
     });
@@ -264,7 +277,7 @@ function buildPaneLayers(){
     btnRemoveLayer.addEventListener("click", ()=> {
         const frame = editor.getActiveFrame();
         const layer = frame.getActiveLayer();
-        
+
         const layers = frame.getAllLayers();
         const n_layers = layers.size();
 
@@ -272,7 +285,7 @@ function buildPaneLayers(){
 
         frame.removeLayer(layer.getID());
         removeLayer(layer.getID());
-        
+
         if(frame.getAllLayers().size() == 0){
             const layer = new module.Layer(findTitle(DEFAULT_NAME_LAYER), width, height);
             frame.addLayer(layer);
@@ -280,13 +293,13 @@ function buildPaneLayers(){
             frame.changeActiveLayer(layer.getID());
         }
         changeActiveLayer(frame.getActiveLayer());
-        
+
         editor.render();
         updateFramePreview(editor.getActiveFrame());
     });
     btnMoveDown.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
-        const activeLayer = activeFrame.getActiveLayer();        
+        const activeLayer = activeFrame.getActiveLayer();
         const layerId = activeLayer.getID();
         const i = Math.max(activeFrame.getLayerIndex(layerId) - 1, 0);
         activeFrame.bringLayerTo(layerId, i);
@@ -296,7 +309,7 @@ function buildPaneLayers(){
     });
     btnMoveUp.addEventListener("click", ()=> {
         const activeFrame = editor.getActiveFrame();
-        const activeLayer = activeFrame.getActiveLayer();        
+        const activeLayer = activeFrame.getActiveLayer();
         const layerId = activeLayer.getID();
         const i = Math.min(activeFrame.getLayerIndex(layerId) + 1, activeFrame.getAllLayers().size()-1);
         activeFrame.bringLayerTo(layerId, i);
@@ -319,7 +332,7 @@ function buildPaneLayers(){
         frame.changeActiveLayer(cloneLayer.getID());
 
         editor.render();
-        
+
         addLayer(cloneLayer);
         changeActiveLayer(cloneLayer);
         updateFramePreview(editor.getActiveFrame());
@@ -329,7 +342,7 @@ function buildPaneLayers(){
 function createProject(width, height){
     editor?.delete();
     editor = new module.Editor(width, height);
-    
+
     let frame = new module.Frame();
     let layer = new module.Layer(DEFAULT_NAME_LAYER, width, height);
     frame.addLayer(layer);
@@ -383,7 +396,7 @@ function addFrame(frame){
     else
         listFrame.append(frameElement);
 
-    frameElement.addEventListener("click", ()=>{ 
+    frameElement.addEventListener("click", ()=>{
         editor.changeActiveFrame(id);
         changeActiveFrame(editor.getActiveFrame());
     });
@@ -486,7 +499,7 @@ function addLayer(layer){
     layerElement.append(nameLayer);
     layerElement.append(btnLockLayer);
     layerElement.append(btnGrabLayer);
-    
+
     if(layers.length > 0)
         layers[layers.length-index].before(layerElement);
     else
@@ -551,7 +564,7 @@ function addLayer(layer){
         let listLayer = areaListLayer.querySelectorAll("#list-Layers .layer");
         let abort = new AbortController();
         e.preventDefault();
-        
+
         let onTracking = (e)=> {
             let elementLast;
             listLayer.forEach(el => {
@@ -559,7 +572,7 @@ function addLayer(layer){
 
                 el.classList.remove("after-indicator")
                 el.classList.remove("before-indicator")
-                
+
                 if((e?.touches?.[0].clientY ?? e?.clientY) > box.y){
                     elementLast = el;
                 }
@@ -596,7 +609,7 @@ function addLayer(layer){
             activeFrame.bringLayerTo(layer.getID(), indexDst);
             updateFramePreview(activeFrame);
             editor.render();
-                        
+
             abort.abort();
         }
 
@@ -610,7 +623,7 @@ function addLayer(layer){
     function renameLayer(e){
         if(editing) return;
         editing = true;
-        
+
         let inpNameLayer = document.createElement("input");
         inpNameLayer.value = layer.getName();
         inpNameLayer.type = "text";
@@ -709,7 +722,7 @@ async function exportAsGIF(){
             width: editor.getWidth()*15,
             height: editor.getHeight()*15
         });
-            
+
         gif.on('finished', async function (blob) {
             let suggestedName = "abacadabra";
             const a = document.createElement("a");
@@ -753,7 +766,7 @@ async function exportAs(mimetype){
     const offscreenCanvas = new OffscreenCanvas(resizedWidth, resizedHeight);
     const ctx = offscreenCanvas.getContext("2d");
     ctx.imageSmoothingEnabled = false;
-    
+
     ctx.drawImage(bitmap, 0, 0, resizedWidth, resizedHeight);
 
     offscreenCanvas.convertToBlob().then(blob =>{
@@ -774,7 +787,7 @@ async function save(){
         width: editor.getWidth(),
         height: editor.getHeight(),
         version: "0.0.0",
-        n_frames: frames.size(), 
+        n_frames: frames.size(),
         frames: []
     };
 
@@ -788,11 +801,11 @@ async function save(){
             n_layers: layers.size(),
             layers: []
         };
-        
-        
+
+
         for(let layerIndex = 0; layerIndex < layers.size(); layerIndex++){
             const layer = layers.get(layerIndex);
-            
+
             let dataLayer = {
                 id: layer.getID().toString(),
                 name: layer.getName(),
@@ -804,10 +817,10 @@ async function save(){
             };
             let index = 0, cnt = 0;
             let flagColorLayer = layer.getPixelByIndex(index);
-            
+
             while(index < layer.getLength()){
                 let colorLayer = layer.getPixelByIndex(index);
-                
+
                 if(flagColorLayer != colorLayer){
                     dataLayer.buffer +=  cnt + ":" + flagColorLayer + ",";
                     cnt = 1;
@@ -822,7 +835,7 @@ async function save(){
         }
         project.frames.push(dataFrame);
     }
-    
+
 
     const blob = new Blob([JSON.stringify(project)], { type: "application/json" });
     const a = document.createElement("a");
@@ -861,7 +874,7 @@ function loadVersion000(data){
         frame.setID(new module.Guid(dataFrame.id));
 
         if(dataFrame.n_layers !== dataFrame.layers.length) throw new Error("Arquivo corrompido.");
-        
+
         for(let layerIndex = 0; layerIndex < dataFrame.layers.length; layerIndex++){
             const dataLayer = dataFrame.layers[layerIndex];
 
@@ -870,7 +883,7 @@ function loadVersion000(data){
             layer.setLock(dataLayer.is_lock);
             layer.setVisible(dataLayer.is_visible);
             layer.setOpacity(dataLayer.opacity);
-            
+
             let buffer = dataLayer.buffer.split(",");
             let index = 0;
             for(let i = 0; i < buffer.length; i++){
@@ -950,7 +963,9 @@ let paintStrategy = () => {
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
-                getLineSize()
+                getLineSize(),
+                isMirrorX.checked, isMirrorY.checked,
+                2,2
             );
             editor.draw(brush);
             updateFramePreview(activeFrame);
@@ -966,7 +981,9 @@ let paintStrategy = () => {
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
-                parseInt(getLineSize())
+                parseInt(getLineSize()),
+                isMirrorX.checked, isMirrorY.checked,
+                2,2
             );
             editor.draw(brush);
             updateFramePreview(activeFrame);
@@ -997,7 +1014,9 @@ let brushStrategy = () => {
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
-                getLineSize()
+                getLineSize(),
+                isMirrorX.checked, isMirrorY.checked,
+                2,2
             );
             editor.draw(brush);
             updateFramePreview(activeFrame);
@@ -1015,7 +1034,9 @@ let brushStrategy = () => {
                 point.x, point.y,
                 getPattern(pattern[pattern_selected]),
                 window.selectedColor,
-                getLineSize()
+                getLineSize(),
+                isMirrorX.checked, isMirrorY.checked,
+                2,2
             );
             editor.draw(brush);
             updateFramePreview(activeFrame);
@@ -1045,8 +1066,9 @@ let eraseStrategy = () => {
                 point.x, point.y,
                 point.x, point.y,
                 getLineSize(),
-                getWeight()
-            );
+                getWeight(), 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
             editor.draw(erase);
             updateFramePreview(activeFrame);
 
@@ -1062,8 +1084,9 @@ let eraseStrategy = () => {
                 flagToPoint.x, flagToPoint.y,
                 point.x, point.y,
                 getLineSize(),
-                getWeight()
-            );
+                getWeight(), 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
             editor.draw(erase);
             updateFramePreview(activeFrame);
 
@@ -1086,9 +1109,10 @@ let bucketStrategy = () => {
 
             point = cursorToPixel(point);
 
-            if(point.x < 0 || point.x >= editor.getWidth() || point.y < 0 || point.y >= editor.getHeight()) return;
-
-            let bucket = new module.Bucket(point.x, point.y, window.selectedColor);
+            let bucket = new module.Bucket(point.x, point.y, 
+                window.selectedColor, 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
             editor.draw(bucket);
             updateFramePreview(activeFrame);
         },
@@ -1105,7 +1129,7 @@ let squareStrategy = () => {
     let squareTool;
     let flagToPoint = null;
     let startPoint = null;
-    
+
     return {
         onPressed: (point) => {
             activeFrame = editor.getActiveFrame();
@@ -1114,8 +1138,10 @@ let squareStrategy = () => {
             point = cursorToPixel(point);
 
             squareTool = new module.Square(point.x, point.y, point.x, point.y,
-                 isFill.checked, getLineSize(),
-                window.selectedColor);
+                isFill.checked, getLineSize(),
+                window.selectedColor, 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
             editor.preview(squareTool);
             startPoint = point;
             flagToPoint = point;
@@ -1124,13 +1150,14 @@ let squareStrategy = () => {
         onTracking: (point) => {
             point = cursorToPixel(point);
             if (point.x == flagToPoint.x && point.y == flagToPoint.y) return;
-            
+
             squareTool = new module.Square(
                 startPoint.x, startPoint.y,
                 point.x, point.y,
                 isFill.checked, getLineSize(),
-                window.selectedColor
-            );
+                window.selectedColor, 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
             editor.preview(squareTool);
 
             flagToPoint = point;
@@ -1161,7 +1188,9 @@ let circleStrategy = () => {
 
             circleTool = new module.Circle(point.x, point.y, point.x, point.y,
                 isFill.checked, getLineSize(),
-                window.selectedColor);
+                window.selectedColor, 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
                 editor.preview(circleTool);
             startPoint = point;
             flagToPoint = point;
@@ -1175,8 +1204,9 @@ let circleStrategy = () => {
                 startPoint.x, startPoint.y,
                 point.x, point.y,
                 isFill.checked, getLineSize(),
-                window.selectedColor
-            );
+                window.selectedColor, 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
             editor.preview(circleTool);
 
             flagToPoint = point;
@@ -1209,8 +1239,9 @@ let lineStrategy = () => {
                 point.x, point.y,
                 point.x, point.y,
                 window.selectedColor,
-                getLineSize()
-            );
+                getLineSize(), 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
             editor.preview(lineTool);
 
             startPoint = point;
@@ -1225,8 +1256,9 @@ let lineStrategy = () => {
                 startPoint.x, startPoint.y,
                 point.x, point.y,
                 window.selectedColor,
-                getLineSize()
-            );
+                getLineSize(), 
+                isMirrorX.checked, isMirrorY.checked,
+                2,2);
             editor.preview(lineTool);
 
             flagToPoint = point;
@@ -1297,12 +1329,12 @@ function selectStrategy(){
         selectedArea.style.display = "block";
 
         intialPixel = cursorToPixel(point);
-        
+
         if(select == null){
             createFloatingToolbar();
             return;
         }
-        
+
         if(event.target.classList.contains("marker")){
             if(cornerTool == CORNER_TOOL_RESIZE)
                 _onTracking = onTrackingResize.bind(event.target);
@@ -1313,7 +1345,7 @@ function selectStrategy(){
 
             return;
         }
-        
+
         let corners = select.getDestinationCorners();
         if(isInsideRotatedBounding(intialPixel, corners)){
             _onTracking = onTrackingTranslate;
@@ -1323,17 +1355,22 @@ function selectStrategy(){
         }
     };
 
-    function onTrackingBounding(point){   
+    function onTrackingBounding(point){
         let pixel = cursorToPixel(point);
 
         if(intialPixel.x - pixel.x == 0 && intialPixel.y - pixel.y == 0){
             return;
         }
         activeFrame = editor.getActiveFrame();
-        
+
         if(select !== null && select !== undefined) select.delete();
-        
-        select = new module.Selection(intialPixel.x, intialPixel.y, pixel.x, pixel.y, activeFrame.getActiveLayer(), true);
+
+        select = new module.Selection(intialPixel.x, intialPixel.y,
+            pixel.x, pixel.y, 
+            activeFrame.getActiveLayer(), 
+            true,
+            isMirrorX.checked, isMirrorY.checked,
+            2,2);
         editor.preview(select);
 
         if(toolbar === null || toolbar === undefined) createFloatingToolbar();
@@ -1405,7 +1442,7 @@ function selectStrategy(){
         ctx.lineTo(_corners.bottomLeft.x, _corners.bottomLeft.y);
         ctx.closePath();
         ctx.fill();
-        
+
         selectedArea.style.position = ""
         selectedArea.style.display = "block"
         markersElement.forEach((e)=>{
@@ -1428,10 +1465,10 @@ function selectStrategy(){
         let surface = select.copy();
 
         const buffer = new Uint8ClampedArray(module.HEAPU8.buffer, surface.getBufferPtr(), surface.getLength()*4);
-        
+
         clipboard = { buffer: buffer.slice(), width: surface.getWidth() };
         channel.postMessage({ action: "SET_CLIPBOARD", clipboard: clipboard});
-        
+
         surface.delete();
     }
 
@@ -1448,7 +1485,11 @@ function selectStrategy(){
         let surface = new module.Surface(width, height);
         module.HEAPU8.set(buffer, surface.getBufferPtr());
 
-        select = new module.Selection(0, 0, width-1, height-1, surface, false);
+        select = new module.Selection(0, 0, 
+            width-1, height-1, 
+            surface, false,
+            isMirrorX.checked, isMirrorY.checked,
+            2,2);
         editor.preview(select);
         drawMarkers();
     }
@@ -1467,16 +1508,16 @@ function selectStrategy(){
         if(select != null){
             editor.draw(select);
             updateFramePreview(activeFrame);
+            select.delete();
         }
-        select.delete();
         select = null;
-        
+
         delete _shortcuts.control.c;
     }
 
     function createFloatingToolbar() {
         toolbar?.remove();
-        
+
         toolbar = document.createElement("div");
         toolbar.className = "floating-toolbar";
 
@@ -1543,18 +1584,18 @@ function selectStrategy(){
 
         drawingArea.appendChild(toolbar);
 
-        function addTool({ id, icon, label, eventClick }) {            
+        function addTool({ id, icon, label, eventClick }) {
             const btn = document.createElement("button");
             if(cornerTool == id) btn.classList.add("active");
             btn.id = id;
             btn.classList.add("select-tool");
             btn.addEventListener("click", eventClick);
             btn.addEventListener("touchstart", eventClick);
-            
+
             const span = document.createElement("span");
             span.className = "material-symbols-outlined";
             span.textContent = icon;
-            
+
             btn.appendChild(span);
             btn.append(label);
 
@@ -1591,16 +1632,20 @@ function isInsideRotatedBounding(point, corners){
 
 function cursorToPixel(point, middlePoint=false){
     let position = getPosition();
+
+    let pixel = {
+        x: (point.x - position.x) / targetScale,
+        y: (point.y - position.y) / targetScale
+    }
     if(middlePoint){
-        return {
-            x: Math.floor((point.x - position.x) / targetScale + 0.5),
-            y: Math.floor((point.y - position.y) / targetScale + 0.5),
-        }
+        pixel.x = Math.floor(pixel.x + 0.5);
+        pixel.y = Math.floor(pixel.y + 0.5);
+        return pixel;
     }
-    return {
-        x: Math.floor((point.x - position.x) / targetScale),
-        y: Math.floor((point.y - position.y) / targetScale),
-    }
+    pixel.x = Math.floor(pixel.x);
+    pixel.y = Math.floor(pixel.y);
+
+    return pixel;
 }
 function direction(from, to){
     if(from.y === to.y) return "H"
@@ -1764,7 +1809,7 @@ function buildPaneToolBar(){
     handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
     // handlerEvents.setRightButtonMousePressedEvent(onPanningStrategy());
 
-    buttonPencil.click();    
+    buttonPencil.click();
 }
 function changeSelectTool(){
     document.querySelector(".tool.active")?.classList.toggle("active", false);
@@ -1838,28 +1883,28 @@ let onZoomDoubleTouchStrategy = ()=> {
 
 function zoom(scale, positionCursor){
     if(scale < 1) return;
-    
+
     let position = getPosition();
-    
+
     let {
             offsetWidth: viewportWidth,
             offsetHeight: viewportHeight
         } = drawingArea;
 
     let x, y;
-    if(width*scale <= viewportWidth){
-        x = (viewportWidth - width*scale) * 0.5;
+    if(canvas.clientWidth *scale <= viewportWidth){
+        x = (viewportWidth - canvas.clientWidth*scale) * 0.5;
     }else{
-        let currentWidth = width*targetScale;
+        let currentWidth = canvas.clientWidth*targetScale;
         let endOfAxisX = position.x + currentWidth;
         let zoomPointX = Math.min(endOfAxisX, Math.max(position.x, positionCursor.x));
         x = zoomPointX - (zoomPointX - position.x) * (scale / targetScale);
     }
 
-    if(height*scale <= viewportHeight){
-        y = (viewportHeight - height*scale) * 0.5;
+    if(canvas.clientHeight*scale <= viewportHeight){
+        y = (viewportHeight - canvas.clientHeight*scale) * 0.5;
     } else {
-        let currentHeight = height*targetScale;
+        let currentHeight = canvas.clientHeight*targetScale;
         let endOfAxisY = position.y + currentHeight;
         let zoomPointY = Math.min(endOfAxisY, Math.max(position.y, positionCursor.y));
         y = zoomPointY - (zoomPointY - position.y) * (scale / targetScale);
@@ -1906,13 +1951,13 @@ function moveTo({x, y}){
             offsetWidth: viewportWidth,
             offsetHeight: viewportHeight
         } = drawingArea;
- 
+
     let initialPosition = getInitialPosition();
 
-    let currentWidth = width*targetScale;
-    let currentHeight= height*targetScale;
+    let currentWidth = canvas.clientWidth*targetScale;
+    let currentHeight= canvas.clientHeight*targetScale;
 
-    let minLeftOffset, minTopOffset; 
+    let minLeftOffset, minTopOffset;
     let maxLeftOffset , maxTopOffset;
 
     if(currentWidth <= viewportWidth){

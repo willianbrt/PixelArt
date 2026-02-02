@@ -52,10 +52,10 @@ std::string Layer::getName() const { return _name; }
 void Layer::setName(std::string name) { _name = name; }
 float Layer::getOpacity() const { return _opacity; }
 void Layer::setOpacity(float value){ _opacity = value; }
-unsigned int Layer::getPixel(unsigned int index) {
+unsigned int Layer::getFilteredPixel(unsigned int index) {
     if (index < 0 || index >= _length)  return 0;
     
-    return (_data[index] & 0xFFFFFF00) | static_cast<int>(_opacity * (_data[index] & 0xFF));
+    return static_cast<int>(_opacity * (_data[index] >> 24 & 0xFF)) << 24 | (_data[index] & 0x00FFFFFF);
 }
 
 using namespace emscripten;

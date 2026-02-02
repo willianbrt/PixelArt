@@ -8,6 +8,7 @@ using namespace emscripten;
 #include <memory>
 #include <algorithm>
 #include "../Pixel/Pixel.h"
+#include "../GraphicsEngine/GraphicsEngine.h"
 #include <assert.h>
 
 class Surface{
@@ -29,10 +30,13 @@ public:
     unsigned int getLength();
     Surface* crop(Bounding bound);
     unsigned int getPixel(int x, int y);
-    virtual unsigned int getPixel(unsigned int index);
+    unsigned int getPixel(unsigned int index);
+    void putPixel(int x, int y, unsigned int colorHex, int nRows, int nCols, bool isMirrorX, bool isMirrorY);
     void putPixel(int x, int y, unsigned int colorHex);
     void putPixel(unsigned int index, unsigned int colorHex);
     void setSize(int width, int height);
     bool isInsideSkecth(int x, int y);
+
+    void translation(Bounding bound, int deltaX, int deltaY);
 };
 #endif

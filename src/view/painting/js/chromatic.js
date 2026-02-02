@@ -318,7 +318,8 @@ export function ColorFactory(){
             hsl: rgbToHsl(r, g, b),
             hex: rgbToHex(r,g,b),
             hex16: rgbToHex16(r, g, b),
-            hex32: rgbToHex32(r, g, b)
+            hex32: rgbToHex32(r, g, b),
+            getRGBLittleEndian: getRGBLittleEndian(r,g,b)
         }
     }
     function buildByRGB(r,g,b){
@@ -327,7 +328,8 @@ export function ColorFactory(){
             hsl: rgbToHsl(r, g, b),
             hex: rgbToHex(r,g,b),
             hex16: rgbToHex16(r, g, b),
-            hex32: rgbToHex32(r, g, b)
+            hex32: rgbToHex32(r, g, b),
+            getRGBLittleEndian: getRGBLittleEndian(r,g,b)
         }
     }
     function buildByHSL(h,s,l){
@@ -338,7 +340,8 @@ export function ColorFactory(){
             hsl: { h, s, l},
             hex: rgbToHex(r,g,b),
             hex16: rgbToHex16(r, g, b),
-            hex32: rgbToHex32(r, g, b)
+            hex32: rgbToHex32(r, g, b),
+            getRGBLittleEndian: getRGBLittleEndian(r,g,b)
         };
     }
     function buildByHex(hex){
@@ -349,7 +352,8 @@ export function ColorFactory(){
             hsl: rgbToHsl(r, g, b),
             hex: hex,
             hex16: rgbToHex16(r, g, b),
-            hex32: rgbToHex32(r, g, b)
+            hex32: rgbToHex32(r, g, b),
+            getRGBLittleEndian: getRGBLittleEndian(r,g,b)
         }
     }
     
@@ -447,7 +451,9 @@ export function ColorFactory(){
 
         return { r, g, b };
     }
-
+    function getRGBLittleEndian(r,g,b){
+        return ((0xFF << 24) | (b << 16) | (g << 8) | (r)) >>> 0;
+    }
     return {
         buildByDecimal,
         buildByRGB,

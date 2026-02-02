@@ -677,7 +677,7 @@
 
         function changePrimaryColor(color){
             activeColor = color;
-            window.selectedColor = factoryColor.buildByRGB(color[0], color[1], color[2]).hex32;
+            window.selectedColor = factoryColor.buildByRGB(color[0], color[1], color[2]).getRGBLittleEndian;
             
             let newColor = document.querySelector("#new-color");
             workPrimaryColor.style.background = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
