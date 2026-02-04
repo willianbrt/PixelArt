@@ -16,13 +16,13 @@ set(TARGET PixelEditor)
 file(GLOB_RECURSE SOURCES
     ${SRC_DIR}/helpers/*/*.cpp
     ${SRC_DIR}/interfaces/*/*.cpp
+    ${SRC_DIR}/commands/*/*.cpp
     ${SRC_DIR}/graphics/*/*.cpp
     ${SRC_DIR}/tools/*.cpp
-    ${SRC_DIR}/command/*/*.cpp
     ${SRC_DIR}/observers/*/*.cpp
     ${SRC_DIR}/strategy/*/*.cpp
     ${SRC_DIR}/objects/*/*.cpp
-    ${SRC_DIR}/main/main.cpp
+    ${SRC_DIR}/app/*/*.cpp
     ${SRC_DIR}/*.cpp
 )
 
