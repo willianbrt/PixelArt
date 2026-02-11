@@ -3,13 +3,18 @@
 #define ICLONEFRAMECOMMAND_H
 
 #include <vector>
+#include "../../helpers/Guid/Guid.h"
 #include "../../app/Editor/Editor.h"
 #include "../../interfaces/ICommand/ICommand.h"
 
 class CloneFrameCommand : ICommand {
 private:
+    Editor& _editor;
+    Guid _frameId;
+    Frame frameCloned;
+
 public:
-    CloneFrameCommand(Editor& editor);
+    CloneFrameCommand(Guid frameId, Editor& editor);
     ~CloneFrameCommand();
     void execute() override;
     void undo() override;

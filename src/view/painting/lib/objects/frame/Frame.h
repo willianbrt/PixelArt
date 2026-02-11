@@ -19,7 +19,6 @@
 
 #include "../layer/Layers.h"
 #include "../preview/Preview.h"
-#include "../componding/CompoundingTiles.h"
 
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 

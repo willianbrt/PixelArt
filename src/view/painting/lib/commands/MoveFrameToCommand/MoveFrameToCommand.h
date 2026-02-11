@@ -6,11 +6,13 @@
 #include "../../app/Editor/Editor.h"
 #include "../../interfaces/ICommand/ICommand.h"
 
-class FrameToBackCommand : ICommand {
+class MoveFrameToCommand : ICommand {
 private:
+    Editor& _editor;
+    int originalIndex, toIndex;
 public:
-    FrameToBackCommand(Editor& editor);
-    ~FrameToBackCommand();
+    MoveFrameToCommand(Editor& editor, Guid frameId, int index);
+    ~MoveFrameToCommand();
     void execute() override;
     void undo() override;
 };

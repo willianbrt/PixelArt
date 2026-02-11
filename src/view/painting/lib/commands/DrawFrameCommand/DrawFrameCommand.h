@@ -5,13 +5,15 @@
 #include <vector>
 #include "../../app/Editor/Editor.h"
 #include "../../interfaces/ICommand/ICommand.h"
+#include "../../interfaces/IGraphic/IGraphic.h"
 
-class RemoveFrameCommand : ICommand {
+class DrawFrameCommand : ICommand {
 private:
     Editor& _editor;
+    IGraphic& _graphic;
 public:
-    RemoveFrameCommand(Editor& editor, Guid frameId);
-    ~RemoveFrameCommand();
+    DrawFrameCommand(Editor& editor, Guid frameId, IGraphic& graphic);
+    ~DrawFrameCommand();
     void execute() override;
     void undo() override;
 };

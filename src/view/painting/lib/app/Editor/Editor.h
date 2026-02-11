@@ -10,8 +10,9 @@
 #include <memory>
 #include <algorithm>
 #include <vector>
+#include <unordered_map>
+#include <functional>
 
-#include "../../objects/componding/CompoundingTiles.h"
 #include "../../objects/layer/Layers.h"
 #include "../../objects/frame/Frame.h"
 #include "../../interfaces/IGraphic/IGraphic.h"
@@ -26,6 +27,17 @@ extern "C" {
     unsigned int get_viewport_height();
 };
 
+struct EditorEvent{
+    Guid frame_id;
+    size_t index;
+};
+enum EDITOR_EVENT_TYPE{
+    DRAW,
+    ADD_FRAME,
+    REMOVE_FRAME,
+    MOVE_FRAME_TO,
+    CHANGE_ACTIVE_FRAME
+};
 
 class Editor
 {
@@ -38,11 +50,14 @@ private:
     int _rows = 1;
     int _cols = 1;
     vector<Frame*> frames;
+    unordered_map<EDITOR_EVENT_TYPE, std::function<void(EditorEvent)>> observable;
     Frame* activeFrame = nullptr;
 
 public:
     Editor(int width, int height);
     ~Editor();
+    void registerEvent(EDITOR_EVENT_TYPE eventType, std::function<void(EditorEvent)> callback);
+    void notify(EDITOR_EVENT_TYPE eventType, EditorEvent event);
     Point getInitialPosition();
     Bounding getSketchBounding();
     void setNumberTiles(int rol, int col);
@@ -54,7 +69,7 @@ public:
     void bringFrameTo(Guid id, size_t toIndex);
     void removeFrame(Guid id);
     void addFrame(Frame* frame);
-    vector<Frame*> getAllFrames();
+    vector<Frame*>& getAllFrames();
     Frame* getFrameByID(Guid id);
     size_t getFrameIndex(Guid id);
     std::vector<Frame*>::iterator getIteratorFrameByID(Guid id);
