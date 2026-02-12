@@ -19,6 +19,16 @@ Frame::~Frame(){
     delete previewLayer;
 }
 
+void Frame::registerEvent(FRAME_EVENT_TYPE eventType, std::function<void(FrameEvent)> callback){
+    observable[eventType] = callback;
+}
+void Frame::notify(FRAME_EVENT_TYPE eventType, FrameEvent event){
+    auto it = observable.find(eventType);
+    if (it != observable.end()) {
+        it->second(event);
+    }
+}
+
 void Frame::resize(int width, int height){
     for(auto& layer : layers){
         layer->resize(width, height);

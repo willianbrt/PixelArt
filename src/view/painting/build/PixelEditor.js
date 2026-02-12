@@ -28,7 +28,7 @@ var readyPromise = new Promise((resolve, reject) => {
   readyPromiseResolve = resolve;
   readyPromiseReject = reject;
 });
-["_memory","___indirect_function_table","_add_frame","_change_active_frame","_remove_frame","_move_frame","_update_frame_preview","_main","onRuntimeInitialized"].forEach((prop) => {
+["_memory","___indirect_function_table","_add_frame","_change_active_frame","_remove_frame","_move_frame","_update_frame_preview","_add_layer","_change_active_layer","_remove_layer","_move_layer","_main","onRuntimeInitialized"].forEach((prop) => {
   if (!Object.getOwnPropertyDescriptor(readyPromise, prop)) {
     Object.defineProperty(readyPromise, prop, {
       get: () => abort('You are getting ' + prop + ' on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'),
@@ -836,6 +836,10 @@ function change_active_frame(frame_id) { editor.changeActiveFrame(id); changeAct
 function remove_frame(frame_id) { let listFrame = document.getElementById("list-frames"); let frameElement = listFrame.querySelector(`.frame[data-id="${frame_id}"]`); frameElement.remove(); }
 function move_frame(frame_id,index) { const listFrame = document.getElementById("list-frames"); let frames = listFrame.querySelectorAll("div.frame"); let frameElement = listFrame.querySelector(`.frame[data-id="${frame_id}"]`); if (frameElement === frames[index] || index < 0 || index >= frames.length) { return; } if (frameElement.compareDocumentPosition(frames[index]) & Node.DOCUMENT_POSITION_FOLLOWING) { frames[index].after(frameElement); } else { frames[index].before(frameElement); } frameElement.remove(); }
 function update_frame_preview(frame_id,width,height,buffer) { const buffer8 = new Uint8ClampedArray(Module.HEAPU8.buffer, buffer, width*height*4); const imageData = new ImageData(buffer, width, height); let frameElement = listFrame.querySelector(`.frame[data-id="${frame_id}"]`); let frameCanvas = frameElement.querySelector(`canvas`); frameCanvas.width = width; frameCanvas.height = height; let ctx = frameCanvas.getContext("2d"); ctx.clearRect(0, 0, width, height); ctx.putImageData(imageData, 0, 0); }
+function add_layer(layer_id) { }
+function change_active_layer(layer_id) { }
+function remove_layer(layer_id) { }
+function move_layer(layer_id,index) { }
 
 // end include: preamble.js
 
