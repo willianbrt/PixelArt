@@ -5,8 +5,8 @@ CloneFrameCommand::CloneFrameCommand(Guid frameId, Editor& editor) : _frameId(fr
 }
 CloneFrameCommand::~CloneFrameCommand(){}
 void CloneFrameCommand::execute(){
-    // _editor.onAddFrame();
+    // _editor.addActiveFrame();
 }
 void CloneFrameCommand::undo(){
-    // _editor.onRemoveFrame(_frameId);
+    // _editor.removeActiveFrame(_frameId);
 }

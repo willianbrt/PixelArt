@@ -1,6 +1,6 @@
 
-#ifndef LAYERSVIEWMODEL_H
-#define LAYERSVIEWMODEL_H
+#ifndef LAYERVIEWMODEL_H
+#define LAYERVIEWMODEL_H
 
 #include "../../../objects/frame/Frame.h"
 #include "../../../objects/layer/Layers.h"
@@ -12,26 +12,24 @@
 #include "../../../commands/RemoveLayerCommand/RemoveLayerCommand.h"
 
 
-class LayersViewModel{
+class FrameViewModel{
 private:
 
 public:
     Frame& _frame;
-    LayersViewModel(Frame& frame);
-    ~LayersViewModel();
+    FrameViewModel(Frame& frame);
+    ~FrameViewModel();
     
     vector<Layer*> getAllLayers();
     void registerEvent(FRAME_EVENT_TYPE eventType, std::function<void(FrameEvent)> callback);
 
-    void onChangeActiveLayer(Guid id);
-    void onAddLayer();
-    void onDuplicateLayer();
-    void onMoveLayerTo(Guid id, int index);
-    void onMoveDownLayer();
-    void onMoveUpLayer();
+    void changeActiveLayer(Guid id);
+    void addActiveLayer();
+    void cloneActiveLayer();
+    void moveLayerTo(Guid id, int index);
+    void moveDownActiveLayer();
+    void moveUpActiveLayer();
     void onRemoveLayer();
-    void onFlipXLayer();
-    void onFlipYLayer();
 
 };
 

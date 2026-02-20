@@ -2,7 +2,7 @@
 
 #include <emscripten.h>
 #include <emscripten/bind.h>
-
+Guid::Guid(){}
 Guid::Guid(const std::string& str) {
     if (str.size() != 36)
         throw std::invalid_argument("Invalid UUID size");

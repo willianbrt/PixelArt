@@ -3,7 +3,7 @@
 #define IREMOVEFRAMECOMMAND_H
 
 #include <vector>
-#include "../../app/Editor/Editor.h"
+#include "../../objects/Editor/Editor.h"
 #include "../../interfaces/ICommand/ICommand.h"
 #include "../../interfaces/IGraphic/IGraphic.h"
 

@@ -4,16 +4,17 @@
 
 #include <vector>
 #include "../../helpers/Guid/Guid.h"
-#include "../../app/Editor/Editor.h"
+#include "../../objects/Editor/Editor.h"
 #include "../../objects/frame/Frame.h"
 #include "../../interfaces/ICommand/ICommand.h"
 
 class AddFrameCommand : ICommand {
 private:
     Editor& _editor;
-    Frame _frame;
+    unique_ptr<Frame> _frame;
+    size_t _index;
 public:
-    AddFrameCommand(Frame frame, Editor& _editor);
+    AddFrameCommand(std::unique_ptr<Frame> frame, size_t index, Editor& _editor);
     ~AddFrameCommand();
     void execute() override;
     void undo() override;

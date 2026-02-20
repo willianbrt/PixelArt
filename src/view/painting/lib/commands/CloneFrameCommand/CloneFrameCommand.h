@@ -4,7 +4,7 @@
 
 #include <vector>
 #include "../../helpers/Guid/Guid.h"
-#include "../../app/Editor/Editor.h"
+#include "../../objects/Editor/Editor.h"
 #include "../../interfaces/ICommand/ICommand.h"
 
 class CloneFrameCommand : ICommand {

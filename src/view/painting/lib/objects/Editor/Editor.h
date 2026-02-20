@@ -13,9 +13,11 @@
 #include <unordered_map>
 #include <functional>
 
-#include "../../objects/layer/Layers.h"
-#include "../../objects/frame/Frame.h"
+#include "../layer/Layers.h"
+#include "../frame/Frame.h"
+
 #include "../../interfaces/IGraphic/IGraphic.h"
+#include "../../interfaces/IEditorObserver/IEditorObserver.h"
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 #include "../../graphics/surface/Surface.h"
 #include "../../graphics/Pixel/Pixel.h"
@@ -28,7 +30,7 @@ extern "C" {
 };
 
 struct EditorEvent{
-    Guid frame_id;
+    Frame frame;
     size_t index;
 };
 enum EDITOR_EVENT_TYPE{
@@ -49,15 +51,16 @@ private:
     unsigned int _scale = 1;
     int _rows = 1;
     int _cols = 1;
-    vector<Frame*> frames;
-    unordered_map<EDITOR_EVENT_TYPE, std::function<void(EditorEvent)>> observable;
+    vector<std::unique_ptr<Frame>> frames;
+    vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
 
 public:
     Editor(int width, int height);
     ~Editor();
-    void registerEvent(EDITOR_EVENT_TYPE eventType, std::function<void(EditorEvent)> callback);
-    void notify(EDITOR_EVENT_TYPE eventType, EditorEvent event);
+
+    void registerEvent(IEditorObserver* observer);
+
     Point getInitialPosition();
     Bounding getSketchBounding();
     void setNumberTiles(int rol, int col);
@@ -67,12 +70,15 @@ public:
     void render(int startX, int endX, int startY,int endY);
     void renderArea(Bounding area);
     void bringFrameTo(Guid id, size_t toIndex);
-    void removeFrame(Guid id);
-    void addFrame(Frame* frame);
-    vector<Frame*>& getAllFrames();
+    unique_ptr<Frame> removeFrame(size_t index);
+    void addFrame(unique_ptr<Frame>frame, size_t index);
+    
+    size_t getFramesLength();
+    Frame* getFrameByIndex(size_t index); 
+
     Frame* getFrameByID(Guid id);
     size_t getFrameIndex(Guid id);
-    std::vector<Frame*>::iterator getIteratorFrameByID(Guid id);
+    std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
     Frame* getActiveFrame();
     void changeActiveFrame(Guid id);
     int getWidth();

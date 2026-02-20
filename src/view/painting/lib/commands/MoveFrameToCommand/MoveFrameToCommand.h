@@ -3,7 +3,7 @@
 #define IFRAMETOBACKCOMMAND_H
 
 #include <vector>
-#include "../../app/Editor/Editor.h"
+#include "../../objects/Editor/Editor.h"
 #include "../../interfaces/ICommand/ICommand.h"
 
 class MoveFrameToCommand : ICommand {

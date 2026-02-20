@@ -56,7 +56,7 @@ public:
 
     unsigned int getPixel(unsigned int index);
     unsigned int getPixel(unsigned int index, int fromIndex, int toIndex);
-    emscripten::val getBufferJS();
+    unsigned int* getBuffer();
 
     unsigned int getFrameDuration() const;
     
@@ -83,6 +83,7 @@ private:
     unordered_map<FRAME_EVENT_TYPE, std::function<void(FrameEvent)>> observable;
     Layer* activeLayer = 0;
     Layer* previewLayer = 0;
+    
     
     Guid _id;
 };

@@ -1,37 +1,37 @@
-#include "LayersViewModel.h"
+#include "FrameViewModel.h"
 
 
-LayersViewModel::LayersViewModel(Frame& frame) : _frame(frame){
+FrameViewModel::FrameViewModel(Frame& frame) : _frame(frame){
     Layer* layer = _frame.getActiveLayer();
 
 }
-LayersViewModel::~LayersViewModel(){
+FrameViewModel::~FrameViewModel(){
 }
-vector<Layer*> LayersViewModel::getAllLayers(){
+vector<Layer*> FrameViewModel::getAllLayers(){
     return _frame.getAllLayers();
 }
 
-void LayersViewModel::registerEvent(FRAME_EVENT_TYPE eventType, std::function<void(FrameEvent)> callback){
+void FrameViewModel::registerEvent(FRAME_EVENT_TYPE eventType, std::function<void(FrameEvent)> callback){
     _frame.registerEvent(eventType, callback);
 }
-void LayersViewModel::onChangeActiveLayer(Guid id){
+void FrameViewModel::changeActiveLayer(Guid id){
     _frame.changeActiveLayer(id);
 }
-void LayersViewModel::onAddLayer(){
+void FrameViewModel::addActiveLayer(){
     Layer layer("Layer ", 10,10);
     AddLayerCommand command(layer, _frame);
     command.execute();
 }
-void LayersViewModel::onDuplicateLayer(){
+void FrameViewModel::cloneActiveLayer(){
     Layer* layer = _frame.getActiveLayer();
     CloneLayerCommand command(layer->getID(), _frame);
     command.execute();
 }
-void LayersViewModel::onMoveLayerTo(Guid id, int index){
+void FrameViewModel::moveLayerTo(Guid id, int index){
     MoveLayerToCommand command(_frame, id, index);
     command.execute();
 }
-void LayersViewModel::onMoveDownLayer(){
+void FrameViewModel::moveDownActiveLayer(){
     Layer* layer = _frame.getActiveLayer();
     size_t index = _frame.getLayerIndex(layer->getID());
     if(index > 0) return;
@@ -39,7 +39,7 @@ void LayersViewModel::onMoveDownLayer(){
     MoveLayerToCommand command(_frame, layer->getID(), index - 1);
     command.execute();
 }
-void LayersViewModel::onMoveUpLayer(){
+void FrameViewModel::moveUpActiveLayer(){
     Layer* layer = _frame.getActiveLayer();
     size_t index = _frame.getLayerIndex(layer->getID());
 
@@ -48,23 +48,14 @@ void LayersViewModel::onMoveUpLayer(){
     MoveLayerToCommand command(_frame, layer->getID(), index + 1);
     command.execute();
 }
-void LayersViewModel::onRemoveLayer(){
+void FrameViewModel::onRemoveLayer(){
     Layer* layer = _frame.getActiveLayer();
     size_t index = _frame.getLayerIndex(layer->getID());
 
     RemoveLayerCommand command(_frame, layer->getID());
     command.execute();
 }
-void LayersViewModel::onFlipXLayer(){
-    Layer* layer = _frame.getActiveLayer();
-    // AddLayerCommand command(_frame, layer->getID());
-    // command.execute();
-}
-void LayersViewModel::onFlipYLayer(){
-    Layer* layer = _frame.getActiveLayer();
-    // AddLayerCommand command(_frame, layer->getID());
-    // command.execute();
-}
+
 /*
 
 function activeFrameContainLayer(layerID){

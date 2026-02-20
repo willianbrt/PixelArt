@@ -151,7 +151,7 @@ Guid Frame::getID() const{
     return _id;
 }
 
-emscripten::val Frame::getBufferJS() {
+unsigned int* Frame::getBuffer() {
     unsigned int* buffer = (unsigned int*) malloc(activeLayer->getLength() *sizeof(unsigned int));
     memset(buffer, 0, activeLayer->getLength()*sizeof(unsigned int));
 
@@ -177,9 +177,7 @@ emscripten::val Frame::getBufferJS() {
         }
     }
 
-    return emscripten::val(
-        emscripten::typed_memory_view(activeLayer->getLength(), buffer)
-    );
+    return buffer;
 }
 size_t Frame::getLayerIndex(Guid id) const{
     return std::distance(layers.cbegin(), getIteratorLayerByID(id));
@@ -263,7 +261,6 @@ EMSCRIPTEN_BINDINGS(frame_module){
         .function("draw", &Frame::draw)
         .function("getFrameDuration", &Frame::getFrameDuration)
         .function("getPixel",  select_overload<unsigned int(unsigned int)>(&Frame::getPixel))
-        .function("getBufferJS", &Frame::getBufferJS)
         
         .function("getLayerIndex", &Frame::getLayerIndex)
         .function("bringLayerTo", &Frame::bringLayerTo)

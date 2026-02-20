@@ -1,7 +1,7 @@
 #ifndef ICOMMAND_H
 #define ICOMMAND_H
 
-#include "../../app/Editor/Editor.h"
+#include "../../objects/Editor/Editor.h"
 
 class ICommand{
 protected:

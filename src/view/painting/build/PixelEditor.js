@@ -28,7 +28,7 @@ var readyPromise = new Promise((resolve, reject) => {
   readyPromiseResolve = resolve;
   readyPromiseReject = reject;
 });
-["_memory","___indirect_function_table","_add_frame","_change_active_frame","_remove_frame","_move_frame","_update_frame_preview","_add_layer","_change_active_layer","_remove_layer","_move_layer","_main","onRuntimeInitialized"].forEach((prop) => {
+["_memory","___indirect_function_table","_main","onRuntimeInitialized"].forEach((prop) => {
   if (!Object.getOwnPropertyDescriptor(readyPromise, prop)) {
     Object.defineProperty(readyPromise, prop, {
       get: () => abort('You are getting ' + prop + ' on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'),
@@ -830,17 +830,6 @@ function dbg(...args) {
 }
 // end include: runtime_debug.js
 // === Body ===
-
-function add_frame(frame_id) { let listFrame = document.getElementById("list-frames"); let frames = listFrame.querySelectorAll("div.frame"); let frameElement = document.createElement("div"); let canvas = document.createElement("canvas"); frameElement.classList.add("frame"); frameElement.dataset.id = frame_id; frameElement.append(canvas); if(frames.length > 0) frames[index-1].after(frameElement); else listFrame.append(frameElement); frameElement.addEventListener("click", ()=>Module.onFrameClick(frame_id)); _update_frame_preview(frame_id, width, height, buffer); }
-function change_active_frame(frame_id) { editor.changeActiveFrame(id); changeActiveFrame(editor.getActiveFrame()); let listFrame = document.getElementById("list-frames"); let frameElement = listFrame.querySelector(`.frame[data-id="${frame_id}"]`); listFrame.querySelectorAll("div.frame.active") .forEach((f)=>f.classList.remove("active")); frameElement?.classList.toggle("active", true); }
-function remove_frame(frame_id) { let listFrame = document.getElementById("list-frames"); let frameElement = listFrame.querySelector(`.frame[data-id="${frame_id}"]`); frameElement.remove(); }
-function move_frame(frame_id,index) { const listFrame = document.getElementById("list-frames"); let frames = listFrame.querySelectorAll("div.frame"); let frameElement = listFrame.querySelector(`.frame[data-id="${frame_id}"]`); if (frameElement === frames[index] || index < 0 || index >= frames.length) { return; } if (frameElement.compareDocumentPosition(frames[index]) & Node.DOCUMENT_POSITION_FOLLOWING) { frames[index].after(frameElement); } else { frames[index].before(frameElement); } frameElement.remove(); }
-function update_frame_preview(frame_id,width,height,buffer) { const buffer8 = new Uint8ClampedArray(Module.HEAPU8.buffer, buffer, width*height*4); const imageData = new ImageData(buffer, width, height); let frameElement = listFrame.querySelector(`.frame[data-id="${frame_id}"]`); let frameCanvas = frameElement.querySelector(`canvas`); frameCanvas.width = width; frameCanvas.height = height; let ctx = frameCanvas.getContext("2d"); ctx.clearRect(0, 0, width, height); ctx.putImageData(imageData, 0, 0); }
-function add_layer(layer_id) { }
-function change_active_layer(layer_id) { }
-function remove_layer(layer_id) { }
-function move_layer(layer_id,index) { }
-
 // end include: preamble.js
 
 
@@ -2567,6 +2556,70 @@ function move_layer(layer_id,index) { }
     };
   var __embind_register_emval = (rawType) => registerType(rawType, EmValType);
 
+  
+  var enumReadValueFromPointer = (name, width, signed) => {
+      switch (width) {
+          case 1: return signed ?
+              function(pointer) { return this['fromWireType'](HEAP8[pointer]) } :
+              function(pointer) { return this['fromWireType'](HEAPU8[pointer]) };
+          case 2: return signed ?
+              function(pointer) { return this['fromWireType'](HEAP16[((pointer)>>1)]) } :
+              function(pointer) { return this['fromWireType'](HEAPU16[((pointer)>>1)]) };
+          case 4: return signed ?
+              function(pointer) { return this['fromWireType'](HEAP32[((pointer)>>2)]) } :
+              function(pointer) { return this['fromWireType'](HEAPU32[((pointer)>>2)]) };
+          default:
+              throw new TypeError(`invalid integer width (${width}): ${name}`);
+      }
+    };
+  
+  
+  /** @suppress {globalThis} */
+  var __embind_register_enum = (rawType, name, size, isSigned) => {
+      name = readLatin1String(name);
+  
+      function ctor() {}
+      ctor.values = {};
+  
+      registerType(rawType, {
+        name,
+        constructor: ctor,
+        'fromWireType': function(c) {
+          return this.constructor.values[c];
+        },
+        'toWireType': (destructors, c) => c.value,
+        argPackAdvance: GenericWireTypeSize,
+        'readValueFromPointer': enumReadValueFromPointer(name, size, isSigned),
+        destructorFunction: null,
+      });
+      exposePublicSymbol(name, ctor);
+    };
+
+  
+  
+  
+  
+  var requireRegisteredType = (rawType, humanName) => {
+      var impl = registeredTypes[rawType];
+      if (undefined === impl) {
+        throwBindingError(`${humanName} has unknown type ${getTypeName(rawType)}`);
+      }
+      return impl;
+    };
+  var __embind_register_enum_value = (rawEnumType, name, enumValue) => {
+      var enumType = requireRegisteredType(rawEnumType, 'enum');
+      name = readLatin1String(name);
+  
+      var Enum = enumType.constructor;
+  
+      var Value = Object.create(enumType.constructor.prototype, {
+        value: {value: enumValue},
+        constructor: {value: createNamedFunction(`${enumType.name}_${name}`, function() {})},
+      });
+      Enum.values[enumValue] = Value;
+      Enum[name] = Value;
+    };
+
   var embindRepr = (v) => {
       if (v === null) {
           return 'null';
@@ -2609,32 +2662,6 @@ function move_layer(layer_id,index) { }
         argPackAdvance: GenericWireTypeSize,
         'readValueFromPointer': floatReadValueFromPointer(name, size),
         destructorFunction: null, // This type does not need a destructor
-      });
-    };
-
-  
-  
-  
-  
-  
-  
-  
-  
-  var __embind_register_function = (name, argCount, rawArgTypesAddr, signature, rawInvoker, fn, isAsync, isNonnullReturn) => {
-      var argTypes = heap32VectorToArray(argCount, rawArgTypesAddr);
-      name = readLatin1String(name);
-      name = getFunctionName(name);
-  
-      rawInvoker = embind__requireFunction(signature, rawInvoker);
-  
-      exposePublicSymbol(name, function() {
-        throwUnboundTypeError(`Cannot call ${name} due to unbound types`, argTypes);
-      }, argCount - 1);
-  
-      whenDependentTypesAreResolved([], argTypes, (argTypes) => {
-        var invokerArgsArray = [argTypes[0] /* return value */, null /* no class 'this'*/].concat(argTypes.slice(1) /* actual params */);
-        replacePublicSymbol(name, craftInvokerFunction(name, invokerArgsArray, null /* no class 'this'*/, rawInvoker, fn, isAsync), argCount - 1);
-        return [];
       });
     };
 
@@ -3219,15 +3246,6 @@ function move_layer(layer_id,index) { }
       return id;
     };
   
-  
-  
-  var requireRegisteredType = (rawType, humanName) => {
-      var impl = registeredTypes[rawType];
-      if (undefined === impl) {
-        throwBindingError(`${humanName} has unknown type ${getTypeName(rawType)}`);
-      }
-      return impl;
-    };
   var emval_lookupTypes = (argCount, argTypes) => {
       var a = new Array(argCount);
       for (var i = 0; i < argCount; ++i) {
@@ -3445,202 +3463,6 @@ function move_layer(layer_id,index) { }
       return false;
     };
 
-  var JSEvents = {
-  memcpy(target, src, size) {
-        HEAP8.set(HEAP8.subarray(src, src + size), target);
-      },
-  removeAllEventListeners() {
-        while (JSEvents.eventHandlers.length) {
-          JSEvents._removeHandler(JSEvents.eventHandlers.length - 1);
-        }
-        JSEvents.deferredCalls = [];
-      },
-  inEventHandler:0,
-  deferredCalls:[],
-  deferCall(targetFunction, precedence, argsList) {
-        function arraysHaveEqualContent(arrA, arrB) {
-          if (arrA.length != arrB.length) return false;
-  
-          for (var i in arrA) {
-            if (arrA[i] != arrB[i]) return false;
-          }
-          return true;
-        }
-        // Test if the given call was already queued, and if so, don't add it again.
-        for (var call of JSEvents.deferredCalls) {
-          if (call.targetFunction == targetFunction && arraysHaveEqualContent(call.argsList, argsList)) {
-            return;
-          }
-        }
-        JSEvents.deferredCalls.push({
-          targetFunction,
-          precedence,
-          argsList
-        });
-  
-        JSEvents.deferredCalls.sort((x,y) => x.precedence < y.precedence);
-      },
-  removeDeferredCalls(targetFunction) {
-        JSEvents.deferredCalls = JSEvents.deferredCalls.filter((call) => call.targetFunction != targetFunction);
-      },
-  canPerformEventHandlerRequests() {
-        if (navigator.userActivation) {
-          // Verify against transient activation status from UserActivation API
-          // whether it is possible to perform a request here without needing to defer. See
-          // https://developer.mozilla.org/en-US/docs/Web/Security/User_activation#transient_activation
-          // and https://caniuse.com/mdn-api_useractivation
-          // At the time of writing, Firefox does not support this API: https://bugzilla.mozilla.org/show_bug.cgi?id=1791079
-          return navigator.userActivation.isActive;
-        }
-  
-        return JSEvents.inEventHandler && JSEvents.currentEventHandler.allowsDeferredCalls;
-      },
-  runDeferredCalls() {
-        if (!JSEvents.canPerformEventHandlerRequests()) {
-          return;
-        }
-        var deferredCalls = JSEvents.deferredCalls;
-        JSEvents.deferredCalls = [];
-        for (var call of deferredCalls) {
-          call.targetFunction(...call.argsList);
-        }
-      },
-  eventHandlers:[],
-  removeAllHandlersOnTarget:(target, eventTypeString) => {
-        for (var i = 0; i < JSEvents.eventHandlers.length; ++i) {
-          if (JSEvents.eventHandlers[i].target == target &&
-            (!eventTypeString || eventTypeString == JSEvents.eventHandlers[i].eventTypeString)) {
-             JSEvents._removeHandler(i--);
-           }
-        }
-      },
-  _removeHandler(i) {
-        var h = JSEvents.eventHandlers[i];
-        h.target.removeEventListener(h.eventTypeString, h.eventListenerFunc, h.useCapture);
-        JSEvents.eventHandlers.splice(i, 1);
-      },
-  registerOrRemoveHandler(eventHandler) {
-        if (!eventHandler.target) {
-          err('registerOrRemoveHandler: the target element for event handler registration does not exist, when processing the following event handler registration:');
-          console.dir(eventHandler);
-          return -4;
-        }
-        if (eventHandler.callbackfunc) {
-          eventHandler.eventListenerFunc = function(event) {
-            // Increment nesting count for the event handler.
-            ++JSEvents.inEventHandler;
-            JSEvents.currentEventHandler = eventHandler;
-            // Process any old deferred calls the user has placed.
-            JSEvents.runDeferredCalls();
-            // Process the actual event, calls back to user C code handler.
-            eventHandler.handlerFunc(event);
-            // Process any new deferred calls that were placed right now from this event handler.
-            JSEvents.runDeferredCalls();
-            // Out of event handler - restore nesting count.
-            --JSEvents.inEventHandler;
-          };
-  
-          eventHandler.target.addEventListener(eventHandler.eventTypeString,
-                                               eventHandler.eventListenerFunc,
-                                               eventHandler.useCapture);
-          JSEvents.eventHandlers.push(eventHandler);
-        } else {
-          for (var i = 0; i < JSEvents.eventHandlers.length; ++i) {
-            if (JSEvents.eventHandlers[i].target == eventHandler.target
-             && JSEvents.eventHandlers[i].eventTypeString == eventHandler.eventTypeString) {
-               JSEvents._removeHandler(i--);
-             }
-          }
-        }
-        return 0;
-      },
-  getNodeNameForTarget(target) {
-        if (!target) return '';
-        if (target == window) return '#window';
-        if (target == screen) return '#screen';
-        return target?.nodeName || '';
-      },
-  fullscreenEnabled() {
-        return document.fullscreenEnabled
-        // Safari 13.0.3 on macOS Catalina 10.15.1 still ships with prefixed webkitFullscreenEnabled.
-        // TODO: If Safari at some point ships with unprefixed version, update the version check above.
-        || document.webkitFullscreenEnabled
-         ;
-      },
-  };
-  
-  
-  /** @type {Object} */
-  var specialHTMLTargets = [0, document, window];
-  var getBoundingClientRect = (e) => specialHTMLTargets.indexOf(e) < 0 ? e.getBoundingClientRect() : {'left':0,'top':0};
-  
-  var fillMouseEventData = (eventStruct, e, target) => {
-      assert(eventStruct % 4 == 0);
-      HEAPF64[((eventStruct)>>3)] = e.timeStamp;
-      var idx = ((eventStruct)>>2);
-      HEAP32[idx + 2] = e.screenX;
-      HEAP32[idx + 3] = e.screenY;
-      HEAP32[idx + 4] = e.clientX;
-      HEAP32[idx + 5] = e.clientY;
-      HEAP8[eventStruct + 24] = e.ctrlKey;
-      HEAP8[eventStruct + 25] = e.shiftKey;
-      HEAP8[eventStruct + 26] = e.altKey;
-      HEAP8[eventStruct + 27] = e.metaKey;
-      HEAP16[idx*2 + 14] = e.button;
-      HEAP16[idx*2 + 15] = e.buttons;
-  
-      HEAP32[idx + 8] = e["movementX"]
-        ;
-  
-      HEAP32[idx + 9] = e["movementY"]
-        ;
-  
-      // Note: rect contains doubles (truncated to placate SAFE_HEAP, which is the same behaviour when writing to HEAP32 anyway)
-      var rect = getBoundingClientRect(target);
-      HEAP32[idx + 10] = e.clientX - (rect.left | 0);
-      HEAP32[idx + 11] = e.clientY - (rect.top  | 0);
-  
-    };
-  
-  var maybeCStringToJsString = (cString) => {
-      // "cString > 2" checks if the input is a number, and isn't of the special
-      // values we accept here, EMSCRIPTEN_EVENT_TARGET_* (which map to 0, 1, 2).
-      // In other words, if cString > 2 then it's a pointer to a valid place in
-      // memory, and points to a C string.
-      return cString > 2 ? UTF8ToString(cString) : cString;
-    };
-  
-  var findEventTarget = (target) => {
-      target = maybeCStringToJsString(target);
-      var domElement = specialHTMLTargets[target] || document.querySelector(target);
-      return domElement;
-    };
-  
-  
-  var registerMouseEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
-      JSEvents.mouseEvent ||= _malloc(64);
-      target = findEventTarget(target);
-  
-      var mouseEventHandlerFunc = (e = event) => {
-        // TODO: Make this access thread safe, or this could update live while app is reading it.
-        fillMouseEventData(JSEvents.mouseEvent, e, target);
-  
-        if (getWasmTableEntry(callbackfunc)(eventTypeId, JSEvents.mouseEvent, userData)) e.preventDefault();
-      };
-  
-      var eventHandler = {
-        target,
-        allowsDeferredCalls: eventTypeString != 'mousemove' && eventTypeString != 'mouseenter' && eventTypeString != 'mouseleave', // Mouse move events do not allow fullscreen/pointer lock requests to be handled in them!
-        eventTypeString,
-        callbackfunc,
-        handlerFunc: mouseEventHandlerFunc,
-        useCapture
-      };
-      return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
-  var _emscripten_set_click_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerMouseEventCallback(target, userData, useCapture, callbackfunc, 4, "click", targetThread);
-
   var ENV = {
   };
   
@@ -3786,31 +3608,6 @@ function move_layer(layer_id,index) { }
       return 0;
     };
 
-  function _renderCanvas(
-      projectWidth, projectHeight,
-      screen, length,
-      viewportWidth, viewportHeight,
-      x, y,
-      nRows, nCols){
-      Module.canvas.width = projectWidth*nRows;
-      Module.canvas.height = projectHeight*nCols;
-  
-      const context = Module.canvas.getContext("2d");
-      const ptr = screen;
-      const width = viewportWidth;
-      const height = viewportHeight;
-  
-      const buffer = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, length*4);
-      const data = new ImageData(buffer, width);
-  
-      for(let r = 0; r < nRows; r++){
-          for(let c = 0; c < nCols; c++){
-              context.clearRect(x + width*r, y + height*c, width, height);
-              context.putImageData(data, x + width*r, y + height*c);
-          }
-      }
-  }
-
   
   var runtimeKeepaliveCounter = 0;
   var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
@@ -3891,9 +3688,11 @@ var wasmImports = {
   /** @export */
   _embind_register_emval: __embind_register_emval,
   /** @export */
-  _embind_register_float: __embind_register_float,
+  _embind_register_enum: __embind_register_enum,
   /** @export */
-  _embind_register_function: __embind_register_function,
+  _embind_register_enum_value: __embind_register_enum_value,
+  /** @export */
+  _embind_register_float: __embind_register_float,
   /** @export */
   _embind_register_integer: __embind_register_integer,
   /** @export */
@@ -3929,13 +3728,7 @@ var wasmImports = {
   /** @export */
   _tzset_js: __tzset_js,
   /** @export */
-  add_frame,
-  /** @export */
-  change_active_frame,
-  /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
-  /** @export */
-  emscripten_set_click_callback_on_thread: _emscripten_set_click_callback_on_thread,
   /** @export */
   environ_get: _environ_get,
   /** @export */
@@ -3951,19 +3744,13 @@ var wasmImports = {
   /** @export */
   get_viewport_width: _get_viewport_width,
   /** @export */
-  move_frame,
-  /** @export */
-  random_get: _random_get,
-  /** @export */
-  remove_frame,
-  /** @export */
-  renderCanvas: _renderCanvas
+  random_get: _random_get
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
-var _main = Module['_main'] = createExportWrapper('main', 2);
-var _free = createExportWrapper('free', 1);
 var _malloc = createExportWrapper('malloc', 1);
+var _free = createExportWrapper('free', 1);
+var _main = Module['_main'] = createExportWrapper('main', 2);
 var ___getTypeName = createExportWrapper('__getTypeName', 1);
 var _fflush = createExportWrapper('fflush', 1);
 var _strerror = createExportWrapper('strerror', 1);
@@ -4047,6 +3834,11 @@ var missingLibrarySymbols = [
   'stringToUTF8OnStack',
   'writeArrayToMemory',
   'registerKeyEventCallback',
+  'maybeCStringToJsString',
+  'findEventTarget',
+  'getBoundingClientRect',
+  'fillMouseEventData',
+  'registerMouseEventCallback',
   'registerWheelEventCallback',
   'registerUiEventCallback',
   'registerFocusEventCallback',
@@ -4151,7 +3943,6 @@ var missingLibrarySymbols = [
   'unregisterInheritedInstance',
   'getInheritedInstanceCount',
   'getLiveInheritedInstances',
-  'enumReadValueFromPointer',
   'setDelayFunction',
   'validateThis',
   'getStringOrSymbol',
@@ -4223,12 +4014,7 @@ var unexportedSymbols = [
   'lengthBytesUTF32',
   'JSEvents',
   'specialHTMLTargets',
-  'maybeCStringToJsString',
-  'findEventTarget',
   'findCanvasEventTarget',
-  'getBoundingClientRect',
-  'fillMouseEventData',
-  'registerMouseEventCallback',
   'currentFullscreenStrategy',
   'restoreOldWindowedStyle',
   'UNWIND_CACHE',
@@ -4316,6 +4102,7 @@ var unexportedSymbols = [
   'registeredPointers',
   'registerType',
   'integerReadValueFromPointer',
+  'enumReadValueFromPointer',
   'floatReadValueFromPointer',
   'readPointer',
   'runDestructors',

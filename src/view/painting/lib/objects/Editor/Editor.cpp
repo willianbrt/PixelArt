@@ -4,19 +4,13 @@ Editor::Editor(int width, int height) :_screen(get_viewport_width(), get_viewpor
     _sketchPosition = getInitialPosition();
 }
 Editor::~Editor(){
-    for (auto* f : frames) delete f;
+    // for (auto* f : frames) delete f;
     frames.clear();
     activeFrame = nullptr;
 }
 
-void Editor::registerEvent(EDITOR_EVENT_TYPE eventType, std::function<void(EditorEvent)> callback){
-    observable[eventType] = callback;
-}
-void Editor::notify(EDITOR_EVENT_TYPE eventType, EditorEvent event){
-    auto it = observable.find(eventType);
-    if (it != observable.end()) {
-        it->second(event);
-    }
+void Editor::registerEvent(IEditorObserver* observer){
+    observers.push_back(observer);
 }
 Point Editor::getInitialPosition(){
     Point p;
@@ -65,7 +59,7 @@ void Editor::renderArea(Bounding area){
     area.end.y = (area.end.y > _sketch.getHeight()) ? _sketch.getHeight() : area.end.y;
 
     size_t activeIndex = getFrameIndex(activeFrame->getID());
-    Frame* previousFrame = frames[activeIndex > 0 ? activeIndex - 1 : 0];
+    Frame* previousFrame = frames[activeIndex > 0 ? activeIndex - 1 : 0].get();
     float opacity = 0.5;
     for(int y = area.start.y; y < area.end.y; y++){
         int index = y * _sketch.getWidth();
@@ -87,14 +81,36 @@ void Editor::renderArea(Bounding area){
         _sketch.getWidth(), _sketch.getHeight(), 
         area.start.x, area.start.y,
         _rows, _cols);
-        
-    EditorEvent event = {
-        .frame_id = activeFrame->getID(), 
-        .index = getFrameIndex(activeFrame->getID())
-    };
-    notify(EDITOR_EVENT_TYPE::DRAW, event);
 }
 
+void Editor::addFrame(unique_ptr<Frame> frame, size_t index){
+    frames.insert(frames.begin() + index,  std::move(frame));
+
+    Frame* framePtr = frames[index].get();
+    for (auto* obs : observers) {
+        obs->onAddFrame(framePtr, index);
+    }
+    changeActiveFrame(framePtr->getID());
+}
+unique_ptr<Frame> Editor::removeFrame(size_t index){
+    if(index < 0 || index >= frames.size()) return nullptr;
+    
+    // printf("remove: %s, %lu, s: %lu\n", id.toString().c_str(), index, frames.size());
+    
+    for (auto* obs : observers) {
+        obs->onRemoveFrame(frames[index]->getID());
+    }
+    unique_ptr<Frame> removedFrame = std::move(frames[index]);
+    frames.erase(frames.begin() + index);
+    return removedFrame;
+}
+void Editor::changeActiveFrame(Guid id){
+    activeFrame = getFrameByID(id);
+    
+    for (auto* obs : observers) {
+        obs->onChangeActiveFrame(id);
+    }
+}
 void Editor::bringFrameTo(Guid id, size_t toIndex){
     auto from = getIteratorFrameByID(id);
 
@@ -110,74 +126,35 @@ void Editor::bringFrameTo(Guid id, size_t toIndex){
         std::rotate(frames.begin() + toIndex, frames.begin() + fromIndex, frames.begin() + fromIndex + 1);
     }
 
-    EditorEvent event = {
-        .frame_id = id, 
-        .index = toIndex
-    };
-    notify(EDITOR_EVENT_TYPE::MOVE_FRAME_TO, event);
-}
-
-void Editor::removeFrame(Guid id){
-    auto it = getIteratorFrameByID(id);
-    size_t index = it - frames.begin();
-
-    if (it > frames.end()) return;
-
-    frames.erase(it);
-
-    if(id.toString() == activeFrame->getID().toString()){
-        size_t activeIndex = std::min(frames.size()-1, std::max<size_t>(0, index));
-        changeActiveFrame(frames[activeIndex]->getID());
+    for (auto* obs : observers) {
+        obs->onMoveFrameTo(id, toIndex);
     }
-
-    EditorEvent event = {
-        .frame_id = id, 
-        .index = index
-    };
-    notify(EDITOR_EVENT_TYPE::REMOVE_FRAME, event);
 }
-void Editor::addFrame(Frame* frame){
-    frames.emplace_back(frame);
-    
-    if(frames.size() == 1){
-        changeActiveFrame(frame->getID());
-    }
 
-    size_t index = getFrameIndex(frame->getID());
-    EditorEvent event = {
-        .frame_id = frame->getID(), 
-        .index = index
-    };
-    notify(EDITOR_EVENT_TYPE::ADD_FRAME, event);
+size_t Editor::getFramesLength() {
+    return frames.size();
 }
-vector<Frame*>& Editor::getAllFrames(){
-    return frames;
+Frame* Editor::getFrameByIndex(size_t index) {
+    return frames[index].get();
 }
 Frame* Editor::getFrameByID(Guid id){
     auto it = getIteratorFrameByID(id);
-    return (it != frames.end()) ? *it : nullptr;
+    return (it != frames.end()) ? it->get() : nullptr;
 }
 size_t Editor::getFrameIndex(Guid id){
-    return std::distance(frames.begin(), getIteratorFrameByID(id));
+    auto it = getIteratorFrameByID(id);
+    if (it != frames.end())
+        return std::distance(frames.begin(), it);
+    return -1;
 }
-std::vector<Frame*>::iterator Editor::getIteratorFrameByID(Guid id){
+std::vector<unique_ptr<Frame>>::iterator Editor::getIteratorFrameByID(Guid id){
     string idStr = id.toString();
-    return std::find_if(frames.begin(), frames.end(), [&idStr](Frame* f){ return f->getID().toString() == idStr; });
+    return std::find_if(frames.begin(), frames.end(), [&idStr](const std::unique_ptr<Frame>& f){
+        return f.get()->getID().toString() == idStr;
+    });
 }
 Frame* Editor::getActiveFrame(){
     return activeFrame;
-}
-void Editor::changeActiveFrame(Guid id){
-    activeFrame = getFrameByID(id);
-    
-    auto it = getIteratorFrameByID(id);
-    size_t index = it - frames.begin();
-
-    EditorEvent event = {
-        .frame_id = id, 
-        .index = index
-    };
-    notify(EDITOR_EVENT_TYPE::CHANGE_ACTIVE_FRAME, event);
 }
 
 int Editor::getWidth(){
@@ -195,19 +172,29 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<Editor>("Editor")
         .constructor<int, int>()
         .smart_ptr<std::shared_ptr<Editor>>("shared_ptr<Editor>")
-        .function("renderArea", select_overload<void(int, int, int, int)>(&Editor::render))
-        .function("preview", &Editor::preview)
-        .function("draw", &Editor::draw)
-        .function("setNumberTiles", &Editor::setNumberTiles)
-        .function("render", select_overload<void()>(&Editor::render))
-        .function("bringFrameTo", &Editor::bringFrameTo)
-        .function("getFrameIndex", &Editor::getFrameIndex)
-        .function("removeFrame", &Editor::removeFrame)
+        // .function("renderArea", select_overload<void(int, int, int, int)>(&Editor::render))
+        // .function("preview", &Editor::preview)
+        // .function("draw", &Editor::draw)
+        // .function("render", select_overload<void()>(&Editor::render))
+        // .function("bringFrameTo", &Editor::bringFrameTo)
+        // .function("getFrameIndex", &Editor::getFrameIndex)
+        // .function("removeFrame", &Editor::removeFrame)
         .function("addFrame", &Editor::addFrame, allow_raw_pointers())
-        .function("getAllFrames", &Editor::getAllFrames, allow_raw_pointers())
-        .function("getFrameByID", &Editor::getFrameByID, allow_raw_pointers())
-        .function("getActiveFrame", &Editor::getActiveFrame, allow_raw_pointers())
-        .function("changeActiveFrame", &Editor::changeActiveFrame)
-        .function("getWidth", &Editor::getWidth)
-        .function("getHeight", &Editor::getHeight);
+        // .function("getAllFrames", &Editor::getAllFrames, allow_raw_pointers())
+        // .function("getFrameByID", &Editor::getFrameByID, allow_raw_pointers())
+        // .function("getActiveFrame", &Editor::getActiveFrame, allow_raw_pointers())
+        // .function("changeActiveFrame", &Editor::changeActiveFrame)
+        // .function("getWidth", &Editor::getWidth)
+        // .function("getHeight", &Editor::getHeight)
+        ;
+    value_object<EditorEvent>("EditorEvent")
+        .field("frame", &EditorEvent::frame)
+        .field("index", &EditorEvent::index);
+    
+    enum_<EDITOR_EVENT_TYPE>("EDITOR_EVENT_TYPE")
+        .value("DRAW", EDITOR_EVENT_TYPE::DRAW)
+        .value("ADD_FRAME", EDITOR_EVENT_TYPE::ADD_FRAME)
+        .value("REMOVE_FRAME", EDITOR_EVENT_TYPE::REMOVE_FRAME)
+        .value("MOVE_FRAME_TO", EDITOR_EVENT_TYPE::MOVE_FRAME_TO)
+        .value("CHANGE_ACTIVE_FRAME", EDITOR_EVENT_TYPE::CHANGE_ACTIVE_FRAME);
 };

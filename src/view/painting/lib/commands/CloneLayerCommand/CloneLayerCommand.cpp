@@ -5,7 +5,7 @@ CloneLayerCommand::CloneLayerCommand(Guid layerId, Frame& frame) : _layerId(laye
 }
 CloneLayerCommand::~CloneLayerCommand(){}
 void CloneLayerCommand::execute(){
-    // _frame.onAddLayer();
+    // _frame.addActiveLayer();
 }
 void CloneLayerCommand::undo(){
     // _frame.onRemoveLayer(_layerId);
