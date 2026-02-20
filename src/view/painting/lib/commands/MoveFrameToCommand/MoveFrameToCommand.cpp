@@ -1,13 +1,13 @@
 #include "MoveFrameToCommand.h"
 
-MoveFrameToCommand::MoveFrameToCommand(Editor& editor, Guid frameId, int index) : _editor(editor){
+MoveFrameToCommand::MoveFrameToCommand(Editor& editor, Guid frameId, int toIndex) : _editor(editor), _frameId(frameId), _toIndex(toIndex) {
     
 }
 MoveFrameToCommand::~MoveFrameToCommand(){}
 void MoveFrameToCommand::execute(){
-    Frame frame;
-    // _editor.onMoveFrameToCommand();
+    _originalIndex = _editor.getFrameIndex(_frameId);
+    _editor.bringFrameTo(_frameId, _toIndex);
 }
 void MoveFrameToCommand::undo(){
-    // _editor.onMoveFrameToCommand();
+    _editor.bringFrameTo(_frameId, _originalIndex);
 }

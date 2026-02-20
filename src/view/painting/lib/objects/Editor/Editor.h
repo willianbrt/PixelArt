@@ -55,6 +55,8 @@ private:
     vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
 
+    std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
+
 public:
     Editor(int width, int height);
     ~Editor();
@@ -69,18 +71,18 @@ public:
     void render();
     void render(int startX, int endX, int startY,int endY);
     void renderArea(Bounding area);
-    void bringFrameTo(Guid id, size_t toIndex);
-    unique_ptr<Frame> removeFrame(size_t index);
+
     void addFrame(unique_ptr<Frame>frame, size_t index);
-    
+    unique_ptr<Frame> removeFrame(size_t index);
+    void bringFrameTo(Guid id, size_t toIndex);
+    void changeActiveFrame(Guid id);
+
+    Frame* getActiveFrame();
+    Frame* getFrameByID(Guid id);
+    size_t getFrameIndex(Guid id);
     size_t getFramesLength();
     Frame* getFrameByIndex(size_t index); 
 
-    Frame* getFrameByID(Guid id);
-    size_t getFrameIndex(Guid id);
-    std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
-    Frame* getActiveFrame();
-    void changeActiveFrame(Guid id);
     int getWidth();
     int getHeight();
 };

@@ -9,9 +9,10 @@
 class MoveFrameToCommand : ICommand {
 private:
     Editor& _editor;
-    int originalIndex, toIndex;
+    Guid _frameId;
+    int _originalIndex, _toIndex;
 public:
-    MoveFrameToCommand(Editor& editor, Guid frameId, int index);
+    MoveFrameToCommand(Editor& editor, Guid frameId, int toIndex);
     ~MoveFrameToCommand();
     void execute() override;
     void undo() override;

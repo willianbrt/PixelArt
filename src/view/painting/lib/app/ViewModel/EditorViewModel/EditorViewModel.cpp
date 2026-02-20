@@ -74,7 +74,7 @@ void EditorViewModel::moveFrameTo(std::string id, int index){
 void EditorViewModel::moveDownActiveFrame(){
     Frame* frame = _editor.getActiveFrame();
     size_t index = _editor.getFrameIndex(frame->getID());
-    if(index > 0) return;
+    if(index < 0) return;
 
     MoveFrameToCommand command(_editor, frame->getID(), index - 1);
     command.execute();

@@ -72,7 +72,7 @@ function onChangeActiveFrame(id){
 function onMoveFrameTo(id, index){
     let frames = _listFrame.querySelectorAll("div.frame");
     let frameElement = getFrameById(id.toString());
-
+console.log("move")
     if (frameElement === frames[index] || index < 0 || index >= frames.length) {
         return;
     }
