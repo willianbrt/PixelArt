@@ -7,12 +7,12 @@ CloneFrameCommand::~CloneFrameCommand(){}
 void CloneFrameCommand::execute(){
     size_t goalIndex = _editor.getFrameIndex(_frameId);
     
-    std::unique_ptr<Frame> _frameCloned = make_unique<Frame>(
+    std::unique_ptr<Frame> frameCloned = make_unique<Frame>(
         std::move(_editor.getFrameByIndex(goalIndex)->clone())
     );
 
     _index = goalIndex+1;
-    _editor.addFrame(std::move(_frameCloned), _index);
+    _editor.addFrame(std::move(frameCloned), _index);
 }
 void CloneFrameCommand::undo(){
     _editor.removeFrame(_index);

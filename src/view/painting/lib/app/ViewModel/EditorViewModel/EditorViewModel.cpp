@@ -4,10 +4,6 @@
 EditorViewModel::EditorViewModel(Editor& editor) : _editor(editor){
     Frame* frame = _editor.getActiveFrame();
     
-    // _editor.registerEvent(EDITOR_EVENT_TYPE::ADD_FRAME, onAddFrame);
-    // _editor.registerEvent(EDITOR_EVENT_TYPE::REMOVE_FRAME, onRemoveFrame);
-    // _editor.registerEvent(EDITOR_EVENT_TYPE::MOVE_FRAME_TO, onMoveFrameTo);
-    // _editor.registerEvent(EDITOR_EVENT_TYPE::CHANGE_ACTIVE_FRAME, onChangeActiveFrame);
     _editor.registerEvent(this);
     
 }

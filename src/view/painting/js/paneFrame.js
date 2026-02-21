@@ -72,7 +72,7 @@ function onChangeActiveFrame(id){
 function onMoveFrameTo(id, index){
     let frames = _listFrame.querySelectorAll("div.frame");
     let frameElement = getFrameById(id.toString());
-console.log("move")
+    
     if (frameElement === frames[index] || index < 0 || index >= frames.length) {
         return;
     }
@@ -83,8 +83,7 @@ console.log("move")
         frames[index].before(frameElement);
     }
 }
-function onFrameDraw(frameId){
-    const frame = _editorViewModel.get
+function onFrameDraw(frameId){t
     const frameElement = getFrameById(frameId);
     const frameCanvas = frameElement.querySelector("canvas");
     let gl = frameCanvas.getContext("webgl");
