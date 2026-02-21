@@ -168,29 +168,6 @@ int Editor::getHeight(){
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
-    register_vector<Frame*>("VectorFrame");
-    class_<Editor>("Editor")
-        .constructor<int, int>()
-        .smart_ptr<std::shared_ptr<Editor>>("shared_ptr<Editor>")
-        // .function("renderArea", select_overload<void(int, int, int, int)>(&Editor::render))
-        // .function("preview", &Editor::preview)
-        // .function("draw", &Editor::draw)
-        // .function("render", select_overload<void()>(&Editor::render))
-        // .function("bringFrameTo", &Editor::bringFrameTo)
-        // .function("getFrameIndex", &Editor::getFrameIndex)
-        // .function("removeFrame", &Editor::removeFrame)
-        .function("addFrame", &Editor::addFrame, allow_raw_pointers())
-        // .function("getAllFrames", &Editor::getAllFrames, allow_raw_pointers())
-        // .function("getFrameByID", &Editor::getFrameByID, allow_raw_pointers())
-        // .function("getActiveFrame", &Editor::getActiveFrame, allow_raw_pointers())
-        // .function("changeActiveFrame", &Editor::changeActiveFrame)
-        // .function("getWidth", &Editor::getWidth)
-        // .function("getHeight", &Editor::getHeight)
-        ;
-    value_object<EditorEvent>("EditorEvent")
-        .field("frame", &EditorEvent::frame)
-        .field("index", &EditorEvent::index);
-    
     enum_<EDITOR_EVENT_TYPE>("EDITOR_EVENT_TYPE")
         .value("DRAW", EDITOR_EVENT_TYPE::DRAW)
         .value("ADD_FRAME", EDITOR_EVENT_TYPE::ADD_FRAME)

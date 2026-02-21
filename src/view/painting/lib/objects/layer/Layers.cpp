@@ -57,26 +57,3 @@ unsigned int Layer::getFilteredPixel(unsigned int index) {
     
     return static_cast<int>(_opacity * (_data[index] >> 24 & 0xFF)) << 24 | (_data[index] & 0x00FFFFFF);
 }
-
-using namespace emscripten;
-
-EMSCRIPTEN_BINDINGS(layer_module){
-    class_<Layer, base<Surface>>("Layer")
-    .constructor<std::string, unsigned int, unsigned int>()
-    .smart_ptr<std::shared_ptr<Layer>>("shared_ptr<Layer>")
-    .function("setID", &Layer::setID)
-    .function("getID", &Layer::getID)
-    .function("resize", &Layer::resize)
-    .function("move", &Layer::move)
-    .function("clone", &Layer::clone)
-    .function("draw", &Layer::draw)
-    .function("getName", &Layer::getName)
-    .function("setName", &Layer::setName)
-    .function("getOpacity", &Layer::getOpacity)
-    .function("setOpacity", &Layer::setOpacity)
-    .function("setVisible", &Layer::setVisible)
-    .function("isVisible", &Layer::isVisible)
-    .function("setLock", &Layer::setLock)
-    .function("isLock", &Layer::isLock)
-    .function("getBuffer", &Layer::getBuffer, emscripten::allow_raw_pointer<unsigned int*>() );
-};

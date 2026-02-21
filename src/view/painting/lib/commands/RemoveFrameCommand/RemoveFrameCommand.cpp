@@ -7,8 +7,8 @@ void RemoveFrameCommand::execute(){
 
     if(_editor.getFramesLength() == 1){
         std::unique_ptr<Frame> _frameAdded = make_unique<Frame>();
-        Layer* layer = new Layer("layer 1", _editor.getWidth(), _editor.getHeight());
-        _frameAdded.get()->addLayer(layer);
+        auto layer = std::make_unique<Layer>("layer 1", _editor.getWidth(), _editor.getHeight());
+        _frameAdded.get()->addLayer(std::move(layer), 0);
         _frameAddedID = _frameAdded->getID();
 
         _editor.addFrame(std::move(_frameAdded), 1);

@@ -6,27 +6,21 @@ Frame::Frame() : _id(Guid::generateUUID()) {
 Frame::Frame(const Frame& frame) : _id(frame.getID()) {
     timeDuration = frame.getFrameDuration();
 
-    for(Layer* layer : frame.getAllLayers()){
+    for(size_t i = 0; i < frame.getLayersLength(); i++){
+        Layer* layer = frame.getLayerByIndex(i);
         layers.emplace_back(new Layer(*layer));
     }
     activeLayer = getLayerByID(frame.getActiveLayer()->getID());
 }
 
 Frame::~Frame(){
-    for (auto* l : layers) delete l;
     layers.clear();
     activeLayer = nullptr;
     delete previewLayer;
 }
 
-void Frame::registerEvent(FRAME_EVENT_TYPE eventType, std::function<void(FrameEvent)> callback){
-    observable[eventType] = callback;
-}
-void Frame::notify(FRAME_EVENT_TYPE eventType, FrameEvent event){
-    auto it = observable.find(eventType);
-    if (it != observable.end()) {
-        it->second(event);
-    }
+void Frame::registerEvent(IFrameObserver* observer){
+    observers.push_back(observer);
 }
 
 void Frame::resize(int width, int height){
@@ -45,7 +39,9 @@ Frame Frame::clone() const {
     return frame;
 }
 void Frame::flipX(){
-    for(Layer* layer : layers){
+    for(size_t i = 0; i < layers.size(); i++){
+        Layer* layer = layers[i].get();
+
         unsigned int* buffer = layer->getBuffer();
         unsigned int len = layer->getLength();
         int width = layer->getWidth();
@@ -72,7 +68,9 @@ void Frame::flipX(){
     }
 }
 void Frame::flipY(){
-    for(Layer* layer : layers){
+    for(size_t i = 0; i < layers.size(); i++){
+        Layer* layer = layers[i].get();
+
         unsigned int* buffer = layer->getBuffer();
         unsigned int len = layer->getLength();
         int width = layer->getWidth();
@@ -128,7 +126,7 @@ unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
     if(toIndex > layers.size()) throw std::runtime_error("ToIndex excede o tamanho maximo de Layers.");
     
     for(int layerIndex = fromIndex; layerIndex < toIndex; layerIndex++){
-        Layer* layer = layers.at(layerIndex);
+        Layer* layer = layers.at(layerIndex).get();
         if(!layer->isVisible()) continue;
 
         unsigned int colorLayer;
@@ -158,7 +156,7 @@ unsigned int* Frame::getBuffer() {
     memset(buffer, 0, activeLayer->getLength()*sizeof(unsigned int));
 
     for(int layerIndex = 0; layerIndex < layers.size(); layerIndex++){
-        Layer* layer = layers.at(layerIndex);
+        Layer* layer = layers.at(layerIndex).get();
         if(!layer->isVisible()) continue;
 
         Bounding dirtyArea = Bounding(Point(0,0), Point(layer->getWidth(), layer->getHeight()));
@@ -181,9 +179,7 @@ unsigned int* Frame::getBuffer() {
 
     return buffer;
 }
-size_t Frame::getLayerIndex(Guid id) const{
-    return std::distance(layers.cbegin(), getIteratorLayerByID(id));
-}
+
 void Frame::bringLayerTo(Guid id, size_t toIndex){
     auto from = getIteratorLayerByID(id);
 
@@ -202,38 +198,48 @@ void Frame::bringLayerTo(Guid id, size_t toIndex){
     // if(activeLayer->getID().toString() == id.toString())
     // emscripten::val::global("move_layer_to")(emscripten::val(id), emscripten::val(toIndex));
 }
-void Frame::removeLayer(Guid id){
-    auto it = getIteratorLayerByID(id);
-    size_t index = it - layers.begin();
-
-    if (it > layers.end()) return;
-
-    layers.erase(it);
-
-    if(id.toString() == activeLayer->getID().toString()){
-        size_t activeIndex = std::min(layers.size()-1, std::max<size_t>(0, index));
-        changeActiveLayer(layers[activeIndex]->getID());
-    }
-}
-void Frame::addLayer(Layer* layer){
-    layers.emplace_back(layer);
+unique_ptr<Layer> Frame::removeLayer(size_t index){
+    if(index < 0 || index >= layers.size()) return nullptr;
     
-    if(layers.size() == 1){
-        changeActiveLayer(layers[0]->getID());
+    for (auto* obs : observers) {
+        obs->onRemoveLayer(layers[index]->getID());
     }
+    unique_ptr<Layer> layerFrame = std::move(layers[index]);
+    layers.erase(layers.begin() + index);
+    return layerFrame;
 }
-vector<Layer*> Frame::getAllLayers() const{
-    return layers;
+void Frame::addLayer(unique_ptr<Layer> layer, size_t index){
+    layers.insert(layers.begin() + index,  std::move(layer));
+
+    Layer* layerPtr = layers[index].get();
+    for (auto* obs : observers) {
+        obs->onAddLayer(layerPtr, index);
+    }
+
+    changeActiveLayer(layerPtr->getID());
 }
+
+Layer* Frame::getLayerByIndex(size_t index) const{
+    return layers[index].get();
+}
+
+size_t Frame::getLayersLength()  const{
+    return layers.size();
+}
+
 Layer* Frame::getLayerByID(Guid id) const{
     auto it = getIteratorLayerByID(id);
-    return (it != layers.end()) ? *it : nullptr;
+    return (it != layers.end()) ?  it->get() : nullptr;
 }
-std::vector<Layer*>::const_iterator Frame::getIteratorLayerByID(Guid id) const{
+
+size_t Frame::getLayerIndex(Guid id) const{
+    return std::distance(layers.cbegin(), getIteratorLayerByID(id));
+}
+std::vector<unique_ptr<Layer>>::const_iterator Frame::getIteratorLayerByID(Guid id) const{
     string idStr = id.toString();
     return std::find_if(layers.cbegin(), layers.cend(),
-     [&idStr](Layer* f){
-        return f->getID().toString() == idStr;
+     [&idStr](const std::unique_ptr<Layer>& l){
+        return l.get()->getID().toString() == idStr;
     });
 }
 Layer* Frame::getActiveLayer() const{
@@ -243,33 +249,3 @@ void Frame::changeActiveLayer(Guid id){
     activeLayer = getLayerByID(id);
 }
 
-
-
-
-using namespace emscripten;
-EMSCRIPTEN_BINDINGS(frame_module){
-    register_vector<Layer*>("VectorLayer");
-
-    class_<Frame>("Frame")
-        .constructor<>()
-        .smart_ptr<std::shared_ptr<Frame>>("shared_ptr<Frame>")
-        .function("setID", &Frame::setID)
-        .function("getID", &Frame::getID)
-        .function("resize", &Frame::resize)
-        .function("move", &Frame::move)
-        .function("clone", &Frame::clone)
-        .function("flipX", &Frame::flipX)
-        .function("flipY", &Frame::flipY)
-        .function("draw", &Frame::draw)
-        .function("getFrameDuration", &Frame::getFrameDuration)
-        .function("getPixel",  select_overload<unsigned int(unsigned int)>(&Frame::getPixel))
-        
-        .function("getLayerIndex", &Frame::getLayerIndex)
-        .function("bringLayerTo", &Frame::bringLayerTo)
-        .function("removeLayer", &Frame::removeLayer)
-        .function("addLayer", &Frame::addLayer, allow_raw_pointers())
-        .function("getAllLayers", &Frame::getAllLayers, allow_raw_pointers())
-        .function("getLayerByID", &Frame::getLayerByID, allow_raw_pointers())
-        .function("getActiveLayer", &Frame::getActiveLayer, allow_raw_pointers())
-        .function("changeActiveLayer", &Frame::changeActiveLayer);
-};

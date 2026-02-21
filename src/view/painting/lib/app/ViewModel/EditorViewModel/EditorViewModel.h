@@ -4,6 +4,8 @@
 
 #include <emscripten/val.h>
 
+#include "../FrameViewModel/FrameViewModel.h"
+
 #include "../../dto/FrameDTO/FrameDTO.h"
 
 #include "../../../objects/Editor/Editor.h"
@@ -16,7 +18,7 @@
 #include "../../../commands/RemoveFrameCommand/RemoveFrameCommand.h"
 
 
-class EditorViewModel : IEditorObserver{
+class EditorViewModel : IEditorObserver {
 private:
     unordered_map<EDITOR_EVENT_TYPE, emscripten::val> observable;
     
@@ -25,15 +27,16 @@ private:
     void onRemoveFrame(Guid id) override;
     void onMoveFrameTo(Guid id, int index) override;
 
+    FrameViewModel frameViewModel;
+
 public:
     Editor& _editor;
     EditorViewModel(Editor& editor);
     ~EditorViewModel();
+
     FrameDTO getFrameByIndex(size_t index);
     size_t getNumberFrames();
 
-    // void registerEvent(EDITOR_EVENT_TYPE eventType, std::function<void(EditorEvent)> callback);
-    
     void changeActiveFrame(std::string id);
     void createFrame();
     void cloneActiveFrame();

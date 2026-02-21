@@ -11,6 +11,9 @@ struct LayerDTO{
     bool isLock;
     float opacity;
     std::string name;
+    int width;
+    int height;
+    bool isActive;
     emscripten::val buffer;
 };
 

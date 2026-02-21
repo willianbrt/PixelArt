@@ -12,8 +12,9 @@ class AddLayerCommand : ICommand {
 private:
     Frame& _frame;
     Layer _layer;
+    size_t _index;
 public:
-    AddLayerCommand(Layer layer, Frame& _frame);
+    AddLayerCommand(Frame& frame, Layer layer, size_t index);
     ~AddLayerCommand();
     void execute() override;
     void undo() override;

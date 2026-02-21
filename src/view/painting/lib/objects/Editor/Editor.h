@@ -29,10 +29,6 @@ extern "C" {
     unsigned int get_viewport_height();
 };
 
-struct EditorEvent{
-    Frame frame;
-    size_t index;
-};
 enum EDITOR_EVENT_TYPE{
     DRAW,
     ADD_FRAME,

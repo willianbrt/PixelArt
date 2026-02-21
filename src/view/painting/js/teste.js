@@ -1,7 +1,6 @@
 import ModulePixelEditor from '../build/PixelEditor.js'
 import { buildPaneFrames } from "./paneFrame.js"
-
-const canvas = document.querySelector("canvas#painting");
+import { buildPaneLayers } from "./paneLayer.js"
 
 let clipboard;
 const channel = new BroadcastChannel("shared-buffer");
@@ -16,7 +15,7 @@ channel.onmessage = (e) => {
 };
 window.onload = async ()=>{
     const module = await ModulePixelEditor({
-        canvas,
+        canvas:  document.querySelector("canvas#painting"),
         preRun: function() {
             console.log("WASM module is starting...");
         },
@@ -29,21 +28,12 @@ window.onload = async ()=>{
     
 }
 function moduleInitalized(module) {
-    console.log("WASM module has completed...");
     try{
-        const editor = createProject.apply(module, [32, 32]);
-        const editorViewModel = new module.EditorViewModel(editor);
-        buildPaneFrames.apply(module, [editorViewModel]);
+        const editorViewModel = module.createProject(32, 32);
+
+        buildPaneFrames(editorViewModel);        
+        buildPaneLayers(editorViewModel.getLayersViewModel());
     }catch(e){
         console.log(e)
     }
-}
-function createProject(width, height){
-    const editor = new this.Editor(width, height);
-    let frame = new this.Frame();
-    let layer = new this.Layer("DEFAULT_NAME_LAYER", width, height);
-    frame.addLayer(layer);
-    editor.addFrame(frame,0);
-
-    return editor;
 }

@@ -1,9 +1,14 @@
 
-#ifndef LAYERVIEWMODEL_H
-#define LAYERVIEWMODEL_H
+#ifndef FRAMEVIEWMODEL_H
+#define FRAMEVIEWMODEL_H
 
 #include "../../../objects/frame/Frame.h"
 #include "../../../objects/layer/Layers.h"
+
+#include "../../dto/LayerDTO/LayerDTO.h"
+#include "../LayerViewModel/LayerViewModel.h"
+
+#include "../../../interfaces/IFrameObserver/IFrameObserver.h"
 
 // #include "../../../commands/HistoryCommand/HistoryCommand.h"
 #include "../../../commands/AddLayerCommand/AddLayerCommand.h"
@@ -12,25 +17,34 @@
 #include "../../../commands/RemoveLayerCommand/RemoveLayerCommand.h"
 
 
-class FrameViewModel{
+class FrameViewModel : IFrameObserver {
 private:
+    unordered_map<FRAME_EVENT_TYPE, emscripten::val> observable;
+    
+    void onChangeActiveLayer(Guid id) override;
+    void onAddLayer(Layer* layer, size_t index) override;
+    void onRemoveLayer(Guid id) override;
+    void onMoveLayerTo(Guid id, int index) override;
 
+    vector<LayerViewModel> layerViewModel;
 public:
     Frame& _frame;
     FrameViewModel(Frame& frame);
     ~FrameViewModel();
     
-    vector<Layer*> getAllLayers();
-    void registerEvent(FRAME_EVENT_TYPE eventType, std::function<void(FrameEvent)> callback);
-
+    void registerEvent(string eventType, emscripten::val callback);
+    
+    LayerDTO getLayerByIndex(size_t index);
+    size_t getNumberLayers();
     void changeActiveLayer(Guid id);
-    void addActiveLayer();
+    void createLayer();
+    void removeActiveLayer();
     void cloneActiveLayer();
     void moveLayerTo(Guid id, int index);
     void moveDownActiveLayer();
     void moveUpActiveLayer();
-    void onRemoveLayer();
-
+    void flipXLayer();
+    void flipYLayer();
 };
 
 #endif

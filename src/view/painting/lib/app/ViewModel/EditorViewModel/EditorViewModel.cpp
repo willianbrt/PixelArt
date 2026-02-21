@@ -1,11 +1,8 @@
 #include "EditorViewModel.h"
 
 
-EditorViewModel::EditorViewModel(Editor& editor) : _editor(editor){
-    Frame* frame = _editor.getActiveFrame();
-    
+EditorViewModel::EditorViewModel(Editor& editor) : _editor(editor){    
     _editor.registerEvent(this);
-    
 }
 EditorViewModel::~EditorViewModel(){
 }
@@ -45,13 +42,16 @@ void EditorViewModel::registerEvent(string eventType, emscripten::val callback){
     }
 }
 
+FrameViewModel EditorViewModel::getLayersViewModel(){
+    
+}
 void EditorViewModel::changeActiveFrame(std::string id){
     _editor.changeActiveFrame(Guid(id));
 }
 void EditorViewModel::createFrame(){
     auto frame = std::make_unique<Frame>();
-    Layer* layer = new Layer("layer 1", _editor.getWidth(), _editor.getHeight());
-    frame.get()->addLayer(layer);
+    auto layer = std::make_unique<Layer>("layer 1", _editor.getWidth(), _editor.getHeight());
+    frame.get()->addLayer(std::move(layer), 0);
 
     size_t index = (_editor.getActiveFrame() == nullptr) ? 0 : _editor.getFrameIndex(_editor.getActiveFrame()->getID())+1;
 

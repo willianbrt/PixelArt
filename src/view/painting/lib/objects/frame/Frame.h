@@ -17,16 +17,13 @@
 
 #include "../../interfaces/IGraphic/IGraphic.h"
 #include "../../interfaces/ITile/ITile.h"
+#include "../../interfaces/IFrameObserver/IFrameObserver.h"
 
 #include "../layer/Layers.h"
 #include "../preview/Preview.h"
 
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 
-struct FrameEvent{
-    Guid layer_id;
-    size_t index;
-};
 enum FRAME_EVENT_TYPE{
     ADD_LAYER,
     REMOVE_LAYER,
@@ -43,8 +40,7 @@ public:
     Frame(const Frame& frame);
     ~Frame();
 
-    void registerEvent(FRAME_EVENT_TYPE eventType, std::function<void(FrameEvent)> callback);
-    void notify(FRAME_EVENT_TYPE eventType, FrameEvent event);
+    void registerEvent(IFrameObserver* observer);
 
     void preview(IGraphic& graphic);
     void draw(IGraphic& graphic);
@@ -58,32 +54,31 @@ public:
     unsigned int getPixel(unsigned int index, int fromIndex, int toIndex);
     unsigned int* getBuffer();
 
-    unsigned int getFrameDuration() const;
     
     void setID(Guid id);
     Guid getID() const;
-    void bringLayerTo(Guid id, size_t to);
-    size_t getLayerIndex(Guid id) const;
-    void removeLayer(Guid id);
-    void addLayer(Layer* tile);
-    vector<Layer*> getAllLayers() const;
-    Layer* getActiveLayer() const;
-    int getIndexFromActiveLayer();
-    void changeActiveLayer(Guid id);
-    size_t getNumberOfLayers();
-    Layer* getLayerByID(Guid id) const;
-    std::vector<Layer*>::const_iterator getIteratorLayerByID(Guid id) const;
+    unsigned int getFrameDuration() const;
 
+    void addLayer(unique_ptr<Layer> tile, size_t index);
+    unique_ptr<Layer>  removeLayer(size_t index);
+    void bringLayerTo(Guid id, size_t to);
+    void changeActiveLayer(Guid id);
+    
+    Layer* getActiveLayer() const;
+    size_t getLayerIndex(Guid id) const;
+    Layer* getLayerByID(Guid id) const;
+    size_t getLayersLength() const;
+    Layer* getLayerByIndex(size_t index) const; 
+    
 private:
+    std::vector<unique_ptr<Layer>>::const_iterator getIteratorLayerByID(Guid id) const;
     void blending(unsigned int& bottomColor, unsigned int topColor);
     
     unsigned int timeDuration = 800;
-    // vector<Layer*> tiles = vector<Layer*>(MAX_LAYERS);
-    vector<Layer*> layers;
-    unordered_map<FRAME_EVENT_TYPE, std::function<void(FrameEvent)>> observable;
+    vector<std::unique_ptr<Layer>> layers;
+    vector<IFrameObserver*> observers;
     Layer* activeLayer = 0;
     Layer* previewLayer = 0;
-    
     
     Guid _id;
 };

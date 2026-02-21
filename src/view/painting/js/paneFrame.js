@@ -1,17 +1,11 @@
-// mergeInto(LibraryManager.library,{
-//     build_pane_frames: buildPaneFrames,
-//     on_add_frame: onAddFrame,
-//     on_remove_frame: onRemoveFrame,
-//     on_move_frame_to: onMoveFrameTo,
-//     on_change_active_frame: onChangeActiveFrame,
-// });
-
+import { buildPaneLayers } from "./paneLayer.js"
 
 let _editorViewModel;
 let _listFrame;
 
 export function buildPaneFrames(editorViewModel){
     _editorViewModel = editorViewModel;
+
     _listFrame = document.getElementById("list-frames");
     _listFrame.innerHTML = "";
     
@@ -68,6 +62,7 @@ function onChangeActiveFrame(id){
               .forEach((f)=>f.classList.remove("active"));
     frameElement?.classList.toggle("active", true);
 
+    buildPaneLayers(_editorViewModel.getLayersViewModel());
 }
 function onMoveFrameTo(id, index){
     let frames = _listFrame.querySelectorAll("div.frame");
@@ -83,7 +78,7 @@ function onMoveFrameTo(id, index){
         frames[index].before(frameElement);
     }
 }
-function onFrameDraw(frameId){t
+function onFrameDraw(frameId){
     const frameElement = getFrameById(frameId);
     const frameCanvas = frameElement.querySelector("canvas");
     let gl = frameCanvas.getContext("webgl");
@@ -137,7 +132,7 @@ function createFrameElement(frame){
     frameElement.append(canvas);
     
     frameElement.onclick = ()=>{
-        _editorViewModel.changeActiveFrame(frame.id)
+        _editorViewModel.changeActiveFrame(frame.id);
     };
 
     return frameElement;
