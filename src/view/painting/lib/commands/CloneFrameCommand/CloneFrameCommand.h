@@ -11,7 +11,9 @@ class CloneFrameCommand : ICommand {
 private:
     Editor& _editor;
     Guid _frameId;
-    Frame frameCloned;
+    std::unique_ptr<Frame> _frameCloned;
+    Guid _frameClonedID;
+    size_t _index;
 
 public:
     CloneFrameCommand(Guid frameId, Editor& editor);

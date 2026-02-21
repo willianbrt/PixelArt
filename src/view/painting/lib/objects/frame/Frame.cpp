@@ -40,7 +40,9 @@ void Frame::move(int offsetX, int offsetY){
     }
 }
 Frame Frame::clone() const {
-    return Frame(*this);
+    Frame frame = Frame(*this);
+    frame.setID(Guid::generateUUID());
+    return frame;
 }
 void Frame::flipX(){
     for(Layer* layer : layers){
