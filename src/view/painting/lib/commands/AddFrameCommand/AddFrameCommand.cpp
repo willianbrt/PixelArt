@@ -1,6 +1,6 @@
 #include "AddFrameCommand.h"
 
-AddFrameCommand::AddFrameCommand(std::unique_ptr<Frame> frame, size_t index, Editor& editor) : _frame(std::move(frame)), _index(index), _editor(editor)
+AddFrameCommand::AddFrameCommand(Editor& editor, std::unique_ptr<Frame> frame, size_t index) : _frame(std::move(frame)), _index(index), _editor(editor)
 {
 
 }

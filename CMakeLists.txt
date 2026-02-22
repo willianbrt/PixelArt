@@ -21,14 +21,12 @@ file(GLOB_RECURSE SOURCES
     ${SRC_DIR}/observers/*/*.cpp
     ${SRC_DIR}/strategy/*/*.cpp
     ${SRC_DIR}/objects/*/*.cpp
-    ${SRC_DIR}/app/Model/*/*.cpp
-    ${SRC_DIR}/app/ViewModel/*/*.cpp
     ${SRC_DIR}/commands/*/*.cpp
-    ${SRC_DIR}/app/Editor/*/*.cpp
-    ${SRC_DIR}/app/View/*/*.cpp
-    ${SRC_DIR}/app/main.cpp
-    # ${SRC_DIR}/app/*/*.cpp
+    ${SRC_DIR}/app/dto/*/*.cpp
+    ${SRC_DIR}/app/ViewModel/*/*.cpp
+    ${SRC_DIR}/app/*/*.cpp
     ${SRC_DIR}/*.cpp
+    ${SRC_DIR}/app/main.cpp
 )
 
 # Compilar cada fonte em objeto
@@ -58,6 +56,7 @@ add_custom_command(
         -s STANDALONE_WASM=0
         -lembind
         -s ASSERTIONS
+        -s NO_DISABLE_EXCEPTION_CATCHING
         --js-library=${SRC_DIR}/js/library.js
     DEPENDS ${OBJECTS}
 )

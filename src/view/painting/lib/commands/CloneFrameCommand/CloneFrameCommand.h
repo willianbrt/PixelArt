@@ -15,7 +15,7 @@ private:
     size_t _index;
 
 public:
-    CloneFrameCommand(Guid frameId, Editor& editor);
+    CloneFrameCommand(Editor& editor, Guid frameId);
     ~CloneFrameCommand();
     void execute() override;
     void undo() override;

@@ -1,0 +1,45 @@
+
+#ifndef FRAMESVIEWMODEL_H
+#define FRAMESVIEWMODEL_H
+
+#include <emscripten/val.h>
+
+#include "../../AppContext/AppContext.h"
+
+#include "../../../objects/Editor/Editor.h"
+#include "../../dto/EditorDTO/EditorDTO.h"
+
+
+#include "../../../interfaces/IEditorManagerObserver/IEditorManagerObserver.h"
+// #include "../../../commands/HistoryCommand/HistoryCommand.h"
+// #include "../../../commands/AddEditorCommand/AddEditorCommand.h"
+// #include "../../../commands/CloneEditorCommand/CloneEditorCommand.h"
+// #include "../../../commands/MoveEditorToCommand/MoveEditorToCommand.h"
+// #include "../../../commands/RemoveEditorCommand/RemoveEditorCommand.h"
+
+
+class EditorManagerViewModel : IEditorManagerObserver {
+private:
+    unordered_map<EDITOR_MANAGER_EVENT_TYPE, emscripten::val> observable;
+    
+    void onChangeActiveEditor(Guid id) override;
+    void onAddEditor(Editor* editor, size_t index) override;
+    void onRemoveEditor(Guid id) override;
+    void onMoveEditorTo(Guid id, int index) override;
+    
+    EditorManager* getEditorManager();
+    EditorManager* _manager;
+public:
+    EditorManagerViewModel();
+    ~EditorManagerViewModel();
+
+    EditorDTO getEditorByIndex(size_t index);
+    size_t getNumberEditors();
+
+    void changeActiveEditor(int id);
+    void createProject(int width, int height);
+    
+    void registerEvent(string eventType, emscripten::val callback);
+};
+
+#endif

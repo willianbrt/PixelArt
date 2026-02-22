@@ -1,6 +1,6 @@
 #include "CloneFrameCommand.h"
 
-CloneFrameCommand::CloneFrameCommand(Guid frameId, Editor& editor) : _frameId(frameId),_editor(editor){
+CloneFrameCommand::CloneFrameCommand(Editor& editor, Guid frameId) : _frameId(frameId),_editor(editor){
 
 }
 CloneFrameCommand::~CloneFrameCommand(){}

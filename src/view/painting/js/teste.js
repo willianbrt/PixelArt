@@ -1,4 +1,4 @@
-import ModulePixelEditor from '../build/PixelEditor.js'
+import { init, app } from './app.js'
 import { buildPaneFrames } from "./paneFrame.js"
 import { buildPaneLayers } from "./paneLayer.js"
 
@@ -14,26 +14,13 @@ channel.onmessage = (e) => {
     }
 };
 window.onload = async ()=>{
-    const module = await ModulePixelEditor({
-        canvas:  document.querySelector("canvas#painting"),
-        preRun: function() {
-            console.log("WASM module is starting...");
-        },
-        postRun: moduleInitalized,
-        onRuntimeInitialized: () =>{
-            console.log("MODULE INITIALIZED")
-            channel.postMessage({ action: "REQUEST_CLIPBOARD"});
-        }
-    });
+    await init();
+    const editorManagerViewModel = app.editorManagerViewModel();
     
-}
-function moduleInitalized(module) {
-    try{
-        const editorViewModel = module.createProject(32, 32);
+    editorManagerViewModel.createProject(32, 32); 
+    console.clear()
+    buildPaneFrames(app.paneFramesViewModel());
 
-        buildPaneFrames(editorViewModel);        
-        buildPaneLayers(editorViewModel.getLayersViewModel());
-    }catch(e){
-        console.log(e)
-    }
+
+    channel.postMessage({ action: "REQUEST_CLIPBOARD"});
 }

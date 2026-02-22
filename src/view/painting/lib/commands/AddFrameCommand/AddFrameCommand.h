@@ -14,7 +14,7 @@ private:
     unique_ptr<Frame> _frame;
     size_t _index;
 public:
-    AddFrameCommand(std::unique_ptr<Frame> frame, size_t index, Editor& _editor);
+    AddFrameCommand(Editor& _editor, std::unique_ptr<Frame> frame, size_t index);
     ~AddFrameCommand();
     void execute() override;
     void undo() override;

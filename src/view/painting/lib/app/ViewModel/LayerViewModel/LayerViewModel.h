@@ -2,6 +2,8 @@
 #ifndef LAYERVIEWMODEL_H
 #define LAYERVIEWMODEL_H
 
+#include "../../AppContext/AppContext.h"
+
 #include "../../../objects/Editor/Editor.h"
 #include "../../../objects/frame/Frame.h"
 #include "../../../objects/layer/Layers.h"
@@ -14,14 +16,10 @@
 
 class LayerViewModel{
 private:
-
+    Layer* _layer;
 public:
-    Layer& _layer;
-    LayerViewModel(Layer& layer);
+    LayerViewModel(Guid layerID);
     ~LayerViewModel();
-    
-    vector<Frame*>& getAllFrames();
-    // // void registerEvent(EDITOR_EVENT_TYPE eventType, std::function<void(EditorEvent)> callback);
 
     void setOpacity(float opacity);
     void setIsVisible(bool isVisible);

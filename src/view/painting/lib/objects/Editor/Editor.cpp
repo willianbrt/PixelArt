@@ -1,10 +1,8 @@
 #include "Editor.h"
 
-Editor::Editor(int width, int height) :_screen(get_viewport_width(), get_viewport_height()), _sketch(width, height) {
-    _sketchPosition = getInitialPosition();
+Editor::Editor(int width, int height) : _sketch(width, height) {
 }
 Editor::~Editor(){
-    // for (auto* f : frames) delete f;
     frames.clear();
     activeFrame = nullptr;
 }
@@ -12,13 +10,6 @@ Editor::~Editor(){
 void Editor::registerEvent(IEditorObserver* observer){
     observers.push_back(observer);
 }
-Point Editor::getInitialPosition(){
-    Point p;
-    p.x = floor((_screen.getHeight() - (_sketch.getWidth())) / 2);
-    p.y = floor((_screen.getWidth() - (_sketch.getHeight())) / 2);
-    return p;
-}
-
 Bounding Editor::getSketchBounding(){
     Point endPoint = Point(_sketchPosition.x + _sketch.getWidth(), _sketchPosition.y + _sketch.getHeight());
     return Bounding(_sketchPosition, endPoint);
@@ -94,8 +85,6 @@ void Editor::addFrame(unique_ptr<Frame> frame, size_t index){
 }
 unique_ptr<Frame> Editor::removeFrame(size_t index){
     if(index < 0 || index >= frames.size()) return nullptr;
-    
-    // printf("remove: %s, %lu, s: %lu\n", id.toString().c_str(), index, frames.size());
     
     for (auto* obs : observers) {
         obs->onRemoveFrame(frames[index]->getID());

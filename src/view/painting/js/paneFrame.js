@@ -1,16 +1,18 @@
+import { app } from "./app.js"
+
 import { buildPaneLayers } from "./paneLayer.js"
 
-let _editorViewModel;
+let _paneFramesViewModel;
 let _listFrame;
 
-export function buildPaneFrames(editorViewModel){
-    _editorViewModel = editorViewModel;
-
+export function buildPaneFrames(paneFramesViewModel){
+    _paneFramesViewModel = paneFramesViewModel;
+    
     _listFrame = document.getElementById("list-frames");
     _listFrame.innerHTML = "";
-    
-    for(let i = 0; i < _editorViewModel.getNumberFrames(); i++){
-        let frameElement = createFrameElement(_editorViewModel.getFrameByIndex(i));
+
+    for(let i = 0; i < _paneFramesViewModel.getNumberFrames(); i++){
+        let frameElement = createFrameElement(_paneFramesViewModel.getFrameByIndex(i));
         _listFrame.append(frameElement);
     }
     
@@ -28,19 +30,19 @@ export function buildPaneFrames(editorViewModel){
     let btnFlipXFrame = document.getElementById("flip-x");
     let btnFlipYFrame = document.getElementById("flip-y");
     
-    btnAddFrame.onclick = ()=> _editorViewModel.createFrame();
-    btnRemoveFrame.onclick = ()=> _editorViewModel.removeActiveFrame();
-    btnMoveDownFrame.onclick = ()=> _editorViewModel.moveDownActiveFrame();
-    btnMoveUpFrame.onclick = ()=> _editorViewModel.moveUpActiveFrame();
-    btnCloneFrame.onclick = ()=> _editorViewModel.cloneActiveFrame();
+    btnAddFrame.onclick = ()=> _paneFramesViewModel.createFrame();
+    btnRemoveFrame.onclick = ()=> _paneFramesViewModel.removeActiveFrame();
+    btnMoveDownFrame.onclick = ()=> _paneFramesViewModel.moveDownActiveFrame();
+    btnMoveUpFrame.onclick = ()=> _paneFramesViewModel.moveUpActiveFrame();
+    btnCloneFrame.onclick = ()=> _paneFramesViewModel.cloneActiveFrame();
 
-    btnFlipXFrame.onclick = ()=> _editorViewModel.flipXActiveFrame();
-    btnFlipYFrame.onclick = ()=> _editorViewModel.flipYActiveFrame();
+    btnFlipXFrame.onclick = ()=> _paneFramesViewModel.flipXActiveFrame();
+    btnFlipYFrame.onclick = ()=> _paneFramesViewModel.flipYActiveFrame();
     
-    _editorViewModel.registerEvent("ADD_FRAME", onAddFrame);
-    _editorViewModel.registerEvent("REMOVE_FRAME", onRemoveFrame);
-    _editorViewModel.registerEvent("MOVE_FRAME_TO", onMoveFrameTo);
-    _editorViewModel.registerEvent("CHANGE_ACTIVE_FRAME", onChangeActiveFrame);
+    _paneFramesViewModel.registerEvent("ADD_FRAME", onAddFrame);
+    _paneFramesViewModel.registerEvent("REMOVE_FRAME", onRemoveFrame);
+    _paneFramesViewModel.registerEvent("MOVE_FRAME_TO", onMoveFrameTo);
+    _paneFramesViewModel.registerEvent("CHANGE_ACTIVE_FRAME", onChangeActiveFrame);
 }
 function onAddFrame(frame, index){
     let frameElement = createFrameElement(frame);
@@ -62,7 +64,7 @@ function onChangeActiveFrame(id){
               .forEach((f)=>f.classList.remove("active"));
     frameElement?.classList.toggle("active", true);
 
-    buildPaneLayers(_editorViewModel.getLayersViewModel());
+    buildPaneLayers(app.paneLayersViewModel());
 }
 function onMoveFrameTo(id, index){
     let frames = _listFrame.querySelectorAll("div.frame");
@@ -132,7 +134,7 @@ function createFrameElement(frame){
     frameElement.append(canvas);
     
     frameElement.onclick = ()=>{
-        _editorViewModel.changeActiveFrame(frame.id);
+        _paneFramesViewModel.changeActiveFrame(frame.id);
     };
 
     return frameElement;

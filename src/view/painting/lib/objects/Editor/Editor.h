@@ -3,10 +3,6 @@
 #define IEDITOR_H
 
 
-#include <emscripten/emscripten.h>
-#include <emscripten/val.h>
-#include <emscripten/bind.h>
-#include <emscripten/html5.h>
 #include <memory>
 #include <algorithm>
 #include <vector>
@@ -41,7 +37,6 @@ class Editor
 {
 private:
     const std::string DEFAULT_NAME_LAYER = "Layer";
-    Surface _screen;
     Surface _sketch;
     Point _sketchPosition;
     unsigned int _scale = 1;
@@ -59,7 +54,6 @@ public:
 
     void registerEvent(IEditorObserver* observer);
 
-    Point getInitialPosition();
     Bounding getSketchBounding();
     void setNumberTiles(int rol, int col);
     void preview(IGraphic& graphic);

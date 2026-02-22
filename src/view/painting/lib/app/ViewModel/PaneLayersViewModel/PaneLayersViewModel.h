@@ -1,7 +1,10 @@
 
-#ifndef FRAMEVIEWMODEL_H
-#define FRAMEVIEWMODEL_H
+#ifndef PANELAYERSVIEWMODEL_H
+#define PANELAYERSVIEWMODEL_H
 
+#include "../../AppContext/AppContext.h"
+
+#include "../../../objects/Editor/Editor.h"
 #include "../../../objects/frame/Frame.h"
 #include "../../../objects/layer/Layers.h"
 
@@ -17,7 +20,7 @@
 #include "../../../commands/RemoveLayerCommand/RemoveLayerCommand.h"
 
 
-class FrameViewModel : IFrameObserver {
+class PaneLayersViewModel : IFrameObserver {
 private:
     unordered_map<FRAME_EVENT_TYPE, emscripten::val> observable;
     
@@ -27,10 +30,13 @@ private:
     void onMoveLayerTo(Guid id, int index) override;
 
     vector<LayerViewModel> layerViewModel;
+    
+    Frame* getActiveFrame();
+
 public:
-    Frame& _frame;
-    FrameViewModel(Frame& frame);
-    ~FrameViewModel();
+    Frame* _frame;
+    PaneLayersViewModel();
+    ~PaneLayersViewModel();
     
     void registerEvent(string eventType, emscripten::val callback);
     

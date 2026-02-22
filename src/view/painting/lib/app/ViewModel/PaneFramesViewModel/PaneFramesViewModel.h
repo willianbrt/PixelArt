@@ -1,15 +1,16 @@
 
-#ifndef FRAMESVIEWMODEL_H
-#define FRAMESVIEWMODEL_H
+#ifndef PANEFRAMESVIEWMODEL_H
+#define PANEFRAMESVIEWMODEL_H
 
 #include <emscripten/val.h>
 
-#include "../FrameViewModel/FrameViewModel.h"
-
-#include "../../dto/FrameDTO/FrameDTO.h"
+#include "../../AppContext/AppContext.h"
 
 #include "../../../objects/Editor/Editor.h"
 #include "../../../objects/frame/Frame.h"
+
+#include "../../dto/FrameDTO/FrameDTO.h"
+
 #include "../../../interfaces/IEditorObserver/IEditorObserver.h"
 // #include "../../../commands/HistoryCommand/HistoryCommand.h"
 #include "../../../commands/AddFrameCommand/AddFrameCommand.h"
@@ -18,7 +19,7 @@
 #include "../../../commands/RemoveFrameCommand/RemoveFrameCommand.h"
 
 
-class EditorViewModel : IEditorObserver {
+class PaneFramesViewModel : IEditorObserver {
 private:
     unordered_map<EDITOR_EVENT_TYPE, emscripten::val> observable;
     
@@ -27,12 +28,10 @@ private:
     void onRemoveFrame(Guid id) override;
     void onMoveFrameTo(Guid id, int index) override;
 
-    FrameViewModel frameViewModel;
-
+    Editor* getActiveEditor();
 public:
-    Editor& _editor;
-    EditorViewModel(Editor& editor);
-    ~EditorViewModel();
+    PaneFramesViewModel();
+    ~PaneFramesViewModel();
 
     FrameDTO getFrameByIndex(size_t index);
     size_t getNumberFrames();
