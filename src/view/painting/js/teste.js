@@ -20,6 +20,7 @@ window.onload = async ()=>{
     editorManagerViewModel.createProject(32, 32); 
     console.clear()
     buildPaneFrames(app.paneFramesViewModel());
+    buildPaneLayers(app.paneLayersViewModel());
 
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});

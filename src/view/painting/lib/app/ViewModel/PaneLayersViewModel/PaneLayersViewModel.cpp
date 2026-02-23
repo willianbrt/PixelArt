@@ -40,6 +40,10 @@ LayerDTO PaneLayersViewModel::getLayerByIndex(size_t index){
 
     LayerDTO layerDTO;
     layerDTO.id = layer->getID().toString();
+    layerDTO.name = layer->getName();
+    layerDTO.opacity = layer->getOpacity();
+    layerDTO.isLock = layer->isLock();
+    layerDTO.isVisible = layer->isVisible();
     layerDTO.buffer = emscripten::val(emscripten::typed_memory_view(layer->getWidth()* layer->getHeight()*4, reinterpret_cast<uint8_t*>(layer->getBuffer())));
     layerDTO.width = layer->getWidth();
     layerDTO.height = layer->getHeight();
@@ -106,6 +110,10 @@ void PaneLayersViewModel::onChangeActiveLayer(Guid id){
 void PaneLayersViewModel::onAddLayer(Layer* layer, size_t index){
     LayerDTO layerDTO;
     layerDTO.id = layer->getID().toString();
+    layerDTO.name = layer->getName();
+    layerDTO.opacity = layer->getOpacity();
+    layerDTO.isLock = layer->isLock();
+    layerDTO.isVisible = layer->isVisible();
     layerDTO.buffer = emscripten::val(emscripten::typed_memory_view(layer->getWidth()* layer->getHeight()*4, reinterpret_cast<uint8_t*>(layer->getBuffer())));
     layerDTO.width = layer->getWidth();
     layerDTO.height = layer->getHeight();

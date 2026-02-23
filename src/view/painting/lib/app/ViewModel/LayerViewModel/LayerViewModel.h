@@ -18,7 +18,7 @@ class LayerViewModel{
 private:
     Layer* _layer;
 public:
-    LayerViewModel(Guid layerID);
+    LayerViewModel(std::string layerID);
     ~LayerViewModel();
 
     void setOpacity(float opacity);

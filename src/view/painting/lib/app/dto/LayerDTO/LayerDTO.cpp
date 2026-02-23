@@ -5,6 +5,7 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     value_object<LayerDTO>("LayerDTO")
         .field("id", &LayerDTO::id)
+        .field("name", &LayerDTO::name)
         .field("width", &LayerDTO::width)
         .field("height", &LayerDTO::height)
         .field("isActive", &LayerDTO::isActive)

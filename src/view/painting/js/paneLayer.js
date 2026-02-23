@@ -1,22 +1,21 @@
-let _frameViewModel;
+import { app } from "./app.js"
+
+let _paneLayersViewModel;
 let _isActiveFrame = false;
 let _listLayer;
 
-export function buildPaneLayers(frameViewModel){
-    _frameViewModel = frameViewModel;
+export function buildPaneLayers(paneLayersViewModel){
+    _paneLayersViewModel = paneLayersViewModel;
 
     _listLayer = document.getElementById("list-Layers");
     _listLayer.querySelectorAll(".layer")
              .forEach((e)=>e.remove());
 
-    let layers = frameViewModel.getAllLayers();
-    let _activeLayer = frameViewModel.getActiveLayer();
-    for(let i = 0; i < layers.size(); i++){
-        let layerElement = createLayerElement(layers.get(i));
-        layerElement.setIsActive(layers.get(i).getID().toString() == _activeLayer.getID().toString());
-        _listLayer.prepend(layerElement);
+    for(let i = 0; i < _paneLayersViewModel.getNumberLayers(); i++){
+        let layerElement = createLayerElement(_paneLayersViewModel.getLayerByIndex(i));
+        _listLayer.append(layerElement);
     }
-
+    
     
     let btnAddLayer = document.getElementById("add-layer");
     let btnRemoveLayer = document.getElementById("remove-layer");
@@ -24,16 +23,16 @@ export function buildPaneLayers(frameViewModel){
     let btnMoveDown = document.getElementById("move-down-layer");
     let btnMoveUp = document.getElementById("move-up-layer");
 
-    btnAddLayer.onclick = ()=> _frameViewModel.createLayer();
-    btnRemoveLayer.onclick = ()=> _frameViewModel.removeActiveLayer();
-    btnMoveDown.onclick = ()=> _frameViewModel.moveDownActiveLayer();
-    btnMoveUp.onclick = ()=> _frameViewModel.moveUpActiveLayer();
-    btnCloneLayer.onclick = ()=> _frameViewModel.duplicateActiveLayer();
+    btnAddLayer.onclick = ()=> _paneLayersViewModel.createLayer();
+    btnRemoveLayer.onclick = ()=> _paneLayersViewModel.removeActiveLayer();
+    btnMoveDown.onclick = ()=> _paneLayersViewModel.moveDownActiveLayer();
+    btnMoveUp.onclick = ()=> _paneLayersViewModel.moveUpActiveLayer();
+    btnCloneLayer.onclick = ()=> _paneLayersViewModel.duplicateActiveLayer();
 
-    _frameViewModel.registerEvent("ADD_LAYER", onAddLayer);
-    _frameViewModel.registerEvent("REMOVE_LAYER", onRemoveLayer);
-    _frameViewModel.registerEvent("MOVE_LAYER_TO", onMoveLayerTo);
-    _frameViewModel.registerEvent("CHANGE_ACTIVE_LAYER", onChangeActiveLayer);
+    _paneLayersViewModel.registerEvent("ADD_LAYER", onAddLayer);
+    _paneLayersViewModel.registerEvent("REMOVE_LAYER", onRemoveLayer);
+    _paneLayersViewModel.registerEvent("MOVE_LAYER_TO", onMoveLayerTo);
+    _paneLayersViewModel.registerEvent("CHANGE_ACTIVE_LAYER", onChangeActiveLayer);
 }
 
 function onAddLayer(event){
@@ -95,10 +94,12 @@ function onMoveLayerTo(event){
 function getLayerElementById(id){
     return _listLayer.find((l)=> { if(l.dataset.id == id) return l;});
 }
-function createLayerElement(module, layer){
+function createLayerElement(layer){
     let _isActive = false;
+    const { id, buffer, width, height, isActive, isLock, isVisible, opacity } = layer;
     
-    let layerViewModel = new module.LayerViewModel();
+    
+    let layerViewModel = app.layerViewModel(id);
     layerViewModel.registerEvent("OPACITY_LAYER", onOpacityLayer);
     layerViewModel.registerEvent("TOGGLE_HIDE_LAYER", onToggleHideLayer);
     layerViewModel.registerEvent("TOGGLE_LOCK_LAYER", onToggleLockLayer);
@@ -106,9 +107,11 @@ function createLayerElement(module, layer){
 
 
     let layerElement = document.createElement("div");
+    layerElement.dataset.id = id;
     layerElement.classList.add("layer");
-    layerElement.dataset.id = layer.getID().toString();
-    layerElement.onclick = ()=> layerViewModel.setChangeActiveFrame(layer.getID());
+    if(isActive)
+        layerElement.classList.add("active");
+    layerElement.onclick = ()=> layerViewModel.setChangeActiveFrame(layer.id);
     
 
     let nameLayer = document.createElement("div");
@@ -136,7 +139,7 @@ function createLayerElement(module, layer){
         editing = true;
 
         let inpNameLayer = document.createElement("input");
-        inpNameLayer.value = layer.getName();
+        inpNameLayer.value = layer.name;
         inpNameLayer.type = "text";
 
         nameLayer.replaceChild(inpNameLayer, h5);
@@ -149,7 +152,7 @@ function createLayerElement(module, layer){
         });
 
         function done(){
-            if(inpNameLayer.value != "" && inpNameLayer.value != layer.getName()){
+            if(inpNameLayer.value != "" && inpNameLayer.value != layer.name){
                 layerViewModel.rename(inpNameLayer.value);
             }
         
@@ -163,16 +166,18 @@ function createLayerElement(module, layer){
     
     let btnHideLayer = document.createElement("button");
     let iconHideLayer = document.createElement("i");
+    iconHideLayer.classList.add("fa");
     btnHideLayer.className = "hide-layer";
     btnHideLayer.append(iconHideLayer);
-    btnHideLayer.onclick = ()=> layerViewModel.setVisible(!layer.isVisible());
+    btnHideLayer.onclick = ()=> layerViewModel.setVisible(!layer.isVisible);
     updateIsVisible();
     
     let btnLockLayer = document.createElement("button");
     let iconLockLayer = document.createElement("i");
+    iconLockLayer.classList.add("fa");
     btnLockLayer.className = "lock-layer";
     btnLockLayer.append(iconLockLayer);
-    btnLockLayer.onclick = ()=> layerViewModel.setLock(!layer.isLock());
+    btnLockLayer.onclick = ()=> layerViewModel.setLock(!layer.isLock);
     updateIsLock();
     
     let btnGrabLayer = document.createElement("button");
@@ -224,7 +229,7 @@ function createLayerElement(module, layer){
                 areaListLayer.prepend(layerElement);
             }
 
-            layerViewModel.moveLayerTo(layer.getID(), elementLast.dataset.index);
+            layerViewModel.moveLayerTo(layer.id, elementLast.dataset.index);
             
             abort.abort();
         };
@@ -248,19 +253,19 @@ function createLayerElement(module, layer){
     });
 
     function updateName(){
-        h5.innerText = layer.getName();
+        h5.innerText = layer.name;
     }
     function updateIsVisible(){
-        if(layer.isVisible()){
-            iconLockLayer.classList.remove("fa-eye-slash");
-            iconLockLayer.classList.add("fa-eye");
+        if(layer.isVisible){
+            iconHideLayer.classList.remove("fa-eye-slash");
+            iconHideLayer.classList.add("fa-eye");
         }else {
-            iconLockLayer.classList.remove("fa-eye");
-            iconLockLayer.classList.add("fa-eye-slash");
+            iconHideLayer.classList.remove("fa-eye");
+            iconHideLayer.classList.add("fa-eye-slash");
         }
     }
     function updateIsLock(){
-        if(layer.isLock()){
+        if(layer.isLock){
             iconLockLayer.classList.remove("fa-unlock");
             iconLockLayer.classList.add("fa-lock");
         }else {
@@ -277,7 +282,7 @@ function createLayerElement(module, layer){
         _isActive = isActive;
     }
     function updateOpacity(){
-        inpOpacity.value = layer.getOpacity() * 100.0;
+        inpOpacity.value = layer.opacity * 100.0;
         document.querySelector("#opacity-label h5").innerText = "Transparência " + inpOpacity.value + "%";
     }
 
@@ -285,7 +290,7 @@ function createLayerElement(module, layer){
         const { layer, index, is_active } = event;
         if(!is_active) return;
 
-        setOpacity(layer.getOpacity());
+        setOpacity(layer.opacity);
     }
     function onToggleLockLayer(event){
         const { layer, index, is_active } = event;
@@ -318,7 +323,7 @@ function createLayerElement(module, layer){
         if(!_isActiveFrame) return;
 
         const h5 = layerElement.querySelector("h5");
-        h5.innerText = layer.getName();
+        h5.innerText = layer.name;
     }
 
     return Object.assign(layerElement, {
