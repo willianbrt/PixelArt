@@ -45,7 +45,7 @@ void Frame::flipX(){
         unsigned int* buffer = layer->getBuffer();
         unsigned int len = layer->getLength();
         int width = layer->getWidth();
-        
+            
         if(width <= 0) return;
 
         int incrementY = (width+1) >> 1;
@@ -182,9 +182,9 @@ unsigned int* Frame::getBuffer() {
 
 void Frame::bringLayerTo(Guid id, size_t toIndex){
     auto from = getIteratorLayerByID(id);
-
+    
     if (from == layers.end()) return;
-
+    
     size_t fromIndex = std::distance(layers.cbegin(), from);
     
     if (fromIndex == toIndex || fromIndex >= layers.size() || toIndex >= layers.size()) return;
@@ -194,9 +194,11 @@ void Frame::bringLayerTo(Guid id, size_t toIndex){
     } else {
         std::rotate(layers.begin() + toIndex, layers.begin() + fromIndex, layers.begin() + fromIndex + 1);
     }
-
-    // if(activeLayer->getID().toString() == id.toString())
-    // emscripten::val::global("move_layer_to")(emscripten::val(id), emscripten::val(toIndex));
+    
+    Layer* layerPtr = layers[toIndex].get();
+    for (auto* obs : observers) {
+        obs->onMoveLayerTo(layerPtr->getID(), toIndex);
+    }
 }
 unique_ptr<Layer> Frame::removeLayer(size_t index){
     if(index < 0 || index >= layers.size()) return nullptr;
@@ -247,5 +249,8 @@ Layer* Frame::getActiveLayer() const{
 }
 void Frame::changeActiveLayer(Guid id){
     activeLayer = getLayerByID(id);
+    for (auto* obs : observers) {
+        obs->onChangeActiveLayer(activeLayer->getID());
+    }
 }
 

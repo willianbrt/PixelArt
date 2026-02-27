@@ -57,42 +57,71 @@ size_t PaneLayersViewModel::getNumberLayers(){
 
 
 
-void PaneLayersViewModel::changeActiveLayer(Guid id){
-    _frame->changeActiveLayer(id);
+void PaneLayersViewModel::changeActiveLayer(std::string id){
+    getActiveFrame()->changeActiveLayer(Guid(id));
 }
 void PaneLayersViewModel::createLayer(){
-    // Layer layer("Layer ", 10,10);
-    // AddLayerCommand command(layer, _frame);
-    // command.execute();
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
+
+    auto layer = std::make_unique<Layer>("Layer 1", _editor->getWidth(), _editor->getHeight());
+    size_t activeLayerIndex = _frame->getLayerIndex(_frame->getActiveLayer()->getID()); 
+    
+    AddLayerCommand command(*_frame, std::move(layer), activeLayerIndex+1);
+    command.execute();
 }
 void PaneLayersViewModel::removeActiveLayer(){
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
 
+    Layer* layer = _frame->getActiveLayer();
+    RemoveLayerCommand command(*_frame, layer->getID());
+    command.execute();
 }
 void PaneLayersViewModel::cloneActiveLayer(){
-    // Layer* layer = _frame->getActiveLayer();
-    // CloneLayerCommand command(layer->getID(), _frame);
-    // command.execute();
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
+
+    Layer* layer = _frame->getActiveLayer();
+    CloneLayerCommand command(layer->getID(), *_frame);
+    command.execute();
 }
-void PaneLayersViewModel::moveLayerTo(Guid id, int index){
-    // MoveLayerToCommand command(_frame, id, index);
-    // command.execute();
+
+void PaneLayersViewModel::moveLayerTo(std::string id, std::string afterId){
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
+
+    MoveLayerToCommand command(*_frame, Guid(id), _frame->getLayerIndex(Guid(afterId)));
+    command.execute();
 }
 void PaneLayersViewModel::moveDownActiveLayer(){
-    // Layer* layer = _frame->getActiveLayer();
-    // size_t index = _frame->getLayerIndex(layer->getID());
-    // if(index > 0) return;
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
 
-    // MoveLayerToCommand command(_frame, layer->getID(), index - 1);
-    // command.execute();
+    Layer* layer = _frame->getActiveLayer();
+    size_t index = _frame->getLayerIndex(layer->getID());
+    if(index < 0) return;
+
+    MoveLayerToCommand command(*_frame, layer->getID(), index - 1);
+    command.execute();
 }
 void PaneLayersViewModel::moveUpActiveLayer(){
-    // Layer* layer = _frame->getActiveLayer();
-    // size_t index = _frame->getLayerIndex(layer->getID());
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
 
-    // if(index >= _frame->getLayersLength()) return;
+    Layer* layer = _frame->getActiveLayer();
+    size_t index = _frame->getLayerIndex(layer->getID());
 
-    // MoveLayerToCommand command(_frame, layer->getID(), index + 1);
-    // command.execute();
+    if(index > _frame->getLayersLength()) return;
+
+    MoveLayerToCommand command(*_frame, layer->getID(), index + 1);
+    command.execute();
 }
 void PaneLayersViewModel::flipXLayer(){
 }

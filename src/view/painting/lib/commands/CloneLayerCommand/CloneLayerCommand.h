@@ -12,8 +12,8 @@ class CloneLayerCommand : ICommand {
 private:
     Frame& _frame;
     Guid _layerId;
-    // Layer layerCloned;
-
+    Guid _layerClonedID;
+    size_t _index;
 public:
     CloneLayerCommand(Guid layerId, Frame& frame);
     ~CloneLayerCommand();

@@ -42,11 +42,11 @@ public:
     
     LayerDTO getLayerByIndex(size_t index);
     size_t getNumberLayers();
-    void changeActiveLayer(Guid id);
+    void changeActiveLayer(std::string id);
     void createLayer();
     void removeActiveLayer();
     void cloneActiveLayer();
-    void moveLayerTo(Guid id, int index);
+    void moveLayerTo(std::string id, std::string afterId);
     void moveDownActiveLayer();
     void moveUpActiveLayer();
     void flipXLayer();

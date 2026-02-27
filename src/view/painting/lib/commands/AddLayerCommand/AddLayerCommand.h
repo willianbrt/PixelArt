@@ -1,6 +1,6 @@
 
-#ifndef IADDLAYERCOMMAND_H
-#define IADDLAYERCOMMAND_H
+#ifndef ADDLAYERCOMMAND_H
+#define ADDLAYERCOMMAND_H
 
 #include <vector>
 #include "../../helpers/Guid/Guid.h"
@@ -11,10 +11,10 @@
 class AddLayerCommand : ICommand {
 private:
     Frame& _frame;
-    Layer _layer;
+    std::unique_ptr<Layer> _layer;
     size_t _index;
 public:
-    AddLayerCommand(Frame& frame, Layer layer, size_t index);
+    AddLayerCommand(Frame& frame, std::unique_ptr<Layer> layer, size_t index);
     ~AddLayerCommand();
     void execute() override;
     void undo() override;

@@ -10,9 +10,10 @@
 class MoveLayerToCommand : ICommand {
 private:
     Frame& _frame;
-    int originalIndex, toIndex;
+    Guid _layerId;
+    int _originalIndex, _toIndex;
 public:
-    MoveLayerToCommand(Frame& frame, Guid layerId, int index);
+    MoveLayerToCommand(Frame& frame, Guid layerId, int toIndex);
     ~MoveLayerToCommand();
     void execute() override;
     void undo() override;

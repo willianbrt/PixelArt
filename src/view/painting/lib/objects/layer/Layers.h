@@ -13,12 +13,19 @@
 
 #include "../../helpers/Guid/Guid.h"
 
+#include "../../interfaces/ILayerObserver/ILayerObserver.h"
 #include "../../interfaces/ITile/ITile.h"
 #include "../../interfaces/IGraphic/IGraphic.h"
 #include "../../graphics/surface/Surface.h"
+// #include "../frame/Frame.h"
 
 using namespace std;
-
+enum LAYER_EVENT_TYPE{
+    IS_LOCK_LAYER,
+    IS_VISIBLE_LAYER,
+    OPACITY_LAYER,
+    RENAME_LAYER
+};
 class Layer : public ITile, public Surface {
 private: 
     Guid _id;
@@ -27,6 +34,7 @@ private:
     float _opacity = 1.0f;
     std::string _name = nullptr;
     
+    vector<ILayerObserver*> observers;
 public:
     Layer(std::string name, unsigned int width, unsigned int height);
     Layer(const Layer& layer);
@@ -36,6 +44,8 @@ public:
     void move(int x, int y) override;
     Layer clone() const;
     void draw(IGraphic& graphic) override;
+    
+    void registerEvent(ILayerObserver* observer);
     
     void setID(Guid id);
     Guid getID() const;

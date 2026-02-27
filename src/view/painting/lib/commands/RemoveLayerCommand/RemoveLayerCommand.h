@@ -10,6 +10,11 @@
 class RemoveLayerCommand : ICommand {
 private:
     Frame& _frame;
+    Guid _layerId;
+    size_t _index;
+    std::unique_ptr<Layer> _layerRemoved;
+    Guid _layerAddedID;
+    bool _isAdd = false;
 public:
     RemoveLayerCommand(Frame& frame, Guid layerId);
     ~RemoveLayerCommand();

@@ -39,19 +39,49 @@ void Layer::resize(int width, int height){
     // TODO: IMPLEMENTAR
 }
 Layer Layer::clone() const {
-    return Layer(*this);
+    Layer layer(*this);
+    layer.setID(Guid::generateUUID());
+    return layer;
 }
+
+void Layer::registerEvent(ILayerObserver* observer){
+    observers.push_back(observer);
+}
+
 
 void Layer::setID(Guid id) { _id = id; }
 Guid Layer::getID() const { return _id; }
 bool Layer::isVisible() const { return _isVisible; }
-void Layer::setVisible(bool isVisible){ _isVisible = isVisible; }
+void Layer::setVisible(bool isVisible){ 
+    _isVisible = isVisible;
+    
+    for (auto* obs : observers) {
+        obs->onIsVisibleLayer();
+    }
+}
 bool Layer::isLock() const { return _isLock;}
-void Layer::setLock(bool isLock){ _isLock = isLock; }
+void Layer::setLock(bool isLock){
+    _isLock = isLock;
+    
+    for (auto* obs : observers) {
+        obs->onIsLockLayer();
+    }
+}
 std::string Layer::getName() const { return _name; }
-void Layer::setName(std::string name) { _name = name; }
+void Layer::setName(std::string name) {
+    _name = name;
+    for (auto* obs : observers) {
+        obs->onRenameLayer();
+    }
+}
 float Layer::getOpacity() const { return _opacity; }
-void Layer::setOpacity(float value){ _opacity = value; }
+void Layer::setOpacity(float value){
+    _opacity = value;
+
+    for (auto* obs : observers) {
+        obs->onOpacityLayer();
+    }
+}
 unsigned int Layer::getFilteredPixel(unsigned int index) {
     if (index < 0 || index >= _length)  return 0;
     
