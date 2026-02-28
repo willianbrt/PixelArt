@@ -128,9 +128,41 @@ void PaneLayersViewModel::flipXLayer(){
 void PaneLayersViewModel::flipYLayer(){
 }
 
+void PaneLayersViewModel::beginChangeActiveLayerOpacity(){
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
+    Layer* _layer = _frame->getActiveLayer();
+    _initialOpacity = _layer->getOpacity();
+    
+}
+
+void PaneLayersViewModel::onChangeActiveLayerOpacity(float opacity){
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
+    Layer* _layer = _frame->getActiveLayer();
+    _layer->setOpacity(opacity);
+}
+
+void PaneLayersViewModel::endChangeActiveLayerOpacity(){
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    Frame* _frame = _editor->getActiveFrame();
+    Layer* _layer = _frame->getActiveLayer();
+
+    if(_initialOpacity ==  _layer->getOpacity() || _initialOpacity < 0) return;
+    
+    LayerOpacityCommand command(*_layer, _initialOpacity, _layer->getOpacity());
+    command.execute();
+
+    _initialOpacity = -1;
+}
 
 
 void PaneLayersViewModel::onChangeActiveLayer(Guid id){
+    endChangeActiveLayerOpacity();
+
     auto it = observable.find(FRAME_EVENT_TYPE::CHANGE_ACTIVE_LAYER);
     if (it != observable.end()) {
         it->second(id.toString());
@@ -219,5 +251,9 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("moveUpActiveLayer", &PaneLayersViewModel::moveUpActiveLayer)
         .function("removeActiveLayer", &PaneLayersViewModel::removeActiveLayer)
         .function("flipXLayer", &PaneLayersViewModel::flipXLayer)
-        .function("flipYLayer", &PaneLayersViewModel::flipYLayer);
+        .function("flipYLayer", &PaneLayersViewModel::flipYLayer)
+        .function("beginChangeActiveLayerOpacity", &PaneLayersViewModel::beginChangeActiveLayerOpacity)
+        .function("onChangeActiveLayerOpacity", &PaneLayersViewModel::onChangeActiveLayerOpacity)
+        .function("endChangeActiveLayerOpacity", &PaneLayersViewModel::endChangeActiveLayerOpacity)
+        ;
 };

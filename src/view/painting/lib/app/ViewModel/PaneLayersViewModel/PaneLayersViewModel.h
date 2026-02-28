@@ -18,6 +18,7 @@
 #include "../../../commands/CloneLayerCommand/CloneLayerCommand.h"
 #include "../../../commands/MoveLayerToCommand/MoveLayerToCommand.h"
 #include "../../../commands/RemoveLayerCommand/RemoveLayerCommand.h"
+#include "../../../commands/LayerOpacityCommand/LayerOpacityCommand.h"
 
 
 class PaneLayersViewModel : IFrameObserver {
@@ -32,9 +33,10 @@ private:
     vector<LayerViewModel> layerViewModel;
     
     Frame* getActiveFrame();
+    Frame* _frame;
+    float _initialOpacity;
 
 public:
-    Frame* _frame;
     PaneLayersViewModel();
     ~PaneLayersViewModel();
     
@@ -51,6 +53,10 @@ public:
     void moveUpActiveLayer();
     void flipXLayer();
     void flipYLayer();
+    void setOpacity(float opacity);
+    void beginChangeActiveLayerOpacity();
+    void onChangeActiveLayerOpacity(float opacity);
+    void endChangeActiveLayerOpacity();
 };
 
 #endif

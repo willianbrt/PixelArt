@@ -10,6 +10,7 @@
 #include "../../../interfaces/ILayerObserver/ILayerObserver.h"
 // #include "../../../interfaces/IObservableList/IObservableList.h"
 // #include "../../../commands/HistoryCommand/HistoryCommand.h"
+#include "../../../commands/LayerRenameCommand/LayerRenameCommand.h"
 #include "../../../commands/LayerOpacityCommand/LayerOpacityCommand.h"
 #include "../../../commands/LayerVisibilityCommand/LayerVisibilityCommand.h"
 #include "../../../commands/LayerLockCommand/LayerLockCommand.h"
@@ -32,6 +33,7 @@ public:
     void setOpacity(float opacity);
     void setIsVisible(bool isVisible);
     void setIsLock(bool isLock);
+    void setName(string name);
 };
 
 #endif

@@ -13,7 +13,7 @@ private:
     float _newOpacity;
     float _oldOpacity;
 public:
-    LayerOpacityCommand(Layer& layer, float newOpacity);
+    LayerOpacityCommand(Layer& layer, float oldOpacity, float newOpacity);
     ~LayerOpacityCommand();
     void execute() override;
     void undo() override;

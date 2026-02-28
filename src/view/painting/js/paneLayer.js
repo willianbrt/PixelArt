@@ -2,18 +2,33 @@ import { app } from "./app.js"
 
 let _paneLayersViewModel;
 let _listLayer;
+let _layers = [];
 
+let inpOpacity;
 export function buildPaneLayers(paneLayersViewModel){
     _paneLayersViewModel = paneLayersViewModel;
 
-    _listLayer = document.getElementById("list-Layers");
-    _listLayer.querySelectorAll(".layer")
-             .forEach((e)=>e.remove());
+    inpOpacity = document.querySelector("input[name='opacity-layer']");
 
+    ["mousedown", "touchstart"].forEach((eventType)=> function() {
+        inpOpacity.addEventListener(eventType, function() {
+            _paneLayersViewModel.beginChangeActiveLayerOpacity();
+        });
+    });
+    inpOpacity.addEventListener("input", function() {
+        _paneLayersViewModel.onChangeActiveLayerOpacity(parseFloat(this.value / 100.0));
+    });
+    ["mouseup", "touchend"].forEach((eventType)=> function() {
+        inpOpacity.addEventListener(eventType, function() {
+            _paneLayersViewModel.endChangeActiveLayerOpacity();
+        });
+    });
+
+    _listLayer = document.getElementById("list-Layers");
+
+    _layers = _layers.filter((e)=> e.element.remove());
     for(let i = 0; i < _paneLayersViewModel.getNumberLayers(); i++){
-        let layerElement = createLayerElement(_paneLayersViewModel.getLayerByIndex(i));
-        
-        _listLayer.append(layerElement);
+        onAddLayer(_paneLayersViewModel.getLayerByIndex(i), i);
     }
     
     let btnAddLayer = document.getElementById("add-layer");
@@ -35,53 +50,56 @@ export function buildPaneLayers(paneLayersViewModel){
 }
 
 function onAddLayer(layer, index){
-    let layerElement = createLayerElement(layer);
+    let layerObject = createLayerElement(layer);
 
     let layers = _listLayer.querySelectorAll("div.layer");
     
-    if(layers.length > 0)
-        layers[layers.length-index].before(layerElement);
+    if(_layers.length > 0)
+        layers[layers.length-index].before(layerObject.element);
     else
-        _listLayer.prepend(layerElement);
+        _listLayer.prepend(layerObject.element);
+
+    _layers.splice(index, 0, layerObject);
 }
 function onRemoveLayer(id){
-    let layerElement = getLayerElementById(id);
-    if(!layerElement) return;
-    layerElement.remove();
+    let layerObject = getLayerElementById(id);
+    if(!!layerObject) layerObject.element.remove();
+
+    const index = _layers.indexOf(layerObject);
+    if(index > -1) _layers.splice(index, 1);
 }
 function onChangeActiveLayer(id){
-    let layerElement = getLayerElementById(id);
+    let layerObject = getLayerElementById(id);
 
-    _listLayer.querySelectorAll("div.layer.active")
-                .forEach((l)=>l.classList.remove("active"));
-    layerElement?.classList.toggle("active", true);
+    _layers.forEach((l)=>l.setIsActive(false));
+
+    layerObject.setIsActive(true);
 }
 function onMoveLayerTo(id, index){
-    let layerElement = getLayerElementById(id);
+    let layerObject = getLayerElementById(id);
 
-    let layers = _listLayer.querySelectorAll("div.layer");
-    index = layers.length - index - 1;
-    if (layerElement === layers[index] || index < 0 || index >= layers.length) {
-        return;
-    }
-
-    if (layerElement.compareDocumentPosition(layers[index]) & Node.DOCUMENT_POSITION_FOLLOWING) {
-        layers[index].after(layerElement);
+    const layerElement = layerObject.element;
+    if (layerElement.compareDocumentPosition(_layers[index].element) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        _layers[index].element.after(layerElement);
     } else {
-        layers[index].before(layerElement);
+        _layers[index].element.before(layerElement);
     }
+
+    const flag = _layers.splice(_layers.indexOf(layerObject), 1)[0];
+    _layers.splice(index, 0, flag);
 }
 function getLayerElementById(id){
-    return _listLayer.querySelector(`.layer[data-id="${id}"]`);
+    return _layers.find((l) => l.getID() == id);
 }
+
 
 function createLayerElement(layer){
     let _layer = layer;
     
     let layerViewModel = app.layerViewModel(_layer.id);
     layerViewModel.registerEvent("OPACITY_LAYER", setOpacityLayer);
-    layerViewModel.registerEvent("TOGGLE_HIDE_LAYER", setVisibilityLayer);
-    layerViewModel.registerEvent("TOGGLE_LOCK_LAYER", setLockLayer);
+    layerViewModel.registerEvent("IS_VISIBLE_LAYER", setVisibilityLayer);
+    layerViewModel.registerEvent("IS_LOCK_LAYER", setLockLayer);
     layerViewModel.registerEvent("RENAME_LAYER", setNameLayer);
 
     let layerElement = document.createElement("div");
@@ -122,20 +140,16 @@ function createLayerElement(layer){
         nameLayer.replaceChild(inpNameLayer, h5);
         inpNameLayer.focus();
         
-        inpNameLayer.addEventListener("blur", done);
-        inpNameLayer.addEventListener("keypress", function(e){
-            if(e.keyCode == 13)
-                done();
-        });
-
-        function done(){
-            if(inpNameLayer.value != "" && inpNameLayer.value != layer.name){
-                layerViewModel.rename(inpNameLayer.value);
+        inpNameLayer.addEventListener("keydown", function(e){
+            if(e.keyCode == 13){
+                inpNameLayer.blur();
             }
-        
+        });
+        inpNameLayer.addEventListener("blur", ()=> {
+            layerViewModel.setName(inpNameLayer.value);
             nameLayer.replaceChild(h5, inpNameLayer);
             editing = false;
-        }
+        });
     };
     nameLayer.append(h5);
 
@@ -218,31 +232,26 @@ function createLayerElement(layer){
     layerElement.append(btnLockLayer);
     layerElement.append(btnGrabLayer);
     
-    let inpOpacity = document.querySelector("input[name='opacity-layer']");
-    inpOpacity.addEventListener("input", function() {
-        layerViewModel.setOpacityLayer(parseFloat(this.value / 100.0));
-    });
+    setOpacityLayer(_layer.opacity);
+    setLockLayer(_layer.isLock);
+    setVisibilityLayer(_layer.isVisible);
+    setNameLayer(_layer.name);
+    setIsActive(_layer.isActive);
 
-    setOpacityLayer(layer);
-    setLockLayer(layer);
-    setVisibilityLayer(layer);
-    setNameLayer(layer);
-
-    function setOpacityLayer(layer){
-        _layer.opacity = layer.opacity;
-        inpOpacity.value = _layer.opacity * 100.0;
-        document.querySelector("#opacity-label h5").innerText = "Transparência " + inpOpacity.value + "%";
+    function setOpacityLayer(opacity){
+        _layer.opacity = opacity;
+        updateOpacityRange();
     }
-    function setLockLayer(layer){
-        _layer.isLock = layer.isLock;
+    function setLockLayer(isLock){
+        _layer.isLock = isLock;
         if(_layer.isLock){
             iconLockLayer.className = "fa fa-lock";
             return;
         }
         iconLockLayer.className = "fa fa-unlock";
     }
-    function setVisibilityLayer(layer){
-        _layer.isVisible = layer.isVisible;
+    function setVisibilityLayer(isVisible){
+        _layer.isVisible = isVisible;
 
         if(_layer.isVisible){
             iconHideLayer.className = "fa fa-eye";
@@ -251,11 +260,25 @@ function createLayerElement(layer){
 
         iconHideLayer.className = "fa fa-eye-slash";
     }
-    function setNameLayer(layer){
-        _layer.name = layer.name;
+    function setNameLayer(name){
+        _layer.name = name;
         h5.innerText = _layer.name;
     }
+    function setIsActive(isActive){
+        _layer.isActive = isActive;
+        layerElement?.classList.toggle("active", isActive);
+        if(isActive)
+            setOpacityLayer(_layer.opacity);
+    }
+    function updateOpacityRange(){
+        if(!_layer.isActive) return;
 
-
-    return Object.assign(layerElement);
+        inpOpacity.value = _layer.opacity * 100.0;
+        document.querySelector("#opacity-label h5").innerText = "Transparência " + inpOpacity.value + "%";
+    }
+    return Object.freeze({
+        element: layerElement,
+        setIsActive,
+        getID:()=>{ return _layer.id; }
+    });
 }
