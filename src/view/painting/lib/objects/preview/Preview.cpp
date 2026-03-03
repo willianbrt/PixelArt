@@ -2,32 +2,28 @@
 
 Preview::Preview(Layer* layer) {
     _layer = layer;
+    _dirty = std::vector<bool>(_layer->getLength());
+    _newColor = std::vector<unsigned int>(_layer->getLength());
     
-    _dirtyArea = (bool*) malloc(_layer->getLength()*sizeof(bool));
-    if(!_dirtyArea){
-        free(_dirtyArea);
-        throw std::runtime_error("Impossível alocar memoria");
-    }
+    // _dirtyArea = (bool*) malloc(_layer->getLength()*sizeof(bool));
+    // if(!_dirtyArea){
+    //     free(_dirtyArea);
+    //     throw std::runtime_error("Impossível alocar memoria");
+    // }
 
-    memset(_dirtyArea, false, _layer->getLength()*sizeof(bool));
+    // memset(_dirtyArea, false, _layer->getLength()*sizeof(bool));
 }
 
 Preview::~Preview() {
-    free(_dirtyArea);
-    free(_layer);
-    _updatedPixels.clear();
+    _dirty.clear();
+    _newColor.clear();
 }
-Layer* Preview::getPtrLayer() const {
-    return _layer;
-}
-// unsigned int Preview::getFilteredPixel(unsigned int index) {
-//     return _layer->getFilteredPixel(index);
-// }
-
 unsigned int Preview::getPixel(int x, int y) {
-    return _layer->getPixel(x, y);
+    return getPixel(x + _layer->getWidth()*y);
 }
 unsigned int Preview::getPixel(unsigned int index) {
+    if(isDirty(index)) return _newColor[index];
+    
     return _layer->getPixel(index);
 }
 void Preview::putPixel(int x, int y, unsigned int colorHex){    
@@ -37,29 +33,29 @@ void Preview::putPixel(int x, int y, unsigned int colorHex){
 }
 void Preview::putPixel(unsigned int index, unsigned int colorHex){
     if(index > _layer->getLength() || index < 0) return;
-    if(_dirtyArea[index] == 0) return;
-    
-    _dirtyArea[index] = true;
 
-    ModifedPixel modifiedPixel;
-    modifiedPixel.index = index;
-    modifiedPixel.newColor= colorHex;
-    modifiedPixel.oldColor = _layer->getPixel(index);
-    _updatedPixels.push_back(modifiedPixel);
+    _newColor[index] = colorHex;
+    _dirty[index] = true;
 }
 bool Preview::isDirty(unsigned int index){
-    return _dirtyArea[index];
+    return _dirty[index];
 }
 std::vector<ModifedPixel> Preview::getModifiedPixels(){
-    return _updatedPixels;
+    std::vector<ModifedPixel> modifiedPixels;
+    for(int i = 0; i < _layer->getLength(); i++){
+        if(!isDirty(i)) continue;
+
+        ModifedPixel modifiedPixel;
+        modifiedPixel.index = i;
+        modifiedPixel.newColor = _newColor[i];
+        modifiedPixel.oldColor = _layer->getPixel(i);
+
+        modifiedPixels.push_back(modifiedPixel);
+    }
+    return modifiedPixels;
 }
 void Preview::commit(){
-    for(ModifedPixel updatedPixel : _updatedPixels){
-        _layer->putPixel(updatedPixel.index, updatedPixel.newColor);
-    }
-}
-void Preview::uncommit(){
-    for(ModifedPixel updatedPixel : _updatedPixels){
-        _layer->putPixel(updatedPixel.index, updatedPixel.oldColor);
+    for(int i = 0; i < _layer->getLength(); i++){
+        if(isDirty(i)) _layer->putPixel(i, _newColor[i]);
     }
 }

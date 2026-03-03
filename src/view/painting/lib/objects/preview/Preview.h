@@ -16,34 +16,32 @@
 #include "../../helpers/Guid/Guid.h"
 
 #include "../../interfaces/ITile/ITile.h"
+#include "../../interfaces/ISurface/ISurface.h"
 #include "../../interfaces/IGraphic/IGraphic.h"
 #include "../../graphics/surface/Surface.h"
 
 using namespace std;
 struct ModifedPixel{
-    unsigned int index;
-    unsigned int newColor;
-    unsigned int oldColor;
+    unsigned int index=0;
+    unsigned int newColor=0;
+    unsigned int oldColor=0;
 };
-class Preview {
+class Preview : ISurface {
 private: 
     Layer* _layer;
-    bool* _dirtyArea;
-    std::vector<ModifedPixel> _updatedPixels;
+    std::vector<bool> _dirty;
+    std::vector<unsigned int> _newColor;
 
 public:
     Preview(Layer* layer);
     ~Preview();
 
-    Layer* getPtrLayer() const;
-    unsigned int getPixelFiltered(int index);
     unsigned int getPixel(int x, int y);
-    unsigned int getPixel(unsigned int index);
+    unsigned int getPixel(unsigned int index) override;
     void putPixel(int x, int y, unsigned int color);
-    void putPixel(unsigned int index, unsigned int color);
+    void putPixel(unsigned int index, unsigned int color) override;
     bool isDirty(unsigned int index);
     std::vector<ModifedPixel> getModifiedPixels();
     void commit();
-    void uncommit();
 };
 #endif
