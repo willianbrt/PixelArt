@@ -2,6 +2,8 @@
 #ifndef FRAMESVIEWMODEL_H
 #define FRAMESVIEWMODEL_H
 
+#include <GLES3/gl3.h>
+
 #include <emscripten/val.h>
 
 #include "../../AppContext/AppContext.h"
@@ -29,6 +31,7 @@ private:
     
     EditorManager* getEditorManager();
     EditorManager* _manager;
+    
 public:
     EditorManagerViewModel();
     ~EditorManagerViewModel();
@@ -38,6 +41,7 @@ public:
 
     void changeActiveEditor(int id);
     void createProject(int width, int height);
+    void render();
     
     void registerEvent(string eventType, emscripten::val callback);
 };

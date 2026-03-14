@@ -26,22 +26,27 @@ struct ModifedPixel{
     unsigned int newColor=0;
     unsigned int oldColor=0;
 };
-class Preview : ISurface {
+class Preview : public ISurface {
 private: 
     Layer* _layer;
-    std::vector<bool> _dirty;
-    std::vector<unsigned int> _newColor;
+    size_t _length;
+    bool* _dirty;
+    unsigned int* _newColor;
+    Bounding dirtyArea;
 
 public:
-    Preview(Layer* layer);
+    Preview(int width, int height);
     ~Preview();
 
-    unsigned int getPixel(int x, int y);
-    unsigned int getPixel(unsigned int index) override;
     void putPixel(int x, int y, unsigned int color);
-    void putPixel(unsigned int index, unsigned int color) override;
+    unsigned int getPixel(int x, int y);
+    unsigned int getPixel(unsigned int index);
+
     bool isDirty(unsigned int index);
+    Bounding getDirtyArea();
+    void setTarget(Layer* layer);
     std::vector<ModifedPixel> getModifiedPixels();
     void commit();
+    void clear();
 };
 #endif

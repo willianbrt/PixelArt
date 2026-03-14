@@ -37,7 +37,7 @@ foreach(src ${SOURCES})
     add_custom_command(
         OUTPUT ${obj}
         COMMAND ${CMAKE_CXX_COMPILER} -c ${src} -o ${obj}
-            -O3 -gsource-map
+            -O3 -gsource-map -s USE_SDL=2
         DEPENDS ${src}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
@@ -57,6 +57,13 @@ add_custom_command(
         -lembind
         -s ASSERTIONS
         -s NO_DISABLE_EXCEPTION_CATCHING
+         
+        -s FULL_ES3=1
+        -s USE_WEBGL2=1
+        -s MIN_WEBGL_VERSION=2
+        -s MAX_WEBGL_VERSION=2 
+        # -s USE_WEBGPU
+        --use-port=emdawnwebgpu
         --js-library=${SRC_DIR}/js/library.js
     DEPENDS ${OBJECTS}
 )

@@ -1,10 +1,6 @@
 #ifndef SURFACE_H
 #define SURFACE_H
 
-#include <emscripten/val.h>
-#include <emscripten/bind.h>
-using namespace emscripten;
-
 #include <memory>
 #include <algorithm>
 #include "../Pixel/Pixel.h"

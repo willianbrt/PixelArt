@@ -14,9 +14,11 @@
 
 class BrushStrategy : IPressedStrategy {
 private:
-    Point from;
-    DrawingContext& _context;
-    BrushContext& _brushContext;
+    Point _from;
+    DrawingContext* _context;
+    BrushContext* _brushContext;
+    
+    Editor* editor;
     Layer* layer;
     Surface* overlay;
     Preview* preview;
@@ -24,11 +26,11 @@ private:
     
     void drawHorizontalBrush(Point to, Point from);
     void drawVerticalBrush(Point to, Point from);
-    void stampPixel(Point pixel);
-    void putPixel(int x, int y, unsigned int color);
+    void stamp(Point pixel);
+    void putMirroredPixel(int x, int y, unsigned int color);
 
 public:
-    BrushStrategy(BrushContext& brushContext, DrawingContext& context);
+    BrushStrategy(BrushContext* brushContext, DrawingContext* context);
 
     void onPressed(int x, int y) override;
     void onTracking(int x, int y) override;

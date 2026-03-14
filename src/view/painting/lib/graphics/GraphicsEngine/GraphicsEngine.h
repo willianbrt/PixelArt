@@ -11,6 +11,7 @@ struct GraphicsEngine{
     static int pointMirrored(int point, int comprimento);
     static int pointMirrored(float point, float comprimento);
     static int pointMirrored(int point, int center, int comprimento);
+    static void setOpacity(unsigned int& color, float opacity);
     static Point rotate(Point point, float cx, float cy, float radians);
     static unsigned int blendColors(unsigned int bottomColor, unsigned int topColor) ;
     static bool computeVisibleShape(int originalAxis, int originalSize, int viewportSize, int& outStartAxis, int& outEndAxis);

@@ -10,7 +10,9 @@
 #include <functional>
 
 #include "../layer/Layers.h"
+#include "../preview/Preview.h"
 #include "../frame/Frame.h"
+#include "../Renderer/Renderer.h"
 
 #include "../../interfaces/IGraphic/IGraphic.h"
 #include "../../interfaces/IEditorObserver/IEditorObserver.h"
@@ -45,6 +47,9 @@ private:
     vector<std::unique_ptr<Frame>> frames;
     vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
+    Preview* _preview;
+    Renderer* _renderer;
+    Surface* _overlay;
 
     std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
 
@@ -56,11 +61,12 @@ public:
 
     Bounding getSketchBounding();
     void setNumberTiles(int rol, int col);
-    void preview(IGraphic& graphic);
+    Preview* preview();
+    // void preview(IGraphic& graphic);
     void draw(IGraphic& graphic);
     void render();
-    void render(int startX, int endX, int startY,int endY);
     void renderArea(Bounding area);
+    unsigned int* getBuffer();
 
     void addFrame(unique_ptr<Frame>frame, size_t index);
     unique_ptr<Frame> removeFrame(size_t index);

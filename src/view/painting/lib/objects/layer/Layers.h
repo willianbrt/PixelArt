@@ -32,7 +32,7 @@ private:
     bool _isVisible = true;
     bool _isLock = false;
     float _opacity = 1.0f;
-    std::string _name = nullptr;
+    std::string _name = "";
     
     vector<ILayerObserver*> observers;
 public:
@@ -57,6 +57,5 @@ public:
     void setOpacity(float value);
     std::string getName() const;
     void setName(string name);
-    unsigned int getFilteredPixel(unsigned int index);
 };
 #endif

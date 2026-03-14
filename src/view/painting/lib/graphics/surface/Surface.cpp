@@ -44,8 +44,6 @@ Surface* Surface::crop(Bounding bound){
     return dirtSurface;
 }
 unsigned int Surface::getPixel(int x, int y) {
-    if (!isInsideSkecth(x, y)) return 0;
-
     assert(x < _width && "error: x maior que a width;");
     assert(x >= 0 && "error: x menor que 0;");
 
@@ -79,9 +77,7 @@ void Surface::putPixel(int x, int y, unsigned int colorHex,
     if(isMirrorX && isMirrorY)
         putPixel((_width - x - 1) + (_height - y - 1)*_width, colorHex);
 }
-void Surface::putPixel(int x, int y, unsigned int colorHex){    
-    if (!isInsideSkecth(x, y)) return;
-
+void Surface::putPixel(int x, int y, unsigned int colorHex){
     assert(x < _width && "error: x maior que a width;");
     assert(x >= 0 && "error: x menor que 0;");
 
@@ -126,19 +122,4 @@ void Surface::translation(Bounding bound, int deltaX, int deltaY){
             _data[index] = 0x0;
         }
     }
-}
-
-EMSCRIPTEN_BINDINGS(surface_module){
-    class_<Surface>("Surface")
-        .constructor<int, int>()
-        .smart_ptr<std::shared_ptr<Surface>>("shared_ptr<Surface>")
-        .function("getWidth",  &Surface::getWidth)
-        .function("getHeight", &Surface::getHeight)
-        .function("getBufferPtr", &Surface::getBufferPtr)
-        .function("getLength", &Surface::getLength)
-        .function("putPixel",  select_overload<void(int, int, unsigned int)>(&Surface::putPixel))
-        .function("putPixelByIndex",  select_overload<void(unsigned int, unsigned int)>(&Surface::putPixel))
-        .function("getPixel", select_overload<unsigned int(int, int)>(&Surface::getPixel))
-        .function("getPixelByIndex", select_overload<unsigned int(unsigned int)>(&Surface::getPixel))
-        ;
 }

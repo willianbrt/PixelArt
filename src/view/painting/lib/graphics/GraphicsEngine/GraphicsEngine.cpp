@@ -15,15 +15,15 @@ Point GraphicsEngine::rotate(Point point, float cx, float cy, float radians){
     return point;
 }
 unsigned int GraphicsEngine::blendColors(unsigned int bottomColor, unsigned int topColor) {
-    float rTop = (topColor & 0xFF) / 255.0f;
-    float gTop = (topColor >> 8 & 0xFF) / 255.0f;
-    float bTop = (topColor >> 16 & 0xFF) / 255.0f;
-    float aTop = (topColor >> 24 & 0xFF) / 255.0f;
+    float aTop = (topColor & 0xFF) / 255.0f;
+    float bTop = (topColor >> 8 & 0xFF) / 255.0f;
+    float gTop = (topColor >> 16 & 0xFF) / 255.0f;
+    float rTop = (topColor >> 24 & 0xFF) / 255.0f;
 
-    float rBottom = (bottomColor & 0xFF) / 255.0f;
-    float gBottom = (bottomColor >> 8 & 0xFF) / 255.0f;
-    float bBottom = (bottomColor >> 16 & 0xFF) / 255.0f;
-    float aBottom = (bottomColor >> 24 & 0xFF) / 255.0f;
+    float aBottom= (bottomColor & 0xFF) / 255.0f;
+    float bBottom= (bottomColor >> 8 & 0xFF) / 255.0f;
+    float gBottom= (bottomColor >> 16 & 0xFF) / 255.0f;
+    float rBottom= (bottomColor >> 24 & 0xFF) / 255.0f;
     
     float outA = aTop + aBottom * (1.0f - aTop);
     float outR = (rTop * aTop + rBottom * aBottom * (1.0f - aTop)) / outA;
@@ -31,10 +31,10 @@ unsigned int GraphicsEngine::blendColors(unsigned int bottomColor, unsigned int 
     float outB = (bTop * aTop + bBottom * aBottom * (1.0f - aTop)) / outA;
 
     unsigned int result =
-        (static_cast<unsigned int>(outA * 255) << 24) |
-        (static_cast<unsigned int>(outB * 255) << 16) |
-        (static_cast<unsigned int>(outG * 255) << 8)  |
-        (static_cast<unsigned int>(outR * 255));
+        (static_cast<unsigned int>(outR * 255) << 24) |
+        (static_cast<unsigned int>(outG * 255) << 16) |
+        (static_cast<unsigned int>(outB * 255) << 8)  |
+        (static_cast<unsigned int>(outA * 255));
 
     return result;
 }
@@ -62,4 +62,8 @@ int GraphicsEngine::pointMirrored(float point, float comprimento){
 }
 int GraphicsEngine::pointMirrored(int point, int center, int comprimento){
     return comprimento - center - point - 1; 
+}
+void GraphicsEngine::setOpacity(unsigned int& color, float opacity){
+    // color = static_cast<int>(opacity * (color >> 24 & 0xFF)) << 24 | (color & 0x00FFFFFF);
+    color = (color & 0xFFFFFF00) | static_cast<int>(opacity * (color & 0xFF));
 }

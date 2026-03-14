@@ -34,6 +34,12 @@ void EditorManagerViewModel::changeActiveEditor(int id){
 void EditorManagerViewModel::createProject(int width, int height){
     getEditorManager()->createProject(32, 32);
 }
+void EditorManagerViewModel::render(){
+    getEditorManager()->getActiveEditor()->render();
+}
+// void EditorManagerViewModel::resizeWindow(int width, int height){
+//     getEditorManager()->getActiveEditor()->resize(width, height);
+// }
 
 void EditorManagerViewModel::onChangeActiveEditor(Guid id){
     auto it = observable.find(EDITOR_MANAGER_EVENT_TYPE::CHANGE_ACTIVE_EDITOR);
@@ -73,5 +79,7 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("getEditorByIndex", &EditorManagerViewModel::getEditorByIndex)
         .function("registerEvent", &EditorManagerViewModel::registerEvent)
         .function("changeActiveEditor", &EditorManagerViewModel::changeActiveEditor)
-        .function("createProject", &EditorManagerViewModel::createProject);
+        .function("createProject", &EditorManagerViewModel::createProject)
+        .function("render", &EditorManagerViewModel::render)
+        ;
 };

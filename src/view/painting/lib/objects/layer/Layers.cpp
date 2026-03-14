@@ -82,8 +82,3 @@ void Layer::setOpacity(float value){
         obs->onOpacityLayer();
     }
 }
-unsigned int Layer::getFilteredPixel(unsigned int index) {
-    if (index < 0 || index >= _length)  return 0;
-    
-    return static_cast<int>(_opacity * (_data[index] >> 24 & 0xFF)) << 24 | (_data[index] & 0x00FFFFFF);
-}

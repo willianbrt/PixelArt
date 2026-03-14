@@ -28,8 +28,8 @@ export let PositionHelper = Object.freeze({
         let elementPosition = elem.getBoundingClientRect();
         
         return Object.freeze({
-            x: Math.floor(positionX - elementPosition.left),
-            y: Math.floor(positionY - elementPosition.top) 
+            x: Math.floor((positionX - elementPosition.left) / (elem.clientWidth / elem.width)),
+            y: Math.floor((positionY - elementPosition.top) / (elem.clientHeight /  elem.height))
         });
     }
 });

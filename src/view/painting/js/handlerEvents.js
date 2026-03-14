@@ -68,15 +68,26 @@ export default function HandlerEvents(canvas){
     function createMousePressedEvent(strategy) {
         return {
             down:(event)=>{
-                strategy.onPressed(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas),event);
+                const point = PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas);
+                strategy.onPressed(point.x, point.y);
             },
             move:(event)=>{
+                const point = PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas);
                 preventDefaultMoveEvent = true;
-                requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas)));
+                
+                requestAnimationFrame(()=>{
+                        try{
+                        strategy.onTracking(point.x, point.y)
+                    }catch(e){
+                    console.log(e)
+                }
+                    });
+                
             },
             up:(event)=>{
+                const point = PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas);
                 preventDefaultMoveEvent = false;
-                requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas)));
+                requestAnimationFrame(()=>strategy.onRelease(point.x, point.y));
             },
             dispatch: strategy.dispatch
         };
@@ -238,8 +249,28 @@ export default function HandlerEvents(canvas){
 
 
     window.oncontextmenu = function() { return false; };
-    
-    
+        
+    function cursorToPixel(point, middlePoint=false){
+        let position ={
+            x: canvas.offsetLeft,
+            y: canvas.offsetTop
+        }
+
+        let pixel = {
+            x: (point.x - position.x) / targetScale,
+            y: (point.y - position.y) / targetScale
+        }
+        if(middlePoint){
+            pixel.x = Math.floor(pixel.x + 0.5);
+            pixel.y = Math.floor(pixel.y + 0.5);
+            return pixel;
+        }
+        pixel.x = Math.floor(pixel.x);
+        pixel.y = Math.floor(pixel.y);
+
+        return pixel;
+    }
+        
     return Object.seal({
         setSingleTouchEvent,
         setDoubleTouchEvent,

@@ -121,21 +121,18 @@ void Frame::draw(IGraphic& graphic){
 }
 
 unsigned int Frame::getPixel(unsigned int index){ return getPixel(index, 0, layers.size()); }
-unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
+    unsigned int Frame::getPixel(unsigned int index, int fromIndex, int toIndex){
     unsigned int colorHex = 0;
-    if(toIndex > layers.size()) throw std::runtime_error("ToIndex excede o tamanho maximo de Layers.");
+    if(toIndex < fromIndex) throw std::runtime_error("fromIndex não pode ser superior a toIndex.");
+    if(toIndex > layers.size() || fromIndex > layers.size()) throw std::runtime_error("Um ou mais parametros excedem o tamanho maximo de Layers.");
+    if(toIndex < 0 || fromIndex < 0) throw std::runtime_error("Parametros fora de escopo.");
     
     for(int layerIndex = fromIndex; layerIndex < toIndex; layerIndex++){
-        Layer* layer = layers.at(layerIndex).get();
+        Layer* layer = layers[layerIndex].get();
         if(!layer->isVisible()) continue;
 
-        unsigned int colorLayer;
-        if(layer->getID().toString() == previewLayer->getID().toString()){
-            colorLayer = previewLayer->getFilteredPixel(index);
-        }else{
-            colorLayer = layer->getFilteredPixel(index);
-        }
-        
+        unsigned int colorLayer = layer->getPixel(index);
+        GraphicsEngine::setOpacity(colorLayer, layer->getOpacity());
         colorHex = GraphicsEngine::blendColors(colorHex, colorLayer);
     }
     
@@ -165,7 +162,8 @@ unsigned int* Frame::getBuffer() {
         int incrementY = 0;
 
         while(index < layer->getLength()){
-            unsigned int colorLayer = layer->getFilteredPixel(index);
+            unsigned int colorLayer = layer->getPixel(index);
+            GraphicsEngine::setOpacity(colorLayer, layer->getOpacity());
             buffer[index] = GraphicsEngine::blendColors(buffer[index], colorLayer);
 
             index++;

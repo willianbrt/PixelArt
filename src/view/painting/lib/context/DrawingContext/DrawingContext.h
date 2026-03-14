@@ -9,8 +9,8 @@ public:
     float hardness;
     bool isMirrorX;
     bool isMirrorY;
-    int nTileX;
-    int nTileY;
+    int nTileX = 1;
+    int nTileY = 1;
 };
 
 #endif

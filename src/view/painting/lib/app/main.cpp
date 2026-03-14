@@ -1,9 +1,12 @@
-
 #include "AppContext/AppContext.h"
+
+
 void initApp(){
     AppContext::instance().build();
 }
-int main(){
+
+int main()
+{
     return 0;
 }
 

@@ -12,15 +12,22 @@ function renderCanvas(
     viewportWidth, viewportHeight,
     x, y,
     nRows, nCols){
-    Module.canvas.width = projectWidth*nRows;
-    Module.canvas.height = projectHeight*nCols;
+    const canvas = Module.canvas || document.getElementById("canvas");
 
-    const context = Module.canvas.getContext("2d");
+    if(!canvas){
+        console.error("Canvas não encontrado");
+        return;
+    }
+
+    canvas.width = projectWidth*nRows;
+    canvas.height = projectHeight*nCols;
+
+    const context = canvas.getContext("2d");
     const ptr = screen;
     const width = viewportWidth;
     const height = viewportHeight;
 
-    const buffer = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, length*4);
+    const buffer = new Uint8ClampedArray(HEAPU8.buffer, ptr, length*4);
     const data = new ImageData(buffer, width);
 
     for(let r = 0; r < nRows; r++){

@@ -4,7 +4,8 @@
 class ISurface{
 public:
     virtual ~ISurface() = default;
-    virtual void putPixel(unsigned int index, unsigned int color) = 0;
+    virtual void putPixel(int x, int y, unsigned int color) = 0;
+    virtual unsigned int getPixel(int x, int y) = 0;
     virtual unsigned int getPixel(unsigned int index) = 0;
 };
 #endif

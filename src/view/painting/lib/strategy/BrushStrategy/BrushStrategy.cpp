@@ -1,38 +1,43 @@
 #include "BrushStrategy.h"
 
-BrushStrategy::BrushStrategy(BrushContext& brushContext, DrawingContext& context) :
+BrushStrategy::BrushStrategy(BrushContext* brushContext, DrawingContext* context) :
 _brushContext(brushContext),
 _context(context)
 {
+    _brushContext->selectedPattern = "brush_1";
+    _context->color = 0x000000ff;
+    _context->size = 1;
+    _context->hardness = 1.0f;
 }
 void BrushStrategy::onPressed(int x, int y){
     Point to(x, y);
+    editor = AppContext::instance().getEditorManager()->getActiveEditor();
     
-    layer = AppContext::instance().getEditorManager()->getActiveEditor()->getActiveFrame()->getActiveLayer();
-    preview = new Preview(layer);
+    layer = editor->getActiveFrame()->getActiveLayer();
+    preview = editor->preview();
+    preview->setTarget(layer);
 
-    screenWidth = _context.nTileX * layer->getWidth();
-    screenHeight = _context.nTileY * layer->getHeight();
+    screenWidth = _context->nTileX * layer->getWidth();
+    screenHeight = _context->nTileY * layer->getHeight();
 
-    from = to;
+    _from = to;
 }
 void BrushStrategy::onTracking(int x, int y){
     Point to(x, y);
-    if (to.x == from.x && to.y == from.y) return;
-
-    if (std::abs(to.x - from.x) > std::abs(to.y - from.y)) {
-        drawHorizontalBrush(from, to);
-    } else{
-        drawVerticalBrush(from, to);
+    if (to.x == _from.x && to.y == _from.y) return;
+    
+    if (std::abs(to.x - _from.x) > std::abs(to.y - _from.y)) {
+        drawHorizontalBrush(_from, to);
+    } else {
+        drawVerticalBrush(_from, to);
     }
-
-    from = to;
+    
+    editor->renderArea(preview->getDirtyArea());
+    _from = to;
 }
 void BrushStrategy::onRelease(int x, int y){
-
+    preview->commit();
 }
-
-
 
 void BrushStrategy::drawHorizontalBrush(Point to, Point from){
     if(to.x < from.x){
@@ -49,7 +54,7 @@ void BrushStrategy::drawHorizontalBrush(Point to, Point from){
     int y = from.y;
     
     for(int x = from.x; x <= to.x; x++){
-        stampPixel(Point(x, y));
+        stamp(Point(x, y));
         
         if (D >= 0){
             y+=dir;
@@ -58,23 +63,23 @@ void BrushStrategy::drawHorizontalBrush(Point to, Point from){
         D += 2*dy;
     }
 }
-void BrushStrategy::drawVerticalBrush(Point to, Point fromfrom){
+void BrushStrategy::drawVerticalBrush(Point to, Point from){
     if(to.y < from.y){
         std::swap(to, from);
     }
     
     int dx = to.x - from.x;
     int dy = to.y - from.y;
-
+    
     int dir = (dx < 0) ? -1 : 1;
     dx = std::abs(dx); 
-
+    
     int D = 2*dx - dy;
     int x = from.x;
     
-    for(int y = from.y; y <= to.y; y++){
-        stampPixel(Point(x, y));
-
+    for(int y = from.y; y <= to.y; y++){ 
+        stamp(Point(x, y));
+        
         if (D > 0){
             x+=dir;
             D -= 2*dy;
@@ -83,11 +88,18 @@ void BrushStrategy::drawVerticalBrush(Point to, Point fromfrom){
     }
 }
 
-void BrushStrategy::stampPixel(Point pixel){
-     std::vector<std::vector<float>> pattern = _brushContext.pattern[_brushContext.selectedPattern];
-    int heightPattern = (int)pattern.size()*_context.size;
-    int widthPattern = (int)pattern[0].size()*_context.size;
+void BrushStrategy::stamp(Point pixel){
+    auto it = _brushContext->pattern.find(_brushContext->selectedPattern);
 
+    if(it == _brushContext->pattern.end()){
+        std::runtime_error("pattern nao encontrado\n");
+        return;
+    }
+
+    std::vector<std::vector<float>> pattern = _brushContext->pattern[_brushContext->selectedPattern];
+    int heightPattern = (int)pattern.size()*_context->size;
+    int widthPattern = (int)pattern[0].size()*_context->size;
+    
     Point startPixel(pixel.x - (widthPattern >> 1), pixel.y - (heightPattern >> 1));
     
     if(startPixel.x >= screenWidth || startPixel.y >= screenHeight) return;
@@ -100,10 +112,10 @@ void BrushStrategy::stampPixel(Point pixel){
     boundingStamp.end.x = startPixel.x + widthPattern >= screenWidth ? screenWidth : startPixel.x + widthPattern;  
     boundingStamp.end.y = startPixel.y + heightPattern >= screenHeight ? screenHeight : startPixel.y + heightPattern;
 
-    int startSrcX = startPixel.x < 0 ? -startPixel.x  / _context.size : 0;
+    int startSrcX = startPixel.x < 0 ? -startPixel.x  / _context->size : 0;
     int startErrX = startPixel.x < 0 ? startPixel.x % widthPattern : 0;
     
-    int srcY =  startPixel.y < 0 ? -startPixel.y  / _context.size : 0;
+    int srcY =  startPixel.y < 0 ? -startPixel.y  / _context->size : 0;
     int errY = startPixel.y < 0 ? startPixel.y % heightPattern : 0;
     
     for(int y = boundingStamp.start.y; y < boundingStamp.end.y; y ++){
@@ -112,12 +124,14 @@ void BrushStrategy::stampPixel(Point pixel){
         
         for(int x =  boundingStamp.start.x; x <  boundingStamp.end.x; x ++){
             float alphaSrc = pattern[srcY][srcX];
-            unsigned int topColor = static_cast<int>(alphaSrc * (_context.color >> 24 & 0xFF)) << 24 | (_context.color & 0x00FFFFFF);
+            unsigned int topColor = _context->color;
+            GraphicsEngine::setOpacity(topColor, alphaSrc);  
 
             Point p;
             p.x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
             p.y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
-            putPixel(p.x, p.y, topColor);
+
+            putMirroredPixel(p.x, p.y, topColor);
 
             errX +=(int) pattern[0].size();
             if(errX >= widthPattern){
@@ -133,19 +147,32 @@ void BrushStrategy::stampPixel(Point pixel){
         }
     }
 }
-void BrushStrategy::putPixel(int x, int y, unsigned int color){
+void BrushStrategy::putMirroredPixel(int x, int y, unsigned int color){
     preview->putPixel(x, y,  GraphicsEngine::blendColors(preview->getPixel(x, y), color));
-    
+
     int toMirrorX = GraphicsEngine::pointMirrored(x, layer->getWidth());
     int toMirrorY = GraphicsEngine::pointMirrored(y, layer->getHeight());
 
-    if(_context.isMirrorX){
+    if(_context->isMirrorX){
         preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, y), color));
     }            
-    if(_context.isMirrorY){
+    if(_context->isMirrorY){
         preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(x, toMirrorY), color));
     }
-    if(_context.isMirrorX && _context.isMirrorY){
+    if(_context->isMirrorX && _context->isMirrorY){
         preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, toMirrorY), color));
     }
 }
+
+#include <emscripten/bind.h>
+
+using namespace emscripten;
+
+EMSCRIPTEN_BINDINGS(pixel_editor_module){
+    class_<BrushStrategy>("BrushStrategy")
+        .constructor<BrushContext*, DrawingContext*>()
+        .function("onPressed", &BrushStrategy::onPressed)
+        .function("onTracking", &BrushStrategy::onTracking)
+        .function("onRelease", &BrushStrategy::onRelease)
+        ;
+};

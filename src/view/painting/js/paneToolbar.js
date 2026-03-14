@@ -1,11 +1,22 @@
+import { app } from "./app.js"
 import HandlerEvents from './handlerEvents.js'
 
 const handlerEvents = HandlerEvents(document.querySelector("canvas#painting"));
 
+
+
 export function buildPaneToolBar(){
+    const drawingContext = app.drawingContext();
+    const brushContext = app.brushContext();
+    
     const btnPencil = document.querySelector(".tool-pencil");
     btnPencil.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(paintStrategy());
+        handlerEvents.setRightButtonMousePressedEvent(app.brushStrategy(brushContext, drawingContext));
+        changeSelectTool.call(this);
+    });
+    const btnBrush = document.querySelector(".tool-brush");
+    btnBrush.addEventListener("click", function(e){
+        handlerEvents.setRightButtonMousePressedEvent(app.brushStrategy(brushContext, drawingContext));
         changeSelectTool.call(this);
     });
     const btnEraser = document.querySelector(".tool-eraser");
@@ -42,11 +53,6 @@ export function buildPaneToolBar(){
         changeSelectTool.call(this);
     });
 
-    const btnBrush = document.querySelector(".tool-brush");
-    btnBrush.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(brushStrategy());
-        changeSelectTool.call(this);
-    });
     const btnSelect = document.querySelector(".tool-select");
     btnSelect.addEventListener("click", function(e){
         handlerEvents.setRightButtonMousePressedEvent(selectStrategy());
@@ -63,13 +69,18 @@ export function buildPaneToolBar(){
         history.redo();
     });
 
-    handlerEvents.setScrollEvent(onZoomScrollStrategy(), false);
-    handlerEvents.setDoubleTouchEvent(onZoomDoubleTouchStrategy(), false);
-    handlerEvents.setDoubleTouchEvent(onZoomDoubleTouchStrategy(), false);
-    handlerEvents.setScrollEvent(onSizeStrategy(), true);
-    handlerEvents.setGenericButtonMousePressedEvent(onPanningStrategy());
-    handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
+    // handlerEvents.setScrollEvent(onZoomScrollStrategy(), false);
+    // handlerEvents.setDoubleTouchEvent(onZoomDoubleTouchStrategy(), false);
+    // handlerEvents.setDoubleTouchEvent(onZoomDoubleTouchStrategy(), false);
+    // handlerEvents.setScrollEvent(onSizeStrategy(), true);
+    // handlerEvents.setGenericButtonMousePressedEvent(onPanningStrategy());
+    // handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
     // handlerEvents.setRightButtonMousePressedEvent(onPanningStrategy());
 
-    btnPencil.click();
+    // btnPencil.click();
+}
+
+function changeSelectTool(){
+    document.querySelector(".tool.active")?.classList.toggle("active", false);
+    this.classList.toggle("active", true);
 }

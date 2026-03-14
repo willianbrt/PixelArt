@@ -1,22 +1,17 @@
 #include "Preview.h"
 
-Preview::Preview(Layer* layer) {
-    _layer = layer;
-    _dirty = std::vector<bool>(_layer->getLength());
-    _newColor = std::vector<unsigned int>(_layer->getLength());
-    
-    // _dirtyArea = (bool*) malloc(_layer->getLength()*sizeof(bool));
-    // if(!_dirtyArea){
-    //     free(_dirtyArea);
-    //     throw std::runtime_error("Impossível alocar memoria");
-    // }
+Preview::Preview(int width, int height) {
+    _dirty = (bool*) malloc(width*height*sizeof(bool));
+    _newColor = (unsigned int*) malloc(width*height*sizeof(unsigned int));
+    _length = width*height;
 
-    // memset(_dirtyArea, false, _layer->getLength()*sizeof(bool));
+    dirtyArea.start = {INT_MAX, INT_MAX};
+    dirtyArea.end = {-1, -1};
 }
 
 Preview::~Preview() {
-    _dirty.clear();
-    _newColor.clear();
+    free(_dirty);
+    free(_newColor);
 }
 unsigned int Preview::getPixel(int x, int y) {
     return getPixel(x + _layer->getWidth()*y);
@@ -26,16 +21,22 @@ unsigned int Preview::getPixel(unsigned int index) {
     
     return _layer->getPixel(index);
 }
-void Preview::putPixel(int x, int y, unsigned int colorHex){    
+void Preview::putPixel(int x, int y, unsigned int colorHex){
     if (!_layer->isInsideSkecth(x, y)) return;
 
-    putPixel(x + y*_layer->getWidth(), colorHex);
-}
-void Preview::putPixel(unsigned int index, unsigned int colorHex){
-    if(index > _layer->getLength() || index < 0) return;
+    dirtyArea.start.x = std::min(dirtyArea.start.x, x);
+    dirtyArea.start.y = std::min(dirtyArea.start.y, y);
 
+    dirtyArea.end.x = std::max(dirtyArea.end.x, x+1);
+    dirtyArea.end.y = std::max(dirtyArea.end.y, y+1);
+    
+    unsigned int index = x + y*_layer->getWidth();
     _newColor[index] = colorHex;
     _dirty[index] = true;
+}
+void Preview::setTarget(Layer* layer){
+    clear();
+    _layer = layer;
 }
 bool Preview::isDirty(unsigned int index){
     return _dirty[index];
@@ -58,4 +59,15 @@ void Preview::commit(){
     for(int i = 0; i < _layer->getLength(); i++){
         if(isDirty(i)) _layer->putPixel(i, _newColor[i]);
     }
+    clear();
+}
+void Preview::clear(){    
+    memset(_dirty, 0, _length*sizeof(bool));
+    memset(_newColor, 0, _length*sizeof(unsigned int));
+
+    dirtyArea.start = {INT_MAX, INT_MAX};
+    dirtyArea.end = {-1, -1};
+}
+Bounding Preview::getDirtyArea(){
+    return dirtyArea;
 }
