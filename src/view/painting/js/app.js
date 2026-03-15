@@ -2,7 +2,7 @@ import ModulePixelEditor from '../build/PixelEditor.js'
 
 var app;
 
-async function init(){
+async function init(width, height){
     const canvas = document.querySelector("#painting");
 
     if(!canvas) {
@@ -21,10 +21,11 @@ async function init(){
         }
     });
 
-    module.initApp();
+    module.initApp(width, height);
 
     app = Object.freeze({
         canvas,
+        resize: module.resize,
         editorManagerViewModel: ()=> { return new module.EditorManagerViewModel(); },
         paneFramesViewModel: (editor)=> { return new module.PaneFramesViewModel(); },
         paneLayersViewModel: (frame)=> { return new module.PaneLayersViewModel(); },

@@ -1,33 +1,10 @@
 #include "Renderer.h"
 
 Renderer::Renderer(int width, int height) : _width(width), _height(height){
-    createContext();
-
     createTexture();
     createShader();
     createQuad();
-    printf("\n");
 }
-
-void Renderer::createContext()
-{
-    EmscriptenWebGLContextAttributes attrs;
-    emscripten_webgl_init_context_attributes(&attrs);
-
-    attrs.alpha = true;
-    attrs.depth = true;
-    attrs.stencil = false;
-    attrs.antialias = false;
-    attrs.majorVersion = 2;
-
-    context = emscripten_webgl_create_context("#painting", &attrs);
-
-    emscripten_webgl_make_context_current(context);
-
-    emscripten_set_canvas_element_size("#painting", _width, _height);
-    glViewport(0,0, _width, _height);
-}
-
 void Renderer::createTexture()
 {
     glGenTextures(1, &texture);
@@ -50,7 +27,14 @@ void Renderer::createTexture()
 }
 
 void Renderer::uploadSurface(Bounding area, Surface* surface){
+    // Point position = editor->getSketchPosition();
+    // float scale = editor->getScale();
+
+
     glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, surface->getWidth());
 
@@ -74,10 +58,27 @@ void Renderer::draw()
 
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
 
-    GLint pos = glGetAttribLocation(program,"position");
-
+    GLint pos = glGetAttribLocation(program, "position");
     glEnableVertexAttribArray(pos);
     glVertexAttribPointer(pos,2,GL_FLOAT,GL_FALSE,0,0);
+
+    positionLocation = glGetUniformLocation(program, "pan");
+    scaleLocation = glGetUniformLocation(program, "zoom");
+    resolutionLocation = glGetUniformLocation(program, "resolution");
+    texSizeLocation = glGetUniformLocation(program, "texSize");
+    repeatLocation = glGetUniformLocation(program, "repeat");
+    
+
+    Point sketchPosition = { 10, 10 };
+    int windowWidth = 250;
+    int windowHeight = 500;
+    float scale = 10.0f;
+
+    glUniform2f(resolutionLocation, (float)windowWidth, (float)windowHeight);
+    glUniform2f(texSizeLocation, (float)_width, (float)_height);
+    glUniform2f(positionLocation, (float)sketchPosition.x, (float)sketchPosition.y);
+    glUniform1f(scaleLocation, scale);
+    glUniform2f(repeatLocation, 1.0f, 1.0f);
 
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
@@ -87,9 +88,16 @@ void Renderer::createShader()
     const char* vs =
     "attribute vec2 position;"
     "varying vec2 uv;"
+    "uniform vec2 resolution;"
+    "uniform vec2 texSize;"
+    "uniform vec2 pan;"
+    "uniform float zoom;"
+    "uniform vec2 repeat;"
     "void main(){"
-    "uv=(position+1.0)*0.5;"
-    "gl_Position=vec4(position,0.0,1.0);"
+    "   vec2 pos = position*zoom + pan;"
+    "   vec2 ndc = pos / resolution * 2.0;"
+    "   gl_Position=vec4(vec2(ndc.x - 1.0, 1.0 - ndc.y),0.0,1.0);"
+    "   uv = position / texSize*repeat;"
     "}";
 
     const char* fs =
@@ -97,8 +105,9 @@ void Renderer::createShader()
     "uniform sampler2D tex;"
     "varying vec2 uv;"
     "void main(){"
-    "gl_FragColor=texture2D(tex, vec2(uv.x, 1.0 - uv.y));"
+    "gl_FragColor=texture2D(tex, uv);"
     "}";
+
 
     GLuint v = compile(GL_VERTEX_SHADER,vs);
     GLuint f = compile(GL_FRAGMENT_SHADER,fs);
@@ -113,7 +122,7 @@ void Renderer::createShader()
     GLint success;
     glGetProgramiv(program,GL_LINK_STATUS,&success);
 
-    if(!success)
+    if(!success) 
     {
         char log[512];
         glGetProgramInfoLog(program,512,nullptr,log);
@@ -124,12 +133,11 @@ void Renderer::createShader()
 void Renderer::createQuad()
 {
     float quad[] = {
-        -1,-1,
-         1,-1,
-        -1, 1,
-         1, 1
+        0,0,
+        (float)_width,0,
+        0, (float)_height,
+        (float)_width, (float)_height
     };
-
     glGenBuffers(1,&vbo);
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
 
@@ -144,7 +152,6 @@ GLuint Renderer::compile(GLenum type,const char* src){
     GLuint s = glCreateShader(type);
     glShaderSource(s,1,&src,nullptr);
     glCompileShader(s);
-
 
     GLint success;
     glGetShaderiv(s,GL_COMPILE_STATUS,&success);

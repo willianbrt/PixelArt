@@ -15,10 +15,14 @@ channel.onmessage = (e) => {
     }
 };
 window.onload = async ()=>{
-    await init();
+    const drawingArea = document.querySelector("#drawing-area");
+
+    await init(250, 500);
+    // await init(drawingArea.clientWidth, drawingArea.clientHeight);
+    
     const editorManagerViewModel = app.editorManagerViewModel();
     
-    editorManagerViewModel.createProject(320, 320); 
+    editorManagerViewModel.createProject(32, 32); 
     
     buildPaneFrames(app.paneFramesViewModel());
     buildPaneLayers(app.paneLayersViewModel());
@@ -26,8 +30,7 @@ window.onload = async ()=>{
 
 
     window.addEventListener("resize", (e)=>{
-        app.canvas.width = app.canvas.clientWidth;
-        app.canvas.height = app.canvas.clientHeight;
+        app.resize(drawingArea.clientWidth,drawingArea.clientHeight);
     });
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});

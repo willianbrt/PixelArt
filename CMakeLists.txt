@@ -62,7 +62,7 @@ add_custom_command(
         -s USE_WEBGL2=1
         -s MIN_WEBGL_VERSION=2
         -s MAX_WEBGL_VERSION=2 
-        # -s USE_WEBGPU
+        -s USE_GLFW=3
         --use-port=emdawnwebgpu
         --js-library=${SRC_DIR}/js/library.js
     DEPENDS ${OBJECTS}

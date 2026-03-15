@@ -42,6 +42,7 @@ public:
     void changeActiveEditor(int id);
     void createProject(int width, int height);
     void render();
+    void resize(int width, int height);
     
     void registerEvent(string eventType, emscripten::val callback);
 };

@@ -20,13 +20,6 @@
 #include "../../graphics/surface/Surface.h"
 #include "../../graphics/Pixel/Pixel.h"
 
-extern "C" {
-    void renderCanvas(unsigned int projectWidth, unsigned int projectHeight, unsigned int* screen, size_t length, unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y, int nRows, int nCols);
-    void clear(unsigned int viewportWidth, unsigned int viewportHeight, unsigned int x, unsigned int y);
-    unsigned int get_viewport_width();
-    unsigned int get_viewport_height();
-};
-
 enum EDITOR_EVENT_TYPE{
     DRAW,
     ADD_FRAME,
@@ -38,12 +31,12 @@ enum EDITOR_EVENT_TYPE{
 class Editor
 {
 private:
-    const std::string DEFAULT_NAME_LAYER = "Layer";
     Surface _sketch;
     Point _sketchPosition;
-    unsigned int _scale = 1;
+    float _scale = 1.0f;
     int _rows = 1;
     int _cols = 1;
+
     vector<std::unique_ptr<Frame>> frames;
     vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
@@ -65,6 +58,7 @@ public:
     // void preview(IGraphic& graphic);
     void draw(IGraphic& graphic);
     void render();
+    void resize(int width, int height);
     void renderArea(Bounding area);
     unsigned int* getBuffer();
 
@@ -81,5 +75,7 @@ public:
 
     int getWidth();
     int getHeight();
+    float getScale();
+    Point getSketchPosition();
 };
 #endif

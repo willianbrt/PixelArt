@@ -80,6 +80,10 @@ void Editor::renderArea(Bounding area){
     _renderer->render(area, &_sketch);
 }
 
+void Editor::resize(int width, int height){
+    // _renderer->resize(width, height);
+}
+
 unsigned int* Editor::getBuffer(){
     return _sketch.getBuffer();
 }
@@ -170,6 +174,12 @@ int Editor::getWidth(){
 }
 int Editor::getHeight(){
     return _sketch.getHeight();
+}
+float Editor::getScale(){
+    return _scale;
+}
+Point Editor::getSketchPosition(){
+    return _sketchPosition;
 }
 
 
