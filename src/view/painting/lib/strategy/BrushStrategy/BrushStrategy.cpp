@@ -5,7 +5,7 @@ _brushContext(brushContext),
 _context(context)
 {
     _brushContext->selectedPattern = "brush_1";
-    _context->color = 0x000000ff;
+    _context->color = 0xff0000ff;
     _context->size = 1;
     _context->hardness = 1.0f;
 }

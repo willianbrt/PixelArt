@@ -34,6 +34,8 @@ void Renderer::uploadSurface(Bounding area, Surface* surface){
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, surface->getWidth());
@@ -68,17 +70,29 @@ void Renderer::draw()
     texSizeLocation = glGetUniformLocation(program, "texSize");
     repeatLocation = glGetUniformLocation(program, "repeat");
     
+    GLint gridDivisionsLocation = glGetUniformLocation(program, "gridDivisions");
+    GLint lightColorLocation = glGetUniformLocation(program, "lightColor");
+    GLint darkColorLocation = glGetUniformLocation(program, "darkColor");
+    
 
     Point sketchPosition = { 10, 10 };
     int windowWidth = 250;
     int windowHeight = 500;
-    float scale = 10.0f;
+    float nTileX = 2.0f;
+    float nTileY = 2.0f;
+    float scale = 5.0f ;
+    float gridDivisionsX = 16.0f;
+    float gridDivisionsY = 16.0f;
 
     glUniform2f(resolutionLocation, (float)windowWidth, (float)windowHeight);
     glUniform2f(texSizeLocation, (float)_width, (float)_height);
     glUniform2f(positionLocation, (float)sketchPosition.x, (float)sketchPosition.y);
     glUniform1f(scaleLocation, scale);
-    glUniform2f(repeatLocation, 1.0f, 1.0f);
+    glUniform2f(repeatLocation, nTileX, nTileY);
+
+    glUniform2f(gridDivisionsLocation, gridDivisionsX, gridDivisionsY);
+    glUniform4f(lightColorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+    glUniform4f(darkColorLocation, 0.3f, 0.3f, 0.3f, 1.0f);
 
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
@@ -86,29 +100,51 @@ void Renderer::draw()
 void Renderer::createShader()
 {
     const char* vs =
+    "precision highp float;"
     "attribute vec2 position;"
     "varying vec2 uv;"
+    "varying vec2 localUV;"
     "uniform vec2 resolution;"
     "uniform vec2 texSize;"
     "uniform vec2 pan;"
     "uniform float zoom;"
     "uniform vec2 repeat;"
     "void main(){"
-    "   vec2 pos = position*zoom + pan;"
-    "   vec2 ndc = pos / resolution * 2.0;"
-    "   gl_Position=vec4(vec2(ndc.x - 1.0, 1.0 - ndc.y),0.0,1.0);"
-    "   uv = position / texSize*repeat;"
+    "   vec2 pos = position * (zoom+repeat) + pan;"
+    "   vec2 ndc = pos * 2.0 / resolution;"
+    "   gl_Position = vec4(ndc.x - 1.0, 1.0 - ndc.y, 0.0, 1.0);"
+    "   localUV = position / texSize;"
+    "   uv = localUV * repeat;"
     "}";
-
     const char* fs =
-    "precision mediump float;"
+    "precision highp float;"
     "uniform sampler2D tex;"
     "varying vec2 uv;"
+    "uniform vec2 texSize;"
+    "uniform vec2 gridDivisions;"
+    "uniform vec4 lightColor;"
+    "uniform vec4 darkColor;"
+    "uniform float zoom;"
     "void main(){"
-    "gl_FragColor=texture2D(tex, uv);"
+    "   vec4 texColor = texture2D(tex, uv);"
+
+    "   vec2 divisions = min(gridDivisions, texSize);"
+    "   vec2 pixel = uv * texSize;"
+    "   vec2 cellSize = texSize / divisions;"
+    "   vec2 cellCoord = floor(pixel / cellSize);"
+
+    "   float checker = mod(cellCoord.x + cellCoord.y, 2.0);"
+    "   vec3 background = mix(lightColor.rgb, darkColor.rgb, checker);"
+    "   vec3 color = background + (texColor.rgb - background) * texColor.a;"
+
+    "   vec2 gridPos = mod(pixel, cellSize);"
+    "   float thickness = 1.0/zoom;"
+    "   float line = step(gridPos.x, thickness) + step(gridPos.y, thickness);"
+    "   line = clamp(line, 0.0, 1.0);"
+
+    "   color = mix(color, vec3(0.0), line);"
+    "   gl_FragColor = vec4(color, 1.0);"
     "}";
-
-
     GLuint v = compile(GL_VERTEX_SHADER,vs);
     GLuint f = compile(GL_FRAGMENT_SHADER,fs);
 
