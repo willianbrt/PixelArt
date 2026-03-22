@@ -1,57 +1,18 @@
 #include "AppContext/AppContext.h"
-#include "../objects/Renderer/Renderer.h"
-#include <GLES3/gl3.h>
-#include <GLFW/glfw3.h>
-
-int _width = 0;
-int _height = 0;
-GLFWwindow* window;
-Renderer* renderer;
-
-void loop(){
-    glfwPollEvents();
-    Editor* editor = AppContext::instance().getEditorManager()->getActiveEditor();
-    int w,h;
-    glfwGetFramebufferSize(window,&w,&h);
-
-    glViewport(0,0,w,h);
-
-
-    // glClearColor(0.1f,0.1f,0.1f,1.0f);
-    // glClear(GL_COLOR_BUFFER_BIT);
-
-    glfwSwapBuffers(window);
-}
+#include <emscripten.h>
+#include <emscripten/html5.h>
 
 void initApp(int width, int height){
-    AppContext::instance().build();
-
-    _width = width;
-    _height = height;
-
-    glfwInit();
-    window = glfwCreateWindow(_width,_height,"drawing area",NULL,NULL);
-    glfwMakeContextCurrent(window);
-
-    renderer = new Renderer(_width, _height);
-
-
-    #ifdef __EMSCRIPTEN__
-        emscripten_set_main_loop(loop,0,false);
-    #else
-        while(!glfwWindowShouldClose(window))
-        {
-            loop();
-        }
-    #endif
+    AppContext::instance().build(width, height);
 }
 
 void resize(int width, int height){
-    glfwSetWindowSize(window, width, height);
+    AppContext::instance().resize(width, height);
+    
 }
 int main()
 {
-
+    emscripten_set_main_loop_arg(AppContext::loop, &AppContext::instance(), 0, true);
     return 0;
 }
 #ifdef __EMSCRIPTEN__

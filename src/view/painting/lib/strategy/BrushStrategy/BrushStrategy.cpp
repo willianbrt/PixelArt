@@ -8,22 +8,27 @@ _context(context)
     _context->color = 0xff0000ff;
     _context->size = 1;
     _context->hardness = 1.0f;
+    viewport = AppContext::instance().getViewport();
 }
 void BrushStrategy::onPressed(int x, int y){
-    Point to(x, y);
+    Point to = viewport->cursorToCanvas(x, y);
     editor = AppContext::instance().getEditorManager()->getActiveEditor();
     
     layer = editor->getActiveFrame()->getActiveLayer();
     preview = editor->preview();
     preview->setTarget(layer);
 
-    screenWidth = _context->nTileX * layer->getWidth();
-    screenHeight = _context->nTileY * layer->getHeight();
+    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
+    screenWidth = canvasSettings->getTilesX() * editor->getWidth();
+    screenHeight = canvasSettings->getTilesY() * editor->getHeight();
+
+    // screenWidth = _context->nTileX * layer->getWidth();
+    // screenHeight = _context->nTileY * layer->getHeight();
 
     _from = to;
 }
 void BrushStrategy::onTracking(int x, int y){
-    Point to(x, y);
+    Point to = viewport->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
     
     if (std::abs(to.x - _from.x) > std::abs(to.y - _from.y)) {
@@ -32,7 +37,7 @@ void BrushStrategy::onTracking(int x, int y){
         drawVerticalBrush(_from, to);
     }
     
-    editor->renderArea(preview->getDirtyArea());
+    editor->compose(preview->getDirtyArea());
     _from = to;
 }
 void BrushStrategy::onRelease(int x, int y){

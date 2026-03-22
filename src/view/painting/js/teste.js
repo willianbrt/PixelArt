@@ -16,12 +16,13 @@ channel.onmessage = (e) => {
 };
 window.onload = async ()=>{
     const drawingArea = document.querySelector("#drawing-area");
+    const viewportSize = drawingArea.getBoundingClientRect();
 
-    await init(250, 500);
-    // await init(drawingArea.clientWidth, drawingArea.clientHeight);
+    console.log(viewportSize.width, viewportSize.height);
+
+    await init(viewportSize.width, viewportSize.height);
     
     const editorManagerViewModel = app.editorManagerViewModel();
-    
     editorManagerViewModel.createProject(32, 32); 
     
     buildPaneFrames(app.paneFramesViewModel());

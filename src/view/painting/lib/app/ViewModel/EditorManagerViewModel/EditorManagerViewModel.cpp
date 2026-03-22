@@ -35,7 +35,7 @@ void EditorManagerViewModel::createProject(int width, int height){
     getEditorManager()->createProject(width,height);
 }
 void EditorManagerViewModel::render(){
-    getEditorManager()->getActiveEditor()->render();
+    // getEditorManager()->getActiveEditor()->render();
 }
 // void EditorManagerViewModel::resizeWindow(int width, int height){
 //     getEditorManager()->getActiveEditor()->resize(width, height);

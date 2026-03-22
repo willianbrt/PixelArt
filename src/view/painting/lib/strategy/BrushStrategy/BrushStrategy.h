@@ -1,6 +1,7 @@
 #ifndef BRUSHSTRATEGY_H
 #define BRUSHSTRATEGY_H
 #include "../../app/AppContext/AppContext.h"
+#include "../../objects/Viewport/Viewport.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
 #include "../../context/DrawingContext/DrawingContext.h"
 #include "../../context/BrushContext/BrushContext.h"
@@ -22,6 +23,7 @@ private:
     Layer* layer;
     Surface* overlay;
     Preview* preview;
+    Viewport* viewport;
     int screenWidth, screenHeight;
     
     void drawHorizontalBrush(Point to, Point from);

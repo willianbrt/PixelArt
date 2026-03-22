@@ -93,6 +93,7 @@ body{
 
 #drawing-area canvas#painting{
     background-color: var(--background-color);
+    position: absolute;
 }
 .content {
     height: 100%;

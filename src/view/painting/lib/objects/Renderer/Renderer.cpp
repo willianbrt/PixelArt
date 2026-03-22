@@ -1,44 +1,46 @@
 #include "Renderer.h"
 
-Renderer::Renderer(int width, int height) : _width(width), _height(height){
-    createTexture();
+Renderer::Renderer(){
     createShader();
     createQuad();
 }
-void Renderer::createTexture()
-{
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+void Renderer::init(Surface* surface, Viewport* viewport){
+    glGenTextures(1, &canvasTexture);
+    glBindTexture(GL_TEXTURE_2D, canvasTexture);
 
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
         GL_RGBA,
-        _width,
-        _height,
+        surface->getWidth(),
+        surface->getHeight(),
         0,
         GL_RGBA,
         GL_UNSIGNED_BYTE,
-        nullptr
+        surface->getBuffer()
     );
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
 void Renderer::uploadSurface(Bounding area, Surface* surface){
-    // Point position = editor->getSketchPosition();
-    // float scale = editor->getScale();
+    glBindTexture(GL_TEXTURE_2D, canvasTexture);
+    
+    glUniform2f(texSizeLocation, (float) surface->getWidth(), (float) surface->getHeight());
 
-
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, surface->getWidth());
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, area.start.x);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, area.start.y);
 
     glTexSubImage2D(
         GL_TEXTURE_2D,
@@ -49,12 +51,14 @@ void Renderer::uploadSurface(Bounding area, Surface* surface){
         area.getHeight(),
         GL_RGBA,
         GL_UNSIGNED_BYTE,
-        surface->getBuffer() + (area.start.x + area.start.y*surface->getWidth())
+        surface->getBuffer()
     );
     
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 }
-void Renderer::draw()
+void Renderer::draw(Viewport* viewport)
 {
     glUseProgram(program);
 
@@ -69,28 +73,17 @@ void Renderer::draw()
     resolutionLocation = glGetUniformLocation(program, "resolution");
     texSizeLocation = glGetUniformLocation(program, "texSize");
     repeatLocation = glGetUniformLocation(program, "repeat");
+    gridDivisionsLocation = glGetUniformLocation(program, "gridDivisions");
+    lightColorLocation = glGetUniformLocation(program, "lightColor");
+    darkColorLocation = glGetUniformLocation(program, "darkColor");
     
-    GLint gridDivisionsLocation = glGetUniformLocation(program, "gridDivisions");
-    GLint lightColorLocation = glGetUniformLocation(program, "lightColor");
-    GLint darkColorLocation = glGetUniformLocation(program, "darkColor");
-    
+    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
+    glUniform2f(resolutionLocation, (float)viewport->getWidth(), (float)viewport->getHeight());
+    glUniform2f(positionLocation, (float)canvasSettings->getSketchPosition().x, (float)canvasSettings->getSketchPosition().y);
+    glUniform1f(scaleLocation, canvasSettings->getScale());
+    glUniform2f(repeatLocation, canvasSettings->getTilesX(), canvasSettings->getTilesY());
 
-    Point sketchPosition = { 10, 10 };
-    int windowWidth = 250;
-    int windowHeight = 500;
-    float nTileX = 2.0f;
-    float nTileY = 2.0f;
-    float scale = 5.0f ;
-    float gridDivisionsX = 16.0f;
-    float gridDivisionsY = 16.0f;
-
-    glUniform2f(resolutionLocation, (float)windowWidth, (float)windowHeight);
-    glUniform2f(texSizeLocation, (float)_width, (float)_height);
-    glUniform2f(positionLocation, (float)sketchPosition.x, (float)sketchPosition.y);
-    glUniform1f(scaleLocation, scale);
-    glUniform2f(repeatLocation, nTileX, nTileY);
-
-    glUniform2f(gridDivisionsLocation, gridDivisionsX, gridDivisionsY);
+    glUniform2f(gridDivisionsLocation,canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
     glUniform4f(lightColorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
     glUniform4f(darkColorLocation, 0.3f, 0.3f, 0.3f, 1.0f);
 
@@ -103,18 +96,10 @@ void Renderer::createShader()
     "precision highp float;"
     "attribute vec2 position;"
     "varying vec2 uv;"
-    "varying vec2 localUV;"
-    "uniform vec2 resolution;"
-    "uniform vec2 texSize;"
-    "uniform vec2 pan;"
-    "uniform float zoom;"
-    "uniform vec2 repeat;"
     "void main(){"
-    "   vec2 pos = position * (zoom+repeat) + pan;"
-    "   vec2 ndc = pos * 2.0 / resolution;"
-    "   gl_Position = vec4(ndc.x - 1.0, 1.0 - ndc.y, 0.0, 1.0);"
-    "   localUV = position / texSize;"
-    "   uv = localUV * repeat;"
+    "   uv = position * 0.5 + 0.5;"
+    "   uv = vec2(uv.x, 1.0 - uv.y);"
+    "   gl_Position = vec4(position, 0.0, 1.0);"
     "}";
     const char* fs =
     "precision highp float;"
@@ -125,26 +110,39 @@ void Renderer::createShader()
     "uniform vec4 lightColor;"
     "uniform vec4 darkColor;"
     "uniform float zoom;"
+    "uniform vec2 pan;"
+    "uniform vec2 resolution;"
+    "uniform vec2 repeat;"
     "void main(){"
-    "   vec4 texColor = texture2D(tex, uv);"
+    "   vec4 color = vec4(0.0,0.0,0.0,0.0);"
+    "   vec2 transformedUV = uv * resolution/texSize;"
+    "   transformedUV -= pan / texSize;"
+    "   transformedUV /= (zoom + repeat-1.0);"
+    "   if (transformedUV.x >= 0.0 && transformedUV.x <= 1.0 && transformedUV.y >= 0.0 && transformedUV.y <= 1.0) {"
+    "       transformedUV = fract(transformedUV * repeat);"
+    "       vec4 textureColor = texture2D(tex, transformedUV);"
+    "       color = mix(color, textureColor, textureColor.a);"
+    
+    "       vec2 divisions = min(gridDivisions, texSize);"
+    "       vec2 pixel = transformedUV * texSize;"
+    "       vec2 cellSize = texSize / divisions;"
+    "       vec2 cellCoord = floor(pixel / cellSize);"
+        
+    "       float checker = mod(cellCoord.x + cellCoord.y, 2.0);"
+    "       vec4 background = mix(lightColor, darkColor, checker);"
+    "       color = mix(background, textureColor, textureColor.a);"
 
-    "   vec2 divisions = min(gridDivisions, texSize);"
-    "   vec2 pixel = uv * texSize;"
-    "   vec2 cellSize = texSize / divisions;"
-    "   vec2 cellCoord = floor(pixel / cellSize);"
+    "       vec2 gridPos = mod(pixel, cellSize);"
+    "       float thickness = 0.01*zoom;"
+    "       float line = step(gridPos.x, thickness) + step(gridPos.y, thickness);"
+    "       line = clamp(line, 0.0, 1.0);"
+    "       color = mix(color, vec4(0.0), line);"
 
-    "   float checker = mod(cellCoord.x + cellCoord.y, 2.0);"
-    "   vec3 background = mix(lightColor.rgb, darkColor.rgb, checker);"
-    "   vec3 color = background + (texColor.rgb - background) * texColor.a;"
+    "   }"
 
-    "   vec2 gridPos = mod(pixel, cellSize);"
-    "   float thickness = 1.0/zoom;"
-    "   float line = step(gridPos.x, thickness) + step(gridPos.y, thickness);"
-    "   line = clamp(line, 0.0, 1.0);"
-
-    "   color = mix(color, vec3(0.0), line);"
-    "   gl_FragColor = vec4(color, 1.0);"
+    "   gl_FragColor = color;"
     "}";
+
     GLuint v = compile(GL_VERTEX_SHADER,vs);
     GLuint f = compile(GL_FRAGMENT_SHADER,fs);
 
@@ -169,10 +167,10 @@ void Renderer::createShader()
 void Renderer::createQuad()
 {
     float quad[] = {
-        0,0,
-        (float)_width,0,
-        0, (float)_height,
-        (float)_width, (float)_height
+        -1.0f,  1.0f,
+        1.0f,  1.0f,
+        -1.0f, -1.0f,
+        1.0f, -1.0f 
     };
     glGenBuffers(1,&vbo);
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
@@ -203,7 +201,10 @@ GLuint Renderer::compile(GLenum type,const char* src){
 }
 
 
-void Renderer::render(Bounding area, Surface* surface){
+void Renderer::render(Bounding area, Surface* surface, Viewport* viewport){
     uploadSurface(area, surface);
-    draw();
+    draw(viewport);
+}
+void createCanvasTexture(){
+
 }

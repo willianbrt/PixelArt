@@ -31,18 +31,13 @@ enum EDITOR_EVENT_TYPE{
 class Editor
 {
 private:
-    Surface _sketch;
-    Point _sketchPosition;
-    float _scale = 1.0f;
-    int _rows = 1;
-    int _cols = 1;
+    Surface* _sketch;
 
     vector<std::unique_ptr<Frame>> frames;
     vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
     Preview* _preview;
-    Renderer* _renderer;
-    Surface* _overlay;
+    // Surface* _overlay;
 
     std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
 
@@ -51,16 +46,19 @@ public:
     ~Editor();
 
     void registerEvent(IEditorObserver* observer);
-
-    Bounding getSketchBounding();
-    void setNumberTiles(int rol, int col);
+    
     Preview* preview();
-    // void preview(IGraphic& graphic);
     void draw(IGraphic& graphic);
-    void render();
+
+    void compose();
+    void compose(Bounding area);
+
     void resize(int width, int height);
-    void renderArea(Bounding area);
+
+    Surface* getSurface();
     unsigned int* getBuffer();
+    int getWidth();
+    int getHeight();
 
     void addFrame(unique_ptr<Frame>frame, size_t index);
     unique_ptr<Frame> removeFrame(size_t index);
@@ -72,10 +70,5 @@ public:
     size_t getFrameIndex(Guid id);
     size_t getFramesLength();
     Frame* getFrameByIndex(size_t index); 
-
-    int getWidth();
-    int getHeight();
-    float getScale();
-    Point getSketchPosition();
 };
 #endif
