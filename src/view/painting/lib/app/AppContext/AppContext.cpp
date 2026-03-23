@@ -37,21 +37,28 @@ void AppContext::render(){
 
     Preview* preview = editor->preview();
 
-    // if(preview->getDirtyArea().getWidth() > 0 && preview->getDirtyArea().getHeight() > 0)
-    //     _renderer->render(preview->getDirtyArea(), editor->getSurface(), _viewport);
-
     
     _viewport->getCanvasSettings()->setGridDivisionsX(32);
     _viewport->getCanvasSettings()->setGridDivisionsY(32);
-    _viewport->getCanvasSettings()->setSketchPosition(100,100);
+    _viewport->getCanvasSettings()->setSketchPosition(0,0);
     _viewport->getCanvasSettings()->setScale(15.0f);
 
     if(editor->getHeight() != flagHeight || editor->getWidth() != flagWidth){
+        editor->compose();
         _renderer->init(surface, _viewport);
+        _renderer->render(Bounding(Point(0,0), Point(editor->getWidth(), editor->getHeight())),
+                            editor->getSurface(),
+                            _viewport);
+        
         flagHeight = editor->getHeight();
         flagWidth = editor->getWidth();
+    }else{
+        Bounding dirtArea = preview->getDirtyArea();
+        if(dirtArea.getWidth() > 0 && dirtArea.getHeight() > 0){
+            editor->compose(dirtArea);
+            _renderer->render(dirtArea, editor->getSurface(), _viewport);
+        }
     }
-    _renderer->render(Bounding(Point(0,0), Point(editor->getWidth(), editor->getHeight())), surface, _viewport);
 
     glfwSwapBuffers(_window);
 }

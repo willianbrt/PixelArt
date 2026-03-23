@@ -1,5 +1,3 @@
-import { PositionHelper } from "../../../scripts/common/position.js";
-
 export default function HandlerEvents(canvas){
     const KEY_MOUSE = {
         RIGHT_BUTTON:0,
@@ -32,7 +30,6 @@ export default function HandlerEvents(canvas){
     let singleTouchEvent = noTouchEvents;
     let doubleTouchEvent = noTouchEvents;
     let moveEvent = ()=>{};
-    let preventDefaultMoveEvent = false;
     
     function setScrollEvent(eventHandler, enableCtrlKey = false){
         if (enableCtrlKey == true)
@@ -68,26 +65,16 @@ export default function HandlerEvents(canvas){
     function createMousePressedEvent(strategy) {
         return {
             down:(event)=>{
-                const point = PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas);
+                const point = windowCursorToCanvas(event.clientX, event.clientY);
                 strategy.onPressed(point.x, point.y);
             },
             move:(event)=>{
-                const point = PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas);
-                preventDefaultMoveEvent = true;
-                
-                requestAnimationFrame(()=>{
-                        try{
-                        strategy.onTracking(point.x, point.y)
-                    }catch(e){
-                    console.log(e)
-                }
-                    });
-                
+                const point = windowCursorToCanvas(event.clientX, event.clientY);
+                strategy.onTracking(point.x, point.y);
             },
             up:(event)=>{
-                const point = PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas);
-                preventDefaultMoveEvent = false;
-                requestAnimationFrame(()=>strategy.onRelease(point.x, point.y));
+                const point = windowCursorToCanvas(event.clientX, event.clientY);
+                strategy.onRelease(point.x, point.y);
             },
             dispatch: strategy.dispatch
         };
@@ -96,15 +83,16 @@ export default function HandlerEvents(canvas){
         singleTouchEvent.dispatch?.();
         singleTouchEvent = {
             down:(event)=>{
-                strategy.onPressed(PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas),event);
+                const point = windowCursorToCanvas(event.touches[0].clientX, event.touches[0].clientY);
+                strategy.onPressed(point.x, point.y);
             },
             move:(event)=>{
-                preventDefaultMoveEvent = true;
-                requestAnimationFrame(()=>strategy.onTracking(PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas)));
+                const point = windowCursorToCanvas(event.touches[0].clientX, event.touches[0].clientY);
+                strategy.onTracking(point.x, point.y);
             },
             up:(event)=>{
-                preventDefaultMoveEvent = false;
-                requestAnimationFrame(()=>strategy.onRelease(PositionHelper.getPositionCursor(event.changedTouches[0].clientX, event.changedTouches[0].clientY, canvas)));
+                const point = windowCursorToCanvas(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+                strategy.onRelease(point.x, point.y);
             },
             dispatch: strategy.dispatch
         };
@@ -114,20 +102,20 @@ export default function HandlerEvents(canvas){
         doubleTouchEvent = {
             down:(event)=>{
                 strategy.onPressed(
-                    PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas),
-                    PositionHelper.getPositionCursor(event.touches[1].clientX, event.touches[1].clientY, canvas)
+                    windowCursorToCanvas(event.touches[0].clientX, event.touches[0].clientY),
+                    windowCursorToCanvas(event.touches[1].clientX, event.touches[1].clientY)
                 );
             },
             move:(event)=>{
                 requestAnimationFrame(()=>strategy.onTracking(
-                    PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas),
-                    PositionHelper.getPositionCursor(event.touches[1].clientX, event.touches[1].clientY, canvas)
+                    windowCursorToCanvas(event.touches[0].clientX, event.touches[0].clientY),
+                    windowCursorToCanvas(event.touches[1].clientX, event.touches[1].clientY)
                 ));
             },
             up:( event)=>{
                 requestAnimationFrame(()=>strategy.onRelease(
-                    PositionHelper.getPositionCursor(event.touches[0].clientX, event.touches[0].clientY, canvas),
-                    PositionHelper.getPositionCursor(event.changedTouches[0].clientX, event.changedTouches[0].clientY, canvas)
+                    windowCursorToCanvas(event.touches[0].clientX, event.touches[0].clientY),
+                    windowCursorToCanvas(event.changedTouches[0].clientX, event.changedTouches[0].clientY)
                 ));
             },
             dispatch: strategy.dispatch
@@ -146,12 +134,12 @@ export default function HandlerEvents(canvas){
         if (event.ctrlKey){
             eventHandler = scrollEvents.ctrl
         }
-
+        const point = windowCursorToCanvas(event.clientX, event.clientY);
         requestAnimationFrame(()=>{
             if(event.deltaY < 0)
-                eventHandler.onScrollUp(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas))
+                eventHandler.onScrollUp(point.x, point.y)
             else
-                eventHandler.onScrollDown(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas))
+                eventHandler.onScrollDown(point.x, point.y)
         });
     });
     canvas.addEventListener("mousedown", (event)=>{
@@ -167,10 +155,8 @@ export default function HandlerEvents(canvas){
 
         buttonMousePressed = event.button;
     });
-    canvas.addEventListener("mousemove", function (event){
+    window.addEventListener("mousemove", function (event){
         event.preventDefault();
-        // if(!preventDefaultMoveEvent)
-        //     moveEvent(PositionHelper.getPositionCursor(event.clientX, event.clientY, canvas));
 
         if(buttonMousePressed === undefined) return;
 
@@ -218,7 +204,7 @@ export default function HandlerEvents(canvas){
         } else 
             return;
     });
-    canvas.addEventListener("touchmove", function (event){
+    window.addEventListener("touchmove", function (event){
         if(event.touches.length == 1 && event.changedTouches[0].identifier == touchID){
             singleTouchEvent.move(event);
         } else if(event.touches.length == 2){
@@ -250,25 +236,13 @@ export default function HandlerEvents(canvas){
 
     window.oncontextmenu = function() { return false; };
         
-    function cursorToPixel(point, middlePoint=false){
-        let position ={
-            x: canvas.offsetLeft,
-            y: canvas.offsetTop
-        }
-
-        let pixel = {
-            x: (point.x - position.x) / targetScale,
-            y: (point.y - position.y) / targetScale
-        }
-        if(middlePoint){
-            pixel.x = Math.floor(pixel.x + 0.5);
-            pixel.y = Math.floor(pixel.y + 0.5);
-            return pixel;
-        }
-        pixel.x = Math.floor(pixel.x);
-        pixel.y = Math.floor(pixel.y);
-
-        return pixel;
+    function windowCursorToCanvas(positionX, positionY){
+        let elementPosition = canvas.getBoundingClientRect();
+        
+        return Object.freeze({
+            x: Math.floor((positionX - elementPosition.left) / (canvas.clientWidth / canvas.width)),
+            y: Math.floor((positionY - elementPosition.top) / (canvas.clientHeight /  canvas.height))
+        });
     }
         
     return Object.seal({
@@ -280,12 +254,6 @@ export default function HandlerEvents(canvas){
         setLeftButtonMousePressedEvent,
         setGenericButtonMousePressedEvent,
         setScrollEvent,
-        setMoveEvent,
-        preventDefaultMoveEvent: ()=>{
-            preventDefaultMoveEvent = false
-        },
-        unPreventDefaultMoveEvent: ()=>{
-            preventDefaultMoveEvent = false
-        }
+        setMoveEvent
     });
 }

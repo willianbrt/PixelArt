@@ -27,6 +27,7 @@ void Renderer::init(Surface* surface, Viewport* viewport){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    draw(viewport);
 }
 
 void Renderer::uploadSurface(Bounding area, Surface* surface){

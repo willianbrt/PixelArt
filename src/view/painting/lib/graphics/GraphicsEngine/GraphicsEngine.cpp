@@ -38,6 +38,38 @@ unsigned int GraphicsEngine::blendColors(unsigned int bottomColor, unsigned int 
 
     return result;
 }
+unsigned int GraphicsEngine::mix(unsigned int bottomColor, unsigned int topColor, float alpha) {
+    float aTop = (topColor & 0xFF) / 255.0f;
+    float bTop = (topColor >> 8 & 0xFF) / 255.0f;
+    float gTop = (topColor >> 16 & 0xFF) / 255.0f;
+    float rTop = (topColor >> 24 & 0xFF) / 255.0f;
+
+    float aBottom= (bottomColor & 0xFF) / 255.0f;
+    float bBottom= (bottomColor >> 8 & 0xFF) / 255.0f;
+    float gBottom= (bottomColor >> 16 & 0xFF) / 255.0f;
+    float rBottom= (bottomColor >> 24 & 0xFF) / 255.0f;
+    
+    // float outA = aTop * alpha + aBottom * (1.0f - alpha);
+    // float outR = rTop * alpha + rBottom * (1.0f - alpha);
+    // float outG = gTop * alpha + gBottom * (1.0f - alpha);
+    // float outB = bTop * alpha + bBottom * (1.0f - alpha);
+
+    
+    // float outA = alpha + aBottom * (1.0f - alpha);
+    float outA = alpha + aBottom * (1.0f - alpha);
+    float outR = (rTop * alpha + aBottom * rBottom * (1.0f - alpha)) / outA;
+    float outG = (gTop * alpha + aBottom * gBottom * (1.0f - alpha)) / outA;
+    float outB = (bTop * alpha + aBottom * bBottom * (1.0f - alpha)) / outA;
+
+
+    unsigned int result =
+        (static_cast<unsigned int>(outR * 255) << 24) |
+        (static_cast<unsigned int>(outG * 255) << 16) |
+        (static_cast<unsigned int>(outB * 255) << 8)  |
+        (static_cast<unsigned int>(outA * 255));
+
+    return result;
+}
 bool GraphicsEngine::computeVisibleShape(int originalAxis, int originalSize, int viewportSize, int& outStartAxis, int& outEndAxis){
     if (originalAxis <= -originalSize || originalAxis >= viewportSize){
         outEndAxis = 0;

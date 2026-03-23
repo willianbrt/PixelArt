@@ -37,7 +37,6 @@ private:
     vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
     Preview* _preview;
-    // Surface* _overlay;
 
     std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
 

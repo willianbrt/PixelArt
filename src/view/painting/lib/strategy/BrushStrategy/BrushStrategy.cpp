@@ -8,10 +8,12 @@ _context(context)
     _context->color = 0xff0000ff;
     _context->size = 1;
     _context->hardness = 1.0f;
+
     viewport = AppContext::instance().getViewport();
 }
 void BrushStrategy::onPressed(int x, int y){
     Point to = viewport->cursorToCanvas(x, y);
+    
     editor = AppContext::instance().getEditorManager()->getActiveEditor();
     
     layer = editor->getActiveFrame()->getActiveLayer();
@@ -21,10 +23,13 @@ void BrushStrategy::onPressed(int x, int y){
     CanvasSettings* canvasSettings = viewport->getCanvasSettings();
     screenWidth = canvasSettings->getTilesX() * editor->getWidth();
     screenHeight = canvasSettings->getTilesY() * editor->getHeight();
+    
+    _pattern = _brushContext->getPattern(_brushContext->selectedPattern);
+    _heightPattern = _pattern.height*_context->size;
+    _widthPattern = _pattern.width*_context->size;
 
-    // screenWidth = _context->nTileX * layer->getWidth();
-    // screenHeight = _context->nTileY * layer->getHeight();
-
+    stamp(to);
+    
     _from = to;
 }
 void BrushStrategy::onTracking(int x, int y){
@@ -37,7 +42,6 @@ void BrushStrategy::onTracking(int x, int y){
         drawVerticalBrush(_from, to);
     }
     
-    editor->compose(preview->getDirtyArea());
     _from = to;
 }
 void BrushStrategy::onRelease(int x, int y){
@@ -59,7 +63,7 @@ void BrushStrategy::drawHorizontalBrush(Point to, Point from){
     int y = from.y;
     
     for(int x = from.x; x <= to.x; x++){
-        stamp(Point(x, y));
+        stamp({ x, y });
         
         if (D >= 0){
             y+=dir;
@@ -83,7 +87,7 @@ void BrushStrategy::drawVerticalBrush(Point to, Point from){
     int x = from.x;
     
     for(int y = from.y; y <= to.y; y++){ 
-        stamp(Point(x, y));
+        stamp({ x, y });
         
         if (D > 0){
             x+=dir;
@@ -94,61 +98,51 @@ void BrushStrategy::drawVerticalBrush(Point to, Point from){
 }
 
 void BrushStrategy::stamp(Point pixel){
-    auto it = _brushContext->pattern.find(_brushContext->selectedPattern);
-
-    if(it == _brushContext->pattern.end()){
-        std::runtime_error("pattern nao encontrado\n");
-        return;
-    }
-
-    std::vector<std::vector<float>> pattern = _brushContext->pattern[_brushContext->selectedPattern];
-    int heightPattern = (int)pattern.size()*_context->size;
-    int widthPattern = (int)pattern[0].size()*_context->size;
-    
-    Point startPixel(pixel.x - (widthPattern >> 1), pixel.y - (heightPattern >> 1));
+    Point startPixel(pixel.x - (_widthPattern >> 1), pixel.y - (_heightPattern >> 1));
     
     if(startPixel.x >= screenWidth || startPixel.y >= screenHeight) return;
-    if(startPixel.x < -widthPattern || startPixel.y < -heightPattern) return;
+    if(startPixel.x < -_widthPattern || startPixel.y < -_heightPattern) return;
+
 
     Bounding boundingStamp;
     boundingStamp.start.x = startPixel.x < 0 ? 0 : startPixel.x;
     boundingStamp.start.y = startPixel.y < 0 ? 0 : startPixel.y;
-    
-    boundingStamp.end.x = startPixel.x + widthPattern >= screenWidth ? screenWidth : startPixel.x + widthPattern;  
-    boundingStamp.end.y = startPixel.y + heightPattern >= screenHeight ? screenHeight : startPixel.y + heightPattern;
+    boundingStamp.end.x = startPixel.x + _widthPattern >= screenWidth ? screenWidth : startPixel.x + _widthPattern;  
+    boundingStamp.end.y = startPixel.y + _heightPattern >= screenHeight ? screenHeight : startPixel.y + _heightPattern;
+
 
     int startSrcX = startPixel.x < 0 ? -startPixel.x  / _context->size : 0;
-    int startErrX = startPixel.x < 0 ? startPixel.x % widthPattern : 0;
+    int startErrX = startPixel.x < 0 ? startPixel.x % _widthPattern : 0;
     
     int srcY =  startPixel.y < 0 ? -startPixel.y  / _context->size : 0;
-    int errY = startPixel.y < 0 ? startPixel.y % heightPattern : 0;
+    int errY = startPixel.y < 0 ? startPixel.y % _heightPattern : 0;
     
     for(int y = boundingStamp.start.y; y < boundingStamp.end.y; y ++){
         int srcX = startSrcX;
         int errX = startErrX;
         
         for(int x =  boundingStamp.start.x; x <  boundingStamp.end.x; x ++){
-            float alphaSrc = pattern[srcY][srcX];
             unsigned int topColor = _context->color;
-            GraphicsEngine::setOpacity(topColor, alphaSrc);  
+            GraphicsEngine::setOpacity(topColor, _pattern.buffer[srcY][srcX]);  
 
-            Point p;
-            p.x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
-            p.y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
+            Point p = {
+                GraphicsEngine::clampedTilePoint(x, layer->getWidth()),
+                GraphicsEngine::clampedTilePoint(y, layer->getHeight())
+            };
 
             putMirroredPixel(p.x, p.y, topColor);
 
-            errX +=(int) pattern[0].size();
-            if(errX >= widthPattern){
+            errX += _pattern.width;
+            if(errX >= _widthPattern){
                 srcX++;
-                errX-=widthPattern;
+                errX-=_widthPattern;
             }
         }
 
-        errY+= (int)pattern.size();
-        if(errY >= heightPattern){
+        errY += _pattern.height;
+        if(errY >= _heightPattern){
             srcY++;
-            errY-=heightPattern;
+            errY-=_heightPattern;
         }
     }
 }

@@ -24,6 +24,10 @@ private:
     Surface* overlay;
     Preview* preview;
     Viewport* viewport;
+    
+    Pattern _pattern;
+    int _heightPattern;
+    int _widthPattern;
     int screenWidth, screenHeight;
     
     void drawHorizontalBrush(Point to, Point from);
