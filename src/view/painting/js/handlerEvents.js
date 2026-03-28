@@ -29,7 +29,7 @@ export default function HandlerEvents(canvas){
     };
     let singleTouchEvent = noTouchEvents;
     let doubleTouchEvent = noTouchEvents;
-    let moveEvent = ()=>{};
+    let moveEvent = (x,y)=>{};
     
     function setScrollEvent(eventHandler, enableCtrlKey = false){
         if (enableCtrlKey == true)
@@ -122,6 +122,12 @@ export default function HandlerEvents(canvas){
         };
     }
     
+
+    canvas.addEventListener("mousemove", (event)=>{
+        event.preventDefault();
+        const point = windowCursorToCanvas(event.clientX, event.clientY);
+        moveEvent(point.x, point.y);
+    });
 
     canvas.addEventListener("mouseleave", (event)=>{
         event.preventDefault();

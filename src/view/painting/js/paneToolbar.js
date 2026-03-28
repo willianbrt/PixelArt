@@ -76,6 +76,7 @@ export function buildPaneToolBar(){
     // handlerEvents.setGenericButtonMousePressedEvent(onPanningStrategy());
     // handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
     // handlerEvents.setRightButtonMousePressedEvent(onPanningStrategy());
+    // handlerEvents.setMoveEvent((x,y)=>{console.log("m",x,y)});
 
     // btnPencil.click();
 }

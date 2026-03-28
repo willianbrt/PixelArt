@@ -8,7 +8,7 @@
 
 struct Pattern{
     std::string name;
-    std::vector<std::vector<float>> buffer;
+    std::vector<unsigned int> buffer;
     int width;
     int height;
 };
@@ -21,19 +21,20 @@ public:
             {
                 "dot",
                 {
-                    {1.0f}
+                    0x000000FF 
                 }, 1, 1
             },
             {
                 "brush_1",
                 {
-                    {0.9f, 1.0f, 0.8f},
-                    {0.7f, 1.0f, 0.5f},
-                    {0.2f, 1.0f, 0.3f}
-                }, 3, 3
+                    0x00000000, 0x00000022, 0x00000022, 0x00000033,
+                    0x00000033, 0x00000055, 0x00000000, 0x00000022,
+                    0x00000033, 0x00000055, 0x00000088, 0x00000088,
+                    0x00000022, 0x00000000, 0x00000033, 0x00000022,
+                    0x00000000, 0x00000022, 0x00000022, 0x00000033
+                }, 4, 5
             }
         };
-    
     std::vector<Pattern>::iterator findPattern(std::string name);
     void setActivePattern(std::string name);
     Pattern getPattern(std::string name);

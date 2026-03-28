@@ -11,6 +11,7 @@ class Viewport {
 private:
     int _width;
     int _height;
+    double _x, _y;
     CanvasSettings* _canvasSettings;
 
 public: 
@@ -18,6 +19,8 @@ public:
     void resize(int width, int height);
     void render();
 
+    void setCursor(double x, double y);
+    Point getCursor();
     Point cursorToCanvas(int x, int y);
     int getWidth();
     int getHeight();

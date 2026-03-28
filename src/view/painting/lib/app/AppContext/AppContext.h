@@ -6,6 +6,7 @@
 #include <emscripten.h>
 #include "../../objects/Renderer/Renderer.h"
 #include "../../objects/Viewport/Viewport.h"
+#include "../../context/BrushContext/BrushContext.h"
 #include <GLES3/gl3.h>
 #include <GLFW/glfw3.h>
 
@@ -19,6 +20,7 @@ private:
     Viewport* _viewport;
     int flagWidth;
     int flagHeight;
+    Pattern pattern;
 
     public:
     AppContext();

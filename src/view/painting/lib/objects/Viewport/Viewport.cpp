@@ -10,6 +10,15 @@ void Viewport::resize(int width, int height){
     _width = width;
     _height = height;
 }
+
+void Viewport::setCursor(double x, double y){
+    _x = x;
+    _y = y;
+}
+Point Viewport::getCursor(){
+    return Point((int)_x, (int)_y);
+}
+
 Point Viewport::cursorToCanvas(int x, int y){
     Point sketchPosition = _canvasSettings->getSketchPosition();
     Point point = Point(

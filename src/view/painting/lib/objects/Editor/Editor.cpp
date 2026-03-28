@@ -51,7 +51,6 @@ void Editor::compose(Bounding area){
             colorHex = GraphicsEngine::blendColors(colorHex, _preview->getPixel(index));
             colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, activeLayerIndex+1, activeFrame->getLayersLength()));
 
-            swap_endian_uint32(&colorHex);
             _sketch->putPixel(index, colorHex);
             
             index++;

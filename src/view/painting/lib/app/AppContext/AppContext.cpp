@@ -12,6 +12,8 @@ void AppContext::build(int width, int height){
     
     _viewport = new Viewport(width, height);
     _renderer = new Renderer();
+    BrushContext brushContext;
+    pattern = brushContext.getPattern("brush_1");
 }
 
 void AppContext::resize(int width, int height){
@@ -24,10 +26,15 @@ void AppContext::loop(void* arg){
 }
 
 void AppContext::render(){
-    // glfwPollEvents();
+    glfwPollEvents();
 
     int w,h;
     glfwGetFramebufferSize(_window,&w,&h);
+
+    double xpos, ypos;
+    glfwGetCursorPos(_window, &xpos, &ypos);
+    _viewport->setCursor(xpos, ypos);
+    
     glViewport(0,0,w,h);
 
     Editor* editor = _editorManager->getActiveEditor();
@@ -44,6 +51,7 @@ void AppContext::render(){
     _viewport->getCanvasSettings()->setScale(15.0f);
 
     if(editor->getHeight() != flagHeight || editor->getWidth() != flagWidth){
+        _renderer->initCursorHover(pattern, _viewport);
         editor->compose();
         _renderer->init(surface, _viewport);
         _renderer->render(Bounding(Point(0,0), Point(editor->getWidth(), editor->getHeight())),
@@ -59,6 +67,8 @@ void AppContext::render(){
             _renderer->render(dirtArea, editor->getSurface(), _viewport);
         }
     }
+    glClear (GL_COLOR_BUFFER_BIT);
+    _renderer->renderCursor(pattern, _viewport);
 
     glfwSwapBuffers(_window);
 }

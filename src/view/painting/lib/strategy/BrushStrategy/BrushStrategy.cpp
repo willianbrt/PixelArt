@@ -98,8 +98,13 @@ void BrushStrategy::drawVerticalBrush(Point to, Point from){
 }
 
 void BrushStrategy::stamp(Point pixel){
-    Point startPixel(pixel.x - (_widthPattern >> 1), pixel.y - (_heightPattern >> 1));
-    
+    Point startPixel = {
+        // static_cast<int>(std::floor((float)pixel.x + 0.5f - (_widthPattern >> 1))),
+        // static_cast<int>(std::floor((float)pixel.y + 0.5f - (_heightPattern >> 1)))
+        pixel.x - (_widthPattern >> 1),
+        pixel.y - (_heightPattern >> 1)
+    };
+
     if(startPixel.x >= screenWidth || startPixel.y >= screenHeight) return;
     if(startPixel.x < -_widthPattern || startPixel.y < -_heightPattern) return;
 
@@ -123,7 +128,7 @@ void BrushStrategy::stamp(Point pixel){
         
         for(int x =  boundingStamp.start.x; x <  boundingStamp.end.x; x ++){
             unsigned int topColor = _context->color;
-            GraphicsEngine::setOpacity(topColor, _pattern.buffer[srcY][srcX]);  
+            GraphicsEngine::setOpacity(topColor, (_pattern.buffer[srcY*_pattern.height + srcX] & 0xFF) / 255.0f);  
 
             Point p = {
                 GraphicsEngine::clampedTilePoint(x, layer->getWidth()),
