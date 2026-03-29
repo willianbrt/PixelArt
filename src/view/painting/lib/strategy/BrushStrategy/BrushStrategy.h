@@ -10,10 +10,7 @@
 #include "../../objects/preview/Preview.h"
 #include "../../objects/layer/Layers.h"
 
-
-// #include "../../tools/Brush/Brush.h"
-
-class BrushStrategy : IPressedStrategy {
+class BrushStrategy : public IPressedStrategy {
 private:
     Point _from;
     DrawingContext* _context;
@@ -24,7 +21,7 @@ private:
     Surface* overlay;
     Preview* preview;
     Viewport* viewport;
-    
+    HoverPreview* hoverPreview; 
     Pattern _pattern;
     int _heightPattern;
     int _widthPattern;
@@ -41,5 +38,6 @@ public:
     void onPressed(int x, int y) override;
     void onTracking(int x, int y) override;
     void onRelease(int x, int y) override;
+    HoverPreview* getHoverPreview() override;
 };
 #endif

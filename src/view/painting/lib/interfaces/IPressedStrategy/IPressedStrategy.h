@@ -1,7 +1,22 @@
 #ifndef IPRESSEDSTRATEGY_H
 #define IPRESSEDSTRATEGY_H
 
-class IPressedStrategy{
+#include "../../context/BrushContext/BrushContext.h"
+
+struct HoverPreview {
+    Pattern* pattern;
+    float scale = 1.0f;
+    bool enable = true;
+};
+
+class IToolStrategy{
+protected:
+public:
+    virtual ~IToolStrategy() = default;
+    virtual HoverPreview* getHoverPreview() = 0;
+};
+
+class IPressedStrategy : public IToolStrategy {
 protected:
 public:
     virtual ~IPressedStrategy() = default;
@@ -9,5 +24,4 @@ public:
     virtual void onTracking(int x, int y) = 0;
     virtual void onRelease(int x, int y) = 0;
 };
-
 #endif

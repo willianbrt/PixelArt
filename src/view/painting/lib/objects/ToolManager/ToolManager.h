@@ -5,11 +5,12 @@
 #include "../../interfaces/IToolContext/IToolContext.h"
 
 class ToolManager {
-    IPressedStrategy& toolPressed;
-
+    IPressedStrategy* _toolPressed;
+public:
     ToolManager();
     
-    // IPressedStrategy& getToolPressed();
     // void changeToolPressed(std::string toolName);
+    void changeToolPressed(IPressedStrategy* toolPressed);
+    IPressedStrategy* getToolPressed();
 };
 #endif

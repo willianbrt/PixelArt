@@ -9,9 +9,15 @@ _context(context)
     _context->size = 1;
     _context->hardness = 1.0f;
 
+    hoverPreview = new HoverPreview();
+    _pattern = _brushContext->getPattern(_brushContext->selectedPattern);
+    hoverPreview->pattern = &_pattern;
+
     viewport = AppContext::instance().getViewport();
 }
 void BrushStrategy::onPressed(int x, int y){
+    hoverPreview->enable = false;
+
     Point to = viewport->cursorToCanvas(x, y);
     
     editor = AppContext::instance().getEditorManager()->getActiveEditor();
@@ -45,6 +51,8 @@ void BrushStrategy::onTracking(int x, int y){
     _from = to;
 }
 void BrushStrategy::onRelease(int x, int y){
+    hoverPreview->enable = true;
+
     preview->commit();
 }
 
@@ -99,8 +107,6 @@ void BrushStrategy::drawVerticalBrush(Point to, Point from){
 
 void BrushStrategy::stamp(Point pixel){
     Point startPixel = {
-        // static_cast<int>(std::floor((float)pixel.x + 0.5f - (_widthPattern >> 1))),
-        // static_cast<int>(std::floor((float)pixel.y + 0.5f - (_heightPattern >> 1)))
         pixel.x - (_widthPattern >> 1),
         pixel.y - (_heightPattern >> 1)
     };
@@ -167,6 +173,11 @@ void BrushStrategy::putMirroredPixel(int x, int y, unsigned int color){
         preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, toMirrorY), color));
     }
 }
+
+HoverPreview* BrushStrategy::getHoverPreview(){
+    return hoverPreview;
+}
+
 
 #include <emscripten/bind.h>
 

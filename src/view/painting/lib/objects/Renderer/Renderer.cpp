@@ -5,46 +5,7 @@ Renderer::Renderer(){
     createQuad();
     cache();
 }
-void Renderer::initCursorHover(Pattern pattern, Viewport* viewport){
-    glGenTextures(1, &canvasCursorHover);
-    glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
 
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        pattern.width,
-        pattern.height,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        pattern.buffer.data()
-    );
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-}
-void Renderer::uploadCursorHover(Pattern pattern){   
-    glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    glTexSubImage2D(
-        GL_TEXTURE_2D,
-        0,
-        0,
-        0,
-        pattern.width,
-        pattern.height,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        pattern.buffer.data()
-    );
-    
-}
 void Renderer::init(Surface* surface, Viewport* viewport){
     glGenTextures(1, &canvasTexture);
     glBindTexture(GL_TEXTURE_2D, canvasTexture);
@@ -63,15 +24,12 @@ void Renderer::init(Surface* surface, Viewport* viewport){
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    draw(viewport);
 }
+
 void Renderer::uploadSurface(Bounding area, Surface* surface){
     glBindTexture(GL_TEXTURE_2D, canvasTexture);
-    
-    glUniform2f(texSizeLocation, (float) surface->getWidth(), (float) surface->getHeight());
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, surface->getWidth());
@@ -89,33 +47,61 @@ void Renderer::uploadSurface(Bounding area, Surface* surface){
         GL_UNSIGNED_BYTE,
         surface->getBuffer()
     );
-    
+
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 }
 
-void Renderer::cache(){
-    glUseProgram(program);
+void Renderer::initCursorHover(HoverPreview* hover){
+    glGenTextures(1, &canvasCursorHover);
+    glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
 
-    pos = glGetAttribLocation(program, "position");
-    
-    positionLocation = glGetUniformLocation(program, "pan");
-    scaleLocation = glGetUniformLocation(program, "zoom");
-    resolutionLocation = glGetUniformLocation(program, "resolution");
-    texSizeLocation = glGetUniformLocation(program, "texSize");
-    repeatLocation = glGetUniformLocation(program, "repeat");
-    gridDivisionsLocation = glGetUniformLocation(program, "gridDivisions");
-    lightColorLocation = glGetUniformLocation(program, "lightColor");
-    darkColorLocation = glGetUniformLocation(program, "darkColor");
-    cursorLocation = glGetUniformLocation(program, "cursor");
-    brushSizeLocation = glGetUniformLocation(program, "brushSize");
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        hover->pattern->width,
+        hover->pattern->height,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        hover->pattern->buffer.data()
+    );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
-void Renderer::draw(Viewport* viewport)
-{
+
+void Renderer::uploadCursorHover(HoverPreview* hover){
+    glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glTexSubImage2D(
+        GL_TEXTURE_2D,
+        0,
+        0,
+        0,
+        hover->pattern->width,
+        hover->pattern->height,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        hover->pattern->buffer.data()
+    );
+}
+
+
+void Renderer::draw(Surface* surface, Viewport* viewport){
     glUseProgram(program);
 
-    glBindBuffer(GL_ARRAY_BUFFER,vbo);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, canvasTexture);
+    glUniform1i(texLocation, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -124,49 +110,64 @@ void Renderer::draw(Viewport* viewport)
     glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     CanvasSettings* canvasSettings = viewport->getCanvasSettings();
-    glUniform2f(resolutionLocation, (float)viewport->getWidth(), (float)viewport->getHeight());
-    glUniform2f(positionLocation, (float)canvasSettings->getSketchPosition().x, (float)canvasSettings->getSketchPosition().y);
+
+    glUniform2f(resolutionLocation, viewport->getWidth(), viewport->getHeight());
+    glUniform2f(positionLocation, canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
     glUniform1f(scaleLocation, canvasSettings->getScale());
+    glUniform2f(texSizeLocation, surface->getWidth(), surface->getHeight());
     glUniform2f(repeatLocation, canvasSettings->getTilesX(), canvasSettings->getTilesY());
-    
-    glUniform2f(gridDivisionsLocation,canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
-    glUniform4f(lightColorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-    glUniform4f(darkColorLocation, 0.3f, 0.3f, 0.3f, 1.0f);
+    glUniform2f(gridDivisionsLocation, canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
+
+    glUniform4f(lightColorLocation, 1,1,1,1);
+    glUniform4f(darkColorLocation, 0.3f,0.3f,0.3f,1);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void Renderer::drawCursorHover(Surface* surface, HoverPreview* hover, Viewport* viewport){
+    glUseProgram(programHover);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
+    glUniform1i(texLocationH, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnableVertexAttribArray(posH);
+    glVertexAttribPointer(posH, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
+    glUniform2f(resolutionLocationH, viewport->getWidth(), viewport->getHeight());
+    glUniform2f(positionLocationH,  canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
+    glUniform1f(scaleLocationH, canvasSettings->getScale());
+    glUniform2f(texSizeLocationH, surface->getWidth(), surface->getHeight());
 
     Point cursor = viewport->getCursor();
     Point cursorCanvas = viewport->cursorToCanvas(cursor.x, cursor.y);
-    // glUniform2f(cursorLocation, (float)cursor.x, (float) cursor.y);
-    glUniform2f(cursorLocation, (float)cursorCanvas.x, (float) cursorCanvas.y);    
-    glUniform2f(brushSizeLocation, 4.0f, 5.0f);
-    // glUniform2f(brushSizeLocation, (float)pattern.width, (float)pattern.height);
-   
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, canvasTexture);
-    glUniform1i(glGetUniformLocation(program, "tex"), 0);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
-    glUniform1i(glGetUniformLocation(program, "tex2"), 1);
-    
-    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+    glUniform2f(cursorLocation, cursorCanvas.x, cursorCanvas.y);
+    glUniform2f(brushSizeLocation, hover->pattern->width, hover->pattern->height);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void Renderer::createShader()
-{
+void Renderer::createShader(){
     const char* vs =
     "precision highp float;"
     "attribute vec2 position;"
     "varying vec2 uv;"
     "void main(){"
-    "   uv = position * 0.5 + 0.5;"
-    "   uv = vec2(uv.x, 1.0 - uv.y);"
-    "   gl_Position = vec4(position, 0.0, 1.0);"
+    " uv = position * 0.5 + 0.5;"
+    " uv = vec2(uv.x, 1.0 - uv.y);"
+    " gl_Position = vec4(position,0.0,1.0);"
     "}";
+
     const char* fs =
     "precision highp float;"
     "uniform sampler2D tex;"
-    "uniform sampler2D tex2;"
     "varying vec2 uv;"
     "uniform vec2 texSize;"
     "uniform vec2 cursor;"
@@ -202,80 +203,99 @@ void Renderer::createShader()
     "       float line = step(gridPos.x, thickness) + step(gridPos.y, thickness);"
     "       line = clamp(line, 0.0, 1.0);"
     "       color = mix(color, vec4(0.0), line);"
-
-    "       vec2 hoverUV = (floor(pixel) - cursor) / brushSize + 0.5;"
-    "       if(hoverUV.x >= 0.0 && hoverUV.x < 1.0 && hoverUV.y >= 0.0 && hoverUV.y < 1.0){"
-    "           vec4 hoverColor = texture2D(tex2, hoverUV).abgr;"
-    "           color = mix(color, hoverColor, hoverColor.a);"
-    "       }"
     "   }"
     
+    "   gl_FragColor = color;"
+    "}";
 
+
+    const char* fsHover =
+    "precision highp float;"
+    "uniform sampler2D tex;"
+    "varying vec2 uv;"
+    "uniform vec2 texSize;"
+    "uniform vec2 cursor;"
+    "uniform vec2 brushSize;"
+    "uniform float zoom;"
+    "uniform vec2 pan;"
+    "uniform vec2 resolution;"
+    "void main(){"
+    " vec2 transformedUV = uv * resolution/texSize;"
+    "   transformedUV -= pan / texSize;"
+    "   transformedUV /= zoom;"
+    "   if(transformedUV.x < 0.0 || transformedUV.x > 1.0 || transformedUV.y<0.0 || transformedUV.y > 1.0) discard;"
+    "   vec2 pixel = transformedUV * texSize;"
+    "   vec2 hoverUV = (floor(pixel)-cursor)/brushSize + 0.5;"
+    "   if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;"
+    "   vec4 color = texture2D(tex, hoverUV).abgr;"
     "   gl_FragColor = color;"
     "}";
 
     GLuint v = compile(GL_VERTEX_SHADER,vs);
     GLuint f = compile(GL_FRAGMENT_SHADER,fs);
+    GLuint fh = compile(GL_FRAGMENT_SHADER,fsHover);
 
     program = glCreateProgram();
-
     glAttachShader(program,v);
     glAttachShader(program,f);
-
     glLinkProgram(program);
 
-    GLint success;
-    glGetProgramiv(program,GL_LINK_STATUS,&success);
-
-    if(!success) 
-    {
-        char log[512];
-        glGetProgramInfoLog(program,512,nullptr,log);
-        printf("Program link error: %s\n",log);
-    }
+    programHover = glCreateProgram();
+    glAttachShader(programHover,v);
+    glAttachShader(programHover,fh);
+    glLinkProgram(programHover);    
 }
 
-void Renderer::createQuad()
-{
+void Renderer::cache(){
+    glUseProgram(program);
+    pos = glGetAttribLocation(program,"position");
+    texLocation = glGetUniformLocation(program,"tex");
+    resolutionLocation = glGetUniformLocation(program,"resolution");
+    positionLocation = glGetUniformLocation(program,"pan");
+    scaleLocation = glGetUniformLocation(program,"zoom");
+    texSizeLocation = glGetUniformLocation(program,"texSize");
+    repeatLocation = glGetUniformLocation(program,"repeat");
+    gridDivisionsLocation = glGetUniformLocation(program,"gridDivisions");
+    lightColorLocation = glGetUniformLocation(program,"lightColor");
+    darkColorLocation = glGetUniformLocation(program,"darkColor");
+
+    glUseProgram(programHover);
+    posH = glGetAttribLocation(programHover,"position");
+    texLocationH = glGetUniformLocation(programHover,"tex");
+    resolutionLocationH = glGetUniformLocation(programHover,"resolution");
+    positionLocationH = glGetUniformLocation(programHover,"pan");
+    scaleLocationH = glGetUniformLocation(programHover,"zoom");
+    texSizeLocationH = glGetUniformLocation(programHover,"texSize");
+    cursorLocation = glGetUniformLocation(programHover,"cursor");
+    brushSizeLocation = glGetUniformLocation(programHover,"brushSize");
+}
+
+void Renderer::createQuad(){
     float quad[] = {
-        -1.0f,  1.0f,
-        1.0f,  1.0f,
-        -1.0f, -1.0f,
-        1.0f, -1.0f 
+        -1,  1,
+         1,  1,
+        -1, -1,
+         1, -1
     };
+
     glGenBuffers(1,&vbo);
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
-
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(quad),
-        quad,
-        GL_STATIC_DRAW
-    );
+    glBufferData(GL_ARRAY_BUFFER,sizeof(quad),quad,GL_STATIC_DRAW);
 }
+
 GLuint Renderer::compile(GLenum type,const char* src){
     GLuint s = glCreateShader(type);
     glShaderSource(s,1,&src,nullptr);
     glCompileShader(s);
 
-    GLint success;
-    glGetShaderiv(s,GL_COMPILE_STATUS,&success);
+    GLint ok;
+    glGetShaderiv(s,GL_COMPILE_STATUS,&ok);
 
-    if(!success)
-    {
+    if(!ok){
         char log[512];
         glGetShaderInfoLog(s,512,nullptr,log);
-        printf("Shader compile error: %s\n",log);
+        printf("Shader error: %s\n",log);
     }
 
     return s;
-}
-void Renderer::renderCursor(Pattern pattern, Viewport* viewport){
-    uploadCursorHover(pattern);
-    draw(viewport);
-}
-
-void Renderer::render(Bounding area, Surface* surface, Viewport* viewport){
-    uploadSurface(area, surface);
-    draw(viewport);
 }

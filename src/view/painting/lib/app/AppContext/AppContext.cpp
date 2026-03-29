@@ -4,16 +4,23 @@ AppContext::AppContext(){
 
 }
 void AppContext::build(int width, int height){
-    _editorManager = std::make_unique<EditorManager>();
-    
+    _viewport = new Viewport(width, height);
+    _viewport->getCanvasSettings()->setGridDivisionsX(32);
+    _viewport->getCanvasSettings()->setGridDivisionsY(32);
+    _viewport->getCanvasSettings()->setSketchPosition(0,0);
+    _viewport->getCanvasSettings()->setScale(15.0f);
+
     glfwInit();
-    _window = glfwCreateWindow(width,height,"drawing area",NULL,NULL);
+    _window = glfwCreateWindow(_viewport->getWidth(), _viewport->getHeight(),"drawing area",NULL,NULL);
     glfwMakeContextCurrent(_window);
     
-    _viewport = new Viewport(width, height);
+    _editorManager = std::make_unique<EditorManager>();
     _renderer = new Renderer();
-    BrushContext brushContext;
-    pattern = brushContext.getPattern("brush_1");
+
+    _toolManager = new ToolManager();
+    // _toolManager->changeToolPressed(new BrushStrategy(new BrushContext(), new DrawingContext()));
+    // _hoverPreview = _toolManager->getToolPressed()->getHoverPreview();
+    // _renderer->initCursorHover(_hoverPreview);
 }
 
 void AppContext::resize(int width, int height){
@@ -27,48 +34,51 @@ void AppContext::loop(void* arg){
 
 void AppContext::render(){
     glfwPollEvents();
-
-    int w,h;
-    glfwGetFramebufferSize(_window,&w,&h);
-
+    // glClear (GL_COLOR_BUFFER_BIT);
+    
+    glViewport(0,0, _viewport->getWidth(), _viewport->getHeight());
+    
     double xpos, ypos;
     glfwGetCursorPos(_window, &xpos, &ypos);
     _viewport->setCursor(xpos, ypos);
     
-    glViewport(0,0,w,h);
+    if (!_editorManager) { return; }
 
     Editor* editor = _editorManager->getActiveEditor();
-    if (!editor) { return; }
-    Surface* surface = editor->getSurface();
-    if (!surface) { return; }
 
-    Preview* preview = editor->preview();
-
+    if (editor != _activeEditor) { 
+        _activeEditor = editor;
     
-    _viewport->getCanvasSettings()->setGridDivisionsX(32);
-    _viewport->getCanvasSettings()->setGridDivisionsY(32);
-    _viewport->getCanvasSettings()->setSketchPosition(0,0);
-    _viewport->getCanvasSettings()->setScale(15.0f);
+        _activeEditor->compose();
+        _renderer->init(_activeEditor->getSurface(), _viewport);
 
-    if(editor->getHeight() != flagHeight || editor->getWidth() != flagWidth){
-        _renderer->initCursorHover(pattern, _viewport);
-        editor->compose();
-        _renderer->init(surface, _viewport);
-        _renderer->render(Bounding(Point(0,0), Point(editor->getWidth(), editor->getHeight())),
-                            editor->getSurface(),
-                            _viewport);
-        
-        flagHeight = editor->getHeight();
-        flagWidth = editor->getWidth();
+        Bounding dirtArea = {
+            Point(0,0),
+            Point(_activeEditor->getWidth(), _activeEditor->getHeight())
+        };
+        _renderer->uploadSurface(dirtArea, _activeEditor->getSurface());
     }else{
+        Preview* preview = _activeEditor->preview();
         Bounding dirtArea = preview->getDirtyArea();
         if(dirtArea.getWidth() > 0 && dirtArea.getHeight() > 0){
-            editor->compose(dirtArea);
-            _renderer->render(dirtArea, editor->getSurface(), _viewport);
+            _activeEditor->compose(dirtArea);
+            _renderer->uploadSurface(dirtArea, _activeEditor->getSurface());
         }
     }
-    glClear (GL_COLOR_BUFFER_BIT);
-    _renderer->renderCursor(pattern, _viewport);
+    
+    _renderer->draw(_activeEditor->getSurface(), _viewport);
+
+    IPressedStrategy* tool = _toolManager->getToolPressed();
+    if(!tool) return;
+
+    HoverPreview* hoverPreview = tool->getHoverPreview();
+    if(_hoverPreview->pattern->height != hoverPreview->pattern->height || _hoverPreview->pattern->width != hoverPreview->pattern->width){
+        _hoverPreview = hoverPreview;
+        _renderer->initCursorHover(_hoverPreview);
+    }
+    if(hoverPreview->enable)
+        _renderer->drawCursorHover(_activeEditor->getSurface(), _hoverPreview, _viewport);
+
 
     glfwSwapBuffers(_window);
 }

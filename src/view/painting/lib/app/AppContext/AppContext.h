@@ -7,6 +7,8 @@
 #include "../../objects/Renderer/Renderer.h"
 #include "../../objects/Viewport/Viewport.h"
 #include "../../context/BrushContext/BrushContext.h"
+#include "../../objects/ToolManager/ToolManager.h"
+#include "../../strategy/BrushStrategy/BrushStrategy.h"
 #include <GLES3/gl3.h>
 #include <GLFW/glfw3.h>
 
@@ -18,11 +20,11 @@ private:
 
     Renderer* _renderer;
     Viewport* _viewport;
-    int flagWidth;
-    int flagHeight;
-    Pattern pattern;
-
-    public:
+    Editor* _activeEditor;
+    ToolManager* _toolManager;
+    HoverPreview* _hoverPreview;
+    
+public:
     AppContext();
     
     void build(int width, int height);

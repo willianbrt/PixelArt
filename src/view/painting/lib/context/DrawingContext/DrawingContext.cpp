@@ -11,9 +11,5 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .property("size", &DrawingContext::size)
         .property("color", &DrawingContext::color)
         .property("hardness", &DrawingContext::hardness)
-        .property("isMirrorX", &DrawingContext::isMirrorX)
-        .property("isMirrorY", &DrawingContext::isMirrorY)
-        .property("nTileX", &DrawingContext::nTileX)
-        .property("nTileY", &DrawingContext::nTileY)
         ;
 };
