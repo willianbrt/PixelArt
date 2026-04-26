@@ -30,9 +30,11 @@ async function init(width, height){
         paneFramesViewModel: (editor)=> { return new module.PaneFramesViewModel(); },
         paneLayersViewModel: (frame)=> { return new module.PaneLayersViewModel(); },
         layerViewModel: (layerID)=> { return new module.LayerViewModel(layerID); },
-        brushStrategy: (brushContext,drawingContext)=> { return new module.BrushStrategy(brushContext, drawingContext); },
+        brushStrategy: (brushContext, drawingContext, symmetryContext)=> { return new module.BrushStrategy(brushContext, drawingContext, symmetryContext); },
+        selectStrategy: (symmetryContext)=> { return new module.SelectStrategy(symmetryContext); },
         brushContext: ()=> { return new module.BrushContext(); },
         drawingContext: ()=> { return new module.DrawingContext(); },
+        symmetryContext: ()=> { return new module.SymmetryContext(); },
     });
 }
 

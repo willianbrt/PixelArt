@@ -5,6 +5,7 @@
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
 #include "../../context/DrawingContext/DrawingContext.h"
 #include "../../context/BrushContext/BrushContext.h"
+#include "../../context/SymmetryContext/SymmetryContext.h"
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/preview/Preview.h"
@@ -13,8 +14,9 @@
 class BrushStrategy : public IPressedStrategy {
 private:
     Point _from;
-    DrawingContext* _context;
+    DrawingContext* _drawingContext;
     BrushContext* _brushContext;
+    SymmetryContext* _symmetryContext;
     
     Editor* editor;
     Layer* layer;
@@ -33,7 +35,7 @@ private:
     void putMirroredPixel(int x, int y, unsigned int color);
 
 public:
-    BrushStrategy(BrushContext* brushContext, DrawingContext* context);
+    BrushStrategy(BrushContext* brushContext, DrawingContext* context, SymmetryContext* symmetryContext);
 
     void onPressed(int x, int y) override;
     void onTracking(int x, int y) override;

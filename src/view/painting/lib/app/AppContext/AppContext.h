@@ -7,6 +7,7 @@
 #include "../../objects/Renderer/Renderer.h"
 #include "../../objects/Viewport/Viewport.h"
 #include "../../context/BrushContext/BrushContext.h"
+#include "../../context/SymmetryContext/SymmetryContext.h"
 #include "../../objects/ToolManager/ToolManager.h"
 #include "../../strategy/BrushStrategy/BrushStrategy.h"
 #include <GLES3/gl3.h>

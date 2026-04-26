@@ -18,9 +18,9 @@ void AppContext::build(int width, int height){
     _renderer = new Renderer();
 
     _toolManager = new ToolManager();
-    // _toolManager->changeToolPressed(new BrushStrategy(new BrushContext(), new DrawingContext()));
-    // _hoverPreview = _toolManager->getToolPressed()->getHoverPreview();
-    // _renderer->initCursorHover(_hoverPreview);
+    _toolManager->changeToolPressed(new BrushStrategy(new BrushContext(), new DrawingContext(), new SymmetryContext()));
+    _hoverPreview = _toolManager->getToolPressed()->getHoverPreview();
+    _renderer->initCursorHover(_hoverPreview);
 }
 
 void AppContext::resize(int width, int height){
@@ -72,6 +72,7 @@ void AppContext::render(){
     if(!tool) return;
 
     HoverPreview* hoverPreview = tool->getHoverPreview();
+    if(!hoverPreview) return;
     if(_hoverPreview->pattern->height != hoverPreview->pattern->height || _hoverPreview->pattern->width != hoverPreview->pattern->width){
         _hoverPreview = hoverPreview;
         _renderer->initCursorHover(_hoverPreview);

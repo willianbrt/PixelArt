@@ -118,17 +118,17 @@ body{
     position: relative;
 }
 #selected-area{
-    display: none;
+    display: block;
 }
 #selected-area .marker{
-    box-shadow: #441d51 0 0 0 0.1px;
-    background-color: #896a95;
-    width: 1px;
-    height: 1px;
+    box-shadow: #e06900 0 0 0 0.1px;
+    background-color: #e06900;
+    width: 10px;
+    height: 10px;
 }
 #selected-area .marker#m-top-left{
-    left:0;
-    top:0;
+    left:50px;
+    top:50px;
     translate: -50% -50%;
 }
 #selected-area .marker#m-top-right{
@@ -180,6 +180,20 @@ body{
     overflow: hidden;
     width: 100%;
 }
+.pane-content .body::-webkit-scrollbar {
+  width: 6px;
+}
+.pane-content .body::-webkit-scrollbar-track {
+  background: transparent;
+  width: 0px;
+  position: absolute;
+  border-radius: 0px;
+}
+.pane-content .body::-webkit-scrollbar-thumb {
+  background: hsl(283, 24%, 42%);
+  border-radius: 4px;
+}
+
 .pane-content .body{
     background-color: var(--primary-color);
     width: auto;

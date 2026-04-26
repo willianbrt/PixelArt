@@ -30,6 +30,15 @@ private:
     GLuint program;
     GLuint vbo;
     
+    GLuint programSelect;
+    GLuint texLocationSelect;
+    GLint posSelect;
+    GLint positionLocationSelect;
+    GLint cursorWorldLocation;
+    GLint scaleLocationSelect;
+    GLint texSizeLocationSelect;
+    GLint resolutionLocationSelect;
+    
     GLuint programHover;
     GLuint canvasCursorHover;
     GLuint texLocationH;

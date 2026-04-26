@@ -1,13 +1,14 @@
 #include "BrushStrategy.h"
 
-BrushStrategy::BrushStrategy(BrushContext* brushContext, DrawingContext* context) :
+BrushStrategy::BrushStrategy(BrushContext* brushContext, DrawingContext* drawingContext, SymmetryContext* symmetryContext) :
 _brushContext(brushContext),
-_context(context)
+_drawingContext(drawingContext),
+_symmetryContext(symmetryContext)
 {
     _brushContext->selectedPattern = "brush_1";
-    _context->color = 0xff0000ff;
-    _context->size = 1;
-    _context->hardness = 1.0f;
+    _drawingContext->color = 0xff0000ff;
+    _drawingContext->size = 1;
+    _drawingContext->hardness = 1.0f;
 
     hoverPreview = new HoverPreview();
     _pattern = _brushContext->getPattern(_brushContext->selectedPattern);
@@ -31,8 +32,8 @@ void BrushStrategy::onPressed(int x, int y){
     screenHeight = canvasSettings->getTilesY() * editor->getHeight();
     
     _pattern = _brushContext->getPattern(_brushContext->selectedPattern);
-    _heightPattern = _pattern.height*_context->size;
-    _widthPattern = _pattern.width*_context->size;
+    _heightPattern = _pattern.height*_drawingContext->size;
+    _widthPattern = _pattern.width*_drawingContext->size;
 
     stamp(to);
     
@@ -122,10 +123,10 @@ void BrushStrategy::stamp(Point pixel){
     boundingStamp.end.y = startPixel.y + _heightPattern >= screenHeight ? screenHeight : startPixel.y + _heightPattern;
 
 
-    int startSrcX = startPixel.x < 0 ? -startPixel.x  / _context->size : 0;
+    int startSrcX = startPixel.x < 0 ? -startPixel.x  / _drawingContext->size : 0;
     int startErrX = startPixel.x < 0 ? startPixel.x % _widthPattern : 0;
     
-    int srcY =  startPixel.y < 0 ? -startPixel.y  / _context->size : 0;
+    int srcY =  startPixel.y < 0 ? -startPixel.y  / _drawingContext->size : 0;
     int errY = startPixel.y < 0 ? startPixel.y % _heightPattern : 0;
     
     for(int y = boundingStamp.start.y; y < boundingStamp.end.y; y ++){
@@ -133,8 +134,8 @@ void BrushStrategy::stamp(Point pixel){
         int errX = startErrX;
         
         for(int x =  boundingStamp.start.x; x <  boundingStamp.end.x; x ++){
-            unsigned int topColor = _context->color;
-            GraphicsEngine::setOpacity(topColor, (_pattern.buffer[srcY*_pattern.height + srcX] & 0xFF) / 255.0f);  
+            unsigned int topColor = _drawingContext->color;
+            GraphicsEngine::setOpacity(topColor, (_pattern.buffer[srcY*_pattern.width + srcX] & 0xFF) / 255.0f);  
 
             Point p = {
                 GraphicsEngine::clampedTilePoint(x, layer->getWidth()),
@@ -163,13 +164,13 @@ void BrushStrategy::putMirroredPixel(int x, int y, unsigned int color){
     int toMirrorX = GraphicsEngine::pointMirrored(x, layer->getWidth());
     int toMirrorY = GraphicsEngine::pointMirrored(y, layer->getHeight());
 
-    if(_context->isMirrorX){
+    if(_drawingContext->isMirrorX){
         preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, y), color));
     }            
-    if(_context->isMirrorY){
+    if(_drawingContext->isMirrorY){
         preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(x, toMirrorY), color));
     }
-    if(_context->isMirrorX && _context->isMirrorY){
+    if(_drawingContext->isMirrorX && _drawingContext->isMirrorY){
         preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, toMirrorY), color));
     }
 }
@@ -185,7 +186,7 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<BrushStrategy>("BrushStrategy")
-        .constructor<BrushContext*, DrawingContext*>()
+        .constructor<BrushContext*, DrawingContext*, SymmetryContext*>()
         .function("onPressed", &BrushStrategy::onPressed)
         .function("onTracking", &BrushStrategy::onTracking)
         .function("onRelease", &BrushStrategy::onRelease)
