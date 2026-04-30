@@ -5,17 +5,16 @@ _brushContext(brushContext),
 _drawingContext(drawingContext),
 _symmetryContext(symmetryContext)
 {
-    _brushContext->selectedPattern = "brush_1";
+    _brushContext->setActivePattern("brush_1");
 
     _drawingContext->color = 0xff0000ff;
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
-
-    _pattern = _brushContext->getPattern(_brushContext->selectedPattern);
     
     cursorContext = new CursorContext();
-    cursorContext->pattern = &_pattern;
+    cursorContext->pattern = _brushContext->selectedPattern;
     cursorContext->scale = _drawingContext->size;
+
 }
 void BrushStrategy::onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext){
     cursorContext->enable = false;
@@ -23,9 +22,8 @@ void BrushStrategy::onPressed(int x, int y, ToolRuntimeContext toolRuntimeContex
 
     Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
         
-    _pattern = _brushContext->getPattern(_brushContext->selectedPattern);
-    _heightPattern = _pattern.height*_drawingContext->size;
-    _widthPattern = _pattern.width*_drawingContext->size;
+    _heightPattern = _brushContext->selectedPattern->height*_drawingContext->size;
+    _widthPattern = _brushContext->selectedPattern->width*_drawingContext->size;
 
     stamp(to);
     
@@ -127,7 +125,7 @@ void BrushStrategy::stamp(Point pixel){
         
         for(int x =  boundingStamp.start.x; x <  boundingStamp.end.x; x ++){
             unsigned int topColor = _drawingContext->color;
-            GraphicsEngine::setOpacity(topColor, (_pattern.buffer[srcY*_pattern.width + srcX] & 0xFF) / 255.0f);
+            GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[srcY* _brushContext->selectedPattern->width + srcX] & 0xFF) / 255.0f);
 
             Point p = {
                 GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth()),
@@ -136,14 +134,14 @@ void BrushStrategy::stamp(Point pixel){
 
             putMirroredPixel(p.x, p.y, topColor);
 
-            errX += _pattern.width;
+            errX += _brushContext->selectedPattern->width;
             if(errX >= _widthPattern){
                 srcX++;
                 errX-=_widthPattern;
             }
         }
 
-        errY += _pattern.height;
+        errY += _brushContext->selectedPattern->height;
         if(errY >= _heightPattern){
             srcY++;
             errY-=_heightPattern;

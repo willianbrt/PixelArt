@@ -1,41 +1,40 @@
 #include "BrushContext.h"
-
+BrushContext::BrushContext(){}
 void BrushContext::setActivePattern(std::string name){
-    std::vector<Pattern>::iterator it = findPattern(name);
-
+    selectedPattern = &getPattern(name);
 }
-Pattern BrushContext::getPattern(std::string name){
+Pattern& BrushContext::getPattern(std::string name){
     return *findPattern(name);
 }
 std::vector<Pattern>::iterator BrushContext::findPattern(std::string name){
     auto it = std::find_if(
         pattern.begin(), 
         pattern.end(), 
-        [name](const Pattern& p){ return p.name == name; });
+        [&name](const Pattern& p){ return p.name == name; });
     
     if(it == pattern.end()){
-        std::runtime_error("pattern nao encontrado\n");
+        throw std::runtime_error("pattern nao encontrado");
     }
     return it;
 }
 
-#include <emscripten/bind.h>
+// #include <emscripten/bind.h>
 
-using namespace emscripten;
+// using namespace emscripten;
 
-EMSCRIPTEN_BINDINGS(pixel_editor_module){
-    register_vector<Pattern>("VectorPattern");
+// EMSCRIPTEN_BINDINGS(pixel_editor_module){
+//     register_vector<Pattern>("VectorPattern");
     
-    value_object<Pattern>("Pattern")
-        .field("name", &Pattern::name)
-        .field("buffer", &Pattern::buffer)
-        .field("width", &Pattern::width)
-        .field("height", &Pattern::height)
-        ;
+//     value_object<Pattern>("Pattern")
+//         .field("name", &Pattern::name)
+//         .field("buffer", &Pattern::buffer)
+//         .field("width", &Pattern::width)
+//         .field("height", &Pattern::height)
+//         ;
 
-    class_<BrushContext>("BrushContext")
-        .constructor<>()
-        .property("selectedPattern", &BrushContext::selectedPattern)
-        .property("pattern", &BrushContext::pattern)
-        ;
-};
+//     class_<BrushContext>("BrushContext")
+//         .constructor<>()
+//         .property("selectedPattern", &BrushContext::selectedPattern)
+//         .property("pattern", &BrushContext::pattern)
+//         ;
+// };

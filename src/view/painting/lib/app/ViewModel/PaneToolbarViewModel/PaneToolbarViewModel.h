@@ -18,7 +18,7 @@ class PaneToolbarViewModel  {
 private:
     ToolManager* _toolManager;
     
-    BrushContext    brushContext;
+    BrushContext*    brushContext;
     DrawingContext  drawingContext;
     SymmetryContext symmetryContext;
 

@@ -28,7 +28,6 @@ private:
 
 
     CursorContext* cursorContext; 
-    Pattern _pattern;
     int _heightPattern;
     int _widthPattern;
     

@@ -12,11 +12,12 @@ struct Pattern{
     int width;
     int height;
 };
-class BrushContext : IToolContext{
+class BrushContext {
 private:
 
 public:
-    std::string selectedPattern;
+    BrushContext();
+    Pattern* selectedPattern;
     std::vector<Pattern> pattern = {
             {
                 "dot",
@@ -37,7 +38,7 @@ public:
         };
     std::vector<Pattern>::iterator findPattern(std::string name);
     void setActivePattern(std::string name);
-    Pattern getPattern(std::string name);
+    Pattern& getPattern(std::string name);
 };
 
 #endif
