@@ -17,10 +17,9 @@ void AppContext::build(int width, int height){
     _editorManager = std::make_unique<EditorManager>();
     _renderer = new Renderer();
 
-    _toolManager = new ToolManager();
-    _toolManager->changeToolPressed(new BrushStrategy(new BrushContext(), new DrawingContext(), new SymmetryContext()));
-    _hoverPreview = _toolManager->getToolPressed()->getHoverPreview();
-    _renderer->initCursorHover(_hoverPreview);
+    _toolManager = new ToolManager(_editorManager.get(), _viewport);
+    _cursorContext = _toolManager->getToolPressed()->getCursorContext();
+    _renderer->initCursorHover(_cursorContext);
 }
 
 void AppContext::resize(int width, int height){
@@ -71,14 +70,14 @@ void AppContext::render(){
     IPressedStrategy* tool = _toolManager->getToolPressed();
     if(!tool) return;
 
-    HoverPreview* hoverPreview = tool->getHoverPreview();
-    if(!hoverPreview) return;
-    if(_hoverPreview->pattern->height != hoverPreview->pattern->height || _hoverPreview->pattern->width != hoverPreview->pattern->width){
-        _hoverPreview = hoverPreview;
-        _renderer->initCursorHover(_hoverPreview);
+    CursorContext* cursorContext = tool->getCursorContext();
+    if(!cursorContext) return;
+    if(_cursorContext->pattern->height != cursorContext->pattern->height || _cursorContext->pattern->width != cursorContext->pattern->width){
+        _cursorContext = cursorContext;
+        _renderer->initCursorHover(_cursorContext);
     }
-    if(hoverPreview->enable)
-        _renderer->drawCursorHover(_activeEditor->getSurface(), _hoverPreview, _viewport);
+    if(cursorContext->enable)
+        _renderer->drawCursorHover(_activeEditor->getSurface(), _cursorContext, _viewport);
 
 
     glfwSwapBuffers(_window);
@@ -94,6 +93,9 @@ Renderer* AppContext::getRenderer(){
 }
 GLFWwindow* AppContext::getWindow(){
     return _window;
+}
+ToolManager* AppContext::getToolManager(){
+    return _toolManager;
 }
 AppContext& AppContext::instance(){
     static AppContext appContext;

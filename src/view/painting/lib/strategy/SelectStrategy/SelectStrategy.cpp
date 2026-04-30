@@ -1,105 +1,107 @@
 #include "SelectStrategy.h"
 
-void SelectStrategy::onPressed(int x, int y){
-    hoverPreview->enable = false;
+SelectStrategy::SelectStrategy(SymmetryContext* symmetryContext){
+    cursorContext = new CursorContext();
+    _symmetryContext = symmetryContext;
+}
+SelectStrategy::~SelectStrategy(){
+    free(_data);
+}
 
-    Point to = viewport->cursorToCanvas(x, y);
-    
-    editor = AppContext::instance().getEditorManager()->getActiveEditor();
-    
-    layer = editor->getActiveFrame()->getActiveLayer();
-    preview = editor->preview();
-    preview->setTarget(layer);
+void SelectStrategy::onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext){    
+    cursorContext->enable = false;
 
-    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
-    screenWidth = canvasSettings->getTilesX() * editor->getWidth();
-    screenHeight = canvasSettings->getTilesY() * editor->getHeight();
-    
-    _heightPattern = _pattern.height*_context->nTileX;
-    _widthPattern = _pattern.width*_context->nTileY;
-    
-
+    Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
     _from = to;
+
+    if(!_originalBounding.has_value()){
+        if(to.x > _toolRuntimeContext.screenWidth || to.y > _toolRuntimeContext.screenHeight) return;
+            
+        _originalBounding = Bounding(
+            to,
+            Point(_from.x+1, _from.y+1)
+        );
+        
+        _originalBounding->start.x = std::min(_toolRuntimeContext.screenWidth, std::max(0 ,_originalBounding->start.x));
+        _originalBounding->start.y = std::min(_toolRuntimeContext.screenHeight, std::max(0, _originalBounding->start.y));
+        _originalBounding->end.x = std::min(_toolRuntimeContext.screenWidth, std::max(0, _originalBounding->end.x));
+        _originalBounding->end.y = std::min(_toolRuntimeContext.screenHeight, std::max(0, _originalBounding->end.y));
+        return;
+    }
+
 }
 void SelectStrategy::onTracking(int x, int y){
-    Point to = viewport->cursorToCanvas(x, y);
+    Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
     
+    printf("oi\n");
     
-    
+    _originalBounding = {
+        Point(x, y),
+        Point(x+1, y+1)
+    };
+
+    _originalBounding->start.x = std::min(_toolRuntimeContext.screenWidth, std::max(0 ,_originalBounding->start.x));
+    _originalBounding->start.y = std::min(_toolRuntimeContext.screenHeight, std::max(0, _originalBounding->start.y));
+    _originalBounding->end.x = std::min(_toolRuntimeContext.screenWidth, std::max(0, _originalBounding->end.x));
+    _originalBounding->end.y = std::min(_toolRuntimeContext.screenHeight, std::max(0, _originalBounding->end.y));
+
     _from = to;
 }
-
 void SelectStrategy::onRelease(int x, int y){
-    hoverPreview->enable = true;
+    cursorContext->enable = true;
 
-    preview->commit();
+    _toolRuntimeContext.preview->commit();
 }
 
 void SelectStrategy::putMirroredPixel(int x, int y, unsigned int color){
-    preview->putPixel(x, y,  GraphicsEngine::blendColors(preview->getPixel(x, y), color));
+    _toolRuntimeContext.preview->putPixel(x, y,  GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(x, y), color));
 
-    int toMirrorX = GraphicsEngine::pointMirrored(x, layer->getWidth());
-    int toMirrorY = GraphicsEngine::pointMirrored(y, layer->getHeight());
+    int toMirrorX = _symmetryContext->pointMirrored(x, _toolRuntimeContext.layer->getWidth());
+    int toMirrorY = _symmetryContext->pointMirrored(y, _toolRuntimeContext.layer->getHeight());
 
-    if(_context->isMirrorX){
-        preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, y), color));
+    if(_symmetryContext->isMirrorX){
+        _toolRuntimeContext.preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, y), color));
     }            
-    if(_context->isMirrorY){
-        preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(x, toMirrorY), color));
+    if(_symmetryContext->isMirrorY){
+        _toolRuntimeContext.preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(x, toMirrorY), color));
     }
-    if(_context->isMirrorX && _context->isMirrorY){
-        preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, toMirrorY), color));
+    if(_symmetryContext->isMirrorX && _symmetryContext->isMirrorY){
+        _toolRuntimeContext.preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, toMirrorY), color));
     }
 }
 
-HoverPreview* SelectStrategy::getHoverPreview(){
-    return hoverPreview;
+CursorContext* SelectStrategy::getCursorContext(){
+    return cursorContext;
 }
 
 
-
-
-
-SelectStrategy::SelectStrategy(SymmetryContext* context){
-    viewport = AppContext::instance().getViewport();
-    hoverPreview = new HoverPreview();
-    _context = context;
-    
-}
-void SelectStrategy::startSelection(
-    int from_start_x, int from_start_y,
-    int to_start_x, int to_start_y, 
-    Surface& surface, 
-    bool cleanTheArea)
+void SelectStrategy::start()
 {
     _originalBounding = Bounding(
-        Point(from_start_x,from_start_y),
-        Point(to_start_x+1, to_start_y+1)
+        _to,
+        Point(_from.x+1, _from.y+1)
     );
     
-    _originalBounding.start.x = std::min(screenWidth, std::max(0 ,_originalBounding.start.x));
-    _originalBounding.start.y = std::min(screenHeight, std::max(0, _originalBounding.start.y));
-    _originalBounding.end.x = std::min(screenWidth, std::max(0, _originalBounding.end.x));
-    _originalBounding.end.y = std::min(screenHeight, std::max(0, _originalBounding.end.y));
+    _originalBounding->start.x = std::min(_toolRuntimeContext.screenWidth, std::max(0 ,_originalBounding->start.x));
+    _originalBounding->start.y = std::min(_toolRuntimeContext.screenHeight, std::max(0, _originalBounding->start.y));
+    _originalBounding->end.x = std::min(_toolRuntimeContext.screenWidth, std::max(0, _originalBounding->end.x));
+    _originalBounding->end.y = std::min(_toolRuntimeContext.screenHeight, std::max(0, _originalBounding->end.y));
 
-    _data = new Surface(_originalBounding.getWidth(), _originalBounding.getHeight());
+    _data = new Surface(_originalBounding->getWidth(), _originalBounding->getHeight());
     
-    for (int y = 0; y < _originalBounding.getHeight(); ++y) {
+    for (int y = 0; y < _originalBounding->getHeight(); ++y) {
         Point p;
-        p.y = (_originalBounding.start.y + y) %surface.getHeight();
-        for (int x = 0; x < _originalBounding.getWidth(); ++x){
-            p.x = (_originalBounding.start.x + x)%surface.getWidth();
-            _data->putPixel(x, y, surface.getPixel(p.x , p.y));
+        p.y = (_originalBounding->start.y + y) %_toolRuntimeContext.layer->getHeight();
+        for (int x = 0; x < _originalBounding->getWidth(); ++x){
+            p.x = (_originalBounding->start.x + x)%_toolRuntimeContext.layer->getWidth();
+            _data->putPixel(x, y, _toolRuntimeContext.layer->getPixel(p.x , p.y));
         }
     }
     
-    _destBounding = _originalBounding;
-    _origCenterX = (_originalBounding.start.x + _originalBounding.end.x) * 0.5f;
-    _origCenterY = (_originalBounding.start.y + _originalBounding.end.y) * 0.5f;
+    _origCenterX = (_originalBounding->start.x + _originalBounding->end.x) * 0.5f;
+    _origCenterY = (_originalBounding->start.y + _originalBounding->end.y) * 0.5f;
     
-    _cleanTheArea = cleanTheArea;
-
     _angleRad = 0;
     _cosA = std::cos(_angleRad);
     _sinA = std::sin(_angleRad);
@@ -107,18 +109,15 @@ void SelectStrategy::startSelection(
     _dstCenterX = _origCenterX;
     _dstCenterY = _origCenterY;
 
-    _resizedWidth = _originalBounding.getWidth() ;
-    _resizedHeight = _originalBounding.getHeight() ;
+    _resizedWidth = _originalBounding->getWidth() ;
+    _resizedHeight = _originalBounding->getHeight() ;
     
     _corners = Corners();
     
-    _corners.topLeft     = Point(_originalBounding.start.x, _originalBounding.start.y);
-    _corners.bottomRight = Point(_originalBounding.end.x, _originalBounding.end.y);
-    _corners.topRight    = Point(_originalBounding.end.x, _originalBounding.start.y);
-    _corners.bottomLeft  = Point(_originalBounding.start.x, _originalBounding.end.y);
-}
-SelectStrategy::~SelectStrategy(){
-    free(_data);
+    _corners.topLeft     = Point(_originalBounding->start.x, _originalBounding->start.y);
+    _corners.bottomRight = Point(_originalBounding->end.x, _originalBounding->end.y);
+    _corners.topRight    = Point(_originalBounding->end.x, _originalBounding->start.y);
+    _corners.bottomLeft  = Point(_originalBounding->start.x, _originalBounding->end.y);
 }
 void SelectStrategy::translate(float deltaX, float deltaY){
     _corners.topLeft.x += deltaX;
@@ -244,39 +243,25 @@ void SelectStrategy::resize(int marker, float deltaX, float deltaY){
                     cornerH->y + cornerW->y - pivot.y
                 );
                 
-    _scaleX =  _resizedWidth / (float)_originalBounding.getWidth();
-    _scaleY =  _resizedHeight / (float)_originalBounding.getHeight();
+    _scaleX =  _resizedWidth / (float)_originalBounding->getWidth();
+    _scaleY =  _resizedHeight / (float)_originalBounding->getHeight();
 
     _dstCenterX = (_corners.topLeft.x + _corners.topRight.x + _corners.bottomLeft.x + _corners.bottomRight.x) * 0.25f;
     _dstCenterY = (_corners.topLeft.y + _corners.topRight.y + _corners.bottomLeft.y + _corners.bottomRight.y) * 0.25f;
 }
 
-Point SelectStrategy::getCenter(){
-    return Point(_dstCenterX, _dstCenterY);
-}
-
-int SelectStrategy::getResizedWidth(){
-    return _resizedWidth;
-}
-int SelectStrategy::getResizedHeight(){
-    return _resizedHeight;
-}
-
-Bounding SelectStrategy::getBounding(){
+optional<Bounding> SelectStrategy::getBounding(){
     return _originalBounding;
 }
 
 Corners SelectStrategy::getDestinationCorners(){
     return _corners;
 }
-float SelectStrategy::getRotateRad(){
-    return _angleRad;
-}
 void SelectStrategy::draw(){
     if(_cleanTheArea){
-        for (int y = _originalBounding.start.y; y < _originalBounding.end.y; ++y) {
-            for (int x = _originalBounding.start.x; x < _originalBounding.end.x; ++x) {
-                layer->putPixel((int)x%layer->getWidth(), (int)y%layer->getHeight(), 0x0);
+        for (int y = _originalBounding->start.y; y < _originalBounding->end.y; ++y) {
+            for (int x = _originalBounding->start.x; x < _originalBounding->end.x; ++x) {
+                _toolRuntimeContext.layer->putPixel((int)x%_toolRuntimeContext.layer->getWidth(), (int)y%_toolRuntimeContext.layer->getHeight(), 0x0);
             }
         }
     }
@@ -287,14 +272,14 @@ void SelectStrategy::draw(){
     if (_resizedWidth < 0) hw = -hw;
     if (_resizedHeight < 0) hh = -hh;
 
-    const int offsetX = -_originalBounding.start.x + std::min(_originalBounding.start.x, 0);
-    const int offsetY = -_originalBounding.start.y + std::min(_originalBounding.start.y, 0);
+    const int offsetX = -_originalBounding->start.x + std::min(_originalBounding->start.x, 0);
+    const int offsetY = -_originalBounding->start.y + std::min(_originalBounding->start.y, 0);
 
     Bounding destBounding = _corners.getBounding();
     destBounding.start.y = std::max(destBounding.start.y,0);
     destBounding.start.x = std::max(destBounding.start.x,0);
-    destBounding.end.y = std::min(destBounding.end.y,screenHeight);
-    destBounding.end.x = std::min(destBounding.end.x,screenWidth);
+    destBounding.end.y = std::min(destBounding.end.y, _toolRuntimeContext.screenHeight);
+    destBounding.end.x = std::min(destBounding.end.x, _toolRuntimeContext.screenWidth);
 
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         Point src;
@@ -319,11 +304,11 @@ void SelectStrategy::draw(){
 
 
             Point clampedPoint = {
-                GraphicsEngine::clampedTilePoint(dx, layer->getWidth()),
-                GraphicsEngine::clampedTilePoint(dy, layer->getHeight())
+                GraphicsEngine::clampedTilePoint(dx, _toolRuntimeContext.layer->getWidth()),
+                GraphicsEngine::clampedTilePoint(dy, _toolRuntimeContext.layer->getHeight())
             };
-            clampedPoint.x = GraphicsEngine::clampedTilePoint(dx, layer->getWidth());
-            clampedPoint.y = GraphicsEngine::clampedTilePoint(dy, layer->getHeight());
+            clampedPoint.x = GraphicsEngine::clampedTilePoint(dx, _toolRuntimeContext.layer->getWidth());
+            clampedPoint.y = GraphicsEngine::clampedTilePoint(dy, _toolRuntimeContext.layer->getHeight());
             putMirroredPixel(clampedPoint.x, clampedPoint.y, color);
         }
     }
@@ -358,8 +343,8 @@ Surface* SelectStrategy::copy(){
                 continue;
             }
 
-            src.x = std::floor(localX / _scaleX + _origCenterX - _originalBounding.start.x);
-            src.y = std::floor(localY / _scaleY + _origCenterY - _originalBounding.start.y);
+            src.x = std::floor(localX / _scaleX + _origCenterX - _originalBounding->start.x);
+            src.y = std::floor(localY / _scaleY + _origCenterY - _originalBounding->start.y);
             
             unsigned int color = _data->getPixel(src.x, src.y);
 

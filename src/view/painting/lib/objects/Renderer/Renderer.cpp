@@ -53,7 +53,7 @@ void Renderer::uploadSurface(Bounding area, Surface* surface){
     glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 }
 
-void Renderer::initCursorHover(HoverPreview* hover){
+void Renderer::initCursorHover(CursorContext* hover){
     glGenTextures(1, &canvasCursorHover);
     glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
 
@@ -75,7 +75,7 @@ void Renderer::initCursorHover(HoverPreview* hover){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
-void Renderer::uploadCursorHover(HoverPreview* hover){
+void Renderer::uploadCursorHover(CursorContext* hover){
     glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -125,7 +125,7 @@ void Renderer::draw(Surface* surface, Viewport* viewport){
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void Renderer::drawCursorHover(Surface* surface, HoverPreview* hover, Viewport* viewport){
+void Renderer::drawCursorHover(Surface* surface, CursorContext* hover, Viewport* viewport){
     glUseProgram(programHover);
 
     glActiveTexture(GL_TEXTURE0);

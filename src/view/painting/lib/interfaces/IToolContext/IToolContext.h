@@ -5,11 +5,6 @@ class IToolContext{
 protected:
 public:
     virtual ~IToolContext() = default;
-    
-    bool isMirrorX;
-    bool isMirrorY;
-    int nTileX = 1;
-    int nTileY = 1;
 };
 
 #endif

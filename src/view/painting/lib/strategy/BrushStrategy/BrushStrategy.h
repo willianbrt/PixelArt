@@ -3,6 +3,8 @@
 #include "../../app/AppContext/AppContext.h"
 #include "../../objects/Viewport/Viewport.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
+#include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
+#include "../../context/CursorContext/CursorContext.h"
 #include "../../context/DrawingContext/DrawingContext.h"
 #include "../../context/BrushContext/BrushContext.h"
 #include "../../context/SymmetryContext/SymmetryContext.h"
@@ -18,16 +20,17 @@ private:
     BrushContext* _brushContext;
     SymmetryContext* _symmetryContext;
     
-    Editor* editor;
-    Layer* layer;
-    Surface* overlay;
-    Preview* preview;
-    Viewport* viewport;
-    HoverPreview* hoverPreview; 
+    // Editor* editor;
+    // Layer* layer;
+    // Preview* preview;
+    // Viewport* viewport;
+    ToolRuntimeContext _toolRuntimeContext;
+
+
+    CursorContext* cursorContext; 
     Pattern _pattern;
     int _heightPattern;
     int _widthPattern;
-    int screenWidth, screenHeight;
     
     void drawHorizontalBrush(Point to, Point from);
     void drawVerticalBrush(Point to, Point from);
@@ -37,9 +40,9 @@ private:
 public:
     BrushStrategy(BrushContext* brushContext, DrawingContext* context, SymmetryContext* symmetryContext);
 
-    void onPressed(int x, int y) override;
+    void onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext) override;
     void onTracking(int x, int y) override;
     void onRelease(int x, int y) override;
-    HoverPreview* getHoverPreview() override;
+    CursorContext* getCursorContext() override;
 };
 #endif

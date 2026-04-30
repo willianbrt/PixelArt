@@ -8,8 +8,7 @@
 #include "../../graphics/surface/Surface.h"
 // #include "../../objects/CanvasSettings/CanvasSettings.h"
 #include "../../objects/Viewport/Viewport.h"
-#include "../../context/BrushContext/BrushContext.h"
-#include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
+#include "../../context/CursorContext/CursorContext.h"
 
 class Renderer
 {
@@ -17,13 +16,13 @@ public:
     Renderer();
 
     void init(Surface* surface, Viewport* viewport);
-    void initCursorHover(HoverPreview* hover);
+    void initCursorHover(CursorContext* hover);
 
     void uploadSurface(Bounding area, Surface* surface);
-    void uploadCursorHover(HoverPreview* hover);
+    void uploadCursorHover(CursorContext* hover);
 
     void draw(Surface* surface, Viewport* viewport);
-    void drawCursorHover(Surface* surface, HoverPreview* hover, Viewport* viewport);
+    void drawCursorHover(Surface* surface, CursorContext* hover, Viewport* viewport);
 
 private:
     int _height, _width;

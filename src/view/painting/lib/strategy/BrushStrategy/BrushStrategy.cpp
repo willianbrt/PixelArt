@@ -6,31 +6,23 @@ _drawingContext(drawingContext),
 _symmetryContext(symmetryContext)
 {
     _brushContext->selectedPattern = "brush_1";
+
     _drawingContext->color = 0xff0000ff;
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
 
-    hoverPreview = new HoverPreview();
     _pattern = _brushContext->getPattern(_brushContext->selectedPattern);
-    hoverPreview->pattern = &_pattern;
-
-    viewport = AppContext::instance().getViewport();
+    
+    cursorContext = new CursorContext();
+    cursorContext->pattern = &_pattern;
+    cursorContext->scale = _drawingContext->size;
 }
-void BrushStrategy::onPressed(int x, int y){
-    hoverPreview->enable = false;
+void BrushStrategy::onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext){
+    cursorContext->enable = false;
+    _toolRuntimeContext = toolRuntimeContext;    
 
-    Point to = viewport->cursorToCanvas(x, y);
-    
-    editor = AppContext::instance().getEditorManager()->getActiveEditor();
-    
-    layer = editor->getActiveFrame()->getActiveLayer();
-    preview = editor->preview();
-    preview->setTarget(layer);
-
-    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
-    screenWidth = canvasSettings->getTilesX() * editor->getWidth();
-    screenHeight = canvasSettings->getTilesY() * editor->getHeight();
-    
+    Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
+        
     _pattern = _brushContext->getPattern(_brushContext->selectedPattern);
     _heightPattern = _pattern.height*_drawingContext->size;
     _widthPattern = _pattern.width*_drawingContext->size;
@@ -40,8 +32,9 @@ void BrushStrategy::onPressed(int x, int y){
     _from = to;
 }
 void BrushStrategy::onTracking(int x, int y){
-    Point to = viewport->cursorToCanvas(x, y);
+    Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
+    
     
     if (std::abs(to.x - _from.x) > std::abs(to.y - _from.y)) {
         drawHorizontalBrush(_from, to);
@@ -52,9 +45,9 @@ void BrushStrategy::onTracking(int x, int y){
     _from = to;
 }
 void BrushStrategy::onRelease(int x, int y){
-    hoverPreview->enable = true;
+    cursorContext->enable = true;
 
-    preview->commit();
+    _toolRuntimeContext.preview->commit();
 }
 
 void BrushStrategy::drawHorizontalBrush(Point to, Point from){
@@ -112,17 +105,16 @@ void BrushStrategy::stamp(Point pixel){
         pixel.y - (_heightPattern >> 1)
     };
 
-    if(startPixel.x >= screenWidth || startPixel.y >= screenHeight) return;
+    if(startPixel.x >= _toolRuntimeContext.screenWidth || startPixel.y >= _toolRuntimeContext.screenHeight) return;
     if(startPixel.x < -_widthPattern || startPixel.y < -_heightPattern) return;
-
-
+    
     Bounding boundingStamp;
     boundingStamp.start.x = startPixel.x < 0 ? 0 : startPixel.x;
     boundingStamp.start.y = startPixel.y < 0 ? 0 : startPixel.y;
-    boundingStamp.end.x = startPixel.x + _widthPattern >= screenWidth ? screenWidth : startPixel.x + _widthPattern;  
-    boundingStamp.end.y = startPixel.y + _heightPattern >= screenHeight ? screenHeight : startPixel.y + _heightPattern;
-
-
+    boundingStamp.end.x = startPixel.x + _widthPattern >= _toolRuntimeContext.screenWidth ? _toolRuntimeContext.screenWidth : startPixel.x + _widthPattern;  
+    boundingStamp.end.y = startPixel.y + _heightPattern >= _toolRuntimeContext.screenHeight ? _toolRuntimeContext.screenHeight : startPixel.y + _heightPattern;
+    
+    
     int startSrcX = startPixel.x < 0 ? -startPixel.x  / _drawingContext->size : 0;
     int startErrX = startPixel.x < 0 ? startPixel.x % _widthPattern : 0;
     
@@ -135,11 +127,11 @@ void BrushStrategy::stamp(Point pixel){
         
         for(int x =  boundingStamp.start.x; x <  boundingStamp.end.x; x ++){
             unsigned int topColor = _drawingContext->color;
-            GraphicsEngine::setOpacity(topColor, (_pattern.buffer[srcY*_pattern.width + srcX] & 0xFF) / 255.0f);  
+            GraphicsEngine::setOpacity(topColor, (_pattern.buffer[srcY*_pattern.width + srcX] & 0xFF) / 255.0f);
 
             Point p = {
-                GraphicsEngine::clampedTilePoint(x, layer->getWidth()),
-                GraphicsEngine::clampedTilePoint(y, layer->getHeight())
+                GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth()),
+                GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight())
             };
 
             putMirroredPixel(p.x, p.y, topColor);
@@ -159,36 +151,22 @@ void BrushStrategy::stamp(Point pixel){
     }
 }
 void BrushStrategy::putMirroredPixel(int x, int y, unsigned int color){
-    preview->putPixel(x, y,  GraphicsEngine::blendColors(preview->getPixel(x, y), color));
+    _toolRuntimeContext.preview->putPixel(x, y,  GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(x, y), color));
 
-    int toMirrorX = GraphicsEngine::pointMirrored(x, layer->getWidth());
-    int toMirrorY = GraphicsEngine::pointMirrored(y, layer->getHeight());
+    int toMirrorX = _symmetryContext->pointMirrored(x, _toolRuntimeContext.layer->getWidth());
+    int toMirrorY = _symmetryContext->pointMirrored(y, _toolRuntimeContext.layer->getHeight());
 
-    if(_drawingContext->isMirrorX){
-        preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, y), color));
+    if(_symmetryContext->isMirrorX){
+        _toolRuntimeContext.preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, y), color));
     }            
-    if(_drawingContext->isMirrorY){
-        preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(x, toMirrorY), color));
+    if(_symmetryContext->isMirrorY){
+        _toolRuntimeContext.preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(x, toMirrorY), color));
     }
-    if(_drawingContext->isMirrorX && _drawingContext->isMirrorY){
-        preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(preview->getPixel(toMirrorX, toMirrorY), color));
+    if(_symmetryContext->isMirrorX && _symmetryContext->isMirrorY){
+        _toolRuntimeContext.preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, toMirrorY), color));
     }
 }
 
-HoverPreview* BrushStrategy::getHoverPreview(){
-    return hoverPreview;
+CursorContext* BrushStrategy::getCursorContext(){
+    return cursorContext;
 }
-
-
-#include <emscripten/bind.h>
-
-using namespace emscripten;
-
-EMSCRIPTEN_BINDINGS(pixel_editor_module){
-    class_<BrushStrategy>("BrushStrategy")
-        .constructor<BrushContext*, DrawingContext*, SymmetryContext*>()
-        .function("onPressed", &BrushStrategy::onPressed)
-        .function("onTracking", &BrushStrategy::onTracking)
-        .function("onRelease", &BrushStrategy::onRelease)
-        ;
-};

@@ -3,6 +3,8 @@
 #include "../../app/AppContext/AppContext.h"
 #include "../../objects/Viewport/Viewport.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
+#include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
+#include "../../context/CursorContext/CursorContext.h"
 #include "../../context/DrawingContext/DrawingContext.h"
 #include "../../context/BrushContext/BrushContext.h"
 #include "../../context/SymmetryContext/SymmetryContext.h"
@@ -10,6 +12,8 @@
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/preview/Preview.h"
 #include "../../objects/layer/Layers.h"
+
+#include <optional>
 
 class SelectStrategy : public IPressedStrategy {
 private:
@@ -20,56 +24,38 @@ private:
         BOTTOM_RIGHT = 3
     };
 
-    Point _from;
-    IToolContext* _context;
-    
-    Editor* editor;
-    Layer* layer;
-    Surface* overlay;
-    Preview* preview;
-    Viewport* viewport;
-    HoverPreview* hoverPreview; 
-    Pattern _pattern;
-    
-    int _widthPattern, _heightPattern;
-    int screenWidth, screenHeight;
+    Point _to,_from;
+    SymmetryContext* _symmetryContext;
+    ToolRuntimeContext _toolRuntimeContext;
 
+    CursorContext* cursorContext;
 
-    int hitbox;
+    int sizeHitbox;
     Point corner[4];
-    
 
-    void stamp(Point pixel);
     void putMirroredPixel(int x, int y, unsigned int color);
-
-    Bounding getBounding();
+    optional<Bounding> getBounding();
     void draw();
-
-    Point getCenter();
-    int getResizedWidth();
-    int getResizedHeight();
 
     void translate(float deltaX, float deltaY);
     void rotate(float rotateRad);
     void remove();
     Surface* copy();
-    float getRotateRad();
+    void paste(Surface& surface);
     void resize(int marker, float deltaX, float deltaY);
 
-    void startSelection(int from_start_x, int from_start_y,
-            int to_start_x, int to_start_y,
-            Surface& surface,
-            bool cleanTheArea);
+    void start();
+    void abort();
 
 public:
     SelectStrategy(SymmetryContext* context);
     ~SelectStrategy();
 
-    void onPressed(int x, int y) override;
+    void onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext) override;
     void onTracking(int x, int y) override;
     void onRelease(int x, int y) override;
 
-    HoverPreview* getHoverPreview() override;
+    CursorContext* getCursorContext() override;
     Corners getDestinationCorners();
     bool insideCornerHitbox(Point p, int size);
 
@@ -91,8 +77,7 @@ public:
 
     unsigned int _newColorHex;
     Surface* _data;
-    Bounding _originalBounding;
-    Bounding _destBounding;
+    std::optional<Bounding> _originalBounding;
     Corners _corners;
 };
 #endif

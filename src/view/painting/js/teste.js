@@ -15,12 +15,7 @@ channel.onmessage = (e) => {
     }
 };
 window.onload = async ()=>{
-    const drawingArea = document.querySelector("#drawing-area");
-    const viewportSize = drawingArea.getBoundingClientRect();
-
-    console.log(viewportSize.width, viewportSize.height);
-
-    await init(viewportSize.width, viewportSize.height);
+    await init();
     
     const editorManagerViewModel = app.editorManagerViewModel();
     editorManagerViewModel.createProject(32, 32); 
@@ -29,10 +24,6 @@ window.onload = async ()=>{
     buildPaneLayers(app.paneLayersViewModel());
     buildPaneToolBar();
 
-
-    window.addEventListener("resize", (e)=>{
-        app.resize(drawingArea.clientWidth,drawingArea.clientHeight);
-    });
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});
 }

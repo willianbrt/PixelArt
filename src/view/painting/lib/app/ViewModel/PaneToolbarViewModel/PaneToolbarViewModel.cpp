@@ -2,13 +2,20 @@
 
 
 PaneToolbarViewModel::PaneToolbarViewModel(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-   _frame = _editor->getActiveFrame();
+   _toolManager = AppContext::instance().getToolManager();
+
 }
 PaneToolbarViewModel::~PaneToolbarViewModel(){
 }
-void PaneToolbarViewModel::change(){
+void PaneToolbarViewModel::setPressedTool(std::string tool){
+    if("brush"){
+        _toolManager->setRightToolPressed(new BrushStrategy(&brushContext, &drawingContext, &symmetryContext));
+        return;
+    }
+    if("select"){
+        _toolManager->setRightToolPressed(new SelectStrategy(&symmetryContext));
+        return;
+    }
 }
 #include <emscripten/bind.h>
 
@@ -17,6 +24,6 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<PaneToolbarViewModel>("PaneToolbarViewModel")
         .constructor<>()
-        // .function("getNumberLayers", &PaneToolbarViewModel::getNumberLayers)
+        .function("setPressedTool", &PaneToolbarViewModel::setPressedTool)
         ;
 };

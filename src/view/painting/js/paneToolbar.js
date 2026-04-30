@@ -4,20 +4,17 @@ import HandlerEvents from './handlerEvents.js'
 const handlerEvents = HandlerEvents(document.querySelector("canvas#painting"));
 
 
-
 export function buildPaneToolBar(){
-    const drawingContext = app.drawingContext();
-    const brushContext = app.brushContext();
-    const symmetryContext = app.symmetryContext();
+    const toolViewModel = app.paneToolViewModel();
     
     const btnPencil = document.querySelector(".tool-pencil");
     btnPencil.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(app.brushStrategy(brushContext, drawingContext, symmetryContext));
+        toolViewModel.setPressedTool("brush");
         changeSelectTool.call(this);
     });
     const btnBrush = document.querySelector(".tool-brush");
     btnBrush.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(app.brushStrategy(brushContext, drawingContext, symmetryContext));
+        toolViewModel.setPressedTool("brush");
         changeSelectTool.call(this);
     });
     const btnEraser = document.querySelector(".tool-eraser");
@@ -56,7 +53,7 @@ export function buildPaneToolBar(){
 
     const btnSelect = document.querySelector(".tool-select");
     btnSelect.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(app.selectStrategy(symmetryContext));
+        toolViewModel.setPressedTool("select");
         changeSelectTool.call(this);
     });
 

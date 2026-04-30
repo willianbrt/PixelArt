@@ -2,15 +2,51 @@
 #define TOOLMANAGER_H
 
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
+#include "../../strategy/NonePressedEvent/NonePressedEvent.h"
 #include "../../interfaces/IToolContext/IToolContext.h"
+#include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
+#include "../../context/CursorContext/CursorContext.h"
+#include "../../objects/EditorManager/EditorManager.h"
+#include "../../objects/Viewport/Viewport.h"
 
+enum class KEY_MOUSE {
+    UNPRESSED = -1,
+    RIGHT_BUTTON = 0,
+    WHELL_BUTTON = 1,
+    LEFT_BUTTON = 2
+};
 class ToolManager {
-    IPressedStrategy* _toolPressed;
+    IPressedStrategy* _leftButtonPressed;
+    IPressedStrategy* _rightButtonPressed;
+    IPressedStrategy* _otherButtonPressed;
+
+    EditorManager* _editorManager;
+    Viewport* _viewport;
+    CursorContext* _cursorContext;
+
+    KEY_MOUSE buttonMousePressed = KEY_MOUSE::UNPRESSED; 
 public:
-    ToolManager();
+    ToolManager(EditorManager* editorManager, Viewport* viewport);
     
     // void changeToolPressed(std::string toolName);
-    void changeToolPressed(IPressedStrategy* toolPressed);
+    void setRightToolPressed(IPressedStrategy* toolPressed);
+    void setLeftToolPressed(IPressedStrategy* toolPressed);
+    void setOtherToolPressed(IPressedStrategy* toolPressed);
+
+    void onPressed(int x, int y, int button);
+    void onTracking(int x, int y);
+    void onReleased(int x, int y, int button);
+
+    void onPinchPressed(int x1, int y1, int x2, int y2);
+    void onPinchTracking(int x1, int y1, int x2, int y2);
+    void onPinchReleased(int x1, int y1, int x2, int y2);
+
+    void onScroll(int deltaY, int x, int y);
+
+
+
     IPressedStrategy* getToolPressed();
+    
+    ToolRuntimeContext build();
 };
 #endif

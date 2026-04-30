@@ -7,30 +7,26 @@
 #include "../../../objects/Editor/Editor.h"
 #include "../../../objects/frame/Frame.h"
 #include "../../../objects/layer/Layers.h"
+#include "../../../objects/ToolManager/ToolManager.h"
 
-#include "../../dto/LayerDTO/LayerDTO.h"
-#include "../LayerViewModel/LayerViewModel.h"
-
-#include "../../../interfaces/IFrameObserver/IFrameObserver.h"
-
-// #include "../../../commands/HistoryCommand/HistoryCommand.h"
-#include "../../../commands/AddLayerCommand/AddLayerCommand.h"
-#include "../../../commands/CloneLayerCommand/CloneLayerCommand.h"
-#include "../../../commands/MoveLayerToCommand/MoveLayerToCommand.h"
-#include "../../../commands/RemoveLayerCommand/RemoveLayerCommand.h"
-#include "../../../commands/LayerOpacityCommand/LayerOpacityCommand.h"
+#include "../../../strategy/BrushStrategy/BrushStrategy.h"
+#include "../../../strategy/NonePressedEvent/NonePressedEvent.h"
+#include "../../../strategy/SelectStrategy/SelectStrategy.h"
 
 
 class PaneToolbarViewModel  {
 private:
+    ToolManager* _toolManager;
     
-    Frame* getActiveFrame();
-    Frame* _frame;
+    BrushContext    brushContext;
+    DrawingContext  drawingContext;
+    SymmetryContext symmetryContext;
+
 public:
     PaneToolbarViewModel();
     ~PaneToolbarViewModel();
     
-    void change();
+    void setPressedTool(std::string tool);
     
 };
 

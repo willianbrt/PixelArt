@@ -6,10 +6,11 @@
 #include <emscripten.h>
 #include "../../objects/Renderer/Renderer.h"
 #include "../../objects/Viewport/Viewport.h"
-#include "../../context/BrushContext/BrushContext.h"
-#include "../../context/SymmetryContext/SymmetryContext.h"
+#include "../../context/CursorContext/CursorContext.h"
+// #include "../../context/BrushContext/BrushContext.h"
+// #include "../../context/SymmetryContext/SymmetryContext.h"
+// #include "../../strategy/BrushStrategy/BrushStrategy.h"
 #include "../../objects/ToolManager/ToolManager.h"
-#include "../../strategy/BrushStrategy/BrushStrategy.h"
 #include <GLES3/gl3.h>
 #include <GLFW/glfw3.h>
 
@@ -23,7 +24,7 @@ private:
     Viewport* _viewport;
     Editor* _activeEditor;
     ToolManager* _toolManager;
-    HoverPreview* _hoverPreview;
+    CursorContext* _cursorContext;
     
 public:
     AppContext();
@@ -37,6 +38,7 @@ public:
     Viewport* getViewport();
     Renderer* getRenderer();
     GLFWwindow* getWindow();
+    ToolManager* getToolManager();
 
     static AppContext& instance();
 };
