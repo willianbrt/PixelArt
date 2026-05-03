@@ -3,6 +3,7 @@
 Editor::Editor(int width, int height) {
     _sketch = new Surface(width, height);
     _preview = new Preview(width, height);
+    _select = new SelectContext();
 }
 Editor::~Editor(){
     frames.clear();
@@ -146,6 +147,10 @@ std::vector<unique_ptr<Frame>>::iterator Editor::getIteratorFrameByID(Guid id){
 }
 Frame* Editor::getActiveFrame(){
     return activeFrame;
+}
+
+SelectContext* Editor::getSelectContext(){
+    return _select;
 }
 
 using namespace emscripten;

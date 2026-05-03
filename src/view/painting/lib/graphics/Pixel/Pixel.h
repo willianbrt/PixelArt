@@ -85,44 +85,19 @@ public:
 
     Corners(){
     }
+    Corners(Bounding bounding){
+        topLeft     = Point(bounding.start.x, bounding.start.y);
+        bottomRight = Point(bounding.end.x, bounding.end.y);
+        topRight    = Point(bounding.end.x, bounding.start.y);
+        bottomLeft  = Point(bounding.start.x, bounding.end.y);
+    }
     Corners(Point top_left, Point bottom_left, Point top_right, Point bottom_right){
         topLeft = top_left;
         bottomLeft = bottom_left;
         topRight = top_right;
-        bottomRight = bottom_right;        
-
-        // if (topLeft.x > topRight.x) {
-        //     std::swap(topLeft, topRight);
-        // }
-
-        // if (bottomLeft.x > bottomRight.x) {
-        //     std::swap(bottomLeft, bottomRight);
-        // }
-
-        // if (topLeft.y > bottomLeft.y) {
-        //     std::swap(topLeft, bottomLeft);
-        // }
-
-        // if (topRight.y > bottomRight.y) {
-        //     std::swap(topRight, bottomRight);
-        // }
-
-    //     if (topLeft.y > bottomLeft.y) std::swap(topLeft, bottomLeft);
-    //     if (topRight.y > bottomRight.y) std::swap(topRight, bottomRight);
-
-    //     if (topLeft.x > topRight.x) std::swap(topLeft, topRight);
-    //     if (bottomLeft.x > bottomRight.x) std::swap(bottomLeft, bottomRight);
-    // :
-    //     if (topLeft.y > topRight.y && bottomLeft.y > bottomRight.y) {
-    //         std::swap(topLeft, topRight);
-    //         std::swap(bottomLeft, bottomRight);
-    //     }
-
-    //     if (topLeft.y > bottomLeft.y || topRight.y > bottomRight.y) {
-    //         std::swap(topLeft, bottomLeft);
-    //         std::swap(topRight, bottomRight);
-    //     }
+        bottomRight = bottom_right;
     }
+
     Bounding getBounding(){
         int startX = std::min({topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
         int endX = std::max({topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
@@ -134,6 +109,18 @@ public:
         // Point start = Point(topLeft.x, topLeft.y);
         // Point end = Point(bottomRight.x, bottomRight.y);
         return Bounding(start, end);
+    }
+
+    float cross(Point p1, Point p2, Point p3){
+        return (p1.x - p2.x) * (p3.y - p2.y) - (p1.y - p2.y) * (p3.x - p2.x);
+    }
+    bool isInsideRotatedBounding(Point point){
+        bool b1 = cross(point, topLeft, topRight) > 0;
+        bool b2 = cross(point, topRight, bottomRight) > 0;
+        bool b3 = cross(point, bottomRight, bottomLeft) > 0;
+        bool b4 = cross(point, bottomLeft, topLeft) > 0;
+
+        return (b1 && b2 && b3 && b4) || (!b1 && !b2 && !b3 && !b4);
     }
 };
 

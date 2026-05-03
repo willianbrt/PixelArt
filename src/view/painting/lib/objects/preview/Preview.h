@@ -41,12 +41,14 @@ public:
     void putPixel(int x, int y, unsigned int color);
     unsigned int getPixel(int x, int y);
     unsigned int getPixel(unsigned int index);
+    unsigned int* getBuffer();
 
     bool isDirty(unsigned int index);
     Bounding getDirtyArea();
     void setTarget(Layer* layer);
     std::vector<ModifedPixel> getModifiedPixels();
     void commit();
+    void uncommit(int x, int y);
     void clear();
 };
 #endif

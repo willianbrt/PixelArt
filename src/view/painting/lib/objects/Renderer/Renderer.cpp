@@ -74,6 +74,54 @@ void Renderer::initCursorHover(CursorContext* hover){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
+void Renderer::initSelect(Editor* editor){
+    if(initializedSelect) return;
+    initializedSelect = true;
+
+    glGenTextures(1, &canvasSelect);
+    glBindTexture(GL_TEXTURE_2D, canvasSelect);
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        editor->getWidth(),
+        editor->getHeight(),
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        editor->preview()->getBuffer()
+    );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+void Renderer::uploadSelect(Editor* editor){
+    glBindTexture(GL_TEXTURE_2D, canvasSelect);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, editor->getWidth());
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+
+    glTexSubImage2D(
+        GL_TEXTURE_2D,
+        0,
+        0,
+        0,
+        editor->getWidth(),
+        editor->getHeight(),
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        editor->preview()->getBuffer()
+    );
+
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+}
 
 void Renderer::uploadCursorHover(CursorContext* hover){
     glBindTexture(GL_TEXTURE_2D, canvasCursorHover);
@@ -150,12 +198,52 @@ void Renderer::drawCursorHover(Surface* surface, CursorContext* hover, Viewport*
     Point cursorCanvas = viewport->cursorToCanvas(cursor.x, cursor.y);
 
     glUniform2f(cursorLocation, cursorCanvas.x, cursorCanvas.y);
-    glUniform2f(cursorWorldLocation, cursor.x, cursor.y);
-    // glUniform2f(cursorLocation, cursor.x, cursor.y);
     glUniform2f(brushSizeLocation, hover->pattern->width, hover->pattern->height);
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+void Renderer::drawSelect(Surface* surface, Editor* editor, Viewport* viewport){
+    if(!initializedSelect) return;
+    
+    glUseProgram(programSelect);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, canvasSelect);
+    glUniform1i(texLocationSelect, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnableVertexAttribArray(posSelect);
+    glVertexAttribPointer(posSelect, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
+    glUniform2f(resolutionLocationSelect, viewport->getWidth(), viewport->getHeight());
+    glUniform2f(positionLocationSelect,  canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
+    glUniform1f(scaleLocationSelect, canvasSettings->getScale());
+    glUniform2f(texSizeLocationSelect, surface->getWidth(), surface->getHeight());
+
+    Point cursor = viewport->getCursor();
+    Point cursorCanvas = viewport->cursorToCanvas(cursor.x, cursor.y);
+
+    glUniform2f(cursorLocation, cursorCanvas.x, cursorCanvas.y);
+    glUniform2f(cursorWorldLocation, cursor.x, cursor.y);
+    // glUniform2f(selectSizeLocation, editor->getSelectContext()->data->getWidth(), editor->getSelectContext()->data->getHeight());
+    glUniform2f(selectSizeLocation, surface->getWidth(), surface->getHeight());
+    // glUniform2f(cursorLocation, cursor.x, cursor.y);
+    
+    SelectContext* select = editor->getSelectContext();    
+    glUniform2f(glGetUniformLocation(programSelect,"tl"), select->corners.topLeft.x, select->corners.topLeft.y);
+    glUniform2f(glGetUniformLocation(programSelect,"tr"), select->corners.topRight.x, select->corners.topRight.y);
+    glUniform2f(glGetUniformLocation(programSelect,"br"), select->corners.bottomRight.x, select->corners.bottomRight.y);
+    glUniform2f(glGetUniformLocation(programSelect,"bl"), select->corners.bottomLeft.x, select->corners.bottomLeft.y);
+
+    // printf("render: %i,%i\n",select->corners.topLeft.x, select->corners.topLeft.y); 
 
     float time = glfwGetTime();
-    glUniform1f(glGetUniformLocation(programHover,"time"), time);
+    glUniform1f(glGetUniformLocation(programSelect,"time"), time);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
@@ -216,14 +304,14 @@ void Renderer::createShader(){
     "}";
 
 
-    const char* fsHover =
+    const char* fsSelect =
     "precision highp float;"
     "uniform sampler2D tex;"
     "varying vec2 uv;"
     "uniform vec2 texSize;"
     "uniform vec2 cursor;"
     "uniform vec2 cursorWorld;"
-    "uniform vec2 brushSize;"
+    "uniform vec2 selectSize;"
     "uniform vec2 resolution;"
     "uniform float zoom;"
     "uniform vec2 pan;"
@@ -236,6 +324,12 @@ void Renderer::createShader(){
     "float hasEdge(vec2 pixelUV){"
     "   float inside = step(0.0, pixelUV.x) * step(0.0, pixelUV.y) * step(pixelUV.x, 1.0) * step(pixelUV.y, 1.0);"
     "   return step(0.004, texture2D(tex, pixelUV).r)*inside;"
+    "}"
+
+    "vec2 hyp(vec2 point, vec2 center){"
+    "   vec2 dir = center - point;"
+    "   float dist = length(dir);"
+    "   return vec2(dir / dist);"
     "}"
 
     "void drawCornerResize(vec2 pixel, float size, float thickness){"
@@ -281,8 +375,7 @@ void Renderer::createShader(){
     "   float inside = sum / 4.0;"
     "   float outside = sumOuter / 4.0;"
     "   float border = inside - outside;"
-    // #e06900
-    // rgb(52, 27, 4)
+    
     "   vec4 background = mix(vec4(0.87,0.411,0.0,1.0), vec4(0.0, 1.0, 0.0,1.0), hover);"
     "   gl_FragColor = mix(gl_FragColor, background, inside);"
     "   gl_FragColor = mix(gl_FragColor, vec4(0.203,0.105,0.015,1.0), border);"
@@ -291,41 +384,38 @@ void Renderer::createShader(){
     "   float sizeResize = zoom*0.5;"
     "   float sizeRotate = zoom*0.5;"
     "   float thinkness = 2.0;"
-    // "   drawCornerResize(tl * zoom);"
-    // "   drawCornerResize(tr * zoom);"
-    // "   drawCornerResize(bl * zoom);"
-    // "   drawCornerResize(br * zoom);"
-    "   drawCornerResize(vec2(0.0,0.0) * zoom, sizeResize, thinkness);"
-    "   drawCornerResize(vec2(0.0,10.0) * zoom, sizeResize, thinkness);"
-    "   drawCornerResize(vec2(10.0,10.0) * zoom, sizeResize, thinkness);"
-    "   drawCornerResize(vec2(10.0,0.0) * zoom, sizeResize, thinkness);"
-    "   float offset = 1.0;"
+    "   drawCornerResize(tl * zoom, sizeResize, thinkness);"
+    "   drawCornerResize(tr * zoom, sizeResize, thinkness);"
+    "   drawCornerResize(bl * zoom, sizeResize, thinkness);"
+    "   drawCornerResize(br * zoom, sizeResize, thinkness);"
 
-    "   drawCornerRotate((vec2(0.0,0.0)+offset) * zoom, sizeRotate, thinkness);"
-    "   drawCornerRotate((vec2(0.0+offset, 10.0-offset)) * zoom, sizeRotate, thinkness);"
-    "   drawCornerRotate((vec2(10.0-offset, 0.0+offset)) * zoom, sizeRotate, thinkness);"
-    "   drawCornerRotate((vec2(10.0,10.0) - offset) * zoom, sizeRotate, thinkness);"
+    "   float offset = 1.0;"
+    "   vec2 center = (tl+tr+bl+br) * 0.25;"
+    "   vec2 tl_rotate = tl + hyp(tl, center) * offset ;"
+    "   vec2 tr_rotate = tr + hyp(tr, center) * offset ;"
+    "   vec2 br_rotate = br + hyp(br, center) * offset ;"
+    "   vec2 bl_rotate = bl + hyp(bl, center) * offset ;"
+
+    "   drawCornerRotate(tl_rotate * zoom, sizeRotate, thinkness);"
+    "   drawCornerRotate(tr_rotate * zoom, sizeRotate, thinkness);"
+    "   drawCornerRotate(br_rotate * zoom, sizeRotate, thinkness);"
+    "   drawCornerRotate(bl_rotate * zoom, sizeRotate, thinkness);"
     "}"
     
     "void main(){"
     "   vec2 pixel = (uv - pan) / zoom;"
     "   vec2 transformedUV = pixel / texSize;"
-    // "   if(transformedUV.x < (0.0 - lineSize.x) || transformedUV.x > (1.0 + lineSize.x) || transformedUV.y < (0.0 - lineSize.y) || transformedUV.y > (1.0 + offset.y)) discard;"
 
-    "   vec2 lineSize = 1.0/(zoom*brushSize);"
+    "   vec2 lineSize = 1.0/(zoom*selectSize);"
 
-    "   vec2 centered = floor(brushSize*0.5);"
-    "   vec2 pixelHover = (pixel-cursor) + centered;"
-    "   vec2 hoverUV = pixelHover / brushSize;"
-
-    "   float mask = hasEdge(hoverUV);"
+    "   float mask = hasEdge(transformedUV);"
     "   gl_FragColor = mix(vec4(0.0), vec4(0.32,0.21,0.36,0.5), mask);"
 
     "   vec2 px = vec2(lineSize.x, 0.0);"
     "   vec2 py = vec2(0.0, lineSize.y);"
 
-    "   float left  = hasEdge(hoverUV - px);"
-    "   float down  = hasEdge(hoverUV - py);"
+    "   float left  = hasEdge(transformedUV - px);"
+    "   float down  = hasEdge(transformedUV - py);"
 
     "   float edge =  abs(mask - down) + abs(mask - left);"
     "   edge = clamp(edge, 0.0, 1.0);"
@@ -340,7 +430,7 @@ void Renderer::createShader(){
     "   computeCorner();"
     "}";
 
-    const char* fsSelect =
+    const char* fsHover =
     "precision highp float;"
     "uniform sampler2D tex;"
     "varying vec2 uv;"
@@ -406,8 +496,7 @@ void Renderer::cache(){
     texSizeLocationH = glGetUniformLocation(programHover,"texSize");
     cursorLocation = glGetUniformLocation(programHover,"cursor");
     brushSizeLocation = glGetUniformLocation(programHover,"brushSize");
-    cursorWorldLocation = glGetUniformLocation(programHover,"cursorWorld");
-
+    
     glUseProgram(programSelect);
     posSelect = glGetAttribLocation(programSelect,"position");
     texLocationSelect = glGetUniformLocation(programSelect,"tex");
@@ -415,6 +504,8 @@ void Renderer::cache(){
     positionLocationSelect = glGetUniformLocation(programSelect,"pan");
     scaleLocationSelect = glGetUniformLocation(programSelect,"zoom");
     texSizeLocationSelect = glGetUniformLocation(programSelect,"texSize");
+    cursorWorldLocation = glGetUniformLocation(programSelect,"cursorWorld");
+    selectSizeLocation = glGetUniformLocation(programSelect,"selectSize");
 }
 
 void Renderer::createQuad(){

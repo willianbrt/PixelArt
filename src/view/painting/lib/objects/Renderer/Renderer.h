@@ -4,7 +4,7 @@
 
 #include <GLES3/gl3.h>
 #include <GLFW/glfw3.h>
-// #include "../../objects/Editor/Editor.h"
+#include "../../objects/Editor/Editor.h"
 #include "../../graphics/surface/Surface.h"
 // #include "../../objects/CanvasSettings/CanvasSettings.h"
 #include "../../objects/Viewport/Viewport.h"
@@ -17,12 +17,15 @@ public:
 
     void init(Surface* surface, Viewport* viewport);
     void initCursorHover(CursorContext* hover);
+    void initSelect(Editor* editor);
 
     void uploadSurface(Bounding area, Surface* surface);
     void uploadCursorHover(CursorContext* hover);
+    void uploadSelect(Editor* editor);
 
     void draw(Surface* surface, Viewport* viewport);
     void drawCursorHover(Surface* surface, CursorContext* hover, Viewport* viewport);
+    void drawSelect(Surface* surface, Editor* editor, Viewport* viewport);
 
 private:
     int _height, _width;
@@ -30,6 +33,7 @@ private:
     GLuint vbo;
     
     GLuint programSelect;
+    GLuint canvasSelect;
     GLuint texLocationSelect;
     GLint posSelect;
     GLint positionLocationSelect;
@@ -37,6 +41,8 @@ private:
     GLint scaleLocationSelect;
     GLint texSizeLocationSelect;
     GLint resolutionLocationSelect;
+    GLint selectSizeLocation;
+    bool initializedSelect;
     
     GLuint programHover;
     GLuint canvasCursorHover;

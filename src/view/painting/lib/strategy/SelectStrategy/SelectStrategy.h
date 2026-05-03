@@ -21,17 +21,33 @@ private:
         TOP_LEFT = 0,
         BOTTOM_LEFT = 1,
         TOP_RIGHT = 2,
-        BOTTOM_RIGHT = 3
+        BOTTOM_RIGHT = 3,
+        UNKNOW = -1,
+    };
+    enum ENUM_MODE {
+        SELECT = 0,
+        SELECTED = 1,
+        TRANSLATE = 2,
+        RESIZE_TOP_LEFT = 3,
+        RESIZE_TOP_RIGHT = 4,
+        RESIZE_BOTTOM_LEFT = 5,
+        RESIZE_BOTTOM_RIGHT = 6,
+        ROTATE_TOP_LEFT = 7,
+        ROTATE_TOP_RIGHT = 8,
+        ROTATE_BOTTOM_LEFT = 9,
+        ROTATE_BOTTOM_RIGHT = 10,
     };
 
     Point _to,_from;
     SymmetryContext* _symmetryContext;
+    SelectContext* _selectContext;
     ToolRuntimeContext _toolRuntimeContext;
 
     CursorContext* cursorContext;
 
     int sizeHitbox;
-    Point corner[4];
+    ENUM_MODE _mode;
+
 
     void putMirroredPixel(int x, int y, unsigned int color);
     optional<Bounding> getBounding();
@@ -44,11 +60,12 @@ private:
     void paste(Surface& surface);
     void resize(int marker, float deltaX, float deltaY);
 
+
     void start();
     void abort();
 
 public:
-    SelectStrategy(SymmetryContext* context);
+    SelectStrategy(SelectContext* selectContext, SymmetryContext* context);
     ~SelectStrategy();
 
     void onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext) override;
@@ -57,7 +74,7 @@ public:
 
     CursorContext* getCursorContext() override;
     Corners getDestinationCorners();
-    bool insideCornerHitbox(Point p, int size);
+    bool insideCornerHitbox(Point p, Point cornerPosition);
 
 
     
@@ -78,6 +95,8 @@ public:
     unsigned int _newColorHex;
     Surface* _data;
     std::optional<Bounding> _originalBounding;
-    Corners _corners;
+    
+    Corners _flagCorners;
+    Bounding flagBounding;
 };
 #endif

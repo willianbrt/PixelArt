@@ -41,6 +41,9 @@ void Preview::setTarget(Layer* layer){
 bool Preview::isDirty(unsigned int index){
     return _dirty[index];
 }
+unsigned int* Preview::getBuffer(){
+    return _newColor;
+}
 std::vector<ModifedPixel> Preview::getModifiedPixels(){
     std::vector<ModifedPixel> modifiedPixels;
     for(int i = 0; i < _layer->getLength(); i++){
@@ -60,6 +63,13 @@ void Preview::commit(){
         if(isDirty(i)) _layer->putPixel(i, _newColor[i]);
     }
     clear();
+}
+void Preview::uncommit(int x, int y){
+    int index = x + _layer->getWidth()*y;
+    if(_dirty[index]){
+        _newColor[index] = 0x0;
+        _dirty[index] = false;
+    };
 }
 void Preview::clear(){    
     memset(_dirty, 0, _length*sizeof(bool));

@@ -8,12 +8,12 @@ brushContext = new BrushContext();
 PaneToolbarViewModel::~PaneToolbarViewModel(){
 }
 void PaneToolbarViewModel::setPressedTool(std::string tool){
-    if("brush"){
+    if(tool == "brush"){
         _toolManager->setRightToolPressed(new BrushStrategy(brushContext, &drawingContext, &symmetryContext));
         return;
     }
-    if("select"){
-        _toolManager->setRightToolPressed(new SelectStrategy(&symmetryContext));
+    if(tool == "select"){
+        _toolManager->setRightToolPressed(new SelectStrategy(AppContext::instance().getEditorManager()->getActiveEditor()->getSelectContext(), &symmetryContext));
         return;
     }
 }
