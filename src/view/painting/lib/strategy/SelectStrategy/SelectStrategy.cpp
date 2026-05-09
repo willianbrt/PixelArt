@@ -14,8 +14,8 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     cursorContext->enable = false;
     _toolRuntimeContext = toolRuntimeContext;
 
-    Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
-    _from = to;
+    _pressed = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
+    _from = _pressed;
 
     if(_mode == ENUM_MODE::SELECTED){
         Point world = Point(x,y);
@@ -63,7 +63,7 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
         }
         
         _activeMarker = ENUM_MARKER::UNKNOW;
-        if(_selectContext->corners.isInsideRotatedBounding(to)){
+        if(_selectContext->corners.isInsideRotatedBounding(_pressed)){
             _mode = ENUM_MODE::TRANSLATE;
             return;
         }
@@ -72,14 +72,13 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     }
 
     _mode = ENUM_MODE::SELECT;
-    if(to.x > _toolRuntimeContext.screenWidth || to.y > _toolRuntimeContext.screenHeight) return;
     
-    _toolRuntimeContext.preview->clear();
+    abort();
     if(_selectContext->data != nullptr)
         free(_selectContext->data);
 
     _originalBounding = Bounding(
-        to,
+        _pressed,
         Point(_from.x+1, _from.y+1)
     );
     _selectContext->corners = Corners(*_originalBounding);
@@ -88,7 +87,7 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
 void SelectStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
-
+    
     if(_mode == ENUM_MODE::SELECT){
         _originalBounding->end.x = to.x + 1;
         _originalBounding->end.y = to.y + 1;
@@ -127,6 +126,7 @@ void SelectStrategy::onRelease(){
             _originalBounding->start.y -= 1;
             _originalBounding->end.y += 1;
         }
+        _selectContext->corners = Corners(*_originalBounding);
 
         start();
     }
@@ -164,6 +164,11 @@ void SelectStrategy::start()
     delimit.end.x = INT_MIN;
     delimit.end.y = INT_MIN;
 
+    _originalBounding->start.y = std::max(_originalBounding->start.y,0);
+    _originalBounding->start.x = std::max(_originalBounding->start.x,0);
+    _originalBounding->end.y = std::min(_originalBounding->end.y, _toolRuntimeContext.screenHeight);
+    _originalBounding->end.x = std::min(_originalBounding->end.x, _toolRuntimeContext.screenWidth);
+    
     for (int y = _originalBounding->start.y; y < _originalBounding->end.y; ++y) {
         Point p;
         p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
@@ -190,7 +195,6 @@ void SelectStrategy::start()
     
     _originalBounding = delimit;
     _selectContext->corners = Corners(*_originalBounding);
-
 
     _selectContext->data = new Surface(_originalBounding->getWidth(), _originalBounding->getHeight());
     for (int y = 0; y < _originalBounding->getHeight(); ++y) {

@@ -32,7 +32,7 @@ private:
         ROTATE = 4,
     };
 
-    Point _from;
+    Point _pressed, _from;
     SymmetryContext* _symmetryContext;
     SelectContext* _selectContext;
     ToolRuntimeContext _toolRuntimeContext;
