@@ -10,6 +10,7 @@ _viewport(viewport)
 }
 
 void ToolManager::setRightToolPressed(IPressedStrategy* toolPressed){
+    _rightButtonPressed->done();
     _rightButtonPressed = toolPressed;
 }
 void ToolManager::setLeftToolPressed(IPressedStrategy* toolPressed){
@@ -23,27 +24,24 @@ IPressedStrategy* ToolManager::getToolPressed(){
     return _rightButtonPressed;
 }
 
-ToolRuntimeContext ToolManager::build(){
-    ToolRuntimeContext toolRuntimeContext;
-    
+void ToolManager::build(){
     Editor* editor = _editorManager->getActiveEditor();
 
     toolRuntimeContext.editor = editor;
     toolRuntimeContext.layer = editor->getActiveFrame()->getActiveLayer();
     toolRuntimeContext.preview = editor->preview();
-    toolRuntimeContext.preview->setTarget(toolRuntimeContext.layer);
     toolRuntimeContext.viewport = _viewport;
 
     CanvasSettings* canvasSettings = _viewport->getCanvasSettings();
     toolRuntimeContext.screenWidth = canvasSettings->getTilesX() * editor->getWidth();
     toolRuntimeContext.screenHeight = canvasSettings->getTilesY() * editor->getHeight();
 
-    return toolRuntimeContext;   
 }
 
 
 void ToolManager::onPressed(int x, int y, int button){
-    ToolRuntimeContext toolRuntimeContext = build();
+    build();
+    
     if(buttonMousePressed != KEY_MOUSE::UNPRESSED) return;
     
     buttonMousePressed = (KEY_MOUSE)button;
@@ -67,9 +65,9 @@ void ToolManager::onReleased(int x, int y, int button){
     if(static_cast<int>(buttonMousePressed) != button) return;
     
     switch((KEY_MOUSE)button){
-        case KEY_MOUSE::RIGHT_BUTTON: _rightButtonPressed->onRelease(x, y); break;
-        case KEY_MOUSE::LEFT_BUTTON: _leftButtonPressed->onRelease(x, y); break;
-        default: _otherButtonPressed->onRelease(x, y); break;
+        case KEY_MOUSE::RIGHT_BUTTON: _rightButtonPressed->onRelease(); break;
+        case KEY_MOUSE::LEFT_BUTTON: _leftButtonPressed->onRelease(); break;
+        default: _otherButtonPressed->onRelease(); break;
     }
     
     buttonMousePressed = KEY_MOUSE::UNPRESSED;

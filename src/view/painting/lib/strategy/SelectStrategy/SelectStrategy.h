@@ -28,53 +28,47 @@ private:
         SELECT = 0,
         SELECTED = 1,
         TRANSLATE = 2,
-        RESIZE_TOP_LEFT = 3,
-        RESIZE_TOP_RIGHT = 4,
-        RESIZE_BOTTOM_LEFT = 5,
-        RESIZE_BOTTOM_RIGHT = 6,
-        ROTATE_TOP_LEFT = 7,
-        ROTATE_TOP_RIGHT = 8,
-        ROTATE_BOTTOM_LEFT = 9,
-        ROTATE_BOTTOM_RIGHT = 10,
+        RESIZE = 3,
+        ROTATE = 4,
     };
 
-    Point _to,_from;
+    Point _from;
     SymmetryContext* _symmetryContext;
     SelectContext* _selectContext;
     ToolRuntimeContext _toolRuntimeContext;
 
     CursorContext* cursorContext;
 
-    int sizeHitbox;
+    int sizeHitbox = 1;
     ENUM_MODE _mode;
+    ENUM_MARKER _activeMarker;
 
 
     void putMirroredPixel(int x, int y, unsigned int color);
-    optional<Bounding> getBounding();
     void draw();
 
     void translate(float deltaX, float deltaY);
     void rotate(float rotateRad);
-    void remove();
     Surface* copy();
     void paste(Surface& surface);
     void resize(int marker, float deltaX, float deltaY);
 
-
     void start();
-    void abort();
 
 public:
     SelectStrategy(SelectContext* selectContext, SymmetryContext* context);
     ~SelectStrategy();
 
-    void onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext) override;
+    void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
     void onTracking(int x, int y) override;
-    void onRelease(int x, int y) override;
+    void onRelease() override;
 
     CursorContext* getCursorContext() override;
-    Corners getDestinationCorners();
+    void done() override;
+    void abort() override;
+
     bool insideCornerHitbox(Point p, Point cornerPosition);
+    bool insideCornerRotateHitbox(Point p, Point cornerPosition);
 
 
     
@@ -90,10 +84,8 @@ public:
     float _resizedHeight;
     float _origCenterX;
     float _origCenterY; 
-    bool _cleanTheArea;
+    bool _cutting;
 
-    unsigned int _newColorHex;
-    Surface* _data;
     std::optional<Bounding> _originalBounding;
     
     Corners _flagCorners;

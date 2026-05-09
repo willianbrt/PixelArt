@@ -22,6 +22,8 @@ public:
     void setCursor(double x, double y);
     Point getCursor();
     Point cursorToCanvas(int x, int y);
+    Point canvasToWorld(int x, int y);
+    PointF canvasToWorld(float x, float y);
     int getWidth();
     int getHeight();
     CanvasSettings* getCanvasSettings();

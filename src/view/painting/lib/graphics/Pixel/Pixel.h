@@ -43,6 +43,13 @@ struct Point{
     Point(){}
 };
 
+struct PointF{
+    float x = 0;
+    float y = 0;
+    PointF(float x, float y) : x(x), y(y){}
+    PointF(){}
+};
+
 struct Pixel{
     Point point;
     unsigned int colorHEX;

@@ -21,11 +21,26 @@ Point Viewport::getCursor(){
 
 Point Viewport::cursorToCanvas(int x, int y){
     Point sketchPosition = _canvasSettings->getSketchPosition();
-    Point point = Point(
-        std::floor((x - sketchPosition.x) / _canvasSettings->getScale()),
-        std::floor((y - sketchPosition.y) / _canvasSettings->getScale())
-    );
-    return point;
+    
+    return {
+        (int)std::floor((x - sketchPosition.x) / _canvasSettings->getScale()),
+        (int)std::floor((y - sketchPosition.y) / _canvasSettings->getScale())
+    };
+}
+
+Point Viewport::canvasToWorld(int x, int y){
+    Point sketchPosition = _canvasSettings->getSketchPosition();
+    return {
+       (int)((x + sketchPosition.x) * _canvasSettings->getScale()),
+       (int)((y + sketchPosition.y) * _canvasSettings->getScale())
+    };
+}
+PointF Viewport::canvasToWorld(float x, float y){
+    Point sketchPosition = _canvasSettings->getSketchPosition();
+    return {
+       (x + sketchPosition.x) * _canvasSettings->getScale(),
+       (y + sketchPosition.y) * _canvasSettings->getScale()
+    };
 }
 void Viewport::render(){
 }

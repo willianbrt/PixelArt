@@ -55,6 +55,7 @@ export function buildPaneToolBar(){
     btnSelect.addEventListener("click", function(e){
         toolViewModel.setPressedTool("select");
         changeSelectTool.call(this);
+        createFloatingToolbar();
     });
 
     const btnUndo = document.querySelector("#undo");
@@ -82,4 +83,76 @@ export function buildPaneToolBar(){
 function changeSelectTool(){
     document.querySelector(".tool.active")?.classList.toggle("active", false);
     this.classList.toggle("active", true);
+}
+
+function createFloatingToolbar() {
+    document.querySelector(".floating-toolbar")?.remove();
+    let toolbar = document.createElement("div");
+    toolbar.className = "floating-toolbar";
+
+    const grip = document.createElement("div");
+    grip.className = "grip";
+
+    const gripIcon = document.createElement("span");
+    gripIcon.className = "material-symbols-outlined";
+    gripIcon.textContent = "drag_indicator";
+
+    grip.appendChild(gripIcon);
+
+    const content = document.createElement("div");
+    content.className = "floating-toolbar-content";
+
+    const buttons = [
+        {
+            id: "resize",
+            icon: "crop",
+            label: "Cortar",
+            eventClick: function(){
+                toolbar.querySelectorAll("button")
+                        .forEach((e)=> e.classList.remove("active"));
+                this.classList.add("active");
+            }
+        },
+        {
+            id: "copy",
+            icon: "content_copy",
+            label: "Copiar",
+        },
+        {
+            id: "paste",
+            icon: "content_paste",
+            label: "Colar",
+        },
+        {
+            id: "tile-brush",
+            icon: "brush",
+            label: "Pincel",
+            eventClick: function(){
+            }
+        }
+    ];
+
+    buttons.forEach(addTool);
+
+    toolbar.appendChild(grip);
+    toolbar.appendChild(content);
+
+    document.querySelector("#drawing-area").appendChild(toolbar);
+    function addTool({ id, icon, label, eventClick }) {
+        const btn = document.createElement("button");
+
+        btn.id = id;
+        btn.classList.add("select-tool");
+        btn.addEventListener("click", eventClick);
+        btn.addEventListener("touchstart", eventClick);
+
+        const span = document.createElement("span");
+        span.className = "material-symbols-outlined";
+        span.textContent = icon;
+
+        btn.appendChild(span);
+        btn.append(label);
+
+        content.appendChild(btn);
+    }
 }

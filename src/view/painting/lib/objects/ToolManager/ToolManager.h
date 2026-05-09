@@ -23,6 +23,7 @@ class ToolManager {
     EditorManager* _editorManager;
     Viewport* _viewport;
     CursorContext* _cursorContext;
+    ToolRuntimeContext toolRuntimeContext;
 
     KEY_MOUSE buttonMousePressed = KEY_MOUSE::UNPRESSED; 
 public:
@@ -47,6 +48,6 @@ public:
 
     IPressedStrategy* getToolPressed();
     
-    ToolRuntimeContext build();
+    void build();
 };
 #endif

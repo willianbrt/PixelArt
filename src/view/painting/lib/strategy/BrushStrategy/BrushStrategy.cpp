@@ -16,7 +16,7 @@ _symmetryContext(symmetryContext)
     cursorContext->scale = _drawingContext->size;
 
 }
-void BrushStrategy::onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext){
+void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     cursorContext->enable = false;
     _toolRuntimeContext = toolRuntimeContext;    
 
@@ -42,10 +42,10 @@ void BrushStrategy::onTracking(int x, int y){
     
     _from = to;
 }
-void BrushStrategy::onRelease(int x, int y){
+void BrushStrategy::onRelease(){
     cursorContext->enable = true;
 
-    _toolRuntimeContext.preview->commit();
+    done();
 }
 
 void BrushStrategy::drawHorizontalBrush(Point to, Point from){
@@ -167,4 +167,11 @@ void BrushStrategy::putMirroredPixel(int x, int y, unsigned int color){
 
 CursorContext* BrushStrategy::getCursorContext(){
     return cursorContext;
+}
+
+void BrushStrategy::done() {
+    _toolRuntimeContext.preview->commit();
+}
+void BrushStrategy::abort(){
+    _toolRuntimeContext.preview->clear();
 }

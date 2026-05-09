@@ -20,10 +20,6 @@ private:
     BrushContext* _brushContext;
     SymmetryContext* _symmetryContext;
     
-    // Editor* editor;
-    // Layer* layer;
-    // Preview* preview;
-    // Viewport* viewport;
     ToolRuntimeContext _toolRuntimeContext;
 
 
@@ -39,9 +35,11 @@ private:
 public:
     BrushStrategy(BrushContext* brushContext, DrawingContext* context, SymmetryContext* symmetryContext);
 
-    void onPressed(int x, int y, ToolRuntimeContext toolRuntimeContext) override;
+    void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
     void onTracking(int x, int y) override;
-    void onRelease(int x, int y) override;
+    void onRelease() override;
     CursorContext* getCursorContext() override;
+    void done() override;
+    void abort() override;
 };
 #endif
