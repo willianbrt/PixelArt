@@ -1,0 +1,48 @@
+#include "Transformation.h"
+float Transformation::getRad(){
+    return _angleRad;
+}
+void Transformation::setRad(const float rad){
+    _angleRad = rad;
+    _cos = std::cos(_angleRad);
+    _sin = std::sin(_angleRad);
+}
+PointF Transformation::distance(const PointF& p, const PointF& c) {
+    return PointF(p.x - c.x, p.y - c.y);
+};
+Point Transformation::dir(const PointF& a, const PointF& b) {
+    return {
+        (a.x > b.x) ? -1 : 1,
+        (a.y > b.y) ? -1 : 1
+    };
+};
+PointF Transformation::translate(const PointF& p, const PointF delta) {
+    return  {
+       p.x +  delta.x,
+       p.y +  delta.y
+    };
+};
+PointF Transformation::rotate(const PointF& ap) {
+    return  {
+        ap.x * _cos - ap.y * _sin,
+        ap.x * _sin + ap.y * _cos
+    };
+};
+PointF Transformation::unrotate(const PointF& ap) {
+    return  {
+        ap.x * _cos + ap.y * _sin,
+        -ap.x * _sin + ap.y * _cos
+    };
+};
+PointF Transformation::fromWidth(float t, const PointF& c) {
+    return {
+        c.x + t * _cos,
+        c.y + t * _sin
+    };
+};
+PointF Transformation::fromHeight(float t, const PointF& c) {
+    return {
+        c.x - t * _sin,
+        c.y + t * _cos
+    };
+};

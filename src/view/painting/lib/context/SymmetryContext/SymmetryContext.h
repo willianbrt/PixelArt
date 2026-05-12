@@ -4,8 +4,8 @@
 
 class SymmetryContext : public IToolContext{
 public:
-    bool isMirrorX;
-    bool isMirrorY;
+    bool isMirrorX = false;
+    bool isMirrorY = false;
     int nTileX = 1;
     int nTileY = 1;
 

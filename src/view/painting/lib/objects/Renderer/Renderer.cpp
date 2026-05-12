@@ -240,17 +240,29 @@ void Renderer::drawSelect(Surface* surface, Editor* editor, Viewport* viewport){
     glUniform2f(glGetUniformLocation(programSelect,"br"), select->corners.bottomRight.x, select->corners.bottomRight.y);
     glUniform2f(glGetUniformLocation(programSelect,"bl"), select->corners.bottomLeft.x, select->corners.bottomLeft.y);
 
-    
+    // printf("rz: (%f,%f) - (%f,%f) - (%f,%f) - (%f,%f)\n",
+    //         select->corners.topLeft.x, select->corners.topLeft.y,
+    //         select->corners.topRight.x, select->corners.topRight.y,
+    //         select->corners.bottomRight.x, select->corners.bottomRight.y,
+    //         select->corners.bottomLeft.x, select->corners.bottomLeft.y
+    //     );
     select->cornersRotate.topLeft = select->cornerRotate(viewport,      select->corners.topLeft);
     select->cornersRotate.topRight = select->cornerRotate(viewport,     select->corners.topRight);
     select->cornersRotate.bottomRight = select->cornerRotate(viewport,  select->corners.bottomRight);
     select->cornersRotate.bottomLeft = select->cornerRotate(viewport,   select->corners.bottomLeft);
-
+    
+        // printf("r: (%f,%f) - (%f,%f) - (%f,%f) - (%f,%f)\n",
+        //         select->cornersRotate.topLeft.x, select->cornersRotate.topLeft.y,
+        //         select->cornersRotate.topRight.x, select->cornersRotate.topRight.y,
+        //         select->cornersRotate.bottomRight.x, select->cornersRotate.bottomRight.y,
+        //         select->cornersRotate.bottomLeft.x, select->cornersRotate.bottomLeft.y
+        //     );
+        
     glUniform2f(glGetUniformLocation(programSelect,"rtl"), select->cornersRotate.topLeft.x, select->cornersRotate.topLeft.y);
     glUniform2f(glGetUniformLocation(programSelect,"rtr"), select->cornersRotate.topRight.x, select->cornersRotate.topRight.y);
     glUniform2f(glGetUniformLocation(programSelect,"rbr"), select->cornersRotate.bottomRight.x, select->cornersRotate.bottomRight.y);
     glUniform2f(glGetUniformLocation(programSelect,"rbl"), select->cornersRotate.bottomLeft.x, select->cornersRotate.bottomLeft.y);
-    printf("\n");
+
     float time = glfwGetTime();
     glUniform1f(glGetUniformLocation(programSelect,"time"), time);
 

@@ -15,6 +15,8 @@ _symmetryContext(symmetryContext)
     cursorContext->pattern = _brushContext->selectedPattern;
     cursorContext->scale = _drawingContext->size;
 
+    _symmetryContext->isMirrorX =false;
+    _symmetryContext->isMirrorY =false;
 }
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     cursorContext->enable = false;

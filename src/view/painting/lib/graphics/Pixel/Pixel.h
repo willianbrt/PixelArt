@@ -41,6 +41,8 @@ struct Point{
     int y = 0;
     Point(int x, int y) : x(x), y(y){}
     Point(){}
+
+    
 };
 
 struct PointF{
@@ -81,24 +83,36 @@ struct Bounding{
     }
     int getWidth(){ return end.x - start.x; }
     int getHeight(){ return end.y - start.y; }
+    PointF getCenter(){
+        return {
+            (start.x + end.x) * 0.5f,
+            (start.y + end.y) * 0.5f
+        };
+    }
 };
 
 struct Corners{
 public:
-    Point topLeft;
-    Point bottomLeft;
-    Point topRight;
-    Point bottomRight;
+    PointF topLeft;
+    PointF topRight;
+    PointF bottomLeft;
+    PointF bottomRight;
+    Point sign[4] = {
+        {-1,-1},
+        {1,-1},
+        {1,1},
+        {-1,1}
+    };
 
     Corners(){
     }
     Corners(Bounding bounding){
-        topLeft     = Point(bounding.start.x, bounding.start.y);
-        bottomRight = Point(bounding.end.x, bounding.end.y);
-        topRight    = Point(bounding.end.x, bounding.start.y);
-        bottomLeft  = Point(bounding.start.x, bounding.end.y);
+        topLeft     = PointF(bounding.start.x, bounding.start.y);
+        bottomRight = PointF(bounding.end.x, bounding.end.y);
+        topRight    = PointF(bounding.end.x, bounding.start.y);
+        bottomLeft  = PointF(bounding.start.x, bounding.end.y);
     }
-    Corners(Point top_left, Point bottom_left, Point top_right, Point bottom_right){
+    Corners(PointF top_left, PointF bottom_left, PointF top_right, PointF bottom_right){
         topLeft = top_left;
         bottomLeft = bottom_left;
         topRight = top_right;
@@ -106,26 +120,31 @@ public:
     }
 
     Bounding getBounding(){
-        int startX = std::min({topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
-        int endX = std::max({topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
-        int startY = std::min({topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
-        int endY = std::max({topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
+        float startX = std::min({topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
+        float endX = std::max({topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
+        float startY = std::min({topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
+        float endY = std::max({topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
         
-        Point start = Point(startX, startY);
-        Point end = Point(endX, endY);
-        // Point start = Point(topLeft.x, topLeft.y);
-        // Point end = Point(bottomRight.x, bottomRight.y);
+        Point start = Point((int)std::floor(startX), (int)std::floor(startY));
+        Point end = Point((int)std::ceil(endX), (int)std::ceil(endY));
         return Bounding(start, end);
     }
 
-    float cross(Point p1, Point p2, Point p3){
+    PointF getCenter(){
+        return {
+            (topLeft.x + topRight.x + bottomLeft.x + bottomRight.x) * 0.25f,
+            (topLeft.y + topRight.y + bottomLeft.y + bottomRight.y) * 0.25f
+        };
+    }
+    float cross(PointF p1, PointF p2, PointF p3){
         return (p1.x - p2.x) * (p3.y - p2.y) - (p1.y - p2.y) * (p3.x - p2.x);
     }
     bool isInsideRotatedBounding(Point point){
-        bool b1 = cross(point, topLeft, topRight) > 0;
-        bool b2 = cross(point, topRight, bottomRight) > 0;
-        bool b3 = cross(point, bottomRight, bottomLeft) > 0;
-        bool b4 = cross(point, bottomLeft, topLeft) > 0;
+        PointF pointF = {(float) point.x, (float) point.y};
+        bool b1 = cross(pointF, topLeft, topRight) > 0.0f;
+        bool b2 = cross(pointF, topRight, bottomRight) > 0.0f;
+        bool b3 = cross(pointF, bottomRight, bottomLeft) > 0.0f;
+        bool b4 = cross(pointF, bottomLeft, topLeft) > 0.0f;
 
         return (b1 && b2 && b3 && b4) || (!b1 && !b2 && !b3 && !b4);
     }

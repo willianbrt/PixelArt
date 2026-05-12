@@ -19,9 +19,9 @@ class SelectStrategy : public IPressedStrategy {
 private:
     enum ENUM_MARKER {
         TOP_LEFT = 0,
-        BOTTOM_LEFT = 1,
-        TOP_RIGHT = 2,
-        BOTTOM_RIGHT = 3,
+        TOP_RIGHT = 1,
+        BOTTOM_RIGHT = 2,
+        BOTTOM_LEFT = 3,
         UNKNOW = -1,
     };
     enum ENUM_MODE {
@@ -67,26 +67,20 @@ public:
     void done() override;
     void abort() override;
 
-    bool insideCornerHitbox(Point p, Point cornerPosition);
-    bool insideCornerRotateHitbox(Point p, Point cornerPosition);
+    bool insideCornerHitbox(Point p, PointF cornerPosition);
+    bool insideCornerRotateHitbox(Point p, PointF cornerPosition);
 
 
     
-    float _dstCenterX;
-    float _dstCenterY;
-    float _scaleX = 1.0f;
-    float _scaleY = 1.0f;
-
-    float _angleRad;
-    float _cosA;
-    float _sinA;
-    float _resizedWidth;
-    float _resizedHeight;
-    float _origCenterX;
-    float _origCenterY; 
+    PointF _dstCenter, _srcCenter;
+    PointF _delta;
+    PointF _scale = {1.0f, 1.0f};
+    PointF _resized = {1.0f, 1.0f};
+    PointF _origCenter;
     bool _cutting;
 
     std::optional<Bounding> _originalBounding;
+    Corners _originalCorners;
     
     Corners _flagCorners;
     Bounding flagBounding;

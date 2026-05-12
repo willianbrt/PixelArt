@@ -5,12 +5,9 @@ SelectContext::SelectContext()
 
 }
 
-Point SelectContext::cornerRotate(Viewport* viewport,  Point cornerPosition){
+PointF SelectContext::cornerRotate(Viewport* viewport,  PointF cornerPosition){
     CanvasSettings* settings = viewport->getCanvasSettings();
-    PointF c = {
-        (corners.bottomLeft.x + corners.bottomRight.x + corners.topLeft.x+ corners.topRight.x) * 0.25f, 
-        (corners.bottomLeft.y + corners.bottomRight.y + corners.topLeft.y+ corners.topRight.y) * 0.25f
-    };
+    PointF c = corners.getCenter();
 
     PointF dir = {
         (c.x - cornerPosition.x),
@@ -18,12 +15,12 @@ Point SelectContext::cornerRotate(Viewport* viewport,  Point cornerPosition){
     };
     float dist = std::sqrtf(dir.x*dir.x + dir.y*dir.y);
     
-    PointF corner = viewport->canvasToWorld(
+    PointF corner = (dist != 0) ? viewport->canvasToWorld(
         cornerPosition.x + (dir.x / dist),
         cornerPosition.y + (dir.y / dist)
-    );
+    ) : cornerPosition;
     return {
-        (int)std::floor(corner.x + 0.5f),
-        (int)std::floor(corner.y + 0.5f)
+        corner.x,
+        corner.y
     };
 }

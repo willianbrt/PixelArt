@@ -93,6 +93,12 @@ void SelectStrategy::onTracking(int x, int y){
         _originalBounding->end.y = to.y + 1;
         
         _selectContext->corners = Corners(*_originalBounding);
+        // printf("(%f,%f) - (%f,%f) - (%f,%f) - (%f,%f)\n",
+        //     _selectContext->corners.topLeft.x, _selectContext->corners.topLeft.y,
+        //     _selectContext->corners.topRight.x, _selectContext->corners.topRight.y,
+        //     _selectContext->corners.bottomRight.x, _selectContext->corners.bottomRight.y,
+        //     _selectContext->corners.bottomLeft.x, _selectContext->corners.bottomLeft.y
+        // );
     }
 
     if(_mode == ENUM_MODE::TRANSLATE){
@@ -104,8 +110,8 @@ void SelectStrategy::onTracking(int x, int y){
     }
     
     if(_mode == ENUM_MODE::ROTATE){
-        float radBefore = std::atan2(_from.y - _dstCenterY, _from.x - _dstCenterX);
-        float radAfter  = std::atan2(to.y - _dstCenterY, to.x - _dstCenterX);
+        float radBefore = std::atan2(_from.y - _dstCenter.y, _from.x - _dstCenter.x);
+        float radAfter  = std::atan2(to.y - _dstCenter.y, to.x - _dstCenter.x);
 
         rotate(radAfter - radBefore);
     }
@@ -187,14 +193,19 @@ void SelectStrategy::start()
         delimit.end.x == INT_MIN || delimit.end.y == INT_MIN
     ){
         _originalBounding = Bounding();
-        _selectContext->corners = Corners(*_originalBounding);
+        _originalCorners = Corners(*_originalBounding);
+        _selectContext->corners = _originalCorners;
         return;
     }
     delimit.end.x++;
     delimit.end.y++;
     
     _originalBounding = delimit;
-    _selectContext->corners = Corners(*_originalBounding);
+    _origCenter = _originalBounding->getCenter();
+    _originalCorners = Corners(*_originalBounding);
+    _selectContext->corners = _originalCorners;
+    _resized = {(float)_originalBounding->getWidth(), (float)_originalBounding->getHeight()};
+    _srcCenter =  _originalBounding->getCenter();
 
     _selectContext->data = new Surface(_originalBounding->getWidth(), _originalBounding->getHeight());
     for (int y = 0; y < _originalBounding->getHeight(); ++y) {
@@ -207,19 +218,9 @@ void SelectStrategy::start()
         }
     }
 
+    _selectContext->transformation.setRad(0);
 
-    _origCenterX = (_originalBounding->start.x + _originalBounding->end.x) * 0.5f;
-    _origCenterY = (_originalBounding->start.y + _originalBounding->end.y) * 0.5f;
-
-    _angleRad = 0;
-    _cosA = std::cos(_angleRad);
-    _sinA = std::sin(_angleRad);
-
-    _dstCenterX = _origCenterX;
-    _dstCenterY = _origCenterY;
-
-    _resizedWidth = _originalBounding->getWidth();
-    _resizedHeight = _originalBounding->getHeight() ;
+    _dstCenter = _selectContext->corners.getCenter();
 
     _mode = ENUM_MODE::SELECTED;
     draw();
@@ -239,8 +240,11 @@ void SelectStrategy::translate(float deltaX, float deltaY){
     _selectContext->corners.bottomLeft.x += deltaX;
     _selectContext->corners.bottomLeft.y += deltaY;
 
-    _dstCenterX += deltaX;
-    _dstCenterY += deltaY;
+    _dstCenter.x += deltaX;
+    _dstCenter.y += deltaY;
+
+    _delta.x += deltaX;
+    _delta.y += deltaY;
 
     draw();
 }
@@ -248,122 +252,102 @@ void SelectStrategy::translate(float deltaX, float deltaY){
 void SelectStrategy::rotate(float rotateRad){
     flagBounding = _selectContext->corners.getBounding();
 
-    _angleRad += rotateRad;
-    _cosA = std::cos(_angleRad);
-    _sinA = std::sin(_angleRad);
+    _selectContext->transformation.setRad(_selectContext->transformation.getRad() + rotateRad);
 
-    float halfWidth =  _resizedWidth * 0.5f;
-    float halfHeight = _resizedHeight * 0.5f;
+    PointF axisX = _selectContext->transformation.rotate({_resized.x * 0.5f, 0});
+    PointF axisY = _selectContext->transformation.rotate({0, _resized.y * 0.5f});
 
-    float widthX =  _cosA * halfWidth;
-    float widthY =  _sinA * halfWidth;
-
-    float heightX = -_sinA * halfHeight;
-    float heightY =  _cosA * halfHeight;
-    _selectContext->corners.topLeft.x = std::round(_dstCenterX - widthX - heightX);
-    _selectContext->corners.topLeft.y = std::round(_dstCenterY - widthY - heightY);
-
-    _selectContext->corners.topRight.x = std::round(_dstCenterX + widthX - heightX);
-    _selectContext->corners.topRight.y = std::round(_dstCenterY + widthY - heightY);
-
-    _selectContext->corners.bottomRight.x = std::round(_dstCenterX + widthX + heightX);
-    _selectContext->corners.bottomRight.y = std::round(_dstCenterY + widthY + heightY);
-
-    _selectContext->corners.bottomLeft.x = std::round(_dstCenterX - widthX + heightX);
-    _selectContext->corners.bottomLeft.y = std::round(_dstCenterY - widthY + heightY);
-
+    _selectContext->corners.bottomLeft.x = _dstCenter.x +
+                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_LEFT].x * axisX.x +
+                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_LEFT].y * axisY.x;
+    _selectContext->corners.bottomLeft.y = _dstCenter.y +
+                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_LEFT].x * axisX.y +
+                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_LEFT].y * axisY.y;
+    
+    
+    _selectContext->corners.topLeft.x = _dstCenter.x +
+                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_LEFT].x * axisX.x +
+                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_LEFT].y * axisY.x;
+    _selectContext->corners.topLeft.y = _dstCenter.y +
+                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_LEFT].x * axisX.y +
+                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_LEFT].y * axisY.y;
+    
+    
+    _selectContext->corners.bottomRight.x = _dstCenter.x +
+                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_RIGHT].x * axisX.x +
+                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_RIGHT].y * axisY.x;
+    _selectContext->corners.bottomRight.y = _dstCenter.y +
+                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_RIGHT].x * axisX.y +
+                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_RIGHT].y * axisY.y;
+    
+    
+    _selectContext->corners.topRight.x = _dstCenter.x +
+                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_RIGHT].x * axisX.x +
+                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_RIGHT].y * axisY.x;
+    _selectContext->corners.topRight.y = _dstCenter.y +
+                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_RIGHT].x * axisX.y +
+                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_RIGHT].y * axisY.y;
+    
     draw();
 }
 void SelectStrategy::resize(int marker, float deltaX, float deltaY){
     flagBounding = _selectContext->corners.getBounding();
 
-    Point pixel = Point(deltaX, deltaY);
+    PointF pixel = PointF(deltaX, deltaY);
 
-    auto toLocal = [&](const Point& p, const Point& c) {
-        return Point(p.x - c.x, p.y - c.y);
-    };
-    auto projWidth = [&](const Point& ap) {
-        return  ap.x * _cosA + ap.y * _sinA;
-    };
-    auto projHeight = [&](const Point& ap) {
-        return -ap.x * _sinA + ap.y * _cosA;
-    };
-    auto fromWidth = [&](float t, const Point& c) {
-        return Point(
-            static_cast<int>(std::round(c.x + t * _cosA)),
-            static_cast<int>(std::round(c.y + t * _sinA))
-        );
-    };
-    auto fromHeight = [&](float t, const Point& c) {
-        return Point(
-            static_cast<int>(std::round(c.x - t * _sinA)),
-            static_cast<int>(std::round(c.y + t * _cosA))
-        );
-    };
-
-    Point pivot;
-    float signW = 1.0f;
-    float signH = 1.0f;
-
-    Point* dragged = nullptr;
-    Point* cornerH = nullptr;
-    Point* cornerW = nullptr;
+    PointF* pivot = nullptr;
+    PointF* dragged = nullptr;
+    PointF* cornerH = nullptr;
+    PointF* cornerW = nullptr;
 
     switch ((ENUM_MARKER)marker) {
         case ENUM_MARKER::TOP_LEFT:
-            pivot   = _selectContext->corners.bottomRight;
+            pivot   = &_selectContext->corners.bottomRight;
             dragged = &_selectContext->corners.topLeft;
             cornerH = &_selectContext->corners.topRight;
             cornerW = &_selectContext->corners.bottomLeft;
-            signW = -1; signH = -1;
             break;
 
         case ENUM_MARKER::TOP_RIGHT:
-            pivot   = _selectContext->corners.bottomLeft;
+            pivot   = &_selectContext->corners.bottomLeft;
             dragged = &_selectContext->corners.topRight;
             cornerH = &_selectContext->corners.topLeft;
             cornerW = &_selectContext->corners.bottomRight;
-            signW =  1; signH = -1;
             break;
 
         case ENUM_MARKER::BOTTOM_RIGHT:
-            pivot   = _selectContext->corners.topLeft;
+            pivot   = &_selectContext->corners.topLeft;
             dragged = &_selectContext->corners.bottomRight;
             cornerH = &_selectContext->corners.bottomLeft;
             cornerW = &_selectContext->corners.topRight;
-            signW =  1; signH =  1;
             break;
 
         case ENUM_MARKER::BOTTOM_LEFT:
-            pivot   = _selectContext->corners.topRight;
+            pivot   = &_selectContext->corners.topRight;
             dragged = &_selectContext->corners.bottomLeft;
             cornerH = &_selectContext->corners.bottomRight;
             cornerW = &_selectContext->corners.topLeft;
-            signW = -1; signH =  1;
             break;
     default:
         throw std::runtime_error("Corner inválido");
     }
 
-    Point ap = toLocal(pixel, pivot);
+    PointF unrotate = _selectContext->transformation.unrotate(_selectContext->transformation.distance(pixel, *pivot));
 
-    _resizedWidth = signW * projWidth(ap);
-    _resizedHeight = signH * projHeight(ap);
+    _resized.x = _selectContext->corners.sign[marker].x *  unrotate.x;
+    _resized.y = _selectContext->corners.sign[marker].y * unrotate.y;
 
-    *cornerW = fromWidth(signW * _resizedWidth, pivot);
-    *cornerH = fromHeight(signH * _resizedHeight, pivot);
+    *cornerW = _selectContext->transformation.fromWidth(_selectContext->corners.sign[marker].x * _resized.x, *pivot);
+    *cornerH = _selectContext->transformation.fromHeight(_selectContext->corners.sign[marker].y * _resized.y, *pivot);
+    (*dragged) = {
+        cornerH->x + cornerW->x - pivot->x,
+        cornerH->y + cornerW->y - pivot->y
+    };
 
-    (*dragged) = Point(
-                    cornerH->x + cornerW->x - pivot.x,
-                    cornerH->y + cornerW->y - pivot.y
-                );
-
-    _scaleX =  _resizedWidth / (float)_originalBounding->getWidth();
-    _scaleY =  _resizedHeight / (float)_originalBounding->getHeight();
-
-    _dstCenterX = (_selectContext->corners.topLeft.x + _selectContext->corners.topRight.x + _selectContext->corners.bottomLeft.x + _selectContext->corners.bottomRight.x) * 0.25f;
-    _dstCenterY = (_selectContext->corners.topLeft.y + _selectContext->corners.topRight.y + _selectContext->corners.bottomLeft.y + _selectContext->corners.bottomRight.y) * 0.25f;
-
+    _scale.x =  _resized.x / (float)_originalBounding->getWidth();
+    _scale.y =  _resized.y / (float)_originalBounding->getHeight();
+    _dstCenter = _selectContext->corners.getCenter();
+    
     draw();
 }
 
@@ -373,7 +357,6 @@ void SelectStrategy::draw(){
     flagBounding.end.y = std::min(flagBounding.end.y, _toolRuntimeContext.screenHeight);
     flagBounding.end.x = std::min(flagBounding.end.x, _toolRuntimeContext.screenWidth);
     
-    // _toolRuntimeContext.preview->clear();
     for (int y = flagBounding.start.y; y < flagBounding.end.y; ++y) {
         Point p;
         p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
@@ -389,37 +372,28 @@ void SelectStrategy::draw(){
         }
     }
 
-    float hw = _resizedWidth * 0.5f;
-    float hh = _resizedHeight * 0.5f;
-
-    if (_resizedWidth < 0) hw = -hw;
-    if (_resizedHeight < 0) hh = -hh;
-
-    const int offsetX = -_originalBounding->start.x + std::min(_originalBounding->start.x, 0);
-    const int offsetY = -_originalBounding->start.y + std::min(_originalBounding->start.y, 0);
 
     Bounding destBounding = _selectContext->corners.getBounding();
     destBounding.start.y = std::max(destBounding.start.y,0);
     destBounding.start.x = std::max(destBounding.start.x,0);
     destBounding.end.y = std::min(destBounding.end.y, _toolRuntimeContext.screenHeight);
     destBounding.end.x = std::min(destBounding.end.x, _toolRuntimeContext.screenWidth);
+
+
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
-        Point src;
-        float _dy = dy + 0.5f - _dstCenterY;
+        PointF src;
+        float _dy = dy  + 0.5f - _dstCenter.y;
 
         for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
-            float _dx = dx + 0.5f - _dstCenterX;
+            float _dx = dx  + 0.5f - _dstCenter.x;
 
-            float localX = _cosA * _dx + _sinA * _dy;
-            float localY = -_sinA * _dx + _cosA * _dy;
+            src = _selectContext->transformation.unrotate({_dx, _dy});
+            src.x = std::floor(src.x / _scale.x + _srcCenter.x - _originalBounding->start.x);
+            src.y = std::floor(src.y / _scale.y + _srcCenter.y - _originalBounding->start.y);
 
-            if(localX < -hw || localX > hw || localY < -hh || localY > hh){
+            if (!_selectContext->data->isInsideSkecth(src.x, src.y)) {
                 continue;
             }
-
-            src.x = std::floor(localX / _scaleX + _origCenterX + offsetX);
-            src.y = std::floor(localY / _scaleY + _origCenterY + offsetY);
-
             unsigned int color = _selectContext->data->getPixel(src.x, src.y);
 
             if((color >> 24 & 0xFF) == 0) { continue; }
@@ -428,37 +402,28 @@ void SelectStrategy::draw(){
                 GraphicsEngine::clampedTilePoint(dx, _toolRuntimeContext.layer->getWidth()),
                 GraphicsEngine::clampedTilePoint(dy, _toolRuntimeContext.layer->getHeight())
             };
-            // putMirroredPixel(clampedPoint.x, clampedPoint.y, color);
-            _toolRuntimeContext.preview->putPixel(clampedPoint.x, clampedPoint.y,  GraphicsEngine::blendColors(_toolRuntimeContext.layer->getPixel(clampedPoint.x, clampedPoint.y), color));
+            putMirroredPixel(clampedPoint.x, clampedPoint.y, color);
         }
     }
 }
 Surface* SelectStrategy::copy(){
-    float hw = _resizedWidth * 0.5f;
-    float hh = _resizedHeight * 0.5f;
-
-    if (_resizedWidth < 0) hw = -hw;
-    if (_resizedHeight < 0) hh = -hh;
-
     Bounding destBounding = _selectContext->corners.getBounding();
     Surface* surface = new Surface(destBounding.getWidth(), destBounding.getHeight());
 
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
-        Point src;
-        float _dy = dy + 0.5f - _dstCenterY;
+        PointF src;
+        float _dy = dy  + 0.5f- _dstCenter.y;
 
         for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
-            float _dx = dx + 0.5f - _dstCenterX;
+            float _dx = dx  + 0.5f - _dstCenter.x;
 
-            float localX = _cosA * _dx + _sinA * _dy;
-            float localY = -_sinA * _dx + _cosA * _dy;
+            src = _selectContext->transformation.unrotate({_dx, _dy});
+            src.x = std::floor(src.x / _scale.x + _srcCenter.x - _originalBounding->start.x);
+            src.y = std::floor(src.y / _scale.y + _srcCenter.y - _originalBounding->start.y);
 
-            if(localX < -hw || localX > hw || localY < -hh || localY > hh){
+            if (!_selectContext->data->isInsideSkecth(src.x, src.y)) {
                 continue;
             }
-
-            src.x = std::floor(localX / _scaleX + _origCenterX - _originalBounding->start.x);
-            src.y = std::floor(localY / _scaleY + _origCenterY - _originalBounding->start.y);
 
             unsigned int color = _selectContext->data->getPixel(src.x, src.y);
 
@@ -470,18 +435,18 @@ Surface* SelectStrategy::copy(){
     return surface;
 }
 
-bool SelectStrategy::insideCornerHitbox(Point point, Point cornerPosition){
+bool SelectStrategy::insideCornerHitbox(Point point, PointF cornerPosition){
     CanvasSettings* settings = _toolRuntimeContext.viewport->getCanvasSettings();
-    Point cornerWorldPosisition = _toolRuntimeContext.viewport->canvasToWorld(cornerPosition.x, cornerPosition.y);
+    PointF cornerWorldPosisition = _toolRuntimeContext.viewport->canvasToWorld(cornerPosition.x, cornerPosition.y);
 
-    return (point.x >= cornerWorldPosisition.x - sizeHitbox*0.5* settings->getScale() && point.x < cornerWorldPosisition.x + sizeHitbox*0.5* settings->getScale()) &&
-        (point.y >= cornerWorldPosisition.y - sizeHitbox*0.5* settings->getScale() && point.y < cornerWorldPosisition.y + sizeHitbox*0.5* settings->getScale());
+    return (point.x >= cornerWorldPosisition.x - sizeHitbox*0.5f* settings->getScale() && point.x < cornerWorldPosisition.x + sizeHitbox*0.5* settings->getScale()) &&
+        (point.y >= cornerWorldPosisition.y - sizeHitbox*0.5f* settings->getScale() && point.y < cornerWorldPosisition.y + sizeHitbox*0.5* settings->getScale());
 }
 
-bool SelectStrategy::insideCornerRotateHitbox(Point point, Point cornerPosition){
+bool SelectStrategy::insideCornerRotateHitbox(Point point, PointF cornerPosition){
     CanvasSettings* settings = _toolRuntimeContext.viewport->getCanvasSettings();
     
-    Point cornerPositionRotate = _selectContext->cornerRotate(_toolRuntimeContext.viewport, cornerPosition);
+    PointF cornerPositionRotate = _selectContext->cornerRotate(_toolRuntimeContext.viewport, cornerPosition);
 
     return ((float)point.x >= cornerPositionRotate.x - sizeHitbox*0.5f* settings->getScale() && (float)point.x < cornerPositionRotate.x + sizeHitbox*0.5f* settings->getScale()) &&
         ((float)point.y >= cornerPositionRotate.y - sizeHitbox*0.5f* settings->getScale() && (float)point.y < cornerPositionRotate.y + sizeHitbox*0.5f* settings->getScale());
@@ -491,41 +456,32 @@ bool SelectStrategy::insideCornerRotateHitbox(Point point, Point cornerPosition)
 void SelectStrategy::done() {
     _toolRuntimeContext.preview->commit();
 
-    
+    _originalBounding.reset();
     _selectContext->corners = Corners();
     _selectContext->cornersRotate = Corners();
 
-    _dstCenterX = 0.0f;
-    _dstCenterY = 0.0f;
-    _scaleX = 1.0f;
-    _scaleY = 1.0f;
+    _scale = {1.0f,1.0f};
+    _selectContext->transformation.setRad(0.0f);
 
-    _angleRad = 0.0f;
-    _cosA = 0.0f;
-    _sinA = 0.0f;
-    _resizedWidth = 0.0f;
-    _resizedHeight = 0.0f;
-    _origCenterX = 0.0f;
-    _origCenterY = 0.0f; 
+    _origCenter = _originalBounding->getCenter();
+    _dstCenter = _selectContext->corners.getCenter();
+    _resized = {(float)_originalBounding->getWidth(), (float)_originalBounding->getHeight()};
+
     _cutting = false;
 }
 void SelectStrategy::abort(){
     _toolRuntimeContext.preview->clear();
 
+    _originalBounding.reset();
     _selectContext->corners = Corners();
     _selectContext->cornersRotate = Corners();
 
-    _dstCenterX = 0.0f;
-    _dstCenterY = 0.0f;
-    _scaleX = 1.0f;
-    _scaleY = 1.0f;
+    _scale = {1.0f,1.0f};
+    _selectContext->transformation.setRad(0.0f);
 
-    _angleRad = 0.0f;
-    _cosA = 0.0f;
-    _sinA = 0.0f;
-    _resizedWidth = 0.0f;
-    _resizedHeight = 0.0f;
-    _origCenterX = 0.0f;
-    _origCenterY = 0.0f; 
+    _origCenter = _originalBounding->getCenter();
+    _dstCenter = _selectContext->corners.getCenter();
+    _resized = {(float)_originalBounding->getWidth(), (float)_originalBounding->getHeight()};
+
     _cutting = false;
 }
