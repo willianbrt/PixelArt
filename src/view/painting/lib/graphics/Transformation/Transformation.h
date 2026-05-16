@@ -12,7 +12,7 @@ private:
     float _cos;
     float _sin;
 
-    PointF delta;
+    PointF _delta;
 
 public:
 
@@ -22,6 +22,8 @@ public:
 
     void setScale(PointF scale);
     const PointF* getScale() const;
+    void setDelta(PointF delta);
+    const PointF* getDelta() const;
 
 
     PointF distance(const PointF& p, const PointF& c);

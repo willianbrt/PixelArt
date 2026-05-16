@@ -12,15 +12,21 @@ bool TranslateSession::begin(Point point, Viewport* viewport){
     return true;
 }
 void TranslateSession::update(const Point& mouse){
-    Point delta = {
+    Point localDelta = {
         mouse.x - _startPoint.x,
         mouse.y - _startPoint.y
     };
+    const PointF* delta = _selectionContext->transformation.getDelta();
+
+    _selectionContext->transformation.setDelta({
+        delta->x + localDelta.x,
+        delta->y + localDelta.y
+    });
 
     for(int i = 0; i < 4; i++){
-        _selectionContext->selectionBox.corners[i].x += delta.x;
-        _selectionContext->selectionBox.corners[i].y += delta.y;
-    }
+        _selectionContext->selectionBox.corners[i].x += localDelta.x;
+        _selectionContext->selectionBox.corners[i].y += localDelta.y;
+    } 
 
     _startPoint = mouse;
 }

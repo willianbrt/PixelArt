@@ -9,6 +9,14 @@ const PointF* Transformation::getScale() const {
 }
 
 
+void Transformation::setDelta(PointF delta){
+    _delta = delta;
+}
+const PointF* Transformation::getDelta() const {
+    return &_delta;
+}
+
+
 float Transformation::getRad(){
     return _angleRad;
 }
