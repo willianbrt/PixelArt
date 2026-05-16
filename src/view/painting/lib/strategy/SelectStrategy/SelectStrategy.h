@@ -15,6 +15,7 @@
 #include "../../objects/layer/Layers.h"
 #include "../../strategy/ResizeSession/ResizeSession.h"
 #include "../../strategy/RotateSession/RotateSession.h"
+#include "../../strategy/TranslateSession/TranslateSession.h"
 
 #include <optional>
 
@@ -34,18 +35,16 @@ private:
     ToolRuntimeContext _toolRuntimeContext;
     ResizeSession* _resizeSession;
     RotateSession* _rotateSession;
+    TranslateSession* _translateSession;
 
     CursorContext* cursorContext;
 
-    int sizeHitbox = 1;
     ENUM_MODE _mode;
-    ENUM_MARKER _activeMarker;
 
 
     void putMirroredPixel(int x, int y, unsigned int color);
     void draw();
 
-    void translate(float deltaX, float deltaY);
     Surface* copy();
     void paste(Surface& surface);
 

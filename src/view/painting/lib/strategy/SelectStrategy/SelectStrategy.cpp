@@ -5,8 +5,10 @@ SelectStrategy::SelectStrategy(SelectContext* selectContext, SymmetryContext* sy
     _symmetryContext = symmetryContext;
     _selectContext = selectContext;
     _mode = ENUM_MODE::SELECT;
+
     _resizeSession = new ResizeSession(_selectContext);
     _rotateSession = new RotateSession(_selectContext);
+    _translateSession = new TranslateSession(_selectContext);
 
 }
 SelectStrategy::~SelectStrategy(){
@@ -29,13 +31,9 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
         }
         if(_rotateSession->begin(world, _toolRuntimeContext.viewport)){
             _mode = ENUM_MODE::ROTATE;
-            _activeMarker = _resizeSession->hitTest(world, _toolRuntimeContext.viewport);
             return;
-        }
-
-        
-        _activeMarker = ENUM_MARKER::UNKNOW;
-        if(_selectContext->selectionBox.isInsideRotatedBounding(_pressed)){
+        }       
+        if(_translateSession->begin(world, _toolRuntimeContext.viewport)){
             _mode = ENUM_MODE::TRANSLATE;
             return;
         }
@@ -59,6 +57,8 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
 void SelectStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
+
+    flagBounding = _selectContext->selectionBox.getBounding();
     
     if(_mode == ENUM_MODE::SELECT){
         _selectContext->srcArea.end.x = to.x + 1;
@@ -68,21 +68,19 @@ void SelectStrategy::onTracking(int x, int y){
     }
 
     if(_mode == ENUM_MODE::TRANSLATE){
-        flagBounding = _selectContext->selectionBox.getBounding();
-        translate(to.x - _from.x, to.y - _from.y);
+        _translateSession->update(to);
     }
 
     if(_mode == ENUM_MODE::RESIZE){
-        flagBounding = _selectContext->selectionBox.getBounding();
         _resizeSession->update(to);
-        draw();
     }
     
     if(_mode == ENUM_MODE::ROTATE){
-        flagBounding = _selectContext->selectionBox.getBounding();
         _rotateSession->update(to);
-        draw();
     }
+
+    if(_mode != ENUM_MODE::SELECT)
+        draw();
 
     _from = to;
 }
@@ -195,30 +193,6 @@ void SelectStrategy::start()
     _mode = ENUM_MODE::SELECTED;
     draw();
 }
-void SelectStrategy::translate(float deltaX, float deltaY){
-    flagBounding = _selectContext->selectionBox.getBounding();
-
-    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_LEFT].x += deltaX;
-    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_LEFT].y += deltaY;
-
-    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT].x += deltaX;
-    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT].y += deltaY;
-
-    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_RIGHT].x += deltaX;
-    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_RIGHT].y += deltaY;
-
-    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT].x += deltaX;
-    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT].y += deltaY;
-
-    _dstCenter.x += deltaX;
-    _dstCenter.y += deltaY;
-
-    _delta.x += deltaX;
-    _delta.y += deltaY;
-
-    draw();
-}
-
 void SelectStrategy::draw(){
     flagBounding.start.y = std::max(flagBounding.start.y,0);
     flagBounding.start.x = std::max(flagBounding.start.x,0);
