@@ -236,16 +236,7 @@ void Renderer::drawSelect(Surface* surface, Editor* editor, Viewport* viewport){
     
     SelectContext* select = editor->getSelectContext();    
     glUniform2fv(glGetUniformLocation(programSelect,"resizeHandle"), 4, select->getAllHandle(viewport).data());
-
-    select->selectionBoxRotate.corners[ENUM_MARKER::TOP_LEFT] = select->cornerRotate(viewport,select->selectionBox.corners[ENUM_MARKER::TOP_LEFT]);
-    select->selectionBoxRotate.corners[ENUM_MARKER::TOP_RIGHT] = select->cornerRotate(viewport,select->selectionBox.corners[ENUM_MARKER::TOP_RIGHT]);
-    select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_RIGHT] = select->cornerRotate(viewport,select->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT]);
-    select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_LEFT] = select->cornerRotate(viewport,select->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT]);
-    
-    glUniform2f(glGetUniformLocation(programSelect,"rtl"), select->selectionBoxRotate.corners[ENUM_MARKER::TOP_LEFT].x, select->selectionBoxRotate.corners[ENUM_MARKER::TOP_LEFT].y);
-    glUniform2f(glGetUniformLocation(programSelect,"rtr"), select->selectionBoxRotate.corners[ENUM_MARKER::TOP_RIGHT].x, select->selectionBoxRotate.corners[ENUM_MARKER::TOP_RIGHT].y);
-    glUniform2f(glGetUniformLocation(programSelect,"rbr"), select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_RIGHT].x, select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_RIGHT].y);
-    glUniform2f(glGetUniformLocation(programSelect,"rbl"), select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_LEFT].x, select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_LEFT].y);
+    glUniform2fv(glGetUniformLocation(programSelect,"rotateHandle"), 4, select->getAllRotateHandle(viewport).data());
 
     float time = glfwGetTime();
     glUniform1f(glGetUniformLocation(programSelect,"time"), time);
@@ -324,15 +315,6 @@ void Renderer::createShader(){
     "uniform vec2 resizeHandle[4];"
     "uniform vec2 rotateHandle[4];"
 
-    "uniform vec2 tl;"
-    "uniform vec2 bl;"
-    "uniform vec2 tr;"
-    "uniform vec2 br;"
-
-    "uniform vec2 rtl;"
-    "uniform vec2 rbl;"
-    "uniform vec2 rtr;"
-    "uniform vec2 rbr;"
 
     "uniform float time;"
 
@@ -402,34 +384,13 @@ void Renderer::createShader(){
 
 
     "   for(int i = 0; i < 4; i++){"
-    "   drawCornerResize(resizeHandle[i], sizeResize, thinkness);"
+    "       drawCornerResize(resizeHandle[i], sizeResize, thinkness);"
     "   }"
 
-    // "   drawCornerResize(tl, sizeResize, thinkness);"
-    // "   drawCornerResize(tr, sizeResize, thinkness);"
-    // "   drawCornerResize(bl, sizeResize, thinkness);"
-    // "   drawCornerResize(br, sizeResize, thinkness);"
+    "   for(int i = 0; i < 4; i++){"
+    "       drawCornerRotate(rotateHandle[i], sizeRotate, thinkness);"
+    "   }"
 
-    "   float offset = 1.0;"
-    "   vec2 center = (tl+tr+bl+br) * 0.25;"
-    "   vec2 tl_rotate = rtl;"
-    "   vec2 tr_rotate = rtr;"
-    "   vec2 br_rotate = rbr;"
-    "   vec2 bl_rotate = rbl;"
-    // "   vec2 tl_rotate = tl + hyp(tl, center) * offset ;"
-    // "   vec2 tr_rotate = tr + hyp(tr, center) * offset ;"
-    // "   vec2 br_rotate = br + hyp(br, center) * offset ;"
-    // "   vec2 bl_rotate = bl + hyp(bl, center) * offset ;"
-
-    "   drawCornerRotate(tl_rotate, sizeRotate, thinkness);"
-    "   drawCornerRotate(tr_rotate, sizeRotate, thinkness);"
-    "   drawCornerRotate(br_rotate, sizeRotate, thinkness);"
-    "   drawCornerRotate(bl_rotate, sizeRotate, thinkness);"
-
-    // "   drawCornerRotate(tl_rotate * zoom, sizeRotate, thinkness);"
-    // "   drawCornerRotate(tr_rotate * zoom, sizeRotate, thinkness);"
-    // "   drawCornerRotate(br_rotate * zoom, sizeRotate, thinkness);"
-    // "   drawCornerRotate(bl_rotate * zoom, sizeRotate, thinkness);"
     "}"
     
     "void main(){"

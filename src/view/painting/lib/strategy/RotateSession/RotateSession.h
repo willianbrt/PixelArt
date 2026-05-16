@@ -1,5 +1,5 @@
-#ifndef RESIZESESSION_H
-#define RESIZESESSION_H
+#ifndef ROTATESESSION_H
+#define ROTATESESSION_H
 #include "../../app/AppContext/AppContext.h"
 #include "../../objects/Viewport/Viewport.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
@@ -14,10 +14,10 @@
 #include "../../objects/layer/Layers.h"
 #include "../../graphics/SelectionBox/SelectionBox.h"
 #include "../../context/SelectContext/SelectContext.h"
-#include "../../objects/ResizeHandle/ResizeHandle.h"
+#include "../../objects/RotateHandle/RotateHandle.h"
 #include <array>
 
-class ResizeSession {
+class RotateSession {
     private:
     SelectContext* _selectionContext;
     Point _startPoint;
@@ -29,7 +29,7 @@ class ResizeSession {
     PointF* cornerW = nullptr;
 
     public:
-    ResizeSession(SelectContext* selection);
+    RotateSession(SelectContext* selection);
     ENUM_MARKER hitTest(Point point, Viewport* viewport);
     bool begin(Point point, Viewport* viewport);
     void update(const Point& mouse);

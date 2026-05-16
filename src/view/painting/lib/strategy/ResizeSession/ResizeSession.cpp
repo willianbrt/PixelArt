@@ -12,9 +12,9 @@ ENUM_MARKER ResizeSession::hitTest(Point point, Viewport* viewport){
     }
     return ENUM_MARKER::UNKNOW;
 }
-void ResizeSession::begin(Point point, Viewport* viewport){
+bool ResizeSession::begin(Point point, Viewport* viewport){
     ENUM_MARKER marker = hitTest(point, viewport);
-    if(marker == ENUM_MARKER::UNKNOW) return;
+    if(marker == ENUM_MARKER::UNKNOW) return false;
 
     _activeMarker = marker;
     _startPoint = viewport->cursorToCanvas(point.x, point.y);
@@ -50,6 +50,7 @@ void ResizeSession::begin(Point point, Viewport* viewport){
         default:
             throw std::runtime_error("Corner inválido");
     }
+    return true;
 }
 void ResizeSession::update(const Point& mouse){
     PointF pixel = {

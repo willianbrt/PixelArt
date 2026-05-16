@@ -14,6 +14,7 @@
 #include "../../objects/preview/Preview.h"
 #include "../../objects/layer/Layers.h"
 #include "../../strategy/ResizeSession/ResizeSession.h"
+#include "../../strategy/RotateSession/RotateSession.h"
 
 #include <optional>
 
@@ -32,6 +33,7 @@ private:
     SelectContext* _selectContext;
     ToolRuntimeContext _toolRuntimeContext;
     ResizeSession* _resizeSession;
+    RotateSession* _rotateSession;
 
     CursorContext* cursorContext;
 
@@ -44,7 +46,6 @@ private:
     void draw();
 
     void translate(float deltaX, float deltaY);
-    void rotate(float rotateRad);
     Surface* copy();
     void paste(Surface& surface);
 
@@ -61,10 +62,6 @@ public:
     CursorContext* getCursorContext() override;
     void done() override;
     void abort() override;
-
-    bool insideCornerHitbox(Point p, PointF cornerPosition);
-    bool insideCornerRotateHitbox(Point p, PointF cornerPosition);
-
 
     
     PointF _dstCenter, _srcCenter;
