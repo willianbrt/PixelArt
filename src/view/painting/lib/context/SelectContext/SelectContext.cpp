@@ -7,7 +7,7 @@ SelectContext::SelectContext()
 
 PointF SelectContext::cornerRotate(Viewport* viewport,  PointF cornerPosition){
     CanvasSettings* settings = viewport->getCanvasSettings();
-    PointF c = corners.getCenter();
+    PointF c = selectionBox.getCenter();
 
     PointF dir = {
         (c.x - cornerPosition.x),
@@ -23,4 +23,13 @@ PointF SelectContext::cornerRotate(Viewport* viewport,  PointF cornerPosition){
         corner.x,
         corner.y
     };
+}
+std::array<float, 8> SelectContext::getAllHandle(Viewport* viewport){
+    std::array<float, 8> vec; 
+    for(int i = 0; i < 8; i+=2){
+        PointF point = handle[i >> 1].getPosition(viewport);
+        vec[i] = point.x;
+        vec[i+1] = point.y;
+    }
+    return vec;
 }

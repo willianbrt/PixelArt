@@ -235,33 +235,17 @@ void Renderer::drawSelect(Surface* surface, Editor* editor, Viewport* viewport){
     // glUniform2f(cursorLocation, cursor.x, cursor.y);
     
     SelectContext* select = editor->getSelectContext();    
-    glUniform2f(glGetUniformLocation(programSelect,"tl"), select->corners.topLeft.x, select->corners.topLeft.y);
-    glUniform2f(glGetUniformLocation(programSelect,"tr"), select->corners.topRight.x, select->corners.topRight.y);
-    glUniform2f(glGetUniformLocation(programSelect,"br"), select->corners.bottomRight.x, select->corners.bottomRight.y);
-    glUniform2f(glGetUniformLocation(programSelect,"bl"), select->corners.bottomLeft.x, select->corners.bottomLeft.y);
+    glUniform2fv(glGetUniformLocation(programSelect,"resizeHandle"), 4, select->getAllHandle(viewport).data());
 
-    // printf("rz: (%f,%f) - (%f,%f) - (%f,%f) - (%f,%f)\n",
-    //         select->corners.topLeft.x, select->corners.topLeft.y,
-    //         select->corners.topRight.x, select->corners.topRight.y,
-    //         select->corners.bottomRight.x, select->corners.bottomRight.y,
-    //         select->corners.bottomLeft.x, select->corners.bottomLeft.y
-    //     );
-    select->cornersRotate.topLeft = select->cornerRotate(viewport,      select->corners.topLeft);
-    select->cornersRotate.topRight = select->cornerRotate(viewport,     select->corners.topRight);
-    select->cornersRotate.bottomRight = select->cornerRotate(viewport,  select->corners.bottomRight);
-    select->cornersRotate.bottomLeft = select->cornerRotate(viewport,   select->corners.bottomLeft);
+    select->selectionBoxRotate.corners[ENUM_MARKER::TOP_LEFT] = select->cornerRotate(viewport,select->selectionBox.corners[ENUM_MARKER::TOP_LEFT]);
+    select->selectionBoxRotate.corners[ENUM_MARKER::TOP_RIGHT] = select->cornerRotate(viewport,select->selectionBox.corners[ENUM_MARKER::TOP_RIGHT]);
+    select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_RIGHT] = select->cornerRotate(viewport,select->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT]);
+    select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_LEFT] = select->cornerRotate(viewport,select->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT]);
     
-        // printf("r: (%f,%f) - (%f,%f) - (%f,%f) - (%f,%f)\n",
-        //         select->cornersRotate.topLeft.x, select->cornersRotate.topLeft.y,
-        //         select->cornersRotate.topRight.x, select->cornersRotate.topRight.y,
-        //         select->cornersRotate.bottomRight.x, select->cornersRotate.bottomRight.y,
-        //         select->cornersRotate.bottomLeft.x, select->cornersRotate.bottomLeft.y
-        //     );
-        
-    glUniform2f(glGetUniformLocation(programSelect,"rtl"), select->cornersRotate.topLeft.x, select->cornersRotate.topLeft.y);
-    glUniform2f(glGetUniformLocation(programSelect,"rtr"), select->cornersRotate.topRight.x, select->cornersRotate.topRight.y);
-    glUniform2f(glGetUniformLocation(programSelect,"rbr"), select->cornersRotate.bottomRight.x, select->cornersRotate.bottomRight.y);
-    glUniform2f(glGetUniformLocation(programSelect,"rbl"), select->cornersRotate.bottomLeft.x, select->cornersRotate.bottomLeft.y);
+    glUniform2f(glGetUniformLocation(programSelect,"rtl"), select->selectionBoxRotate.corners[ENUM_MARKER::TOP_LEFT].x, select->selectionBoxRotate.corners[ENUM_MARKER::TOP_LEFT].y);
+    glUniform2f(glGetUniformLocation(programSelect,"rtr"), select->selectionBoxRotate.corners[ENUM_MARKER::TOP_RIGHT].x, select->selectionBoxRotate.corners[ENUM_MARKER::TOP_RIGHT].y);
+    glUniform2f(glGetUniformLocation(programSelect,"rbr"), select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_RIGHT].x, select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_RIGHT].y);
+    glUniform2f(glGetUniformLocation(programSelect,"rbl"), select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_LEFT].x, select->selectionBoxRotate.corners[ENUM_MARKER::BOTTOM_LEFT].y);
 
     float time = glfwGetTime();
     glUniform1f(glGetUniformLocation(programSelect,"time"), time);
@@ -337,6 +321,9 @@ void Renderer::createShader(){
     "uniform float zoom;"
     "uniform vec2 pan;"
     
+    "uniform vec2 resizeHandle[4];"
+    "uniform vec2 rotateHandle[4];"
+
     "uniform vec2 tl;"
     "uniform vec2 bl;"
     "uniform vec2 tr;"
@@ -412,10 +399,16 @@ void Renderer::createShader(){
     "   float sizeResize = zoom*0.5;"
     "   float sizeRotate = zoom*0.5;"
     "   float thinkness = 2.0;"
-    "   drawCornerResize(tl * zoom, sizeResize, thinkness);"
-    "   drawCornerResize(tr * zoom, sizeResize, thinkness);"
-    "   drawCornerResize(bl * zoom, sizeResize, thinkness);"
-    "   drawCornerResize(br * zoom, sizeResize, thinkness);"
+
+
+    "   for(int i = 0; i < 4; i++){"
+    "   drawCornerResize(resizeHandle[i], sizeResize, thinkness);"
+    "   }"
+
+    // "   drawCornerResize(tl, sizeResize, thinkness);"
+    // "   drawCornerResize(tr, sizeResize, thinkness);"
+    // "   drawCornerResize(bl, sizeResize, thinkness);"
+    // "   drawCornerResize(br, sizeResize, thinkness);"
 
     "   float offset = 1.0;"
     "   vec2 center = (tl+tr+bl+br) * 0.25;"

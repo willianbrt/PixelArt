@@ -5,6 +5,8 @@ SelectStrategy::SelectStrategy(SelectContext* selectContext, SymmetryContext* sy
     _symmetryContext = symmetryContext;
     _selectContext = selectContext;
     _mode = ENUM_MODE::SELECT;
+    _resizeSession = new ResizeSession(_selectContext);
+
 }
 SelectStrategy::~SelectStrategy(){
     free(_selectContext->data);
@@ -19,51 +21,37 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
 
     if(_mode == ENUM_MODE::SELECTED){
         Point world = Point(x,y);
-        if(insideCornerHitbox(world, _selectContext->corners.topLeft)){
+        
+        if(_resizeSession->hitTest(world, _toolRuntimeContext.viewport) != ENUM_MARKER::UNKNOW){
+            _resizeSession->begin(world, _toolRuntimeContext.viewport);
             _mode = ENUM_MODE::RESIZE;
-            _activeMarker = ENUM_MARKER::TOP_LEFT;
-            return;
-        }
-        if(insideCornerHitbox(world, _selectContext->corners.bottomLeft)){
-            _mode = ENUM_MODE::RESIZE;
-            _activeMarker = ENUM_MARKER::BOTTOM_LEFT;
-            return;
-        }
-        if(insideCornerHitbox(world, _selectContext->corners.topRight)){
-            _mode = ENUM_MODE::RESIZE;
-            _activeMarker = ENUM_MARKER::TOP_RIGHT;
-            return;
-        }
-        if(insideCornerHitbox(world, _selectContext->corners.bottomRight)){
-            _mode = ENUM_MODE::RESIZE;
-            _activeMarker = ENUM_MARKER::BOTTOM_RIGHT;
+            _activeMarker = _resizeSession->hitTest(world, _toolRuntimeContext.viewport);
             return;
         }
 
-
-        if(insideCornerRotateHitbox(world, _selectContext->corners.topLeft)){
+        if(insideCornerRotateHitbox(world, _selectContext->selectionBox.corners[ENUM_MARKER::TOP_LEFT])){
             _mode = ENUM_MODE::ROTATE;
             _activeMarker = ENUM_MARKER::TOP_LEFT;
             return;
         }
-        if(insideCornerRotateHitbox(world, _selectContext->corners.bottomLeft)){
+        if(insideCornerRotateHitbox(world, _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT])){
             _mode = ENUM_MODE::ROTATE;
             _activeMarker = ENUM_MARKER::BOTTOM_LEFT;
             return;
         }
-        if(insideCornerRotateHitbox(world, _selectContext->corners.topRight)){
+        if(insideCornerRotateHitbox(world, _selectContext->selectionBox.corners[ENUM_MARKER::TOP_RIGHT])){
             _mode = ENUM_MODE::ROTATE;
             _activeMarker = ENUM_MARKER::TOP_RIGHT;
             return;
         }
-        if(insideCornerRotateHitbox(world, _selectContext->corners.bottomRight)){
+        if(insideCornerRotateHitbox(world, _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT])){
             _mode = ENUM_MODE::ROTATE;
             _activeMarker = ENUM_MARKER::BOTTOM_RIGHT;
             return;
         }
         
         _activeMarker = ENUM_MARKER::UNKNOW;
-        if(_selectContext->corners.isInsideRotatedBounding(_pressed)){
+        if(_selectContext->selectionBox.isInsideRotatedBounding(_pressed)){
             _mode = ENUM_MODE::TRANSLATE;
             return;
         }
@@ -77,11 +65,11 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     if(_selectContext->data != nullptr)
         free(_selectContext->data);
 
-    _originalBounding = Bounding(
+    _selectContext->srcArea = Bounding(
         _pressed,
         Point(_from.x+1, _from.y+1)
     );
-    _selectContext->corners = Corners(*_originalBounding);
+    _selectContext->selectionBox = SelectionBox(_selectContext->srcArea);
 
 }
 void SelectStrategy::onTracking(int x, int y){
@@ -89,27 +77,25 @@ void SelectStrategy::onTracking(int x, int y){
     if (to.x == _from.x && to.y == _from.y) return;
     
     if(_mode == ENUM_MODE::SELECT){
-        _originalBounding->end.x = to.x + 1;
-        _originalBounding->end.y = to.y + 1;
+        _selectContext->srcArea.end.x = to.x + 1;
+        _selectContext->srcArea.end.y = to.y + 1;
         
-        _selectContext->corners = Corners(*_originalBounding);
-        // printf("(%f,%f) - (%f,%f) - (%f,%f) - (%f,%f)\n",
-        //     _selectContext->corners.topLeft.x, _selectContext->corners.topLeft.y,
-        //     _selectContext->corners.topRight.x, _selectContext->corners.topRight.y,
-        //     _selectContext->corners.bottomRight.x, _selectContext->corners.bottomRight.y,
-        //     _selectContext->corners.bottomLeft.x, _selectContext->corners.bottomLeft.y
-        // );
+        _selectContext->selectionBox = SelectionBox(_selectContext->srcArea);
     }
 
     if(_mode == ENUM_MODE::TRANSLATE){
+        flagBounding = _selectContext->selectionBox.getBounding();
         translate(to.x - _from.x, to.y - _from.y);
     }
 
     if(_mode == ENUM_MODE::RESIZE){
-        resize(_activeMarker, to.x, to.y);
+        flagBounding = _selectContext->selectionBox.getBounding();
+        _resizeSession->update(to);
+        draw();
     }
     
     if(_mode == ENUM_MODE::ROTATE){
+        flagBounding = _selectContext->selectionBox.getBounding();
         float radBefore = std::atan2(_from.y - _dstCenter.y, _from.x - _dstCenter.x);
         float radAfter  = std::atan2(to.y - _dstCenter.y, to.x - _dstCenter.x);
 
@@ -122,17 +108,17 @@ void SelectStrategy::onRelease(){
     cursorContext->enable = true;
 
     if(_mode == ENUM_MODE::SELECT){
-        if(_originalBounding->start.x >= _originalBounding->end.x){
-            std::swap(_originalBounding->start.x, _originalBounding->end.x);
-            _originalBounding->start.x -= 1;
-            _originalBounding->end.x += 1;
+        if(_selectContext->srcArea.start.x >= _selectContext->srcArea.end.x){
+            std::swap(_selectContext->srcArea.start.x, _selectContext->srcArea.end.x);
+            _selectContext->srcArea.start.x -= 1;
+            _selectContext->srcArea.end.x += 1;
         }
-        if(_originalBounding->start.y >= _originalBounding->end.y){
-            std::swap(_originalBounding->start.y, _originalBounding->end.y);
-            _originalBounding->start.y -= 1;
-            _originalBounding->end.y += 1;
+        if(_selectContext->srcArea.start.y >= _selectContext->srcArea.end.y){
+            std::swap(_selectContext->srcArea.start.y, _selectContext->srcArea.end.y);
+            _selectContext->srcArea.start.y -= 1;
+            _selectContext->srcArea.end.y += 1;
         }
-        _selectContext->corners = Corners(*_originalBounding);
+        _selectContext->selectionBox = SelectionBox(_selectContext->srcArea);
 
         start();
     }
@@ -170,15 +156,15 @@ void SelectStrategy::start()
     delimit.end.x = INT_MIN;
     delimit.end.y = INT_MIN;
 
-    _originalBounding->start.y = std::max(_originalBounding->start.y,0);
-    _originalBounding->start.x = std::max(_originalBounding->start.x,0);
-    _originalBounding->end.y = std::min(_originalBounding->end.y, _toolRuntimeContext.screenHeight);
-    _originalBounding->end.x = std::min(_originalBounding->end.x, _toolRuntimeContext.screenWidth);
+    _selectContext->srcArea.start.y = std::max(_selectContext->srcArea.start.y,0);
+    _selectContext->srcArea.start.x = std::max(_selectContext->srcArea.start.x,0);
+    _selectContext->srcArea.end.y = std::min(_selectContext->srcArea.end.y, _toolRuntimeContext.screenHeight);
+    _selectContext->srcArea.end.x = std::min(_selectContext->srcArea.end.x, _toolRuntimeContext.screenWidth);
     
-    for (int y = _originalBounding->start.y; y < _originalBounding->end.y; ++y) {
+    for (int y = _selectContext->srcArea.start.y; y < _selectContext->srcArea.end.y; ++y) {
         Point p;
         p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
-        for (int x = _originalBounding->start.x; x < _originalBounding->end.x; ++x){
+        for (int x = _selectContext->srcArea.start.x; x < _selectContext->srcArea.end.x; ++x){
             p.x = GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth());
             if((_toolRuntimeContext.layer->getPixel(p.x, p.y) >> 24 & 0xFF) == 0) continue;
 
@@ -192,27 +178,29 @@ void SelectStrategy::start()
         delimit.start.x == INT_MAX || delimit.start.y == INT_MAX ||
         delimit.end.x == INT_MIN || delimit.end.y == INT_MIN
     ){
-        _originalBounding = Bounding();
-        _originalCorners = Corners(*_originalBounding);
-        _selectContext->corners = _originalCorners;
+        _selectContext->srcArea = Bounding();
+        _originalSelectionBox = SelectionBox(_selectContext->srcArea);
+        _selectContext->selectionBox = _originalSelectionBox;
         return;
     }
     delimit.end.x++;
     delimit.end.y++;
     
-    _originalBounding = delimit;
-    _origCenter = _originalBounding->getCenter();
-    _originalCorners = Corners(*_originalBounding);
-    _selectContext->corners = _originalCorners;
-    _resized = {(float)_originalBounding->getWidth(), (float)_originalBounding->getHeight()};
-    _srcCenter =  _originalBounding->getCenter();
+    _selectContext->srcArea = delimit;
+    _origCenter = _selectContext->srcArea.getCenter();
+    _originalSelectionBox = SelectionBox(_selectContext->srcArea);
+    
+    _selectContext->selectionBox = _originalSelectionBox;
 
-    _selectContext->data = new Surface(_originalBounding->getWidth(), _originalBounding->getHeight());
-    for (int y = 0; y < _originalBounding->getHeight(); ++y) {
+    _resized = {(float)_selectContext->srcArea.getWidth(), (float)_selectContext->srcArea.getHeight()};
+    _srcCenter =  _selectContext->srcArea.getCenter();
+
+    _selectContext->data = new Surface(_selectContext->srcArea.getWidth(), _selectContext->srcArea.getHeight());
+    for (int y = 0; y < _selectContext->srcArea.getHeight(); ++y) {
         Point p;
-        p.y = GraphicsEngine::clampedTilePoint(_originalBounding->start.y + y, _toolRuntimeContext.layer->getHeight());
-        for (int x = 0; x < _originalBounding->getWidth(); ++x){
-            p.x = GraphicsEngine::clampedTilePoint(_originalBounding->start.x + x, _toolRuntimeContext.layer->getWidth());
+        p.y = GraphicsEngine::clampedTilePoint(_selectContext->srcArea.start.y + y, _toolRuntimeContext.layer->getHeight());
+        for (int x = 0; x < _selectContext->srcArea.getWidth(); ++x){
+            p.x = GraphicsEngine::clampedTilePoint(_selectContext->srcArea.start.x + x, _toolRuntimeContext.layer->getWidth());
             
             _selectContext->data->putPixel(x, y, _toolRuntimeContext.layer->getPixel(p.x , p.y));
         }
@@ -220,25 +208,25 @@ void SelectStrategy::start()
 
     _selectContext->transformation.setRad(0);
 
-    _dstCenter = _selectContext->corners.getCenter();
+    _dstCenter = _selectContext->selectionBox.getCenter();
 
     _mode = ENUM_MODE::SELECTED;
     draw();
 }
 void SelectStrategy::translate(float deltaX, float deltaY){
-    flagBounding = _selectContext->corners.getBounding();
+    flagBounding = _selectContext->selectionBox.getBounding();
 
-    _selectContext->corners.topLeft.x += deltaX;
-    _selectContext->corners.topLeft.y += deltaY;
+    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_LEFT].x += deltaX;
+    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_LEFT].y += deltaY;
 
-    _selectContext->corners.bottomRight.x += deltaX;
-    _selectContext->corners.bottomRight.y += deltaY;
+    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT].x += deltaX;
+    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT].y += deltaY;
 
-    _selectContext->corners.topRight.x += deltaX;
-    _selectContext->corners.topRight.y += deltaY;
+    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_RIGHT].x += deltaX;
+    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_RIGHT].y += deltaY;
 
-    _selectContext->corners.bottomLeft.x += deltaX;
-    _selectContext->corners.bottomLeft.y += deltaY;
+    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT].x += deltaX;
+    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT].y += deltaY;
 
     _dstCenter.x += deltaX;
     _dstCenter.y += deltaY;
@@ -250,106 +238,47 @@ void SelectStrategy::translate(float deltaX, float deltaY){
 }
 
 void SelectStrategy::rotate(float rotateRad){
-    flagBounding = _selectContext->corners.getBounding();
+    flagBounding = _selectContext->selectionBox.getBounding();
 
     _selectContext->transformation.setRad(_selectContext->transformation.getRad() + rotateRad);
 
     PointF axisX = _selectContext->transformation.rotate({_resized.x * 0.5f, 0});
     PointF axisY = _selectContext->transformation.rotate({0, _resized.y * 0.5f});
 
-    _selectContext->corners.bottomLeft.x = _dstCenter.x +
-                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_LEFT].x * axisX.x +
-                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_LEFT].y * axisY.x;
-    _selectContext->corners.bottomLeft.y = _dstCenter.y +
-                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_LEFT].x * axisX.y +
-                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_LEFT].y * axisY.y;
+    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT].x = _dstCenter.x +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::BOTTOM_LEFT].x * axisX.x +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::BOTTOM_LEFT].y * axisY.x;
+    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_LEFT].y = _dstCenter.y +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::BOTTOM_LEFT].x * axisX.y +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::BOTTOM_LEFT].y * axisY.y;
     
     
-    _selectContext->corners.topLeft.x = _dstCenter.x +
-                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_LEFT].x * axisX.x +
-                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_LEFT].y * axisY.x;
-    _selectContext->corners.topLeft.y = _dstCenter.y +
-                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_LEFT].x * axisX.y +
-                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_LEFT].y * axisY.y;
+    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_LEFT].x = _dstCenter.x +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::TOP_LEFT].x * axisX.x +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::TOP_LEFT].y * axisY.x;
+    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_LEFT].y = _dstCenter.y +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::TOP_LEFT].x * axisX.y +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::TOP_LEFT].y * axisY.y;
     
     
-    _selectContext->corners.bottomRight.x = _dstCenter.x +
-                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_RIGHT].x * axisX.x +
-                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_RIGHT].y * axisY.x;
-    _selectContext->corners.bottomRight.y = _dstCenter.y +
-                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_RIGHT].x * axisX.y +
-                                                    _selectContext->corners.sign[ENUM_MARKER::BOTTOM_RIGHT].y * axisY.y;
+    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT].x = _dstCenter.x +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::BOTTOM_RIGHT].x * axisX.x +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::BOTTOM_RIGHT].y * axisY.x;
+    _selectContext->selectionBox.corners[ENUM_MARKER::BOTTOM_RIGHT].y = _dstCenter.y +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::BOTTOM_RIGHT].x * axisX.y +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::BOTTOM_RIGHT].y * axisY.y;
     
     
-    _selectContext->corners.topRight.x = _dstCenter.x +
-                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_RIGHT].x * axisX.x +
-                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_RIGHT].y * axisY.x;
-    _selectContext->corners.topRight.y = _dstCenter.y +
-                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_RIGHT].x * axisX.y +
-                                                    _selectContext->corners.sign[ENUM_MARKER::TOP_RIGHT].y * axisY.y;
-    
-    draw();
-}
-void SelectStrategy::resize(int marker, float deltaX, float deltaY){
-    flagBounding = _selectContext->corners.getBounding();
-
-    PointF pixel = PointF(deltaX, deltaY);
-
-    PointF* pivot = nullptr;
-    PointF* dragged = nullptr;
-    PointF* cornerH = nullptr;
-    PointF* cornerW = nullptr;
-
-    switch ((ENUM_MARKER)marker) {
-        case ENUM_MARKER::TOP_LEFT:
-            pivot   = &_selectContext->corners.bottomRight;
-            dragged = &_selectContext->corners.topLeft;
-            cornerH = &_selectContext->corners.topRight;
-            cornerW = &_selectContext->corners.bottomLeft;
-            break;
-
-        case ENUM_MARKER::TOP_RIGHT:
-            pivot   = &_selectContext->corners.bottomLeft;
-            dragged = &_selectContext->corners.topRight;
-            cornerH = &_selectContext->corners.topLeft;
-            cornerW = &_selectContext->corners.bottomRight;
-            break;
-
-        case ENUM_MARKER::BOTTOM_RIGHT:
-            pivot   = &_selectContext->corners.topLeft;
-            dragged = &_selectContext->corners.bottomRight;
-            cornerH = &_selectContext->corners.bottomLeft;
-            cornerW = &_selectContext->corners.topRight;
-            break;
-
-        case ENUM_MARKER::BOTTOM_LEFT:
-            pivot   = &_selectContext->corners.topRight;
-            dragged = &_selectContext->corners.bottomLeft;
-            cornerH = &_selectContext->corners.bottomRight;
-            cornerW = &_selectContext->corners.topLeft;
-            break;
-    default:
-        throw std::runtime_error("Corner inválido");
-    }
-
-    PointF unrotate = _selectContext->transformation.unrotate(_selectContext->transformation.distance(pixel, *pivot));
-
-    _resized.x = _selectContext->corners.sign[marker].x *  unrotate.x;
-    _resized.y = _selectContext->corners.sign[marker].y * unrotate.y;
-
-    *cornerW = _selectContext->transformation.fromWidth(_selectContext->corners.sign[marker].x * _resized.x, *pivot);
-    *cornerH = _selectContext->transformation.fromHeight(_selectContext->corners.sign[marker].y * _resized.y, *pivot);
-    (*dragged) = {
-        cornerH->x + cornerW->x - pivot->x,
-        cornerH->y + cornerW->y - pivot->y
-    };
-
-    _scale.x =  _resized.x / (float)_originalBounding->getWidth();
-    _scale.y =  _resized.y / (float)_originalBounding->getHeight();
-    _dstCenter = _selectContext->corners.getCenter();
+    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_RIGHT].x = _dstCenter.x +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::TOP_RIGHT].x * axisX.x +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::TOP_RIGHT].y * axisY.x;
+    _selectContext->selectionBox.corners[ENUM_MARKER::TOP_RIGHT].y = _dstCenter.y +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::TOP_RIGHT].x * axisX.y +
+                                                    _selectContext->selectionBox.sign[ENUM_MARKER::TOP_RIGHT].y * axisY.y;
     
     draw();
 }
+
 
 void SelectStrategy::draw(){
     flagBounding.start.y = std::max(flagBounding.start.y,0);
@@ -363,8 +292,8 @@ void SelectStrategy::draw(){
         for (int x = flagBounding.start.x; x < flagBounding.end.x; ++x) {
             p.x = GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth());
 
-            if((p.x >= _originalBounding->start.x && p.x < _originalBounding->end.x) &&
-                (p.y >= _originalBounding->start.y && p.y < _originalBounding->end.y)){
+            if((p.x >= _selectContext->srcArea.start.x && p.x < _selectContext->srcArea.end.x) &&
+                (p.y >= _selectContext->srcArea.start.y && p.y < _selectContext->srcArea.end.y)){
                 _toolRuntimeContext.preview->putPixel(p.x, p.y, 0x0);
                 continue;
             }
@@ -373,12 +302,14 @@ void SelectStrategy::draw(){
     }
 
 
-    Bounding destBounding = _selectContext->corners.getBounding();
+    Bounding destBounding = _selectContext->selectionBox.getBounding();
     destBounding.start.y = std::max(destBounding.start.y,0);
     destBounding.start.x = std::max(destBounding.start.x,0);
     destBounding.end.y = std::min(destBounding.end.y, _toolRuntimeContext.screenHeight);
     destBounding.end.x = std::min(destBounding.end.x, _toolRuntimeContext.screenWidth);
 
+    const PointF* scale = _selectContext->transformation.getScale();
+    _dstCenter = _selectContext->selectionBox.getCenter();
 
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         PointF src;
@@ -388,8 +319,8 @@ void SelectStrategy::draw(){
             float _dx = dx  + 0.5f - _dstCenter.x;
 
             src = _selectContext->transformation.unrotate({_dx, _dy});
-            src.x = std::floor(src.x / _scale.x + _srcCenter.x - _originalBounding->start.x);
-            src.y = std::floor(src.y / _scale.y + _srcCenter.y - _originalBounding->start.y);
+            src.x = std::floor(src.x / scale->x + _srcCenter.x - _selectContext->srcArea.start.x);
+            src.y = std::floor(src.y / scale->y + _srcCenter.y - _selectContext->srcArea.start.y);
 
             if (!_selectContext->data->isInsideSkecth(src.x, src.y)) {
                 continue;
@@ -407,8 +338,9 @@ void SelectStrategy::draw(){
     }
 }
 Surface* SelectStrategy::copy(){
-    Bounding destBounding = _selectContext->corners.getBounding();
+    Bounding destBounding = _selectContext->selectionBox.getBounding();
     Surface* surface = new Surface(destBounding.getWidth(), destBounding.getHeight());
+    const PointF* scale = _selectContext->transformation.getScale();
 
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         PointF src;
@@ -418,8 +350,8 @@ Surface* SelectStrategy::copy(){
             float _dx = dx  + 0.5f - _dstCenter.x;
 
             src = _selectContext->transformation.unrotate({_dx, _dy});
-            src.x = std::floor(src.x / _scale.x + _srcCenter.x - _originalBounding->start.x);
-            src.y = std::floor(src.y / _scale.y + _srcCenter.y - _originalBounding->start.y);
+            src.x = std::floor(src.x / scale->x + _srcCenter.x - _selectContext->srcArea.start.x);
+            src.y = std::floor(src.y / scale->y + _srcCenter.y - _selectContext->srcArea.start.y);
 
             if (!_selectContext->data->isInsideSkecth(src.x, src.y)) {
                 continue;
@@ -456,32 +388,28 @@ bool SelectStrategy::insideCornerRotateHitbox(Point point, PointF cornerPosition
 void SelectStrategy::done() {
     _toolRuntimeContext.preview->commit();
 
-    _originalBounding.reset();
-    _selectContext->corners = Corners();
-    _selectContext->cornersRotate = Corners();
+    _selectContext->selectionBox = SelectionBox();
+    _selectContext->selectionBoxRotate = SelectionBox();
 
-    _scale = {1.0f,1.0f};
     _selectContext->transformation.setRad(0.0f);
 
-    _origCenter = _originalBounding->getCenter();
-    _dstCenter = _selectContext->corners.getCenter();
-    _resized = {(float)_originalBounding->getWidth(), (float)_originalBounding->getHeight()};
+    _origCenter = _selectContext->srcArea.getCenter();
+    _dstCenter = _selectContext->selectionBox.getCenter();
+    _resized = {(float)_selectContext->srcArea.getWidth(), (float)_selectContext->srcArea.getHeight()};
 
     _cutting = false;
 }
 void SelectStrategy::abort(){
     _toolRuntimeContext.preview->clear();
 
-    _originalBounding.reset();
-    _selectContext->corners = Corners();
-    _selectContext->cornersRotate = Corners();
+    _selectContext->selectionBox = SelectionBox();
+    _selectContext->selectionBoxRotate = SelectionBox();
 
-    _scale = {1.0f,1.0f};
     _selectContext->transformation.setRad(0.0f);
 
-    _origCenter = _originalBounding->getCenter();
-    _dstCenter = _selectContext->corners.getCenter();
-    _resized = {(float)_originalBounding->getWidth(), (float)_originalBounding->getHeight()};
+    _origCenter = _selectContext->srcArea.getCenter();
+    _dstCenter = _selectContext->selectionBox.getCenter();
+    _resized = {(float)_selectContext->srcArea.getWidth(), (float)_selectContext->srcArea.getHeight()};
 
     _cutting = false;
 }

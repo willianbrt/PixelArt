@@ -1,4 +1,14 @@
 #include "Transformation.h"
+
+
+void Transformation::setScale(PointF scale){
+    _scale = scale;
+}
+const PointF* Transformation::getScale() const {
+    return &_scale;
+}
+
+
 float Transformation::getRad(){
     return _angleRad;
 }

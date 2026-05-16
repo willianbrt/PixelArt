@@ -15,8 +15,15 @@ private:
     PointF delta;
 
 public:
+
+
     float getRad();
     void setRad(const float rad);
+
+    void setScale(PointF scale);
+    const PointF* getScale() const;
+
+
     PointF distance(const PointF& p, const PointF& c);
     Point dir(const PointF& a, const PointF& b);
     PointF translate(const PointF& p, const PointF delta);

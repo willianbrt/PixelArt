@@ -10,20 +10,15 @@
 #include "../../context/SymmetryContext/SymmetryContext.h"
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 #include "../../graphics/Pixel/Pixel.h"
+#include "../../graphics/SelectionBox/SelectionBox.h"
 #include "../../objects/preview/Preview.h"
 #include "../../objects/layer/Layers.h"
+#include "../../strategy/ResizeSession/ResizeSession.h"
 
 #include <optional>
 
 class SelectStrategy : public IPressedStrategy {
 private:
-    enum ENUM_MARKER {
-        TOP_LEFT = 0,
-        TOP_RIGHT = 1,
-        BOTTOM_RIGHT = 2,
-        BOTTOM_LEFT = 3,
-        UNKNOW = -1,
-    };
     enum ENUM_MODE {
         SELECT = 0,
         SELECTED = 1,
@@ -36,6 +31,7 @@ private:
     SymmetryContext* _symmetryContext;
     SelectContext* _selectContext;
     ToolRuntimeContext _toolRuntimeContext;
+    ResizeSession* _resizeSession;
 
     CursorContext* cursorContext;
 
@@ -51,7 +47,6 @@ private:
     void rotate(float rotateRad);
     Surface* copy();
     void paste(Surface& surface);
-    void resize(int marker, float deltaX, float deltaY);
 
     void start();
 
@@ -80,9 +75,9 @@ public:
     bool _cutting;
 
     std::optional<Bounding> _originalBounding;
-    Corners _originalCorners;
+    SelectionBox _originalSelectionBox;
     
-    Corners _flagCorners;
+    SelectionBox _flagSelectionBox;
     Bounding flagBounding;
 };
 #endif
