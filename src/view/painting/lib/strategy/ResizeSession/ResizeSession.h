@@ -19,6 +19,7 @@
 
 class ResizeSession {
     private:
+    ToolRuntimeContext _toolRuntimeContext;
     SelectContext* _selectionContext;
     Point _startPoint;
     ENUM_MARKER _activeMarker;
@@ -31,7 +32,7 @@ class ResizeSession {
     public:
     ResizeSession(SelectContext* selection);
     ENUM_MARKER hitTest(Point point, Viewport* viewport);
-    bool begin(Point point, Viewport* viewport);
+    bool begin(Point point, const ToolRuntimeContext& toolRuntimeContext);
     void update(const Point& mouse);
 };
 #endif

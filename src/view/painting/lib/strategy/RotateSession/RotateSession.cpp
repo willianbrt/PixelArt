@@ -12,12 +12,14 @@ ENUM_MARKER RotateSession::hitTest(Point point, Viewport* viewport){
     }
     return ENUM_MARKER::UNKNOW;
 }
-bool RotateSession::begin(Point point, Viewport* viewport){
-    ENUM_MARKER marker = hitTest(point, viewport);
+bool RotateSession::begin(Point point, const ToolRuntimeContext& toolRuntimeContext){
+    _toolRuntimeContext = toolRuntimeContext;
+
+    ENUM_MARKER marker = hitTest(point, _toolRuntimeContext.viewport);
     if(marker == ENUM_MARKER::UNKNOW) return false;
 
     _activeMarker = marker;
-    _startPoint = viewport->cursorToCanvas(point.x, point.y);
+    _startPoint = _toolRuntimeContext.viewport->cursorToCanvas(point.x, point.y);
     return true;
 }
 void RotateSession::update(const Point& mouse){

@@ -16,6 +16,7 @@
 #include "../../strategy/ResizeSession/ResizeSession.h"
 #include "../../strategy/RotateSession/RotateSession.h"
 #include "../../strategy/TranslateSession/TranslateSession.h"
+#include "../../strategy/SelectSession/SelectSession.h"
 
 #include <optional>
 
@@ -36,6 +37,7 @@ private:
     ResizeSession* _resizeSession;
     RotateSession* _rotateSession;
     TranslateSession* _translateSession;
+    SelectSession* _selectSession;
 
     CursorContext* cursorContext;
 
@@ -48,7 +50,6 @@ private:
     Surface* copy();
     void paste(Surface& surface);
 
-    void start();
 
 public:
     SelectStrategy(SelectContext* selectContext, SymmetryContext* context);
@@ -61,16 +62,6 @@ public:
     CursorContext* getCursorContext() override;
     void done() override;
     void abort() override;
-
-    
-    // PointF _dstCenter, _srcCenter;
-    // PointF _delta;
-    // PointF _scale = {1.0f, 1.0f};
-    // PointF _resized = {1.0f, 1.0f};
-    // PointF _origCenter;
-
-    // std::optional<Bounding> _originalBounding;
-    // SelectionBox _originalSelectionBox;
     Bounding flagBounding;
     
     bool _cutting;

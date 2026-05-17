@@ -5,10 +5,11 @@ TranslateSession::TranslateSession(SelectContext* selection)
 _selectionContext(selection)
 {
 }
-bool TranslateSession::begin(Point point, Viewport* viewport){
-    if(!_selectionContext->selectionBox.isInsideRotatedBounding(viewport->cursorToCanvas(point.x, point.y)  )) return false;
+bool TranslateSession::begin(Point point, const ToolRuntimeContext& toolRuntimeContext){
+    _toolRuntimeContext = toolRuntimeContext;
+    if(!_selectionContext->selectionBox.isInsideRotatedBounding(_toolRuntimeContext.viewport->cursorToCanvas(point.x, point.y)  )) return false;
 
-    _startPoint = viewport->cursorToCanvas(point.x, point.y);
+    _startPoint = _toolRuntimeContext.viewport->cursorToCanvas(point.x, point.y);
     return true;
 }
 void TranslateSession::update(const Point& mouse){

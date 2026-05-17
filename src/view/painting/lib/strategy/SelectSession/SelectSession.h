@@ -1,5 +1,5 @@
-#ifndef ROTATESESSION_H
-#define ROTATESESSION_H
+#ifndef SELECTSESSION_H
+#define SELECTSESSION_H
 #include "../../app/AppContext/AppContext.h"
 #include "../../objects/Viewport/Viewport.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
@@ -17,22 +17,18 @@
 #include "../../objects/RotateHandle/RotateHandle.h"
 #include <array>
 
-class RotateSession {
+class SelectSession {
     private:
     ToolRuntimeContext _toolRuntimeContext;
     SelectContext* _selectionContext;
     Point _startPoint;
-    ENUM_MARKER _activeMarker;
-
-    PointF* pivot = nullptr;
-    PointF* dragged = nullptr;
-    PointF* cornerH = nullptr;
-    PointF* cornerW = nullptr;
 
     public:
-    RotateSession(SelectContext* selection);
-    ENUM_MARKER hitTest(Point point, Viewport* viewport);
+    SelectSession(SelectContext* selection);
     bool begin(Point point, const ToolRuntimeContext& toolRuntimeContext);
     void update(const Point& mouse);
+    void end();
+    void shrinkToTheDrawing();
+    void initSelectData();
 };
 #endif

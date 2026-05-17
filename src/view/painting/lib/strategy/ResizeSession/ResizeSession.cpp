@@ -12,12 +12,14 @@ ENUM_MARKER ResizeSession::hitTest(Point point, Viewport* viewport){
     }
     return ENUM_MARKER::UNKNOW;
 }
-bool ResizeSession::begin(Point point, Viewport* viewport){
-    ENUM_MARKER marker = hitTest(point, viewport);
+bool ResizeSession::begin(Point point, const ToolRuntimeContext& toolRuntimeContext){
+    _toolRuntimeContext = toolRuntimeContext;
+
+    ENUM_MARKER marker = hitTest(point, _toolRuntimeContext.viewport);
     if(marker == ENUM_MARKER::UNKNOW) return false;
 
     _activeMarker = marker;
-    _startPoint = viewport->cursorToCanvas(point.x, point.y);
+    _startPoint = _toolRuntimeContext.viewport->cursorToCanvas(point.x, point.y);
 
     switch (_activeMarker) {
         case ENUM_MARKER::TOP_LEFT:

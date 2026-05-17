@@ -9,6 +9,7 @@ SelectStrategy::SelectStrategy(SelectContext* selectContext, SymmetryContext* sy
     _resizeSession = new ResizeSession(_selectContext);
     _rotateSession = new RotateSession(_selectContext);
     _translateSession = new TranslateSession(_selectContext);
+    _selectSession = new SelectSession(_selectContext);
 }
 SelectStrategy::~SelectStrategy(){
     delete _selectContext->data;
@@ -24,15 +25,15 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
 
     if(_mode == ENUM_MODE::SELECTED){
         
-        if(_resizeSession->begin(world, _toolRuntimeContext.viewport)){
+        if(_resizeSession->begin(world, _toolRuntimeContext)){
             _mode = ENUM_MODE::RESIZE;
             return;
         }
-        if(_rotateSession->begin(world, _toolRuntimeContext.viewport)){
+        if(_rotateSession->begin(world, _toolRuntimeContext)){
             _mode = ENUM_MODE::ROTATE;
             return;
         }       
-        if(_translateSession->begin(world, _toolRuntimeContext.viewport)){
+        if(_translateSession->begin(world, _toolRuntimeContext)){
             _mode = ENUM_MODE::TRANSLATE;
             return;
         }
@@ -41,13 +42,7 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     }
 
     _mode = ENUM_MODE::SELECT;
-    
-    _selectContext->srcArea = Bounding(
-        _pressed,
-        Point(_from.x+1, _from.y+1)
-    );
-    _selectContext->selectionBox = SelectionBox(_selectContext->srcArea);
-
+    _selectSession->begin(world, _toolRuntimeContext);
 }
 void SelectStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
@@ -56,10 +51,7 @@ void SelectStrategy::onTracking(int x, int y){
     flagBounding = _selectContext->selectionBox.getBounding();
     
     if(_mode == ENUM_MODE::SELECT){
-        _selectContext->srcArea.end.x = to.x + 1;
-        _selectContext->srcArea.end.y = to.y + 1;
-        
-        _selectContext->selectionBox = SelectionBox(_selectContext->srcArea);
+        _selectSession->update(to);
     }
 
     if(_mode == ENUM_MODE::TRANSLATE){
@@ -74,8 +66,7 @@ void SelectStrategy::onTracking(int x, int y){
         _rotateSession->update(to);
     }
 
-    if(_mode != ENUM_MODE::SELECT)
-        draw();
+    if(_mode != ENUM_MODE::SELECT) draw();
 
     _from = to;
 }
@@ -83,20 +74,13 @@ void SelectStrategy::onRelease(){
     cursorContext->enable = true;
 
     if(_mode == ENUM_MODE::SELECT){
-        if(_selectContext->srcArea.start.x >= _selectContext->srcArea.end.x){
-            std::swap(_selectContext->srcArea.start.x, _selectContext->srcArea.end.x);
-            _selectContext->srcArea.start.x -= 1;
-            _selectContext->srcArea.end.x += 1;
-        }
-        if(_selectContext->srcArea.start.y >= _selectContext->srcArea.end.y){
-            std::swap(_selectContext->srcArea.start.y, _selectContext->srcArea.end.y);
-            _selectContext->srcArea.start.y -= 1;
-            _selectContext->srcArea.end.y += 1;
-        }
-        _selectContext->selectionBox = SelectionBox(_selectContext->srcArea);
+        _selectSession->end();
         
-        start();
-        return;
+        if(!_selectContext->data){
+            abort();
+            return;
+        }
+        draw();
     }
 
     _mode = ENUM_MODE::SELECTED;
@@ -123,53 +107,6 @@ CursorContext* SelectStrategy::getCursorContext(){
     return cursorContext;
 }
 
-
-void SelectStrategy::start()
-{
-    Bounding delimit;
-
-    _toolRuntimeContext.clampBounding(_selectContext->srcArea);
-    for (int y = _selectContext->srcArea.start.y; y < _selectContext->srcArea.end.y; ++y) {
-        Point p;
-        p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
-        for (int x = _selectContext->srcArea.start.x; x < _selectContext->srcArea.end.x; ++x){
-            p.x = GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth());
-            if((_toolRuntimeContext.layer->getPixel(p.x, p.y) >> 24 & 0xFF) == 0) continue;
-
-            if(x < delimit.start.x)  delimit.start.x = x;
-            if(y < delimit.start.y)  delimit.start.y = y;
-            if(x > delimit.end.x)    delimit.end.x = x;
-            if(y > delimit.end.y)    delimit.end.y = y;
-        }
-    }
-    
-    if(
-        delimit.start.x == INT_MAX || delimit.start.y == INT_MAX ||
-        delimit.end.x == INT_MIN || delimit.end.y == INT_MIN
-    ){
-        abort();
-        return;
-    }
-    delimit.end.x++;
-    delimit.end.y++;
-    
-    _selectContext->srcArea = delimit;
-    _selectContext->selectionBox = SelectionBox(_selectContext->srcArea);
-    
-    _selectContext->data = new Surface(_selectContext->srcArea.getWidth(), _selectContext->srcArea.getHeight());
-    for (int y = 0; y < _selectContext->srcArea.getHeight(); ++y) {
-        Point p;
-        p.y = GraphicsEngine::clampedTilePoint(_selectContext->srcArea.start.y + y, _toolRuntimeContext.layer->getHeight());
-        for (int x = 0; x < _selectContext->srcArea.getWidth(); ++x){
-            p.x = GraphicsEngine::clampedTilePoint(_selectContext->srcArea.start.x + x, _toolRuntimeContext.layer->getWidth());
-            
-            _selectContext->data->putPixel(x, y, _toolRuntimeContext.layer->getPixel(p.x , p.y));
-        }
-    }
-
-    _mode = ENUM_MODE::SELECTED;
-    draw();
-}
 void SelectStrategy::draw(){
     _toolRuntimeContext.clampBounding(flagBounding);
     for (int y = flagBounding.start.y; y < flagBounding.end.y; ++y) {
