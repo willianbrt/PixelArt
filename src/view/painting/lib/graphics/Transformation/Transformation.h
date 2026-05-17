@@ -15,7 +15,7 @@ private:
     PointF _delta;
 
 public:
-
+    Transformation();
 
     float getRad();
     void setRad(const float rad);

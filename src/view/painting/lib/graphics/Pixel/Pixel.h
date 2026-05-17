@@ -72,9 +72,14 @@ struct HistoryPixel{
 };
 
 struct Bounding{
-    Point start = Point(0,0);
-    Point end = Point(0,0);
-    Bounding(){}
+    Point start;
+    Point end;
+    Bounding(){
+       start.x = INT_MAX;
+       start.y = INT_MAX;
+       end.x = INT_MIN;
+       end.y = INT_MIN;
+    }
     Bounding(Point s, Point e) {
         start.x = std::min(s.x, e.x);
         start.y = std::min(s.y, e.y);

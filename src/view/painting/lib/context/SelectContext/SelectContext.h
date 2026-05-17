@@ -15,22 +15,12 @@ private:
 
 public:
     SelectContext();
-    Surface* data;
+    Surface* data = nullptr;
     Bounding srcArea;
     Transformation transformation;
-    SelectionBox selectionBox  = SelectionBox();
-    ResizeHandle handle[4] = {
-        ResizeHandle(&selectionBox, ENUM_MARKER::TOP_LEFT),
-        ResizeHandle(&selectionBox, ENUM_MARKER::TOP_RIGHT),
-        ResizeHandle(&selectionBox, ENUM_MARKER::BOTTOM_RIGHT),
-        ResizeHandle(&selectionBox, ENUM_MARKER::BOTTOM_LEFT)
-    };
-    RotateHandle rotateHandle[4] = {
-        RotateHandle(&selectionBox, ENUM_MARKER::TOP_LEFT),
-        RotateHandle(&selectionBox, ENUM_MARKER::TOP_RIGHT),
-        RotateHandle(&selectionBox, ENUM_MARKER::BOTTOM_RIGHT),
-        RotateHandle(&selectionBox, ENUM_MARKER::BOTTOM_LEFT)
-    };
+    SelectionBox selectionBox;
+    ResizeHandle handle[4];
+    RotateHandle rotateHandle[4];
         
     std::array<float, 8> getAllHandle(Viewport* viewport);
     std::array<float, 8> getAllRotateHandle(Viewport* viewport);

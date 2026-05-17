@@ -6,7 +6,7 @@ _selectionContext(selection)
 {
 }
 bool TranslateSession::begin(Point point, Viewport* viewport){
-    if( _selectionContext->selectionBox.isInsideRotatedBounding(point)) return false;
+    if(!_selectionContext->selectionBox.isInsideRotatedBounding(viewport->cursorToCanvas(point.x, point.y)  )) return false;
 
     _startPoint = viewport->cursorToCanvas(point.x, point.y);
     return true;

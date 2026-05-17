@@ -1,8 +1,23 @@
 #include "SelectContext.h"
 
-SelectContext::SelectContext()
+SelectContext::SelectContext() :
+handle{
+        ResizeHandle(&selectionBox, ENUM_MARKER::TOP_LEFT),
+        ResizeHandle(&selectionBox, ENUM_MARKER::TOP_RIGHT),
+        ResizeHandle(&selectionBox, ENUM_MARKER::BOTTOM_RIGHT),
+        ResizeHandle(&selectionBox, ENUM_MARKER::BOTTOM_LEFT)
+    },
+rotateHandle{
+        RotateHandle(&selectionBox, ENUM_MARKER::TOP_LEFT),
+        RotateHandle(&selectionBox, ENUM_MARKER::TOP_RIGHT),
+        RotateHandle(&selectionBox, ENUM_MARKER::BOTTOM_RIGHT),
+        RotateHandle(&selectionBox, ENUM_MARKER::BOTTOM_LEFT)
+    }
 {
-
+    data = nullptr;
+    srcArea = Bounding();
+    transformation = Transformation();
+    selectionBox  = SelectionBox();
 }
 
 std::array<float, 8> SelectContext::getAllHandle(Viewport* viewport){

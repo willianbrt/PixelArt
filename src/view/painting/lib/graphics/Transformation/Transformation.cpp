@@ -1,13 +1,19 @@
 #include "Transformation.h"
 
 
+Transformation::Transformation(){
+    _angleRad = 0;
+    _cos = std::cos(_angleRad);
+    _sin = std::sin(_angleRad);
+    _scale = {1.0f,1.0f};
+    _delta = {0.0f,0.0f};
+}
 void Transformation::setScale(PointF scale){
     _scale = scale;
 }
 const PointF* Transformation::getScale() const {
     return &_scale;
 }
-
 
 void Transformation::setDelta(PointF delta){
     _delta = delta;

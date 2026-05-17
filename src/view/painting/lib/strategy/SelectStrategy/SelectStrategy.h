@@ -63,17 +63,18 @@ public:
     void abort() override;
 
     
-    PointF _dstCenter, _srcCenter;
-    PointF _delta;
-    PointF _scale = {1.0f, 1.0f};
-    PointF _resized = {1.0f, 1.0f};
-    PointF _origCenter;
-    bool _cutting;
+    // PointF _dstCenter, _srcCenter;
+    // PointF _delta;
+    // PointF _scale = {1.0f, 1.0f};
+    // PointF _resized = {1.0f, 1.0f};
+    // PointF _origCenter;
 
-    std::optional<Bounding> _originalBounding;
-    SelectionBox _originalSelectionBox;
+    // std::optional<Bounding> _originalBounding;
+    // SelectionBox _originalSelectionBox;
+    Bounding flagBounding;
+    
+    bool _cutting;
     
     SelectionBox _flagSelectionBox;
-    Bounding flagBounding;
 };
 #endif
