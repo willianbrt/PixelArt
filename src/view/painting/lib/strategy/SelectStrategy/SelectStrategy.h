@@ -47,10 +47,6 @@ private:
     void putMirroredPixel(int x, int y, unsigned int color);
     void draw();
 
-    Surface* copy();
-    void paste(Surface& surface);
-
-
 public:
     SelectStrategy(SelectContext* selectContext, SymmetryContext* context);
     ~SelectStrategy();

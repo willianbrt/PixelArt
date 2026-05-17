@@ -156,36 +156,6 @@ void SelectStrategy::draw(){
         }
     }
 }
-Surface* SelectStrategy::copy(){
-    Bounding destBounding = _selectContext->selectionBox.getBounding();
-    Surface* surface = new Surface(destBounding.getWidth(), destBounding.getHeight());
-
-    const PointF* scale = _selectContext->transformation.getScale();
-    PointF _dstCenter = _selectContext->selectionBox.getCenter();
-    float halfW = (_selectContext->srcArea.getWidth()) * 0.5f;
-    float halfH = (_selectContext->srcArea.getHeight()) * 0.5f;
-
-    for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
-        for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
-            PointF src = _selectContext->transformation.unrotate({dx  + 0.5f - _dstCenter.x, dy + 0.5f - _dstCenter.y});
-            src.x = std::floor(src.x  / scale->x + halfH);
-            src.y = std::floor(src.y  / scale->y + halfW);
-
-            if (!_selectContext->data->isInsideSkecth(src.x, src.y)) {
-                continue;
-            }
-
-            unsigned int color = _selectContext->data->getPixel(src.x, src.y);
-
-            if((color & 0xFF) == 0) { continue; }
-            surface->putPixel(dx-destBounding.start.x , dy-destBounding.start.y, color);
-        }
-    }
-
-    return surface;
-}
-
-
 void SelectStrategy::done() {
     _toolRuntimeContext.preview->commit();
     abort();
