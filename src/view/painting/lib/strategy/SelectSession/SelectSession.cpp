@@ -11,8 +11,6 @@ bool SelectSession::begin(Point point, const ToolRuntimeContext& toolRuntimeCont
 
     _selectionContext->srcArea = Bounding(_startPoint, {_startPoint.x+1, _startPoint.y+1});
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
-
-    printf("select\n");
     
     return true;
 }
@@ -22,13 +20,11 @@ void SelectSession::update(const Point& mouse){
     
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
     
-    printf("selecionando\n");
     _startPoint = mouse;
 }
 
 
 void SelectSession::end(){
-    printf("fim\n");
     if(_selectionContext->srcArea.start.x >= _selectionContext->srcArea.end.x){
         std::swap(_selectionContext->srcArea.start.x, _selectionContext->srcArea.end.x);
         _selectionContext->srcArea.start.x -= 1;
@@ -77,6 +73,8 @@ void SelectSession::shrinkToTheDrawing(){
 }
 
 void SelectSession::initSelectData(){
+    if(_selectionContext->srcArea.getWidth() <= 0 || _selectionContext->srcArea.getHeight() <= 0) return;
+
     _selectionContext->data = new Surface(_selectionContext->srcArea.getWidth(), _selectionContext->srcArea.getHeight());
     for (int y = 0; y < _selectionContext->srcArea.getHeight(); ++y) {
         Point p;
