@@ -1,4 +1,5 @@
 import ModulePixelEditor from '../build/PixelEditor.js'
+import { Shortcuts } from './shortcuts.js';
 
 var app;
 
@@ -10,17 +11,12 @@ async function init(){
     }
     const module = await ModulePixelEditor({
         canvas:  canvas,
-        preRun: function() {
-            console.log("WASM module is starting...");
-        },
-        postRun: ()=>{
-            console.log("Done");
-        },
-        onRuntimeInitialized: () =>{
-            console.log("MODULE INITIALIZED")
-        }
+        preRun: function() {},
+        postRun: ()=>{},
+        onRuntimeInitialized: () =>{}
     });
 
+    const shortcuts = Shortcuts();
 
     app = Object.freeze({
         canvas,
@@ -29,8 +25,11 @@ async function init(){
         paneFramesViewModel: (editor)=> { return new module.PaneFramesViewModel(); },
         paneLayersViewModel: (frame)=> { return new module.PaneLayersViewModel(); },
         paneToolViewModel: (frame)=> { return new module.PaneToolbarViewModel(); },
-        layerViewModel: (layerID)=> { return new module.LayerViewModel(layerID); }
+        layerViewModel: (layerID)=> { return new module.LayerViewModel(layerID); },
+        shortcuts
     });
+
+
 }
 
 

@@ -2,6 +2,7 @@ import { init, app } from './app.js'
 import { buildPaneFrames } from "./paneFrame.js"
 import { buildPaneLayers } from "./paneLayer.js"
 import { buildPaneToolBar } from './paneToolbar.js';
+import { Shortcuts } from './shortcuts.js';
 
 let clipboard;
 const channel = new BroadcastChannel("shared-buffer");
@@ -23,7 +24,21 @@ window.onload = async ()=>{
     buildPaneFrames(app.paneFramesViewModel());
     buildPaneLayers(app.paneLayersViewModel());
     buildPaneToolBar();
-
+    buildShortcuts();
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});
+}
+
+function buildShortcuts(){    
+    app.shortcuts.register({
+        default:{
+            ctrl: true,
+            shitft: false,
+            alt: false,
+            keyCode: 67,
+        },
+        description: "teste",
+        scope: "global",
+        callback: ()=>{console.log("copiar")}
+    });
 }
