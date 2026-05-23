@@ -30,3 +30,9 @@ size_t EditorManager::getEditorsLength(){
 Editor* EditorManager::getEditorByIndex(size_t index){
     return _listEditor[index].get();
 }
+Surface* EditorManager::copy(){
+    return _clipboard.copy(_activeEditor->getSelectContext());
+}
+void EditorManager::paste(Surface* surface){
+    _clipboard.paste(surface, _activeEditor);
+}

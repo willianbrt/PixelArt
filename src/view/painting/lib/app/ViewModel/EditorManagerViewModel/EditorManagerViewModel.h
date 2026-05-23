@@ -10,6 +10,7 @@
 
 #include "../../../objects/Editor/Editor.h"
 #include "../../dto/EditorDTO/EditorDTO.h"
+#include "../../dto/SurfaceDTO/SurfaceDTO.h"
 
 
 #include "../../../interfaces/IEditorManagerObserver/IEditorManagerObserver.h"
@@ -45,6 +46,9 @@ public:
     void resize(int width, int height);
     
     void registerEvent(string eventType, emscripten::val callback);
+    
+    SurfaceDTO copy();
+    void paste(SurfaceDTO surfaceDTO);
 };
 
 #endif

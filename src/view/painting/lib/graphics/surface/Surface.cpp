@@ -6,8 +6,16 @@
             assert(cond); \
         } \
     } while(0)
+
+    
+Surface::Surface(unsigned int* buffer, int width, int height){
+    setSize(width, height);
+    _data = buffer;
+
+}
 Surface::Surface(int width, int height){
     setSize(width, height);
+    allocBuffer();
 }
 Surface::~Surface(){
     free(_data);
@@ -107,7 +115,8 @@ void Surface::setSize(int width, int height){
     _length = width*height;
     _width = width;
     _height = height;
-
+}
+void Surface::allocBuffer(){
     _data = (unsigned int*) malloc(_length*sizeof(unsigned int));
 
     if(!_data){

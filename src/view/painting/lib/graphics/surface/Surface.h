@@ -13,9 +13,11 @@ protected:
     int _width = 0;
     int _height = 0;
     unsigned int _length = 0;
-
+private:
+    void allocBuffer();
 public:
     Surface() = default;
+    Surface(unsigned int* buffer, int width, int height);
     Surface(int width, int height);
     ~Surface();
 

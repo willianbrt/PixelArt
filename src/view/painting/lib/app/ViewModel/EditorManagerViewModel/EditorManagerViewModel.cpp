@@ -12,13 +12,13 @@ EditorManager* EditorManagerViewModel::getEditorManager(){
 }
 
 EditorDTO EditorManagerViewModel::getEditorByIndex(size_t index){
-    Editor* _activeEditor = getEditorManager()->getActiveEditor();
+    Editor* _activeEditor = _manager->getActiveEditor();
     EditorDTO editorDTO;
 
     return editorDTO;
 }
 size_t EditorManagerViewModel::getNumberEditors(){
-    return getEditorManager()->getEditorsLength();
+    return _manager->getEditorsLength();
 }
 
 void EditorManagerViewModel::registerEvent(string eventType, emscripten::val callback){
@@ -29,19 +29,19 @@ void EditorManagerViewModel::registerEvent(string eventType, emscripten::val cal
 }
 
 void EditorManagerViewModel::changeActiveEditor(int id){
-    getEditorManager()->setActiveEditor(id);
+    _manager->setActiveEditor(id);
 }
 void EditorManagerViewModel::createProject(int width, int height){
-    getEditorManager()->createProject(width,height);
+    _manager->createProject(width,height);
 }
 void EditorManagerViewModel::render(){
-    // getEditorManager()->getActiveEditor()->render();
+    // _manager->getActiveEditor()->render();
 }
 // void EditorManagerViewModel::resizeWindow(int width, int height){
-//     getEditorManager()->getActiveEditor()->resize(width, height);
+//     _manager->getActiveEditor()->resize(width, height);
 // }
 void EditorManagerViewModel::resize(int width, int height){
-    getEditorManager()->getActiveEditor()->resize(width, height);
+    _manager->getActiveEditor()->resize(width, height);
 }
 void EditorManagerViewModel::onChangeActiveEditor(Guid id){
     auto it = observable.find(EDITOR_MANAGER_EVENT_TYPE::CHANGE_ACTIVE_EDITOR);
@@ -70,6 +70,27 @@ void EditorManagerViewModel::onMoveEditorTo(Guid id, int index){
     }
 }
 
+SurfaceDTO EditorManagerViewModel::copy(){
+    Surface* surface = _manager->copy();
+    
+    SurfaceDTO surfaceDTO;
+    surfaceDTO.width = surface->getWidth();
+    surfaceDTO.height = surface->getHeight();
+    surfaceDTO.buffer = emscripten::val(emscripten::typed_memory_view(surface->getLength()*4, reinterpret_cast<uint8_t*>(surface->getBuffer())));
+
+    return surfaceDTO;
+}
+void EditorManagerViewModel::paste(SurfaceDTO surfaceDTO){
+    size_t byteOffset = surfaceDTO.buffer["byteOffset"].as<size_t>();
+    uint8_t* bytes = reinterpret_cast<uint8_t*>(byteOffset);
+    unsigned int* data = reinterpret_cast<unsigned int*>(bytes);
+    
+    Surface* surface = new Surface(data, surfaceDTO.width, surfaceDTO.height);
+    // Surface surface = Surface(surfaceDTO.width, surfaceDTO.height);
+    _manager->paste(surface);
+}
+
+
 #include <emscripten/bind.h>
 
 using namespace emscripten;
@@ -84,5 +105,7 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("createProject", &EditorManagerViewModel::createProject)
         .function("render", &EditorManagerViewModel::render)
         .function("resize", &EditorManagerViewModel::resize)
+        .function("copy", &EditorManagerViewModel::copy)
+        .function("paste", &EditorManagerViewModel::paste)
         ;
 };

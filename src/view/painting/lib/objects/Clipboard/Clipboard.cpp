@@ -1,4 +1,7 @@
 #include "Clipboard.h"
+
+    
+Clipboard::Clipboard(){}
 Surface* Clipboard::copy(SelectContext* select){
     Bounding destBounding = select->selectionBox.getBounding();
     Surface* surface = new Surface(destBounding.getWidth(), destBounding.getHeight());
@@ -27,6 +30,20 @@ Surface* Clipboard::copy(SelectContext* select){
 
     return surface;
 }
-void Clipboard::paste(Surface& surface){
+void Clipboard::paste(Surface* surface, Editor* editor){
+    SelectContext* select = editor->getSelectContext();
+    if(select->data){ delete select->data; }
 
+    select->data = surface;
+    
+    
+    printf("[");
+    for (size_t i = 0; i < select->data->getLength(); i++) {
+        printf("%X, ", select->data->getPixel(i));
+    }
+    printf("]\n");
+
+    select->srcArea = Bounding({0,0}, {surface->getWidth(), surface->getHeight()});
+    select->selectionBox = SelectionBox(select->srcArea);
+    select->transformation = Transformation();
 }

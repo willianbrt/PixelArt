@@ -9,6 +9,7 @@ const channel = new BroadcastChannel("shared-buffer");
 channel.onmessage = (e) => {
     if(e.data.action == "SET_CLIPBOARD"){
         clipboard = e.data.clipboard;
+        console.log("set",clipboard)
     }
 
     if(e.data.action == "REQUEST_CLIPBOARD"){
@@ -27,9 +28,6 @@ window.onload = async ()=>{
     buildShortcuts();
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});
-}
-
-function buildShortcuts(){    
     app.shortcuts.register({
         default:{
             ctrl: true,
@@ -39,6 +37,30 @@ function buildShortcuts(){
         },
         description: "teste",
         scope: "global",
-        callback: ()=>{console.log("copiar")}
+        callback: ()=>{
+            console.log("copiar")
+            const surface = editorManagerViewModel.copy();
+            clipboard = surface;
+            channel.postMessage({ action: "SET_CLIPBOARD", clipboard: surface});
+        }
     });
+    app.shortcuts.register({
+        default:{
+            ctrl: true,
+            shitft: false,
+            alt: false,
+            keyCode: 86,
+        },
+        description: "teste",
+        scope: "global",
+        callback: ()=>{
+            console.log("colar",clipboard)
+            const { buffer, width } = clipboard;
+            const height = buffer.length / 4 / width;
+            editorManagerViewModel.paste(clipboard)
+        }
+    });
+}
+
+function buildShortcuts(){ 
 }

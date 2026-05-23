@@ -17,6 +17,7 @@
 #include "../../../commands/CloneFrameCommand/CloneFrameCommand.h"
 #include "../../../commands/MoveFrameToCommand/MoveFrameToCommand.h"
 #include "../../../commands/RemoveFrameCommand/RemoveFrameCommand.h"
+#include "../../../strategy/SelectionComposer/SelectionComposer.h"
 
 
 class PaneFramesViewModel : IEditorObserver {

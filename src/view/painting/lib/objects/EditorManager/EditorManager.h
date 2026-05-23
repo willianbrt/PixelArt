@@ -2,6 +2,7 @@
 #define EDITORMANAGER_H
 
 #include "../../objects/Editor/Editor.h"
+#include "../../objects/Clipboard/Clipboard.h"
 #include <vector>
 
 enum EDITOR_MANAGER_EVENT_TYPE{
@@ -15,6 +16,7 @@ class EditorManager{
 private:
     std::vector<std::unique_ptr<Editor>> _listEditor;
     Editor* _activeEditor;
+    Clipboard _clipboard;
 
 public:
     EditorManager();
@@ -26,5 +28,7 @@ public:
     size_t getEditorsLength();
     Editor* getEditorByIndex(size_t index);
 
+    Surface* copy();
+    void paste(Surface* surface);
 };
 #endif
