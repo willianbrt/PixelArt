@@ -1,15 +1,15 @@
 
 #ifndef IHANDLE_H
 #define IHANDLE_H
-#include "../../objects/Viewport/Viewport.h"
+#include "../../objects/CanvasSettings/CanvasSettings.h"
 #include "../../graphics/SelectionBox/SelectionBox.h"
 
 
 class IHandle{
     public:
-        PointF getPosition(Viewport* viewport);
+        PointF getPosition(CanvasSettings* viewport);
         bool isActive();
-        bool hitTest(Point point, Viewport* viewport);
+        bool hitTest(Point point, CanvasSettings* viewport);
 
 };
 #endif

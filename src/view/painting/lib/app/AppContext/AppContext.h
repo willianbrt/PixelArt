@@ -7,10 +7,12 @@
 #include "../../objects/Renderer/Renderer.h"
 #include "../../objects/Viewport/Viewport.h"
 #include "../../context/CursorContext/CursorContext.h"
-// #include "../../context/BrushContext/BrushContext.h"
-// #include "../../context/SymmetryContext/SymmetryContext.h"
-// #include "../../strategy/BrushStrategy/BrushStrategy.h"
+#include "../../context/ViewportContext/ViewportContext.h"
 #include "../../objects/ToolManager/ToolManager.h"
+#include "../../gpu/Pass/CursorPass/CursorPass.h"
+#include "../../gpu/Pass/SelectPass/SelectPass.h"
+#include "../../gpu/RendererPipeline/RendererPipeline.h"
+
 #include <GLES3/gl3.h>
 #include <GLFW/glfw3.h>
 
@@ -20,11 +22,12 @@ private:
     
     GLFWwindow* _window;
 
-    Renderer* _renderer;
     Viewport* _viewport;
+    ViewportContext* _viewportContext;
     Editor* _activeEditor;
     ToolManager* _toolManager;
     CursorContext* _cursorContext;
+    RendererPipeline* _renderer;
     
 public:
     AppContext();
@@ -36,7 +39,6 @@ public:
     
     EditorManager* getEditorManager();
     Viewport* getViewport();
-    Renderer* getRenderer();
     GLFWwindow* getWindow();
     ToolManager* getToolManager();
 

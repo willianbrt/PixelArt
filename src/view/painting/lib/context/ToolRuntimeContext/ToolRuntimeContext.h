@@ -6,6 +6,7 @@
 #include "../../objects/layer/Layers.h"
 #include "../../objects/preview/Preview.h"
 #include "../../objects/Viewport/Viewport.h"
+#include "../../objects/CanvasSettings/CanvasSettings.h"
 #include "../../context/CursorContext/CursorContext.h"
 
 class ToolRuntimeContext : public IToolContext{
@@ -14,6 +15,7 @@ public:
     Layer* layer;
     Preview* preview;
     Viewport* viewport;
+    CanvasSettings* canvasSettings;
     CursorContext* cursor;
     int screenWidth, screenHeight;
     void clampBounding(Bounding& bounding);

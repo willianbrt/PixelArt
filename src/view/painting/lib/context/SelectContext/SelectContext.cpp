@@ -20,7 +20,7 @@ rotateHandle{
     selectionBox  = SelectionBox();
 }
 
-std::array<float, 8> SelectContext::getAllHandle(Viewport* viewport){
+std::array<float, 8> SelectContext::getAllHandle(CanvasSettings* viewport){
     std::array<float, 8> vec; 
     for(int i = 0; i < 8; i+=2){
         PointF point = handle[i >> 1].getPosition(viewport);
@@ -29,7 +29,7 @@ std::array<float, 8> SelectContext::getAllHandle(Viewport* viewport){
     }
     return vec;
 }
-std::array<float, 8> SelectContext::getAllRotateHandle(Viewport* viewport){
+std::array<float, 8> SelectContext::getAllRotateHandle(CanvasSettings* viewport){
     std::array<float, 8> vec; 
     for(int i = 0; i < 8; i+=2){
         PointF point = rotateHandle[i >> 1].getPosition(viewport);

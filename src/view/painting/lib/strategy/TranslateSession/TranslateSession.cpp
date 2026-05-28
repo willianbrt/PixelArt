@@ -7,9 +7,9 @@ _selectionContext(selection)
 }
 bool TranslateSession::begin(Point point, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
-    if(!_selectionContext->selectionBox.isInsideRotatedBounding(_toolRuntimeContext.viewport->cursorToCanvas(point.x, point.y)  )) return false;
+    if(!_selectionContext->selectionBox.isInsideRotatedBounding(_toolRuntimeContext.canvasSettings->cursorToCanvas(point.x, point.y)  )) return false;
 
-    _startPoint = _toolRuntimeContext.viewport->cursorToCanvas(point.x, point.y);
+    _startPoint = _toolRuntimeContext.canvasSettings->cursorToCanvas(point.x, point.y);
     return true;
 }
 void TranslateSession::update(const Point& mouse){

@@ -31,7 +31,7 @@ class ResizeSession {
 
     public:
     ResizeSession(SelectContext* selection);
-    ENUM_MARKER hitTest(Point point, Viewport* viewport);
+    ENUM_MARKER hitTest(Point point, CanvasSettings* viewport);
     bool begin(Point point, const ToolRuntimeContext& toolRuntimeContext);
     void update(const Point& mouse);
 };

@@ -6,7 +6,7 @@
 class CanvasSettings{
 private: 
     Point _sketchPosition;
-    float _scale = 2.0f;
+    float _scale = 1.0f;
     int _tilesX = 1;
     int _tilesY = 1;
     int _gridDivisionsX = 1;
@@ -27,6 +27,10 @@ public:
     int getTilesY();
     int getGridDivisionsX();
     int getGridDivisionsY();
+    
+    Point cursorToCanvas(int x, int y);
+    Point canvasToWorld(int x, int y);
+    PointF canvasToWorld(float x, float y);
 };
 
 #endif

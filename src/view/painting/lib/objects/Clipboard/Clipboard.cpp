@@ -30,8 +30,7 @@ Surface* Clipboard::copy(SelectContext* select){
 
     return surface;
 }
-void Clipboard::paste(Surface* surface, Editor* editor){
-    SelectContext* select = editor->getSelectContext();
+void Clipboard::paste(Surface* surface, SelectContext* select){
     if(select->data){ delete select->data; }
 
     select->data = surface;

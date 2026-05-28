@@ -157,15 +157,15 @@ void Renderer::draw(Surface* surface, Viewport* viewport){
     glEnableVertexAttribArray(pos);
     glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
+    // CanvasSettings* canvasSettings = viewport->getCanvasSettings();
 
-    glUniform2f(resolutionLocation, viewport->getWidth(), viewport->getHeight());
-    glUniform2f(positionLocation, canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
-    glUniform2f(cursorWorldLocation, viewport->getCursor().x, viewport->getCursor().y);
-    glUniform1f(scaleLocation, canvasSettings->getScale());
-    glUniform2f(texSizeLocation, surface->getWidth(), surface->getHeight());
-    glUniform2f(repeatLocation, canvasSettings->getTilesX(), canvasSettings->getTilesY());
-    glUniform2f(gridDivisionsLocation, canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
+    // glUniform2f(resolutionLocation, viewport->getWidth(), viewport->getHeight());
+    // glUniform2f(positionLocation, canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
+    // glUniform2f(cursorWorldLocation, viewport->getCursor().x, viewport->getCursor().y);
+    // glUniform1f(scaleLocation, canvasSettings->getScale());
+    // glUniform2f(texSizeLocation, surface->getWidth(), surface->getHeight());
+    // glUniform2f(repeatLocation, canvasSettings->getTilesX(), canvasSettings->getTilesY());
+    // glUniform2f(gridDivisionsLocation, canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
 
     glUniform4f(lightColorLocation, 1,1,1,1);
     glUniform4f(darkColorLocation, 1.0f,1.0f,1.0f,0.3f);
@@ -188,11 +188,11 @@ void Renderer::drawCursorHover(Surface* surface, CursorContext* hover, Viewport*
     glEnableVertexAttribArray(posH);
     glVertexAttribPointer(posH, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
-    glUniform2f(resolutionLocationH, viewport->getWidth(), viewport->getHeight());
-    glUniform2f(positionLocationH,  canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
-    glUniform1f(scaleLocationH, canvasSettings->getScale());
-    glUniform2f(texSizeLocationH, surface->getWidth(), surface->getHeight());
+    // CanvasSettings* canvasSettings = viewport->getCanvasSettings();
+    // glUniform2f(resolutionLocationH, viewport->getWidth(), viewport->getHeight());
+    // glUniform2f(positionLocationH,  canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
+    // glUniform1f(scaleLocationH, canvasSettings->getScale());
+    // glUniform2f(texSizeLocationH, surface->getWidth(), surface->getHeight());
 
     Point cursor = viewport->getCursor();
     Point cursorCanvas = viewport->cursorToCanvas(cursor.x, cursor.y);
@@ -219,11 +219,11 @@ void Renderer::drawSelect(Surface* surface, Editor* editor, Viewport* viewport){
     glEnableVertexAttribArray(posSelect);
     glVertexAttribPointer(posSelect, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    CanvasSettings* canvasSettings = viewport->getCanvasSettings();
-    glUniform2f(resolutionLocationSelect, viewport->getWidth(), viewport->getHeight());
-    glUniform2f(positionLocationSelect,  canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
-    glUniform1f(scaleLocationSelect, canvasSettings->getScale());
-    glUniform2f(texSizeLocationSelect, surface->getWidth(), surface->getHeight());
+    // CanvasSettings* canvasSettings = viewport->getCanvasSettings();
+    // glUniform2f(resolutionLocationSelect, viewport->getWidth(), viewport->getHeight());
+    // glUniform2f(positionLocationSelect,  canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
+    // glUniform1f(scaleLocationSelect, canvasSettings->getScale());
+    // glUniform2f(texSizeLocationSelect, surface->getWidth(), surface->getHeight());
 
     Point cursor = viewport->getCursor();
     Point cursorCanvas = viewport->cursorToCanvas(cursor.x, cursor.y);

@@ -2,6 +2,7 @@
 #define ROTATESESSION_H
 #include "../../app/AppContext/AppContext.h"
 #include "../../objects/Viewport/Viewport.h"
+#include "../../objects/CanvasSettings/CanvasSettings.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
 #include "../../context/CursorContext/CursorContext.h"
@@ -31,7 +32,7 @@ class RotateSession {
 
     public:
     RotateSession(SelectContext* selection);
-    ENUM_MARKER hitTest(Point point, Viewport* viewport);
+    ENUM_MARKER hitTest(Point point, CanvasSettings* viewport);
     bool begin(Point point, const ToolRuntimeContext& toolRuntimeContext);
     void update(const Point& mouse);
 };

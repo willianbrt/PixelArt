@@ -5,7 +5,7 @@ RotateSession::RotateSession(SelectContext* selection)
 _selectionContext(selection)
 {
 }
-ENUM_MARKER RotateSession::hitTest(Point point, Viewport* viewport){
+ENUM_MARKER RotateSession::hitTest(Point point, CanvasSettings* viewport){
     ENUM_MARKER inside;
     for(int i = 0; i < 4; i++){
         if(_selectionContext->rotateHandle[i].hitTest(point, viewport)) return (ENUM_MARKER)i;        
@@ -15,11 +15,11 @@ ENUM_MARKER RotateSession::hitTest(Point point, Viewport* viewport){
 bool RotateSession::begin(Point point, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
 
-    ENUM_MARKER marker = hitTest(point, _toolRuntimeContext.viewport);
+    ENUM_MARKER marker = hitTest(point, _toolRuntimeContext.canvasSettings);
     if(marker == ENUM_MARKER::UNKNOW) return false;
 
     _activeMarker = marker;
-    _startPoint = _toolRuntimeContext.viewport->cursorToCanvas(point.x, point.y);
+    _startPoint = _toolRuntimeContext.canvasSettings->cursorToCanvas(point.x, point.y);
     return true;
 }
 void RotateSession::update(const Point& mouse){

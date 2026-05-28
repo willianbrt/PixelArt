@@ -20,7 +20,7 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     cursorContext->enable = false;
     _toolRuntimeContext = toolRuntimeContext;
 
-    _pressed = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
+    _pressed = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     _from = _pressed;
 
     if(_mode == ENUM_MODE::SELECTED){
@@ -45,7 +45,7 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     _selectSession->begin(world, _toolRuntimeContext);
 }
 void SelectStrategy::onTracking(int x, int y){
-    Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
+    Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
 
     flagBounding = _selectContext->selectionBox.getBounding();

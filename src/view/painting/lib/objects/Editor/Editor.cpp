@@ -3,7 +3,9 @@
 Editor::Editor(int width, int height) {
     _sketch = new Surface(width, height);
     _preview = new Preview(width, height);
+    _canvasSettings = new CanvasSettings();
     _select = new SelectContext();
+    _canvasSettings->setScale(15.0f);
 }
 Editor::~Editor(){
     frames.clear();
@@ -149,8 +151,17 @@ Frame* Editor::getActiveFrame(){
     return activeFrame;
 }
 
+CanvasSettings* Editor::getCanvasSettings(){
+    return _canvasSettings;
+}
 SelectContext* Editor::getSelectContext(){
     return _select;
+}
+Point Editor::getCanvasSize(){
+    return {
+        _canvasSettings->getTilesX() * _sketch->getWidth(),
+        _canvasSettings->getTilesY() * _sketch->getHeight()
+    };
 }
 
 using namespace emscripten;

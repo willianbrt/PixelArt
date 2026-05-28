@@ -39,3 +39,24 @@ void CanvasSettings::setSketchPosition(int x, int y){
     _sketchPosition.y = y;
 }
 
+
+
+Point CanvasSettings::cursorToCanvas(int x, int y){    
+    return {
+        (int)std::floor((x - _sketchPosition.x) / _scale),
+        (int)std::floor((y - _sketchPosition.y) / _scale)
+    };
+}
+
+Point CanvasSettings::canvasToWorld(int x, int y){
+    return {
+       (int)((x + _sketchPosition.x) * _scale),
+       (int)((y + _sketchPosition.y) * _scale)
+    };
+}
+PointF CanvasSettings::canvasToWorld(float x, float y){
+    return {
+       (x + _sketchPosition.x) * _scale,
+       (y + _sketchPosition.y) * _scale
+    };
+}

@@ -34,5 +34,5 @@ Surface* EditorManager::copy(){
     return _clipboard.copy(_activeEditor->getSelectContext());
 }
 void EditorManager::paste(Surface* surface){
-    _clipboard.paste(surface, _activeEditor);
+    _clipboard.paste(surface, _activeEditor->getSelectContext());
 }

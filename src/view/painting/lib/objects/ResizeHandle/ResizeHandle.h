@@ -11,9 +11,9 @@ class ResizeHandle :IHandle{
         SelectionBox* _selectionBox;
     public:
         ResizeHandle(SelectionBox* selectionBox, ENUM_MARKER marker);
-        PointF getPosition(Viewport* viewport);
+        PointF getPosition(CanvasSettings* viewport);
         bool isActive();
-        bool hitTest(Point point, Viewport* viewport);
+        bool hitTest(Point point, CanvasSettings* viewport);
 
 };
 #endif

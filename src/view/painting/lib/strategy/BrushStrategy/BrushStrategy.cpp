@@ -22,7 +22,7 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
     cursorContext->enable = false;
     _toolRuntimeContext = toolRuntimeContext;    
 
-    Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
+    Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
         
     _heightPattern = _brushContext->selectedPattern->height*_drawingContext->size;
     _widthPattern = _brushContext->selectedPattern->width*_drawingContext->size;
@@ -32,7 +32,7 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
     _from = to;
 }
 void BrushStrategy::onTracking(int x, int y){
-    Point to = _toolRuntimeContext.viewport->cursorToCanvas(x, y);
+    Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
     
     

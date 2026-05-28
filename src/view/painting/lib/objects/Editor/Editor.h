@@ -12,6 +12,7 @@
 #include "../layer/Layers.h"
 #include "../preview/Preview.h"
 #include "../frame/Frame.h"
+#include "../CanvasSettings/CanvasSettings.h"
 
 #include "../../interfaces/IGraphic/IGraphic.h"
 #include "../../interfaces/IEditorObserver/IEditorObserver.h"
@@ -38,6 +39,7 @@ private:
     vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
     Preview* _preview;
+    CanvasSettings* _canvasSettings;
 
     std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
 
@@ -70,8 +72,9 @@ public:
     Frame* getFrameByIndex(size_t index);
     size_t getFrameIndex(Guid id);
     size_t getFramesLength();
-    
-    
+
+    CanvasSettings* getCanvasSettings();
     SelectContext* getSelectContext();
+    Point getCanvasSize();
 };
 #endif

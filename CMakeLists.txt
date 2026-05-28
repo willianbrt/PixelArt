@@ -25,6 +25,7 @@ file(GLOB_RECURSE SOURCES
     ${SRC_DIR}/lib/app/dto/*/*.cpp
     ${SRC_DIR}/lib/app/ViewModel/*/*.cpp
     ${SRC_DIR}/lib/app/*/*.cpp
+    ${SRC_DIR}/lib/gpu/*/*.cpp
     ${SRC_DIR}/lib/app/main.cpp
 )
 

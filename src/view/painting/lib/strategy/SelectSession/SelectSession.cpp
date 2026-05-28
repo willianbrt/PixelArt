@@ -7,7 +7,7 @@ _selectionContext(selection)
 }
 bool SelectSession::begin(Point point, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
-    _startPoint = _toolRuntimeContext.viewport->cursorToCanvas(point.x, point.y);
+    _startPoint = _toolRuntimeContext.canvasSettings->cursorToCanvas(point.x, point.y);
 
     _selectionContext->srcArea = Bounding(_startPoint, {_startPoint.x+1, _startPoint.y+1});
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);

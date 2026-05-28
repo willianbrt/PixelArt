@@ -2,7 +2,8 @@
 #define VIEWPORTCANVAS_H
 
 #include "../../graphics/Pixel/Pixel.h"
-#include "../../objects/CanvasSettings/CanvasSettings.h"
+#include "../../gpu/Pass/SketchPass/SketchPass.h"
+#include "../../context/ViewportContext/ViewportContext.h"
 
 struct ViewportSettings {
 
@@ -12,7 +13,7 @@ private:
     int _width;
     int _height;
     double _x, _y;
-    CanvasSettings* _canvasSettings;
+
 
 public: 
     Viewport(int width, int height);
@@ -26,7 +27,6 @@ public:
     PointF canvasToWorld(float x, float y);
     int getWidth();
     int getHeight();
-    CanvasSettings* getCanvasSettings();
 };
 
 #endif

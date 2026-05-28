@@ -31,10 +31,11 @@ void ToolManager::build(){
     toolRuntimeContext.layer = editor->getActiveFrame()->getActiveLayer();
     toolRuntimeContext.preview = editor->preview();
     toolRuntimeContext.viewport = _viewport;
+    toolRuntimeContext.canvasSettings = editor->getCanvasSettings();
 
-    CanvasSettings* canvasSettings = _viewport->getCanvasSettings();
-    toolRuntimeContext.screenWidth = canvasSettings->getTilesX() * editor->getWidth();
-    toolRuntimeContext.screenHeight = canvasSettings->getTilesY() * editor->getHeight();
+    Point canvasSize = editor->getCanvasSize();
+    toolRuntimeContext.screenWidth = canvasSize.x;
+    toolRuntimeContext.screenHeight = canvasSize.y;
 
 }
 
