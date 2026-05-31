@@ -6,68 +6,82 @@ SketchPass::SketchPass(){
 SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport){
     _manager = manager;
     _viewport = viewport;
-
-    
     const char* fs =
-    R"(
-    precision highp float;
-    uniform sampler2D tex;
-    varying vec2 uv;
-    uniform vec2 texSize;
-    uniform vec2 gridDivisions;
-    uniform vec4 lightColor;
-    uniform vec4 darkColor;
+        R"(#version 300 es
+        precision highp float;
 
-    uniform vec2 brushSize;
-    
-    uniform vec2 cursor;
-    uniform float time;
-    uniform vec2 resolution;
-    uniform vec2 pan;
-    uniform float zoom;
-    uniform vec2 repeat;
+        uniform sampler2D tex;
 
-    void main(){
-       vec4 color = vec4(1.0,0.0,0.0,1.0);
-       vec2 pixel = (uv - pan) / (zoom + repeat-1.0);
-       vec2 transformedUV = pixel / texSize;
-       vec2 thickness = 1.0/(zoom*texSize);
-       if(transformedUV.x < 0.0 || transformedUV.x > 1.0 || transformedUV.y < 0.0 || transformedUV.y > 1.0) discard;
+        in vec2 uv;
+        in vec2 pixel;
 
-       transformedUV = fract(transformedUV * repeat);
-       vec4 textureColor = texture2D(tex, transformedUV).abgr;
-       color = mix(color, textureColor, textureColor.a);
+        layout(std140) uniform GlobalData {
+            vec2 resolution;
+            vec2 cursor;
+            vec2 cursorLocation;
+            vec2 pan;
+            vec2 zoom;
+            vec2 repeat;
+            float time;
+        };
 
-       vec2 divisions = min(gridDivisions, texSize);
-       vec2 cellSize = texSize/divisions;
-       vec2 cellCoord = floor(pixel / cellSize);
+        uniform vec2 texSize;
+        uniform vec2 gridDivisions;
+        uniform vec4 lightColor;
+        uniform vec4 darkColor;
 
-       float checker = mod(floor(cellCoord.x) + floor(cellCoord.y), 2.0);
-       vec4 background = mix(lightColor, darkColor, checker);
-       color = mix(background, textureColor, textureColor.a);
+        out vec4 fragColor;
 
-       vec2 gridPos = mod(transformedUV, cellSize/texSize);
-       float line = step(gridPos.x, thickness.x) + step(gridPos.y, thickness.y);
-       line = clamp(line, 0.0, 1.0);
+        void main()
+        {
+            vec2 transformedUV = pixel / texSize;
+            
+            if(transformedUV.x < 0.0 || transformedUV.x > 1.0 || transformedUV.y < 0.0 || transformedUV.y > 1.0) discard;
+            
+            vec4 color = vec4(1.0, 0.0, 0.0, 1.0);
+            vec2 thickness = 1.0 / (zoom * texSize);
+            transformedUV = fract(transformedUV * repeat);
 
-       color = mix(color, vec4(0.0,0.0,0.0,1.0), line);
+            vec4 textureColor = texture(tex, transformedUV).abgr;
+            color = mix(color, textureColor, textureColor.a);
 
-       gl_FragColor = color;
-    })";
+            vec2 divisions = min(gridDivisions, texSize);
+            vec2 cellSize = texSize / divisions;
+            vec2 cellCoord = floor(pixel / cellSize);
+
+            float checker = mod(floor(cellCoord.x) + floor(cellCoord.y), 2.0);
+            vec4 background = mix(lightColor, darkColor, checker);
+            color = mix(background, textureColor, textureColor.a);
+
+            vec2 gridPos = mod(transformedUV, cellSize / texSize);
+
+            float line = step(gridPos.x, thickness.x) + step(gridPos.y, thickness.y);
+            line = clamp(line, 0.0, 1.0);
+
+            fragColor = mix(color, vec4(0.0, 0.0, 0.0, 1.0), line);
+        })";
 
     quad.create();
     shader.create(fs);
     shader.use();
 
-    resolutionLocation = glGetUniformLocation(shader.id(),"resolution");
-    positionLocation = glGetUniformLocation(shader.id(),"pan");
-    scaleLocation = glGetUniformLocation(shader.id(),"zoom");
-    
+    globalUBO.create();
+    blockIndex = glGetUniformBlockIndex(shader.id(),  "GlobalData");
+    printf("GlobalData index = %u\n", blockIndex);
 
-    pos = glGetAttribLocation(shader.id(),"position");
+    glUniformBlockBinding(shader.id(), blockIndex,  0);
+
+    // glGetActiveUniformBlockiv(
+    //     shader.id(),
+    //     blockIndex,
+    //     GL_UNIFORM_BLOCK_DATA_SIZE,
+    //     &blockSize
+    // );
+    // printf("Block size = %d\n", blockSize);
+
+
     texture = glGetUniformLocation(shader.id(),"tex");
     texSizeLocation = glGetUniformLocation(shader.id(),"texSize");
-    repeatLocation = glGetUniformLocation(shader.id(),"repeat");
     gridDivisionsLocation = glGetUniformLocation(shader.id(),"gridDivisions");
     lightColorLocation = glGetUniformLocation(shader.id(),"lightColor");
     darkColorLocation = glGetUniformLocation(shader.id(),"darkColor");
@@ -106,16 +120,16 @@ void SketchPass::draw(){
     _surface = editor->getSurface();
     if(!_surface) return;
     if(!glIsTexture(texture)) init();
-    
+
     Bounding area = editor->preview()->getDirtyArea();
     if(area.start.x != INT_MAX
-    && area.start.y != INT_MAX
-    && area.end.x != INT_MIN
-    && area.end.y != INT_MIN){
-        editor->compose();
-        upload(area);
-    }
-        
+        && area.start.y != INT_MAX
+        && area.end.x != INT_MIN
+        && area.end.y != INT_MIN){
+            editor->compose();
+            upload(area);
+        }
+    
     shader.use();
     
     glActiveTexture(GL_TEXTURE0);
@@ -123,30 +137,38 @@ void SketchPass::draw(){
     glUniform1i(glGetUniformLocation(shader.id(),"tex"), 0);
     
     quad.bind();
-
+    
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    
     glEnableVertexAttribArray(pos);
     glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    glUniform2f(resolutionLocation, _viewport->width, _viewport->height);
-    glUniform2f(cursorWorldLocation, _viewport->cursorX, _viewport->cursorY);
-
     CanvasSettings* canvasSettings = editor->getCanvasSettings();
     Point panning = canvasSettings->getSketchPosition();
-    glUniform2f(positionLocation, panning.x, panning.y);
-    glUniform1f(scaleLocation, canvasSettings->getScale());
-    glUniform2f(repeatLocation, canvasSettings->getTilesX(), canvasSettings->getTilesY());
-    glUniform2f(gridDivisionsLocation, canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
+    Point cursorLocation = canvasSettings->cursorToCanvas(_viewport->cursorX, _viewport->cursorY);
 
-    // printf("v:%i,%i - ",_viewport->width, _viewport->height);
-    // printf("c:%i,%i - ",_viewport->cursorX, _viewport->cursorY);
-    // printf("p:%i,%i - ",panning.x, panning.y);
-    // printf("z:%f - ",canvasSettings->getScale());
-    // printf("t:%i,%i - ",canvasSettings->getTilesX(), canvasSettings->getTilesY());
-    // printf("g:%i,%i - ",canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
-    // printf("s:%i,%i\n",_surface->getWidth(), _surface->getHeight());
+    GlobalData data;
+    data.resolution[0] = _viewport->width;
+    data.resolution[1] = _viewport->height;
+    data.cursor[0] = _viewport->cursorX;
+    data.cursor[1] = _viewport->cursorY;
+    data.cursorLocation[0] = cursorLocation.x;
+    data.cursorLocation[1] = cursorLocation.y;
+    data.pan[0] = panning.x;
+    data.pan[1] = panning.y;
+    data.repeat[0] = canvasSettings->getTilesX();
+    data.repeat[1] = canvasSettings->getTilesY();
+    data.zoom[0] = canvasSettings->getScale();
+    data.zoom[1] = canvasSettings->getScale();
+    data.time = glfwGetTime();
+
+    // glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
+    // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GlobalData), &data);
+    glBindBuffer(GL_UNIFORM_BUFFER, globalUBO.id());
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
+
+    glUniform2f(gridDivisionsLocation, canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
     
     glUniform2f(texSizeLocation, _surface->getWidth(), _surface->getHeight());
     glUniform4f(lightColorLocation, 1,1,1,1);

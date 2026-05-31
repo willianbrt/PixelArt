@@ -1,26 +1,37 @@
 #include "./Shader.h"
 
-const char* Shader::vertex_data = R"(    
+const char* Shader::vertex_data = R"(#version 300 es
     precision highp float;
-    attribute vec2 position;
-    varying vec2 uv;
+    in vec2 position;
 
-    uniform vec2 resolution;
-    uniform vec2 cursor;
-    uniform float time;
-    uniform vec2 pan;
-    uniform float zoom;
-    uniform vec2 repeat;
+    out vec2 uv;
+    out vec2 pixel;
+
+    layout(std140) uniform GlobalData {
+        vec2 resolution;
+        vec2 cursor;
+        vec2 cursorLocation;
+        vec2 pan;
+        vec2 zoom;
+        vec2 repeat;
+        float time;
+    };
 
     void main(){
         uv = position * 0.5 + 0.5;
         uv = vec2(uv.x, 1.0 - uv.y) * resolution;
+        
+        pixel = (uv - pan) / (zoom + repeat-1.0);
+
         gl_Position = vec4(position,0.0,1.0);
     }
 )";
 GLuint Shader::v = 0;
 Shader::Shader(){
-    v = compile(GL_VERTEX_SHADER, vertex_data);
+    if(!glIsShader(v)){
+        v = compile(GL_VERTEX_SHADER, vertex_data);
+        printf("\n");
+    }
 }
 Shader::~Shader(){}
 
@@ -35,7 +46,7 @@ GLuint Shader::compile(GLenum type, const char* src) {
     if(!ok){
         char log[512];
         glGetShaderInfoLog(s,512,nullptr,log);
-        // printf("Shader error: %s\n",log);
+        printf("Shader error: %s\n",log);
     }
     return s;
 }
@@ -48,6 +59,7 @@ void Shader::create(const char* vs, const char* fs) {
     glAttachShader(_program, custom_vertex);
     glAttachShader(_program, f);
     glLinkProgram(_program);
+
 
     GLint success;
     glGetProgramiv(_program, GL_LINK_STATUS, &success);

@@ -14,6 +14,7 @@
 #include "../../../context/ViewportContext/ViewportContext.h"
 #include "../../Quad/Quad.h"
 #include "../../Shader/Shader.h"
+#include "../GlobalUBO/GlobalUBO.h"
 
 class SketchPass : public IRenderPass {
 private:
@@ -26,18 +27,15 @@ private:
     GLuint program;
     GLuint texture;
     GLint pos;
-    GLint positionLocation;
-    GLint scaleLocation;
-    GLint resolutionLocation;
     GLint texSizeLocation;
-    GLint repeatLocation;
     GLint gridDivisionsLocation;
     GLint lightColorLocation;
     GLint darkColorLocation;
-    GLint cursorWorldLocation;
 
     Quad quad;
     Shader shader;
+    GlobalUBO globalUBO;
+    GLuint blockIndex;
 
 public:
     SketchPass();

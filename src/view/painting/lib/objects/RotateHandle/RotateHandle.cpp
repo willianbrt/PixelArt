@@ -7,6 +7,8 @@ RotateHandle::RotateHandle(SelectionBox* selectionBox, ENUM_MARKER marker){
 }
 PointF RotateHandle::getPosition(CanvasSettings* viewport){
     PointF c = _selectionBox->getCenter();
+    // printf("s:%f,%f\n",_selectionBox->corners[0].x, _selectionBox->corners[0].y);
+    // printf("s:%f,%f\n",c.x, c.y);
     PointF dir = {
         (c.x - _selectionBox->corners[_marker].x),
         (c.y - _selectionBox->corners[_marker].y)

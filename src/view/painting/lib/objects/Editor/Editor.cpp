@@ -6,6 +6,8 @@ Editor::Editor(int width, int height) {
     _canvasSettings = new CanvasSettings();
     _select = new SelectContext();
     _canvasSettings->setScale(15.0f);
+    _canvasSettings->setGridDivisionsX(32);
+    _canvasSettings->setGridDivisionsY(32);
 }
 Editor::~Editor(){
     frames.clear();
