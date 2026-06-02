@@ -11,16 +11,19 @@
 #include "../../../graphics/surface/Surface.h"
 #include "../../../graphics/surface/Surface.h"
 #include "../../../objects/Viewport/Viewport.h"
+#include "../../../objects/EditorManager/EditorManager.h"
 #include "../../../context/CursorContext/CursorContext.h"
+#include "../../../context/ViewportContext/ViewportContext.h"
 #include "../../Quad/Quad.h"
 #include "../../Shader/Shader.h"
 
 class CursorPass : public IRenderPass {
 private:
     Surface* surface;
-    Viewport* viewport;
+    ViewportContext* _viewport;
     CursorContext* hover;
     Editor* editor;
+    EditorManager* _manager;
     
     GLuint programHover;
     GLuint canvasCursorHover;
@@ -32,33 +35,13 @@ private:
     GLint scaleLocationH;
     GLint texSizeLocationH;
     GLint resolutionLocationH;
+    
+    bool initialized;
     Quad quad;
     Shader shader;
 
-    const char* fsHover =
-    "precision highp float;"
-    "uniform sampler2D tex;"
-    "varying vec2 uv;"
-    "uniform vec2 texSize;"
-    "uniform vec2 cursor;"
-    "uniform vec2 brushSize;"
-    "uniform float zoom;"
-    "uniform vec2 pan;"
-    "uniform vec2 resolution;"
-    "void main(){"
-    "   vec2 pixel = (uv - pan) / zoom;"
-    "   vec2 transformedUV = pixel / texSize;"
-    "   if(transformedUV.x < 0.0 || transformedUV.x > 1.0 || transformedUV.y < 0.0 || transformedUV.y > 1.0) discard;"
-
-    "   vec2 pixelHover = (pixel-cursor) + floor(brushSize*0.5);"
-    "   vec2 hoverUV = pixelHover / brushSize;"
-    "   if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;"
-
-    "   vec4 color = texture2D(tex, hoverUV).abgr;"
-    "   gl_FragColor = color;"
-    "}";
 public:
-    CursorPass();
+    CursorPass(EditorManager* manager, ViewportContext* viewport);
     ~CursorPass();
 
     void init() override;

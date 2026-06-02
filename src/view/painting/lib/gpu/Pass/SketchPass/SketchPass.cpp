@@ -67,18 +67,7 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport){
 
     globalUBO.create();
     blockIndex = glGetUniformBlockIndex(shader.id(),  "GlobalData");
-    printf("GlobalData index = %u\n", blockIndex);
-
     glUniformBlockBinding(shader.id(), blockIndex,  0);
-
-    // glGetActiveUniformBlockiv(
-    //     shader.id(),
-    //     blockIndex,
-    //     GL_UNIFORM_BLOCK_DATA_SIZE,
-    //     &blockSize
-    // );
-    // printf("Block size = %d\n", blockSize);
-
 
     texture = glGetUniformLocation(shader.id(),"tex");
     texSizeLocation = glGetUniformLocation(shader.id(),"texSize");
@@ -134,7 +123,7 @@ void SketchPass::draw(){
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(glGetUniformLocation(shader.id(),"tex"), 0);
+    glUniform1i(texture, 0);
     
     quad.bind();
     
@@ -178,6 +167,7 @@ void SketchPass::draw(){
 }
 
 void SketchPass::upload(Bounding area){
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

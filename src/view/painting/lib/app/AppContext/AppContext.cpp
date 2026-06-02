@@ -16,14 +16,13 @@ void AppContext::build(int width, int height){
     
     _editorManager = std::make_unique<EditorManager>();
     
-    _toolManager = new ToolManager(_editorManager.get(), _viewport);
+    _toolManager = new ToolManager(_editorManager.get(), _viewportContext);
 
 
-    _cursorContext = _toolManager->getToolPressed()->getCursorContext();
-    
     _renderer = new RendererPipeline();
     _renderer->registerPass(new SketchPass(_editorManager.get(), _viewportContext));
     _renderer->registerPass(new SelectPass(_editorManager.get(), _viewportContext));
+    _renderer->registerPass(new CursorPass(_editorManager.get(), _viewportContext));
 }
 
 void AppContext::resize(int width, int height){

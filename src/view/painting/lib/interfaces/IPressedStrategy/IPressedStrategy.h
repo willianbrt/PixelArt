@@ -10,7 +10,6 @@ public:
     virtual ~IToolStrategy() = default;
     virtual void done() = 0;
     virtual void abort() = 0;
-    virtual CursorContext* getCursorContext() = 0;
 };
 
 class IPressedStrategy : public IToolStrategy {

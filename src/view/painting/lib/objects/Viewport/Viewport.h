@@ -4,6 +4,7 @@
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../gpu/Pass/SketchPass/SketchPass.h"
 #include "../../context/ViewportContext/ViewportContext.h"
+#include "../../context/CursorContext/CursorContext.h"
 
 struct ViewportSettings {
 
@@ -13,13 +14,13 @@ private:
     int _width;
     int _height;
     double _x, _y;
-
-
-public: 
+    CursorContext* _cursorContext;
+    
+    public: 
     Viewport(int width, int height);
     void resize(int width, int height);
     void render();
-
+    
     void setCursor(double x, double y);
     Point getCursor();
     Point cursorToCanvas(int x, int y);
@@ -27,6 +28,7 @@ public:
     PointF canvasToWorld(float x, float y);
     int getWidth();
     int getHeight();
+    CursorContext* getCursorContext();
 };
 
 #endif

@@ -3,7 +3,7 @@
 
 PaneToolbarViewModel::PaneToolbarViewModel(){
    _toolManager = AppContext::instance().getToolManager();
-brushContext = new BrushContext();
+    brushContext = new BrushContext();
 }
 PaneToolbarViewModel::~PaneToolbarViewModel(){
 }

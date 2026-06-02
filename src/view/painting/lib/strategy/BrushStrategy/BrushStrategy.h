@@ -23,7 +23,6 @@ private:
     ToolRuntimeContext _toolRuntimeContext;
 
 
-    CursorContext* cursorContext; 
     int _heightPattern;
     int _widthPattern;
     
@@ -38,7 +37,6 @@ public:
     void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
     void onTracking(int x, int y) override;
     void onRelease() override;
-    CursorContext* getCursorContext() override;
     void done() override;
     void abort() override;
 };

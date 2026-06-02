@@ -1,7 +1,6 @@
 #include "SelectStrategy.h"
 
 SelectStrategy::SelectStrategy(SelectContext* selectContext, SymmetryContext* symmetryContext){
-    cursorContext = new CursorContext();
     _symmetryContext = symmetryContext;
     _selectContext = selectContext;
     _mode = ENUM_MODE::SELECT;
@@ -17,8 +16,10 @@ SelectStrategy::~SelectStrategy(){
 
 void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     Point world = {x,y};
-    cursorContext->enable = false;
     _toolRuntimeContext = toolRuntimeContext;
+
+    _toolRuntimeContext.cursor->enable = false;
+    _toolRuntimeContext.cursor->scale = 1.0f;
 
     _pressed = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     _from = _pressed;
@@ -71,7 +72,7 @@ void SelectStrategy::onTracking(int x, int y){
     _from = to;
 }
 void SelectStrategy::onRelease(){
-    cursorContext->enable = true;
+    _toolRuntimeContext.cursor->enable = true;
 
     if(_mode == ENUM_MODE::SELECT){
         _selectSession->end();
@@ -103,9 +104,6 @@ void SelectStrategy::putMirroredPixel(int x, int y, unsigned int color){
     }
 }
 
-CursorContext* SelectStrategy::getCursorContext(){
-    return cursorContext;
-}
 
 void SelectStrategy::draw(){
     _toolRuntimeContext.clampBounding(flagBounding);

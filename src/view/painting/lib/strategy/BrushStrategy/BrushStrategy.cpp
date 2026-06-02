@@ -11,16 +11,16 @@ _symmetryContext(symmetryContext)
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
     
-    cursorContext = new CursorContext();
-    cursorContext->pattern = _brushContext->selectedPattern;
-    cursorContext->scale = _drawingContext->size;
 
     _symmetryContext->isMirrorX =false;
     _symmetryContext->isMirrorY =false;
 }
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
-    cursorContext->enable = false;
-    _toolRuntimeContext = toolRuntimeContext;    
+    _toolRuntimeContext = toolRuntimeContext;
+    _toolRuntimeContext.cursor->enable = false;
+    _toolRuntimeContext.cursor->pattern = _brushContext->selectedPattern;
+    _toolRuntimeContext.cursor->scale = _drawingContext->size;
+    
 
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
         
@@ -45,7 +45,7 @@ void BrushStrategy::onTracking(int x, int y){
     _from = to;
 }
 void BrushStrategy::onRelease(){
-    cursorContext->enable = true;
+    _toolRuntimeContext.cursor->enable = true;
 
     done();
 }
@@ -165,10 +165,6 @@ void BrushStrategy::putMirroredPixel(int x, int y, unsigned int color){
     if(_symmetryContext->isMirrorX && _symmetryContext->isMirrorY){
         _toolRuntimeContext.preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, toMirrorY), color));
     }
-}
-
-CursorContext* BrushStrategy::getCursorContext(){
-    return cursorContext;
 }
 
 void BrushStrategy::done() {

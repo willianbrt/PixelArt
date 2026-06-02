@@ -1,5 +1,5 @@
 #include "ToolManager.h"
-ToolManager::ToolManager(EditorManager* editorManager, Viewport* viewport) :
+ToolManager::ToolManager(EditorManager* editorManager, ViewportContext* viewport) :
 _editorManager(editorManager),
 _viewport(viewport)
 {
@@ -32,6 +32,7 @@ void ToolManager::build(){
     toolRuntimeContext.preview = editor->preview();
     toolRuntimeContext.viewport = _viewport;
     toolRuntimeContext.canvasSettings = editor->getCanvasSettings();
+    toolRuntimeContext.cursor = _viewport->cursorContext;
 
     Point canvasSize = editor->getCanvasSize();
     toolRuntimeContext.screenWidth = canvasSize.x;
@@ -94,7 +95,7 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<ToolManager>("ToolManager")
-        .constructor<EditorManager*, Viewport*>()
+        .constructor<EditorManager*, ViewportContext*>()
         .function("onPressed", &ToolManager::onPressed)
         .function("onTracking", &ToolManager::onTracking)
         .function("onReleased", &ToolManager::onReleased)

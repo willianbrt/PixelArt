@@ -26,7 +26,6 @@ private:
     ViewportContext* _viewportContext;
     Editor* _activeEditor;
     ToolManager* _toolManager;
-    CursorContext* _cursorContext;
     RendererPipeline* _renderer;
     
 public:

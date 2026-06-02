@@ -7,6 +7,7 @@
 #include "../../objects/preview/Preview.h"
 #include "../../objects/Viewport/Viewport.h"
 #include "../../objects/CanvasSettings/CanvasSettings.h"
+#include "../../context/ViewportContext/ViewportContext.h"
 #include "../../context/CursorContext/CursorContext.h"
 
 class ToolRuntimeContext : public IToolContext{
@@ -14,7 +15,7 @@ public:
     Editor* editor;
     Layer* layer;
     Preview* preview;
-    Viewport* viewport;
+    ViewportContext* viewport;
     CanvasSettings* canvasSettings;
     CursorContext* cursor;
     int screenWidth, screenHeight;

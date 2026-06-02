@@ -6,6 +6,7 @@
 #include "../../interfaces/IToolContext/IToolContext.h"
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
 #include "../../context/CursorContext/CursorContext.h"
+#include "../../context/ViewportContext/ViewportContext.h"
 #include "../../objects/EditorManager/EditorManager.h"
 #include "../../objects/Viewport/Viewport.h"
 
@@ -21,13 +22,12 @@ class ToolManager {
     IPressedStrategy* _otherButtonPressed;
 
     EditorManager* _editorManager;
-    Viewport* _viewport;
-    CursorContext* _cursorContext;
+    ViewportContext* _viewport;
     ToolRuntimeContext toolRuntimeContext;
 
     KEY_MOUSE buttonMousePressed = KEY_MOUSE::UNPRESSED; 
 public:
-    ToolManager(EditorManager* editorManager, Viewport* viewport);
+    ToolManager(EditorManager* editorManager, ViewportContext* viewport);
     
     // void changeToolPressed(std::string toolName);
     void setRightToolPressed(IPressedStrategy* toolPressed);

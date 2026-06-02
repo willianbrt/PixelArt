@@ -1,19 +1,58 @@
 #include "./CursorPass.h"
 
-CursorPass::CursorPass(){
-    glUseProgram(programHover);
-    posH = glGetAttribLocation(programHover,"position");
-    texture = glGetUniformLocation(programHover,"tex");
-    resolutionLocationH = glGetUniformLocation(programHover,"resolution");
-    positionLocationH = glGetUniformLocation(programHover,"pan");
-    scaleLocationH = glGetUniformLocation(programHover,"zoom");
-    texSizeLocationH = glGetUniformLocation(programHover,"texSize");
-    cursorLocation = glGetUniformLocation(programHover,"cursor");
-    brushSizeLocation = glGetUniformLocation(programHover,"brushSize");
+CursorPass::CursorPass(EditorManager* manager, ViewportContext* viewport){
+    _manager = manager;
+    _viewport = viewport;
+    
+    const char* fs =R"(#version 300 es
+        precision highp float;
+        uniform sampler2D texB;
+        in vec2 uv;
+        in vec2 pixel;
+        
+        layout(std140) uniform GlobalData {
+            vec2 resolution;
+            vec2 cursor;
+            vec2 cursorLocation;
+            vec2 pan;
+            vec2 zoom;
+            vec2 repeat;
+            float time;
+        };
+        
+        uniform vec2 texSize;
+        uniform vec2 brushSize;
+        
+        out vec4 fragColor;
+        void main(){
+            vec2 transformedUV = pixel / texSize;
+            if(transformedUV.x < 0.0 || transformedUV.x > 1.0 || transformedUV.y < 0.0 || transformedUV.y > 1.0) discard;
+
+            vec2 pixelHover = (pixel-cursorLocation) + floor(brushSize*0.5);
+            vec2 hoverUV = pixelHover / brushSize;
+            if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;
+
+            fragColor = texture(texB, hoverUV).abgr;
+        })";
+    
+    
+    quad.create();
+    shader.create(fs);
+    shader.use();
+
+    texture = glGetUniformLocation(shader.id(),"texB");
+    texSizeLocationH = glGetUniformLocation(shader.id(),"texSize");
+    brushSizeLocation = glGetUniformLocation(shader.id(),"brushSize");
 }
 CursorPass::~CursorPass(){}
 
 void CursorPass::init(){
+    if (glIsTexture(texture)) {
+        glDeleteTextures(1, &texture);
+    }
+    glUniformBlockBinding(shader.id(),  glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
+
+
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -33,37 +72,42 @@ void CursorPass::init(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    initialized = true;
 }
 void CursorPass::draw(){
-    glUseProgram(programHover);
+    editor = _manager->getActiveEditor();
+    if(!editor) return;
+    Surface* _surface = editor->getSurface();
+    if(!_surface) return;
+    
+    hover = _viewport->cursorContext;
+    if(hover == nullptr)  return;
+    if(hover->pattern->buffer.size() == 0)  return;
 
-    glActiveTexture(GL_TEXTURE0);
+    if(!initialized && hover->pattern->buffer.data() != nullptr){
+         init();
+    }
+    if(!initialized) return;
+
+    upload(Bounding());
+    shader.use();
+
+    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(texture, 0);
+    glUniform1i(glGetUniformLocation(shader.id(),"texB"), 2);
 
     quad.bind();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glEnableVertexAttribArray(posH);
-    glVertexAttribPointer(posH, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-    // CanvasSettings* canvasSettings = viewport->getCanvasSettings();
-    // glUniform2f(resolutionLocationH, viewport->getWidth(), viewport->getHeight());
-    // glUniform2f(positionLocationH,  canvasSettings->getSketchPosition().x, canvasSettings->getSketchPosition().y);
-    // glUniform1f(scaleLocationH, canvasSettings->getScale());
-    // glUniform2f(texSizeLocationH, surface->getWidth(), surface->getHeight());
-
-    Point cursor = viewport->getCursor();
-    Point cursorCanvas = viewport->cursorToCanvas(cursor.x, cursor.y);
-
-    glUniform2f(cursorLocation, cursorCanvas.x, cursorCanvas.y);
-    glUniform2f(brushSizeLocation, hover->pattern->width, hover->pattern->height);
     
+    glUniform2f(texSizeLocationH, _surface->getWidth(), _surface->getHeight());
+    glUniform2f(brushSizeLocation, hover->pattern->width, hover->pattern->height);
+
     quad.draw();
 }
 void CursorPass::upload(Bounding area){
+    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, texture);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

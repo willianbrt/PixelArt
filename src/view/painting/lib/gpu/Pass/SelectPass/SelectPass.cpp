@@ -143,9 +143,11 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
 SelectPass::~SelectPass(){}
 
 void SelectPass::init(){
+    glUniformBlockBinding(shader.id(),  glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
+    
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-
+    
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
@@ -162,6 +164,7 @@ void SelectPass::init(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    initialized = true;
 }
 void SelectPass::draw(){
     editor = _manager->getActiveEditor();
@@ -171,7 +174,7 @@ void SelectPass::draw(){
 
     SelectContext* select = editor->getSelectContext();    
 
-    if(!glIsTexture(texture) && !!select->data) init();
+    if(!initialized && editor->preview()->getBuffer() != nullptr) init();
 
     Bounding area = editor->preview()->getDirtyArea();
     if(area.start.x != INT_MAX
@@ -185,7 +188,7 @@ void SelectPass::draw(){
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(glGetUniformLocation(shader.id(),"texs"), 0);
+    glUniform1i(texture, 1);
 
     quad.bind();
 
@@ -204,8 +207,9 @@ void SelectPass::draw(){
     quad.draw();
 }
 void SelectPass::upload(Bounding area){
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture);
-
+    
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, editor->getWidth());
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);

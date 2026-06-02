@@ -33,7 +33,7 @@ private:
     GLint texSizeLocation;
     GLint resolutionLocation;
     GLint selectSizeLocation;
-    bool initializedSelect;
+    bool initialized;
     GLint cursorLocation;
     Quad quad;
     Shader shader;

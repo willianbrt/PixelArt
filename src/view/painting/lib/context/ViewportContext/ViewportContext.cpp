@@ -1,4 +1,6 @@
 #include "./ViewportContext.h"
 
-ViewportContext::ViewportContext(){}
+ViewportContext::ViewportContext(){
+    cursorContext = new CursorContext();
+}
 ViewportContext::~ViewportContext(){}

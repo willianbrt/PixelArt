@@ -39,7 +39,6 @@ private:
     TranslateSession* _translateSession;
     SelectSession* _selectSession;
 
-    CursorContext* cursorContext;
 
     ENUM_MODE _mode;
 
@@ -55,7 +54,6 @@ public:
     void onTracking(int x, int y) override;
     void onRelease() override;
 
-    CursorContext* getCursorContext() override;
     void done() override;
     void abort() override;
     Bounding flagBounding;
