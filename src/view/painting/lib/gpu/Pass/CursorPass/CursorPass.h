@@ -12,6 +12,7 @@
 #include "../../../graphics/surface/Surface.h"
 #include "../../../objects/Viewport/Viewport.h"
 #include "../../../objects/EditorManager/EditorManager.h"
+#include "../../../objects/ToolManager/ToolManager.h"
 #include "../../../context/CursorContext/CursorContext.h"
 #include "../../../context/ViewportContext/ViewportContext.h"
 #include "../../Quad/Quad.h"
@@ -24,6 +25,7 @@ private:
     CursorContext* hover;
     Editor* editor;
     EditorManager* _manager;
+    ToolManager* _toolManager;
     
     GLuint programHover;
     GLuint canvasCursorHover;
@@ -41,7 +43,7 @@ private:
     Shader shader;
 
 public:
-    CursorPass(EditorManager* manager, ViewportContext* viewport);
+    CursorPass(EditorManager* manager, ToolManager* toolManager, ViewportContext* viewport);
     ~CursorPass();
 
     void init() override;

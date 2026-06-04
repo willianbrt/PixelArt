@@ -14,5 +14,6 @@ public:
     void onRelease() override;
     void done() override;
     void abort() override;
+    CursorContext* getCursorContext() override;
 };
 #endif

@@ -14,3 +14,4 @@ void NonePressedEvent::onRelease(){
 }
 void NonePressedEvent::done(){};
 void NonePressedEvent::abort(){};
+CursorContext* NonePressedEvent::getCursorContext() {return nullptr;};

@@ -235,8 +235,8 @@ void Renderer::drawSelect(Surface* surface, Editor* editor, Viewport* viewport){
     // glUniform2f(cursorLocation, cursor.x, cursor.y);
     
     SelectContext* select = editor->getSelectContext();    
-    glUniform2fv(glGetUniformLocation(programSelect,"resizeHandle"), 4, select->getAllHandle(viewport).data());
-    glUniform2fv(glGetUniformLocation(programSelect,"rotateHandle"), 4, select->getAllRotateHandle(viewport).data());
+    // glUniform2fv(glGetUniformLocation(programSelect,"resizeHandle"), 4, select->getAllHandle(viewport).data());
+    // glUniform2fv(glGetUniformLocation(programSelect,"rotateHandle"), 4, select->getAllRotateHandle(viewport).data());
 
     float time = glfwGetTime();
     glUniform1f(glGetUniformLocation(programSelect,"time"), time);

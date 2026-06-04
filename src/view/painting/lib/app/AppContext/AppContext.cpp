@@ -22,7 +22,7 @@ void AppContext::build(int width, int height){
     _renderer = new RendererPipeline();
     _renderer->registerPass(new SketchPass(_editorManager.get(), _viewportContext));
     _renderer->registerPass(new SelectPass(_editorManager.get(), _viewportContext));
-    _renderer->registerPass(new CursorPass(_editorManager.get(), _viewportContext));
+    _renderer->registerPass(new CursorPass(_editorManager.get(), _toolManager, _viewportContext));
 }
 
 void AppContext::resize(int width, int height){

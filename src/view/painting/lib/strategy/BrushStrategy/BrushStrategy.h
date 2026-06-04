@@ -18,6 +18,7 @@ private:
     Point _from;
     DrawingContext* _drawingContext;
     BrushContext* _brushContext;
+    CursorContext _cursorContext;
     SymmetryContext* _symmetryContext;
     
     ToolRuntimeContext _toolRuntimeContext;
@@ -39,5 +40,6 @@ public:
     void onRelease() override;
     void done() override;
     void abort() override;
+    CursorContext* getCursorContext() override;
 };
 #endif

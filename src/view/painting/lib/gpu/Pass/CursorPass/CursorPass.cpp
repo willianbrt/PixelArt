@@ -1,7 +1,8 @@
 #include "./CursorPass.h"
 
-CursorPass::CursorPass(EditorManager* manager, ViewportContext* viewport){
+CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ViewportContext* viewport){
     _manager = manager;
+    _toolManager = toolManager;
     _viewport = viewport;
     
     const char* fs =R"(#version 300 es
@@ -80,7 +81,7 @@ void CursorPass::draw(){
     Surface* _surface = editor->getSurface();
     if(!_surface) return;
     
-    hover = _viewport->cursorContext;
+    hover = _toolManager->getCursorContext();
     if(hover == nullptr)  return;
     if(hover->pattern->buffer.size() == 0)  return;
 

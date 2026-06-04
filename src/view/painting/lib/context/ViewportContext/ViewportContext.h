@@ -9,7 +9,6 @@ private:
 public:
     ViewportContext();
     ~ViewportContext();
-    CursorContext* cursorContext;
     int width, height;
     int cursorX, cursorY;
 };

@@ -1,4 +1,24 @@
 #include "BrushContext.h"
+
+std::vector<Pattern> BrushContext::pattern = {
+    {
+        "dot",
+        {
+            0x000000FF 
+        }, 1, 1
+    },
+    {
+        "brush_1",
+        {
+            0x00000000, 0x00000022, 0x00000022, 0x00000033,
+            0x00000033, 0x00000055, 0x00000000, 0x00000022,
+            0x00000033, 0x00000055, 0x00000088, 0x00000088,
+            0x00000022, 0x00000000, 0x00000033, 0x00000022,
+            0x00000000, 0x00000022, 0x00000022, 0x00000033
+        }, 4, 5
+    }
+};
+
 BrushContext::BrushContext(){}
 void BrushContext::setActivePattern(std::string name){
     selectedPattern = &getPattern(name);

@@ -47,7 +47,7 @@ public:
 
 
     IPressedStrategy* getToolPressed();
-    
+    CursorContext* getCursorContext();
     void build();
 };
 #endif

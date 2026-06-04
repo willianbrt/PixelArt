@@ -17,7 +17,6 @@ public:
     Preview* preview;
     ViewportContext* viewport;
     CanvasSettings* canvasSettings;
-    CursorContext* cursor;
     int screenWidth, screenHeight;
     void clampBounding(Bounding& bounding);
 };

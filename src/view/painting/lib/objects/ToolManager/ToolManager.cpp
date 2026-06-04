@@ -32,7 +32,6 @@ void ToolManager::build(){
     toolRuntimeContext.preview = editor->preview();
     toolRuntimeContext.viewport = _viewport;
     toolRuntimeContext.canvasSettings = editor->getCanvasSettings();
-    toolRuntimeContext.cursor = _viewport->cursorContext;
 
     Point canvasSize = editor->getCanvasSize();
     toolRuntimeContext.screenWidth = canvasSize.x;
@@ -87,7 +86,9 @@ void ToolManager::onScroll(int deltaY, int x, int y){
     // else
     //     onScroll(x, y);
 }
-
+CursorContext* ToolManager::getCursorContext(){
+    return _rightButtonPressed->getCursorContext();
+}
 
 #include <emscripten/bind.h>
 

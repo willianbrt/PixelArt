@@ -18,9 +18,6 @@ _symmetryContext(symmetryContext)
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
     _toolRuntimeContext.cursor->enable = false;
-    _toolRuntimeContext.cursor->pattern = _brushContext->selectedPattern;
-    _toolRuntimeContext.cursor->scale = _drawingContext->size;
-    
 
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
         
@@ -34,7 +31,6 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
 void BrushStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
-    
     
     if (std::abs(to.x - _from.x) > std::abs(to.y - _from.y)) {
         drawHorizontalBrush(_from, to);
@@ -172,4 +168,9 @@ void BrushStrategy::done() {
 }
 void BrushStrategy::abort(){
     _toolRuntimeContext.preview->clear();
+}
+CursorContext* BrushStrategy::getCursorContext(){
+    _cursorContext.pattern = _brushContext->selectedPattern;
+    _cursorContext.scale = _drawingContext->size;
+    return &_cursorContext;
 }

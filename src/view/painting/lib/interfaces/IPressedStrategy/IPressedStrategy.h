@@ -3,6 +3,7 @@
 
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
 #include "../../context/CursorContext/CursorContext.h"
+#include "../../context/BrushContext/BrushContext.h"
 
 class IToolStrategy{
 protected:
@@ -10,6 +11,8 @@ public:
     virtual ~IToolStrategy() = default;
     virtual void done() = 0;
     virtual void abort() = 0;
+    virtual CursorContext* getCursorContext() = 0;
+
 };
 
 class IPressedStrategy : public IToolStrategy {

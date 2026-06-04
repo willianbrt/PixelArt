@@ -173,3 +173,4 @@ void SelectStrategy::abort(){
     _cutting = false;
     _mode = ENUM_MODE::SELECT;
 }
+CursorContext* SelectStrategy::getCursorContext() {return nullptr;};

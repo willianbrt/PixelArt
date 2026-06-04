@@ -56,6 +56,7 @@ public:
 
     void done() override;
     void abort() override;
+    CursorContext* getCursorContext() override;
     Bounding flagBounding;
     
     bool _cutting;
