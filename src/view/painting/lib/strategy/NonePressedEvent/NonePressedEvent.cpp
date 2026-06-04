@@ -5,8 +5,8 @@ NonePressedEvent::NonePressedEvent()
 }
 void NonePressedEvent::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
-    _toolRuntimeContext.cursor->enable = false;
-    _toolRuntimeContext.cursor->scale = 1.0f;
+    _cursorContext.enable = false;
+    _cursorContext.scale = 1.0f;
 }
 void NonePressedEvent::onTracking(int x, int y){    
 }
@@ -14,4 +14,4 @@ void NonePressedEvent::onRelease(){
 }
 void NonePressedEvent::done(){};
 void NonePressedEvent::abort(){};
-CursorContext* NonePressedEvent::getCursorContext() {return nullptr;};
+CursorContext* NonePressedEvent::getCursorContext() {return &_cursorContext;};

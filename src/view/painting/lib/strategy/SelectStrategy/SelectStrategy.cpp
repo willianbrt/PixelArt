@@ -18,8 +18,8 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     Point world = {x,y};
     _toolRuntimeContext = toolRuntimeContext;
 
-    _toolRuntimeContext.cursor->enable = false;
-    _toolRuntimeContext.cursor->scale = 1.0f;
+    _cursorContext.enable = false;
+    _cursorContext.scale = 1.0f;
 
     _pressed = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     _from = _pressed;
@@ -72,7 +72,7 @@ void SelectStrategy::onTracking(int x, int y){
     _from = to;
 }
 void SelectStrategy::onRelease(){
-    _toolRuntimeContext.cursor->enable = true;
+    _cursorContext.enable = true;
 
     if(_mode == ENUM_MODE::SELECT){
         _selectSession->end();
@@ -173,4 +173,4 @@ void SelectStrategy::abort(){
     _cutting = false;
     _mode = ENUM_MODE::SELECT;
 }
-CursorContext* SelectStrategy::getCursorContext() {return nullptr;};
+CursorContext* SelectStrategy::getCursorContext() {return &_cursorContext;};

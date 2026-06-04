@@ -8,7 +8,6 @@
 #include "../../context/CursorContext/CursorContext.h"
 #include "../../context/ViewportContext/ViewportContext.h"
 #include "../../objects/EditorManager/EditorManager.h"
-#include "../../objects/Viewport/Viewport.h"
 
 enum class KEY_MOUSE {
     UNPRESSED = -1,

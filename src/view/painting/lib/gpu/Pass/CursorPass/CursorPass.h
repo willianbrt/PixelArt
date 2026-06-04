@@ -10,7 +10,6 @@
 #include "../../../objects/Editor/Editor.h"
 #include "../../../graphics/surface/Surface.h"
 #include "../../../graphics/surface/Surface.h"
-#include "../../../objects/Viewport/Viewport.h"
 #include "../../../objects/EditorManager/EditorManager.h"
 #include "../../../objects/ToolManager/ToolManager.h"
 #include "../../../context/CursorContext/CursorContext.h"

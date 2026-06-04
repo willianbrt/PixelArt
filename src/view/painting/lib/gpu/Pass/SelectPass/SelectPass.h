@@ -7,11 +7,12 @@
 #include "../../../interfaces/IRenderPass/IRenderPass.h"
 
 
+#include "../../../objects/EditorManager/EditorManager.h"
 #include "../../../objects/Editor/Editor.h"
 #include "../../../graphics/surface/Surface.h"
 #include "../../../graphics/surface/Surface.h"
-#include "../../../objects/Viewport/Viewport.h"
 #include "../../../context/CursorContext/CursorContext.h"
+#include "../../../context/ViewportContext/ViewportContext.h"
 #include "../../Quad/Quad.h"
 #include "../../Shader/Shader.h"
 

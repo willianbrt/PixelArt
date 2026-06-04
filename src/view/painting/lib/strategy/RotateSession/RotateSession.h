@@ -1,7 +1,6 @@
 #ifndef ROTATESESSION_H
 #define ROTATESESSION_H
 #include "../../app/AppContext/AppContext.h"
-#include "../../objects/Viewport/Viewport.h"
 #include "../../objects/CanvasSettings/CanvasSettings.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"

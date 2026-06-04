@@ -6,7 +6,6 @@
 #include "../../../interfaces/IRenderPass/IRenderPass.h"
 
 #include "../../../objects/Editor/Editor.h"
-#include "../../../objects/Viewport/Viewport.h"
 #include "../../../graphics/surface/Surface.h"
 
 #include "../../../objects/EditorManager/EditorManager.h"

@@ -5,7 +5,6 @@
 #include "../../objects/Editor/Editor.h"
 #include "../../objects/layer/Layers.h"
 #include "../../objects/preview/Preview.h"
-#include "../../objects/Viewport/Viewport.h"
 #include "../../objects/CanvasSettings/CanvasSettings.h"
 #include "../../context/ViewportContext/ViewportContext.h"
 #include "../../context/CursorContext/CursorContext.h"

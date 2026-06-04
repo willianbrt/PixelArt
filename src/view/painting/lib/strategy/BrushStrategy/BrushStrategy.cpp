@@ -17,7 +17,7 @@ _symmetryContext(symmetryContext)
 }
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
-    _toolRuntimeContext.cursor->enable = false;
+    _cursorContext.enable = false;
 
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
         
@@ -41,7 +41,7 @@ void BrushStrategy::onTracking(int x, int y){
     _from = to;
 }
 void BrushStrategy::onRelease(){
-    _toolRuntimeContext.cursor->enable = true;
+    _cursorContext.enable = true;
 
     done();
 }

@@ -1,7 +1,6 @@
 #ifndef SELECTSTRATEGY_H
 #define SELECTSTRATEGY_H
 #include "../../app/AppContext/AppContext.h"
-#include "../../objects/Viewport/Viewport.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
 #include "../../context/CursorContext/CursorContext.h"
@@ -39,6 +38,7 @@ private:
     TranslateSession* _translateSession;
     SelectSession* _selectSession;
 
+    CursorContext _cursorContext;
 
     ENUM_MODE _mode;
 

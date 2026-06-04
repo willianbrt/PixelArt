@@ -152,8 +152,6 @@ void SketchPass::draw(){
     data.zoom[1] = canvasSettings->getScale();
     data.time = glfwGetTime();
 
-    // glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
-    // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GlobalData), &data);
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO.id());
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
 

@@ -4,7 +4,6 @@ AppContext::AppContext(){
 
 }
 void AppContext::build(int width, int height){
-    _viewport = new Viewport(width, height);
     _viewportContext =new ViewportContext();
     _viewportContext->width = width;
     _viewportContext->height = height;
@@ -27,8 +26,6 @@ void AppContext::build(int width, int height){
 
 void AppContext::resize(int width, int height){
     glfwSetWindowSize(_window, width, height);
-    _viewport->resize(width, height);
-    
     _viewportContext->width = width;
     _viewportContext->height = height;
 }
@@ -39,12 +36,10 @@ void AppContext::loop(void* arg){
 
 void AppContext::render(){
     glfwPollEvents();
-    glViewport(0,0, _viewport->getWidth(), _viewport->getHeight());
     glViewport(0,0, _viewportContext->width, _viewportContext->height);
     
     double xpos, ypos;
     glfwGetCursorPos(_window, &xpos, &ypos);
-    _viewport->setCursor(xpos, ypos);
     _viewportContext->cursorX = xpos;
     _viewportContext->cursorY = ypos;
     
@@ -54,9 +49,6 @@ void AppContext::render(){
 }
 EditorManager* AppContext::getEditorManager(){
     return _editorManager.get();
-}
-Viewport* AppContext::getViewport(){
-    return _viewport;
 }
 GLFWwindow* AppContext::getWindow(){
     return _window;

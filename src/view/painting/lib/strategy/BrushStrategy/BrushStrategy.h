@@ -1,7 +1,6 @@
 #ifndef BRUSHSTRATEGY_H
 #define BRUSHSTRATEGY_H
 #include "../../app/AppContext/AppContext.h"
-#include "../../objects/Viewport/Viewport.h"
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
 #include "../../context/CursorContext/CursorContext.h"

@@ -2,10 +2,12 @@
 #define NONEPRESSEDEVENT_H
 
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
+#include "../../context/CursorContext/CursorContext.h"
 
 class NonePressedEvent : public IPressedStrategy {
 private:
     ToolRuntimeContext _toolRuntimeContext;
+    CursorContext _cursorContext;
 public:
     NonePressedEvent();
 

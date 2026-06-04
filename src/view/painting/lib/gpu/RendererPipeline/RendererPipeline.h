@@ -6,8 +6,6 @@
 #include <GLFW/glfw3.h>
 #include "../../objects/Editor/Editor.h"
 #include "../../graphics/surface/Surface.h"
-// #include "../../objects/CanvasSettings/CanvasSettings.h"
-#include "../../objects/Viewport/Viewport.h"
 #include "../../context/CursorContext/CursorContext.h"
 
 #include "../../interfaces/IRenderPass/IRenderPass.h"
