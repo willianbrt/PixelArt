@@ -30,17 +30,26 @@ Surface* Clipboard::copy(SelectContext* select){
 
     return surface;
 }
-void Clipboard::paste(Surface* surface, SelectContext* select){
-    if(select->data){ delete select->data; }
+void Clipboard::paste(Surface* surface, Editor* editor){
+    SelectContext* select = editor->getSelectContext();
+    Surface* data = select->data;
+    if(data){ delete select->data; }
 
-    select->data = surface;
+    data = surface;
     
     
     printf("[");
-    for (size_t i = 0; i < select->data->getLength(); i++) {
-        printf("%X, ", select->data->getPixel(i));
+    for (size_t i = 0; i < data->getLength(); i++) {
+        printf("%X, ", data->getPixel(i));
     }
     printf("]\n");
+
+    Preview* preview = editor->preview();
+    for (size_t x = 0; x < data->getWidth(); x++) {
+       for (size_t y = 0; y < data->getHeight(); y++) {
+            preview->putPixel(x, y, data->getPixel(x, y));
+        }
+    }
 
     select->srcArea = Bounding({0,0}, {surface->getWidth(), surface->getHeight()});
     select->selectionBox = SelectionBox(select->srcArea);

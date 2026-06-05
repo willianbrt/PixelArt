@@ -11,6 +11,7 @@ _viewport(viewport)
 
 void ToolManager::setRightToolPressed(IPressedStrategy* toolPressed){
     _rightButtonPressed->done();
+    
     _rightButtonPressed = toolPressed;
 }
 void ToolManager::setLeftToolPressed(IPressedStrategy* toolPressed){

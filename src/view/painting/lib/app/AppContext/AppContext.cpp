@@ -56,6 +56,12 @@ GLFWwindow* AppContext::getWindow(){
 ToolManager* AppContext::getToolManager(){
     return _toolManager;
 }
+ToolSettings* AppContext::getToolSettings(){
+    return &_toolSettings;
+}
+Clipboard* AppContext::getClipboard(){
+    return &_clipboard;
+}
 AppContext& AppContext::instance(){
     static AppContext appContext;
     return appContext;

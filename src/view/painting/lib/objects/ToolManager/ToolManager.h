@@ -5,9 +5,13 @@
 #include "../../strategy/NonePressedEvent/NonePressedEvent.h"
 #include "../../interfaces/IToolContext/IToolContext.h"
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
+
+#include "../../objects/EditorManager/EditorManager.h"
+
 #include "../../context/CursorContext/CursorContext.h"
 #include "../../context/ViewportContext/ViewportContext.h"
-#include "../../objects/EditorManager/EditorManager.h"
+#include "../../context/DrawingContext/DrawingContext.h"
+#include "../../context/SymmetryContext/SymmetryContext.h"
 
 enum class KEY_MOUSE {
     UNPRESSED = -1,
@@ -15,6 +19,13 @@ enum class KEY_MOUSE {
     WHELL_BUTTON = 1,
     LEFT_BUTTON = 2
 };
+
+struct ToolSettings{
+    BrushContext    brushContext;
+    DrawingContext  drawingContext;
+    SymmetryContext symmetryContext;
+};
+
 class ToolManager {
     IPressedStrategy* _leftButtonPressed;
     IPressedStrategy* _rightButtonPressed;

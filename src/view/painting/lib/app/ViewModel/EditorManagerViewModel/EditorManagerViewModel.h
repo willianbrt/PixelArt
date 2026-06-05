@@ -9,12 +9,15 @@
 #include "../../AppContext/AppContext.h"
 
 #include "../../../objects/Editor/Editor.h"
+#include "../../../objects/ToolManager/ToolManager.h"
 #include "../../dto/EditorDTO/EditorDTO.h"
 #include "../../dto/SurfaceDTO/SurfaceDTO.h"
 
 
 #include "../../../interfaces/IEditorManagerObserver/IEditorManagerObserver.h"
 // #include "../../../commands/HistoryCommand/HistoryCommand.h"
+#include "../../../commands/CopyCommand/CopyCommand.h"
+#include "../../../commands/PasteCommand/PasteCommand.h"
 // #include "../../../commands/AddEditorCommand/AddEditorCommand.h"
 // #include "../../../commands/CloneEditorCommand/CloneEditorCommand.h"
 // #include "../../../commands/MoveEditorToCommand/MoveEditorToCommand.h"
@@ -32,6 +35,7 @@ private:
     
     EditorManager* getEditorManager();
     EditorManager* _manager;
+    ToolManager* _toolManager;
     
 public:
     EditorManagerViewModel();

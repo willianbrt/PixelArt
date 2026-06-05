@@ -3,17 +3,17 @@
 
 PaneToolbarViewModel::PaneToolbarViewModel(){
    _toolManager = AppContext::instance().getToolManager();
-    brushContext = new BrushContext();
+   _toolSettings = AppContext::instance().getToolSettings();
 }
 PaneToolbarViewModel::~PaneToolbarViewModel(){
 }
 void PaneToolbarViewModel::setPressedTool(std::string tool){
     if(tool == "brush"){
-        _toolManager->setRightToolPressed(new BrushStrategy(brushContext, &drawingContext, &symmetryContext));
+        _toolManager->setRightToolPressed(new BrushStrategy(&_toolSettings->brushContext, &_toolSettings->drawingContext, &_toolSettings->symmetryContext));
         return;
     }
     if(tool == "select"){
-        _toolManager->setRightToolPressed(new SelectStrategy(AppContext::instance().getEditorManager()->getActiveEditor()->getSelectContext(), &symmetryContext));
+        _toolManager->setRightToolPressed(new SelectStrategy(AppContext::instance().getEditorManager()->getActiveEditor()->getSelectContext(), &_toolSettings->symmetryContext));
         return;
     }
 }

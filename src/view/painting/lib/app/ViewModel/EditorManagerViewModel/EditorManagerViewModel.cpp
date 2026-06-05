@@ -3,6 +3,7 @@
 
 EditorManagerViewModel::EditorManagerViewModel(){
     _manager = AppContext::instance().getEditorManager();
+    _toolManager = AppContext::instance().getToolManager();
 }
 EditorManagerViewModel::~EditorManagerViewModel(){
 }
@@ -71,7 +72,7 @@ void EditorManagerViewModel::onMoveEditorTo(Guid id, int index){
 }
 
 SurfaceDTO EditorManagerViewModel::copy(){
-    Surface* surface = _manager->copy();
+    Surface* surface = AppContext::instance().getClipboard()->copy();
     
     SurfaceDTO surfaceDTO;
     surfaceDTO.width = surface->getWidth();
@@ -87,7 +88,9 @@ void EditorManagerViewModel::paste(SurfaceDTO surfaceDTO){
     
     Surface* surface = new Surface(data, surfaceDTO.width, surfaceDTO.height);
     // Surface surface = Surface(surfaceDTO.width, surfaceDTO.height);
-    _manager->paste(surface);
+    // _manager->paste(surface);
+    PasteCommand pasteCommand = PasteCommand(_manager->getActiveEditor(), surface, AppContext::instance().getClipboard(), AppContext::instance().getToolManager());
+    pasteCommand.execute();
 }
 
 

@@ -7,6 +7,7 @@
 #include "../../context/CursorContext/CursorContext.h"
 #include "../../context/ViewportContext/ViewportContext.h"
 #include "../../objects/ToolManager/ToolManager.h"
+#include "../../objects/Clipboard/Clipboard.h"
 #include "../../gpu/Pass/SketchPass/SketchPass.h"
 #include "../../gpu/Pass/CursorPass/CursorPass.h"
 #include "../../gpu/Pass/SelectPass/SelectPass.h"
@@ -23,9 +24,11 @@ private:
 
     ViewportContext* _viewportContext;
     Editor* _activeEditor;
+    Clipboard _clipboard;
     ToolManager* _toolManager;
     RendererPipeline* _renderer;
-    
+    ToolSettings _toolSettings;
+
 public:
     AppContext();
     
@@ -37,6 +40,8 @@ public:
     EditorManager* getEditorManager();
     GLFWwindow* getWindow();
     ToolManager* getToolManager();
+    ToolSettings* getToolSettings();
+    Clipboard* getClipboard();
 
     static AppContext& instance();
 };
