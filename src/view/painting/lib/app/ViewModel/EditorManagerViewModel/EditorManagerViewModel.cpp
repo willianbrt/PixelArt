@@ -72,7 +72,8 @@ void EditorManagerViewModel::onMoveEditorTo(Guid id, int index){
 }
 
 SurfaceDTO EditorManagerViewModel::copy(){
-    Surface* surface = AppContext::instance().getClipboard()->copy();
+    Editor* editor = AppContext::instance().getEditorManager()->getActiveEditor();
+    Surface* surface = AppContext::instance().getClipboard()->copy(editor->getSelectContext());
     
     SurfaceDTO surfaceDTO;
     surfaceDTO.width = surface->getWidth();
@@ -81,15 +82,8 @@ SurfaceDTO EditorManagerViewModel::copy(){
 
     return surfaceDTO;
 }
-void EditorManagerViewModel::paste(SurfaceDTO surfaceDTO){
-    size_t byteOffset = surfaceDTO.buffer["byteOffset"].as<size_t>();
-    uint8_t* bytes = reinterpret_cast<uint8_t*>(byteOffset);
-    unsigned int* data = reinterpret_cast<unsigned int*>(bytes);
-    
-    Surface* surface = new Surface(data, surfaceDTO.width, surfaceDTO.height);
-    // Surface surface = Surface(surfaceDTO.width, surfaceDTO.height);
-    // _manager->paste(surface);
-    PasteCommand pasteCommand = PasteCommand(_manager->getActiveEditor(), surface, AppContext::instance().getClipboard(), AppContext::instance().getToolManager());
+void EditorManagerViewModel::paste(){
+    PasteCommand pasteCommand = PasteCommand(_manager->getActiveEditor(), AppContext::instance().getClipboard(), AppContext::instance().getToolManager());
     pasteCommand.execute();
 }
 

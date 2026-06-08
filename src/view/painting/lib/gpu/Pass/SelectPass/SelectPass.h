@@ -23,6 +23,7 @@ private:
     CursorContext* hover;
     Editor* editor;
     EditorManager* _manager;
+    unsigned int* preview;
     
     GLuint programSelect;
     GLuint canvasSelect;
@@ -34,6 +35,7 @@ private:
     GLint texSizeLocation;
     GLint resolutionLocation;
     GLint selectSizeLocation;
+    GLint enabledLocation;
     bool initialized;
     GLint cursorLocation;
     Quad quad;

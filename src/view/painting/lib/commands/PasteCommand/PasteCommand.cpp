@@ -1,15 +1,16 @@
 #include "./PasteCommand.h"
 
-PasteCommand::PasteCommand(Editor* editor, Surface* surface, Clipboard* clipboard, ToolManager* toolManager){
+PasteCommand::PasteCommand(Editor* editor, Clipboard* clipboard, ToolManager* toolManager){
     _editor = editor;
     _clipboard = clipboard;
     _toolManager = toolManager;
 }
-PasteCommand::~PasteCommand(){}
+PasteCommand::~PasteCommand(){
+}
 void PasteCommand::execute(){
-    // _clipboard.paste(surface, _activeEditor);
-    // // ToolSetttings* toolSettings = AppContext::instance().getToolSettings());
-    // // toolManager->setRightToolPressed(new SelectStrategy(_activeEditor->getSelectContext(), &toolSettings->symmetryContext));
+    ToolSettings* toolSettings = AppContext::instance().getToolSettings();
+    _toolManager->setRightToolPressed(new SelectStrategy(_editor->getSelectContext(), &toolSettings->symmetryContext));
+    _clipboard->paste(_editor);
 
 }
 void PasteCommand::undo(){}

@@ -69,7 +69,6 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport){
     blockIndex = glGetUniformBlockIndex(shader.id(),  "GlobalData");
     glUniformBlockBinding(shader.id(), blockIndex,  0);
 
-    texture = glGetUniformLocation(shader.id(),"tex");
     texSizeLocation = glGetUniformLocation(shader.id(),"texSize");
     gridDivisionsLocation = glGetUniformLocation(shader.id(),"gridDivisions");
     lightColorLocation = glGetUniformLocation(shader.id(),"lightColor");
@@ -123,7 +122,7 @@ void SketchPass::draw(){
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(texture, 0);
+    glUniform1i(glGetUniformLocation(shader.id(), "tex"), 0);
     
     quad.bind();
     

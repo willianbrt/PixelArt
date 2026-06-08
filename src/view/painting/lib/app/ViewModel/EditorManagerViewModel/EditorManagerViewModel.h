@@ -16,7 +16,6 @@
 
 #include "../../../interfaces/IEditorManagerObserver/IEditorManagerObserver.h"
 // #include "../../../commands/HistoryCommand/HistoryCommand.h"
-#include "../../../commands/CopyCommand/CopyCommand.h"
 #include "../../../commands/PasteCommand/PasteCommand.h"
 // #include "../../../commands/AddEditorCommand/AddEditorCommand.h"
 // #include "../../../commands/CloneEditorCommand/CloneEditorCommand.h"
@@ -52,7 +51,7 @@ public:
     void registerEvent(string eventType, emscripten::val callback);
     
     SurfaceDTO copy();
-    void paste(SurfaceDTO surfaceDTO);
+    void paste();
 };
 
 #endif

@@ -54,10 +54,7 @@ window.onload = async ()=>{
         description: "teste",
         scope: "global",
         callback: ()=>{
-            console.log("colar",clipboard)
-            const { buffer, width } = clipboard;
-            const height = buffer.length / 4 / width;
-            editorManagerViewModel.paste(clipboard)
+            editorManagerViewModel.paste()
         }
     });
 }

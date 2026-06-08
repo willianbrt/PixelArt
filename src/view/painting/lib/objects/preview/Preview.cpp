@@ -48,12 +48,12 @@ std::vector<ModifedPixel> Preview::getModifiedPixels(){
     std::vector<ModifedPixel> modifiedPixels;
     for(int i = 0; i < _layer->getLength(); i++){
         if(!isDirty(i)) continue;
-
+        
         ModifedPixel modifiedPixel;
         modifiedPixel.index = i;
         modifiedPixel.newColor = _newColor[i];
         modifiedPixel.oldColor = _layer->getPixel(i);
-
+        
         modifiedPixels.push_back(modifiedPixel);
     }
     return modifiedPixels;
@@ -71,8 +71,8 @@ void Preview::uncommit(int x, int y){
         _dirty[index] = false;
     };
 }
-void Preview::clear(){    
-    memset(_dirty, 0, _length*sizeof(bool));
+void Preview::clear(){
+    std::fill(_dirty, _dirty+_length, false);
     memset(_newColor, 0, _length*sizeof(unsigned int));
 
     dirtyArea.start = {INT_MAX, INT_MAX};

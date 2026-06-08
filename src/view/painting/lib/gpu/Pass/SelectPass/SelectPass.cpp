@@ -22,6 +22,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
         };
         
         uniform vec2 texSize;
+        uniform bool enabled;
         uniform vec2 selectSize;
         uniform vec2 resizeHandle[4];
         uniform vec2 rotateHandle[4];
@@ -30,7 +31,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
 
         float hasEdge(vec2 pixelUV){
            float inside = step(0.0, pixelUV.x) * step(0.0, pixelUV.y) * step(pixelUV.x, 1.0) * step(pixelUV.y, 1.0);
-           return step(0.004, texture(texs, pixelUV).r)*inside;
+           return step(0.003, texture(texs, pixelUV).r)*inside;
         }
 
         vec2 hyp(vec2 point, vec2 center){
@@ -102,6 +103,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
         }
 
         void main(){
+           if(!enabled) discard;
            vec2 transformedUV = pixel / texSize;
 
            vec2 lineSize = 1.0/(zoom*selectSize);
@@ -136,9 +138,10 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
     shader.create(fs);
     shader.use();
 
-    texture = glGetUniformLocation(shader.id(),"texs");
+    // texture = glGetUniformLocation(shader.id(),"texs");
     texSizeLocation = glGetUniformLocation(shader.id(),"texSize");
     selectSizeLocation = glGetUniformLocation(shader.id(),"selectSize");
+    enabledLocation = glGetUniformLocation(shader.id(),"enabled");
 }
 SelectPass::~SelectPass(){}
 
@@ -157,7 +160,7 @@ void SelectPass::init(){
         0,
         GL_RGBA,
         GL_UNSIGNED_BYTE,
-        editor->preview()->getBuffer()
+        preview
     );
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -169,26 +172,26 @@ void SelectPass::init(){
 void SelectPass::draw(){
     editor = _manager->getActiveEditor();
     if(!editor) return;
-    _surface = editor->getSurface();
-    if(!_surface) return;
+    if(!editor->getSurface()) return;
+    
+    if(preview != editor->preview()->getBuffer()){
+        preview = editor->preview()->getBuffer();
+        init();
+    }
 
     SelectContext* select = editor->getSelectContext();    
 
-    if(!initialized && editor->preview()->getBuffer() != nullptr) init();
-
     Bounding area = editor->preview()->getDirtyArea();
-    if(area.start.x != INT_MAX
-        && area.start.y != INT_MAX
-        && area.end.x != INT_MIN
-        && area.end.y != INT_MIN){
-            upload(area);
-        }
+    if(area.start.x != INT_MAX && area.start.y != INT_MAX &&
+        area.end.x != INT_MIN && area.end.y != INT_MIN){
+        upload(area);
+    }
     
     shader.use();
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(texture, 1);
+    glUniform1i(glGetUniformLocation(shader.id(), "texs"), 1);
 
     quad.bind();
 
@@ -199,10 +202,11 @@ void SelectPass::draw(){
     CanvasSettings* canvasSettings = editor->getCanvasSettings();
     glUniform2fv(glGetUniformLocation(shader.id(),"resizeHandle[0]"), 4, select->getAllHandle(canvasSettings).data());
     glUniform2fv(glGetUniformLocation(shader.id(),"rotateHandle[0]"), 4, select->getAllRotateHandle(canvasSettings).data());
-    glUniform2f(selectSizeLocation, _surface->getWidth(), _surface ->getHeight());
-
+    glUniform2f(selectSizeLocation, editor->getWidth(), editor->getHeight());
+    
     std::array<float, 8> r = select->getAllHandle(canvasSettings);
-    glUniform2f(texSizeLocation, _surface->getWidth(), _surface->getHeight());
+    glUniform2f(texSizeLocation, editor->getWidth(), editor->getHeight());
+    glUniform1i(enabledLocation, select->enabled);
 
     quad.draw();
 }
@@ -212,19 +216,19 @@ void SelectPass::upload(Bounding area){
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, editor->getWidth());
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, area.start.x);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, area.start.y);
 
     glTexSubImage2D(
         GL_TEXTURE_2D,
         0,
-        0,
-        0,
-        editor->getWidth(),
-        editor->getHeight(),
+        area.start.x,
+        area.start.y,
+        area.getWidth(),
+        area.getHeight(),
         GL_RGBA,
         GL_UNSIGNED_BYTE,
-        editor->preview()->getBuffer()
+        preview
     );
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);

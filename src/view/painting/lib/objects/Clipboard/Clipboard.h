@@ -9,8 +9,9 @@ class Clipboard{
 public:
     Clipboard();
     Surface* copy(SelectContext* select);
-    void paste(Surface* surface, Editor* editor);
+    void paste(Editor* editor);
 private:
+    Surface* _clipboard;
     
 };
 #endif

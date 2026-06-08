@@ -19,6 +19,7 @@ public:
     SelectionBox selectionBox;
     ResizeHandle handle[4];
     RotateHandle rotateHandle[4];
+    bool enabled = false;
         
     std::array<float, 8> getAllHandle(CanvasSettings* viewport);
     std::array<float, 8> getAllRotateHandle(CanvasSettings* viewport);

@@ -41,7 +41,6 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, Viewpor
     shader.create(fs);
     shader.use();
 
-    texture = glGetUniformLocation(shader.id(),"texB");
     texSizeLocationH = glGetUniformLocation(shader.id(),"texSize");
     brushSizeLocation = glGetUniformLocation(shader.id(),"brushSize");
 }

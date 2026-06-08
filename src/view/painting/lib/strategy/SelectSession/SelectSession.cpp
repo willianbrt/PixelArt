@@ -7,7 +7,12 @@ _selectionContext(selection)
 }
 bool SelectSession::begin(Point point, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
+    
     _startPoint = _toolRuntimeContext.canvasSettings->cursorToCanvas(point.x, point.y);
+    
+    _selectionContext->selectionBox = SelectionBox();
+    _selectionContext->transformation = Transformation();
+    _selectionContext->srcArea = Bounding();
 
     _selectionContext->srcArea = Bounding(_startPoint, {_startPoint.x+1, _startPoint.y+1});
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
@@ -73,7 +78,18 @@ void SelectSession::shrinkToTheDrawing(){
 }
 
 void SelectSession::initSelectData(){
-    if(_selectionContext->srcArea.getWidth() <= 0 || _selectionContext->srcArea.getHeight() <= 0) return;
+    if(_selectionContext->srcArea.getWidth() <= 0 || _selectionContext->srcArea.getHeight() <= 0){
+        _selectionContext->selectionBox = SelectionBox();
+        _selectionContext->transformation = Transformation();
+        _selectionContext->srcArea = Bounding();
+
+        return;
+    }
+
+    if (_selectionContext->data) {
+        delete _selectionContext->data;
+        _selectionContext->data = nullptr;
+    }
 
     _selectionContext->data = new Surface(_selectionContext->srcArea.getWidth(), _selectionContext->srcArea.getHeight());
     for (int y = 0; y < _selectionContext->srcArea.getHeight(); ++y) {
@@ -85,4 +101,6 @@ void SelectSession::initSelectData(){
             _selectionContext->data->putPixel(x, y, _toolRuntimeContext.layer->getPixel(p.x , p.y));
         }
     }
+    
+    _selectionContext->enabled = true;
 }

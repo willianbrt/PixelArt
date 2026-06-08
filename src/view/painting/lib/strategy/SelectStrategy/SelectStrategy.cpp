@@ -24,8 +24,8 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     _pressed = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     _from = _pressed;
 
-    if(_mode == ENUM_MODE::SELECTED){
-        
+    // if(_mode == ENUM_MODE::SELECTED){
+    if(_selectContext->enabled){
         if(_resizeSession->begin(world, _toolRuntimeContext)){
             _mode = ENUM_MODE::RESIZE;
             return;
@@ -67,7 +67,9 @@ void SelectStrategy::onTracking(int x, int y){
         _rotateSession->update(to);
     }
 
-    if(_mode != ENUM_MODE::SELECT) draw();
+    if(_selectContext->enabled) {
+        draw();
+    }
 
     _from = to;
 }
@@ -76,15 +78,11 @@ void SelectStrategy::onRelease(){
 
     if(_mode == ENUM_MODE::SELECT){
         _selectSession->end();
-        
-        if(!_selectContext->data){
-            abort();
-            return;
-        }
-        draw();
+        if(_selectContext->enabled) draw();
     }
 
     _mode = ENUM_MODE::SELECTED;
+
 }
 
 void SelectStrategy::putMirroredPixel(int x, int y, unsigned int color){
@@ -122,7 +120,6 @@ void SelectStrategy::draw(){
         }
     }
 
-
     Bounding destBounding = _selectContext->selectionBox.getBounding();
     _toolRuntimeContext.clampBounding(destBounding);
 
@@ -131,7 +128,7 @@ void SelectStrategy::draw(){
     PointF _srcCenter = _selectContext->srcArea.getCenter();
     float halfW = (_selectContext->srcArea.getWidth()) * 0.5f;
     float halfH = (_selectContext->srcArea.getHeight()) * 0.5f;
-        
+    
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
             PointF src = _selectContext->transformation.unrotate({dx  + 0.5f - _dstCenter.x, dy + 0.5f - _dstCenter.y});
@@ -156,11 +153,9 @@ void SelectStrategy::draw(){
 }
 void SelectStrategy::done() {
     _toolRuntimeContext.preview->commit();
-    abort();
-}
-void SelectStrategy::abort(){
     _toolRuntimeContext.preview->clear();
 
+    
     if (_selectContext->data) {
         delete _selectContext->data;
         _selectContext->data = nullptr;
@@ -169,6 +164,18 @@ void SelectStrategy::abort(){
     _selectContext->selectionBox = SelectionBox();
     _selectContext->transformation = Transformation();
     _selectContext->srcArea = Bounding();
+    _selectContext->enabled = false;
+
+    _mode = ENUM_MODE::SELECT;
+    _cutting = false;
+}
+void SelectStrategy::abort(){
+    _toolRuntimeContext.preview->clear();
+
+    _selectContext->selectionBox = SelectionBox();
+    _selectContext->transformation = Transformation();
+    _selectContext->srcArea = Bounding();
+    _selectContext->enabled = false;
 
     _cutting = false;
     _mode = ENUM_MODE::SELECT;

@@ -36,6 +36,7 @@ void AppContext::loop(void* arg){
 
 void AppContext::render(){
     glfwPollEvents();
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glViewport(0,0, _viewportContext->width, _viewportContext->height);
     
     double xpos, ypos;
