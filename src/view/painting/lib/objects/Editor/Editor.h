@@ -12,6 +12,7 @@
 #include "../layer/Layers.h"
 #include "../preview/Preview.h"
 #include "../frame/Frame.h"
+#include "../DirtyManager/DirtyManager.h"
 #include "../CanvasSettings/CanvasSettings.h"
 
 #include "../../interfaces/IGraphic/IGraphic.h"
@@ -40,6 +41,7 @@ private:
     Frame* activeFrame = nullptr;
     Preview* _preview;
     CanvasSettings* _canvasSettings;
+    DirtyManager dirtyManager;
 
     std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
 
@@ -76,5 +78,6 @@ public:
     CanvasSettings* getCanvasSettings();
     SelectContext* getSelectContext();
     Point getCanvasSize();
+    DirtyManager* getDirtyManager();
 };
 #endif

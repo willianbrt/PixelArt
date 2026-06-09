@@ -48,7 +48,6 @@ public:
     void setTarget(Layer* layer);
     std::vector<ModifedPixel> getModifiedPixels();
     void commit();
-    void uncommit(int x, int y);
     void clear();
 };
 #endif

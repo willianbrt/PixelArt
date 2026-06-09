@@ -44,6 +44,7 @@ private:
 
 
     void putMirroredPixel(int x, int y, unsigned int color);
+    void clear();
     void draw();
 
 public:

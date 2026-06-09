@@ -181,7 +181,10 @@ void SelectPass::draw(){
 
     SelectContext* select = editor->getSelectContext();    
 
-    Bounding area = editor->preview()->getDirtyArea();
+    DirtyManager * dirtyManager = editor->getDirtyManager();
+    // Bounding area = editor->preview()->getDirtyArea();
+    // Bounding area = {{0,0}, {editor->getWidth(), editor->getHeight()}};
+    Bounding area = dirtyManager->dirty();
     if(area.start.x != INT_MAX && area.start.y != INT_MAX &&
         area.end.x != INT_MIN && area.end.y != INT_MIN){
         upload(area);

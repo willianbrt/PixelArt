@@ -6,7 +6,7 @@ Preview::Preview(int width, int height) {
     _length = width*height;
 
     dirtyArea.start = {INT_MAX, INT_MAX};
-    dirtyArea.end = {-1, -1};
+    dirtyArea.end = {INT_MIN, INT_MIN};
 }
 
 Preview::~Preview() {
@@ -64,19 +64,12 @@ void Preview::commit(){
     }
     clear();
 }
-void Preview::uncommit(int x, int y){
-    int index = x + _layer->getWidth()*y;
-    if(_dirty[index]){
-        _newColor[index] = 0x0;
-        _dirty[index] = false;
-    };
-}
 void Preview::clear(){
     std::fill(_dirty, _dirty+_length, false);
     memset(_newColor, 0, _length*sizeof(unsigned int));
 
     dirtyArea.start = {INT_MAX, INT_MAX};
-    dirtyArea.end = {-1, -1};
+    dirtyArea.end = {INT_MIN, INT_MIN};
 }
 Bounding Preview::getDirtyArea(){
     return dirtyArea;

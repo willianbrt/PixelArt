@@ -166,6 +166,9 @@ Point Editor::getCanvasSize(){
     };
 }
 
+DirtyManager* Editor::getDirtyManager(){
+    return &dirtyManager;
+}
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){

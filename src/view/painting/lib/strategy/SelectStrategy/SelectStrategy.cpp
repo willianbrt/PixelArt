@@ -44,12 +44,13 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
 
     _mode = ENUM_MODE::SELECT;
     _selectSession->begin(world, _toolRuntimeContext);
+    _cutting = true;
 }
 void SelectStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
 
-    flagBounding = _selectContext->selectionBox.getBounding();
+    // flagBounding = _selectContext->selectionBox.getBounding();
     
     if(_mode == ENUM_MODE::SELECT){
         _selectSession->update(to);
@@ -103,26 +104,28 @@ void SelectStrategy::putMirroredPixel(int x, int y, unsigned int color){
 }
 
 
-void SelectStrategy::draw(){
-    _toolRuntimeContext.clampBounding(flagBounding);
-    for (int y = flagBounding.start.y; y < flagBounding.end.y; ++y) {
+void SelectStrategy::clear(){
+    
+    for (int y = _selectContext->srcArea.start.y; y < _selectContext->srcArea.end.y; ++y) {
         Point p;
         p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
-        for (int x = flagBounding.start.x; x < flagBounding.end.x; ++x) {
+        for (int x = _selectContext->srcArea.start.x; x < _selectContext->srcArea.end.x; ++x) {
             p.x = GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth());
-
-            if((p.x >= _selectContext->srcArea.start.x && p.x < _selectContext->srcArea.end.x) &&
-                (p.y >= _selectContext->srcArea.start.y && p.y < _selectContext->srcArea.end.y)){
-                _toolRuntimeContext.preview->putPixel(p.x, p.y, 0x0);
-                continue;
-            }
-            _toolRuntimeContext.preview->uncommit(p.x, p.y);
+            _toolRuntimeContext.preview->putPixel(p.x, p.y, 0x0);
         }
     }
+}
+void SelectStrategy::draw(){
+    DirtyManager * dirtyManager = _toolRuntimeContext.editor->getDirtyManager();
+    dirtyManager->markDirty(_toolRuntimeContext.preview->getDirtyArea());
+    _toolRuntimeContext.preview->clear();
 
+    if(_cutting) clear();
+    
     Bounding destBounding = _selectContext->selectionBox.getBounding();
     _toolRuntimeContext.clampBounding(destBounding);
-
+    dirtyManager->markDirty(destBounding);
+    
     const PointF* scale = _selectContext->transformation.getScale();
     PointF _dstCenter = _selectContext->selectionBox.getCenter();
     PointF _srcCenter = _selectContext->srcArea.getCenter();
