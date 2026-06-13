@@ -11,17 +11,17 @@
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/preview/Preview.h"
 #include "../../objects/layer/Layers.h"
+#include "../../objects/DrawingSession/DrawingSession.h"
 
 class BrushStrategy : public IPressedStrategy {
 private:
     Point _from;
-    DrawingContext* _drawingContext;
-    BrushContext* _brushContext;
+    DrawingContext* _drawingContext = nullptr;
+    BrushContext* _brushContext = nullptr;
     CursorContext _cursorContext;
-    SymmetryContext* _symmetryContext;
+    SymmetryContext* _symmetryContext = nullptr;
     
     ToolRuntimeContext _toolRuntimeContext;
-
 
     int _heightPattern;
     int _widthPattern;
@@ -29,7 +29,6 @@ private:
     void drawHorizontalBrush(Point to, Point from);
     void drawVerticalBrush(Point to, Point from);
     void stamp(Point pixel);
-    void putMirroredPixel(int x, int y, unsigned int color);
 
 public:
     BrushStrategy(BrushContext* brushContext, DrawingContext* context, SymmetryContext* symmetryContext);

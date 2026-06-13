@@ -172,7 +172,6 @@ void SelectPass::init(){
 void SelectPass::draw(){
     editor = _manager->getActiveEditor();
     if(!editor) return;
-    if(!editor->getSurface()) return;
     
     if(preview != editor->preview()->getBuffer()){
         preview = editor->preview()->getBuffer();
@@ -180,15 +179,27 @@ void SelectPass::draw(){
     }
 
     SelectContext* select = editor->getSelectContext();    
-
-    DirtyManager * dirtyManager = editor->getDirtyManager();
-    // Bounding area = editor->preview()->getDirtyArea();
-    // Bounding area = {{0,0}, {editor->getWidth(), editor->getHeight()}};
-    Bounding area = dirtyManager->dirty();
-    if(area.start.x != INT_MAX && area.start.y != INT_MAX &&
-        area.end.x != INT_MIN && area.end.y != INT_MIN){
-        upload(area);
+    
+    // DirtyManager * dirtyManager = editor->getDirtyManager();
+    // Bounding area = dirtyManager->dirty();
+    Bounding area = editor->preview()->getDirtyArea();
+    if(area.start.x != _area.start.x || area.start.y != _area.start.y || area.end.x != _area.end.x || area.end.y != _area.end.y){
+        if(area.start.x != INT_MAX && area.start.y != INT_MAX && area.end.x != INT_MIN && area.end.y != INT_MIN)
+            upload(area);
+        if(_area.start.x != INT_MAX && _area.start.y != INT_MAX && _area.end.x != INT_MIN && _area.end.y != INT_MIN)
+            upload(_area);
+        _area = area;
     }
+    // Bounding area = editor->preview()->getDirtyArea();
+    // if(area.start.x != INT_MAX && area.start.y != INT_MAX && area.end.x != INT_MIN && area.end.y != INT_MIN){
+    //     upload(area);
+    //     if(area.start.x != _area.start.x || area.start.y != _area.start.y || area.end.x != _area.end.x || area.end.y != _area.end.y){
+    //         if(_area.start.x != INT_MAX && _area.start.y != INT_MAX && _area.end.x != INT_MIN && _area.end.y != INT_MIN)
+    //             upload(_area);
+    //     }
+    //     _area = area;
+    // }
+
     
     shader.use();
 

@@ -28,10 +28,10 @@ struct ModifedPixel{
 };
 class Preview : public ISurface {
 private: 
-    Layer* _layer;
+    Layer* _layer = nullptr;
     size_t _length;
-    bool* _dirty;
-    unsigned int* _newColor;
+    bool* _dirty = nullptr;
+    unsigned int* _newColor = nullptr;
     Bounding dirtyArea;
 
 public:
@@ -46,6 +46,7 @@ public:
     bool isDirty(unsigned int index);
     Bounding getDirtyArea();
     void setTarget(Layer* layer);
+    Layer* getTarget();
     std::vector<ModifedPixel> getModifiedPixels();
     void commit();
     void clear();

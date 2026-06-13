@@ -14,6 +14,7 @@
 #include "../frame/Frame.h"
 #include "../DirtyManager/DirtyManager.h"
 #include "../CanvasSettings/CanvasSettings.h"
+#include "../DrawingSession/DrawingSession.h"
 
 #include "../../interfaces/IGraphic/IGraphic.h"
 #include "../../interfaces/IEditorObserver/IEditorObserver.h"
@@ -33,15 +34,17 @@ enum EDITOR_EVENT_TYPE{
 class Editor
 {
 private:
-    Surface* _sketch;
-    SelectContext* _select;
+    Surface* _sketch = nullptr;
+    SelectContext* _select = nullptr;
 
     vector<std::unique_ptr<Frame>> frames;
     vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
-    Preview* _preview;
-    CanvasSettings* _canvasSettings;
+    Preview* _preview = nullptr;
+    CanvasSettings* _canvasSettings = nullptr;
+    // DirtyManager* dirtyManager = nullptr;
     DirtyManager dirtyManager;
+    DrawingSession* _drawingSession = nullptr;
 
     std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
 
@@ -52,7 +55,6 @@ public:
     void registerEvent(IEditorObserver* observer);
     
     Preview* preview();
-    void draw(IGraphic& graphic);
     
     void compose();
     void compose(Bounding area);
@@ -79,5 +81,6 @@ public:
     SelectContext* getSelectContext();
     Point getCanvasSize();
     DirtyManager* getDirtyManager();
+    DrawingSession* getDrawingSession();
 };
 #endif

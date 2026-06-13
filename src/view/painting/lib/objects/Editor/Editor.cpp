@@ -2,12 +2,17 @@
 
 Editor::Editor(int width, int height) {
     _sketch = new Surface(width, height);
+    printf("he: %i\n", _sketch->getHeight());
     _preview = new Preview(width, height);
+    
+    _drawingSession = new DrawingSession(_preview, &dirtyManager);
+
     _canvasSettings = new CanvasSettings();
     _select = new SelectContext();
     _canvasSettings->setScale(15.0f);
     _canvasSettings->setGridDivisionsX(32);
     _canvasSettings->setGridDivisionsY(32);
+
 }
 Editor::~Editor(){
     frames.clear();
@@ -20,12 +25,7 @@ void Editor::registerEvent(IEditorObserver* observer){
 }
 
 Preview* Editor::preview(){ return _preview; }
-
-void Editor::draw(IGraphic& graphic){
-    activeFrame->draw(graphic);
-    compose();
-}
-
+DrawingSession* Editor::getDrawingSession(){ return _drawingSession; }
 
 void Editor::compose(){
     Bounding boundingSketch = Bounding(Point(0,0), Point(_sketch->getWidth(), _sketch->getHeight()));
@@ -34,28 +34,33 @@ void Editor::compose(){
 }
 void Editor::compose(Bounding area){
     if(area.start.x > _sketch->getWidth() || area.start.y > _sketch->getHeight()) return;
-
-    area.start.x = std::max(area.start.x, 0);
-    area.start.y = std::max(area.start.y, 0);
-    area.end.x = std::min(area.end.x, _sketch->getWidth());
-    area.end.y = std::min(area.end.y, _sketch->getHeight());
+    if(area.start.x < 0 || area.start.y < 0) return;
 
     size_t activeFrameIndex = getFrameIndex(activeFrame->getID());
-    Layer* activeLayer = activeFrame->getActiveLayer();
-    size_t activeLayerIndex = activeFrame->getLayerIndex(activeLayer->getID());
+
+    Layer* drawingLayer = _preview ? _preview->getTarget() : nullptr;
+    size_t drawingLayerIndex = activeFrame->getLayerIndex(drawingLayer->getID());
+
 
     float opacity = 0.3;
     for(int y = area.start.y; y < area.end.y; y++){
         int index = y * _sketch->getWidth() + area.start.x;
         
         for(int x = area.start.x; x < area.end.x; x++){
+            // previous frame
             unsigned int colorHex = activeFrameIndex > 0 ? frames[activeFrameIndex - 1].get()->getPixel(index) : 0;
             GraphicsEngine::setOpacity(colorHex, opacity);
 
-            colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, 0, activeLayerIndex));
-            colorHex = GraphicsEngine::blendColors(colorHex, _preview->getPixel(index));
-            colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, activeLayerIndex+1, activeFrame->getLayersLength()));
-
+            // active frame
+            colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, 0, drawingLayerIndex));
+            if(drawingLayer){
+                colorHex = GraphicsEngine::blendColors(colorHex, _preview->getPixel(index));
+            } else {
+                colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, drawingLayerIndex, drawingLayerIndex+1));
+            }
+            colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, drawingLayerIndex+1, activeFrame->getLayersLength()));
+            
+            // view
             _sketch->putPixel(index, colorHex);
             
             index++;
@@ -91,16 +96,18 @@ unique_ptr<Frame> Editor::removeFrame(size_t index){
     unique_ptr<Frame> removedFrame = std::move(frames[index]);
     frames.erase(frames.begin() + index);
     
-    compose();
+    dirtyManager.markDirty({{0,0},{_sketch->getWidth(), _sketch->getHeight()}});
 
     return removedFrame;
 }
 void Editor::changeActiveFrame(Guid id){
     activeFrame = getFrameByID(id);
-    
+
+    if(_preview) free(_preview);
     _preview = new Preview(_sketch->getWidth(), _sketch->getHeight());
     _preview->setTarget(activeFrame->getActiveLayer());
-    compose();
+
+    dirtyManager.markDirty({{0,0},{_sketch->getWidth(), _sketch->getHeight()}});
 
     for (auto* obs : observers) {
         obs->onChangeActiveFrame(id);
@@ -121,7 +128,7 @@ void Editor::bringFrameTo(Guid id, size_t toIndex){
         std::rotate(frames.begin() + toIndex, frames.begin() + fromIndex, frames.begin() + fromIndex + 1);
     }
 
-    compose();
+    dirtyManager.markDirty({{0,0},{_sketch->getWidth(), _sketch->getHeight()}});
     for (auto* obs : observers) {
         obs->onMoveFrameTo(id, toIndex);
     }
@@ -165,7 +172,6 @@ Point Editor::getCanvasSize(){
         _canvasSettings->getTilesY() * _sketch->getHeight()
     };
 }
-
 DirtyManager* Editor::getDirtyManager(){
     return &dirtyManager;
 }

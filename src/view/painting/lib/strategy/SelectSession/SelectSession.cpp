@@ -16,6 +16,8 @@ bool SelectSession::begin(Point point, const ToolRuntimeContext& toolRuntimeCont
 
     _selectionContext->srcArea = Bounding(_startPoint, {_startPoint.x+1, _startPoint.y+1});
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
+     
+    _selectionContext->enabled = true;
     
     return true;
 }
@@ -83,6 +85,7 @@ void SelectSession::initSelectData(){
         _selectionContext->transformation = Transformation();
         _selectionContext->srcArea = Bounding();
 
+        _selectionContext->enabled = false;
         return;
     }
 
@@ -102,5 +105,5 @@ void SelectSession::initSelectData(){
         }
     }
     
-    _selectionContext->enabled = true;
+    // _selectionContext->enabled = true;
 }

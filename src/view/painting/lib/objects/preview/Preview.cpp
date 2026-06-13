@@ -4,9 +4,6 @@ Preview::Preview(int width, int height) {
     _dirty = (bool*) malloc(width*height*sizeof(bool));
     _newColor = (unsigned int*) malloc(width*height*sizeof(unsigned int));
     _length = width*height;
-
-    dirtyArea.start = {INT_MAX, INT_MAX};
-    dirtyArea.end = {INT_MIN, INT_MIN};
 }
 
 Preview::~Preview() {
@@ -23,10 +20,10 @@ unsigned int Preview::getPixel(unsigned int index) {
 }
 void Preview::putPixel(int x, int y, unsigned int colorHex){
     if (!_layer->isInsideSkecth(x, y)) return;
-
+    
     dirtyArea.start.x = std::min(dirtyArea.start.x, x);
     dirtyArea.start.y = std::min(dirtyArea.start.y, y);
-
+    
     dirtyArea.end.x = std::max(dirtyArea.end.x, x+1);
     dirtyArea.end.y = std::max(dirtyArea.end.y, y+1);
     
@@ -73,4 +70,7 @@ void Preview::clear(){
 }
 Bounding Preview::getDirtyArea(){
     return dirtyArea;
+}
+Layer* Preview::getTarget(){
+    return _layer;
 }

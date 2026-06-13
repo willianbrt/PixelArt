@@ -27,6 +27,7 @@ struct ToolSettings{
 };
 
 class ToolManager {
+    bool initialized;
     IPressedStrategy* _leftButtonPressed;
     IPressedStrategy* _rightButtonPressed;
     IPressedStrategy* _otherButtonPressed;
@@ -44,6 +45,7 @@ public:
     void setLeftToolPressed(IPressedStrategy* toolPressed);
     void setOtherToolPressed(IPressedStrategy* toolPressed);
 
+    void onPressed();
     void onPressed(int x, int y, int button);
     void onTracking(int x, int y);
     void onReleased(int x, int y, int button);

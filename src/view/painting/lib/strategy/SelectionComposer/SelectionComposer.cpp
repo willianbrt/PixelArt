@@ -48,7 +48,6 @@ void SelectionComposer::clear(Bounding flagBounding, SelectContext* selection, S
                 toolRuntimeContext.preview->putPixel(p.x, p.y, 0x0);
                 continue;
             }
-            toolRuntimeContext.preview->uncommit(p.x, p.y);
         }
     }
 }

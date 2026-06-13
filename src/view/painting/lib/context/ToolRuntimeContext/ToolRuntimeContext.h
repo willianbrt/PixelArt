@@ -14,6 +14,7 @@ public:
     Editor* editor;
     Layer* layer;
     Preview* preview;
+    DrawingSession* drawingSession;
     ViewportContext* viewport;
     CanvasSettings* canvasSettings;
     int screenWidth, screenHeight;

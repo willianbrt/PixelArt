@@ -17,13 +17,14 @@ _symmetryContext(symmetryContext)
 }
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
-    _cursorContext.enable = false;
-
+    // _cursorContext.enable = false;
+    _toolRuntimeContext.drawingSession->begin(_toolRuntimeContext.layer);
+    
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
-        
+    
     _heightPattern = _brushContext->selectedPattern->height*_drawingContext->size;
     _widthPattern = _brushContext->selectedPattern->width*_drawingContext->size;
-
+    
     stamp(to);
     
     _from = to;
@@ -41,7 +42,7 @@ void BrushStrategy::onTracking(int x, int y){
     _from = to;
 }
 void BrushStrategy::onRelease(){
-    _cursorContext.enable = true;
+    // _cursorContext.enable = true;
 
     done();
 }
@@ -125,12 +126,7 @@ void BrushStrategy::stamp(Point pixel){
             unsigned int topColor = _drawingContext->color;
             GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[srcY* _brushContext->selectedPattern->width + srcX] & 0xFF) / 255.0f);
 
-            Point p = {
-                GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth()),
-                GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight())
-            };
-
-            putMirroredPixel(p.x, p.y, topColor);
+            _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, topColor, _symmetryContext);
 
             errX += _brushContext->selectedPattern->width;
             if(errX >= _widthPattern){
@@ -146,31 +142,14 @@ void BrushStrategy::stamp(Point pixel){
         }
     }
 }
-void BrushStrategy::putMirroredPixel(int x, int y, unsigned int color){
-    _toolRuntimeContext.preview->putPixel(x, y,  GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(x, y), color));
-
-    int toMirrorX = _symmetryContext->pointMirrored(x, _toolRuntimeContext.layer->getWidth());
-    int toMirrorY = _symmetryContext->pointMirrored(y, _toolRuntimeContext.layer->getHeight());
-
-    if(_symmetryContext->isMirrorX){
-        _toolRuntimeContext.preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, y), color));
-    }            
-    if(_symmetryContext->isMirrorY){
-        _toolRuntimeContext.preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(x, toMirrorY), color));
-    }
-    if(_symmetryContext->isMirrorX && _symmetryContext->isMirrorY){
-        _toolRuntimeContext.preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, toMirrorY), color));
-    }
-}
-
 void BrushStrategy::done() {
-    _toolRuntimeContext.preview->commit();
+    _toolRuntimeContext.drawingSession->commit();
 }
 void BrushStrategy::abort(){
-    _toolRuntimeContext.preview->clear();
+    _toolRuntimeContext.drawingSession->clear();
 }
 CursorContext* BrushStrategy::getCursorContext(){
-    _cursorContext.pattern = _brushContext->selectedPattern;
-    _cursorContext.scale = _drawingContext->size;
+    // _cursorContext.pattern = _brushContext->selectedPattern;
+    // _cursorContext.scale = _drawingContext->size;
     return &_cursorContext;
 }

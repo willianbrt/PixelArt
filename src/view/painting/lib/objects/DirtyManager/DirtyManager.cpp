@@ -1,6 +1,7 @@
 #include "./DirtyManager.h"
 
-DirtyManager::DirtyManager(){}
+DirtyManager::DirtyManager(){
+}
 DirtyManager::~DirtyManager(){}
 
  void DirtyManager::markDirty(Bounding dirtyArea){
@@ -8,7 +9,6 @@ DirtyManager::~DirtyManager(){}
     _dirty.start.y = std::min(_dirty.start.y, dirtyArea.start.y);
     _dirty.end.x =   std::max(_dirty.end.x,   dirtyArea.end.x);
     _dirty.end.y =   std::max(_dirty.end.y,   dirtyArea.end.y);
-
 
     _hasDirty = true;
  }
@@ -18,4 +18,8 @@ DirtyManager::~DirtyManager(){}
  }
  bool DirtyManager::hasDirty(){
     return _hasDirty;
+ }
+ void DirtyManager::validade(){
+   _dirty = Bounding();
+   _hasDirty = false;
  }

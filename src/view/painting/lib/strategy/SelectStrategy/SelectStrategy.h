@@ -43,7 +43,6 @@ private:
     ENUM_MODE _mode;
 
 
-    void putMirroredPixel(int x, int y, unsigned int color);
     void clear();
     void draw();
 

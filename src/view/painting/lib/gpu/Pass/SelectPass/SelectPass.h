@@ -36,7 +36,10 @@ private:
     GLint resolutionLocation;
     GLint selectSizeLocation;
     GLint enabledLocation;
+    
     bool initialized;
+    Bounding _area;
+
     GLint cursorLocation;
     Quad quad;
     Shader shader;

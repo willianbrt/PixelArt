@@ -109,15 +109,12 @@ void SketchPass::draw(){
     if(!_surface) return;
     if(!glIsTexture(texture)) init();
 
-    // Bounding area = editor->preview()->getDirtyArea();
-    Bounding area = {{0,0}, {editor->getWidth(), editor->getHeight()}};
-    if(area.start.x != INT_MAX
-        && area.start.y != INT_MAX
-        && area.end.x != INT_MIN
-        && area.end.y != INT_MIN){
-            editor->compose();
-            upload(area);
-        }
+    DirtyManager * dirtyManager = editor->getDirtyManager();
+    if(dirtyManager->hasDirty()){
+        editor->compose(dirtyManager->dirty());
+        upload(dirtyManager->dirty());
+        dirtyManager->validade();
+    }
     
     shader.use();
     

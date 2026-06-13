@@ -14,5 +14,6 @@ public:
     void markDirty(Bounding dirtyArea);
     Bounding dirty();
     bool hasDirty();
+    void validade();
 };
 #endif

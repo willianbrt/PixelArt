@@ -10,7 +10,8 @@ _viewport(viewport)
 }
 
 void ToolManager::setRightToolPressed(IPressedStrategy* toolPressed){
-    _rightButtonPressed->done();
+    if(initialized)
+        _rightButtonPressed->done();
     
     _rightButtonPressed = toolPressed;
 }
@@ -31,6 +32,7 @@ void ToolManager::build(){
     toolRuntimeContext.editor = editor;
     toolRuntimeContext.layer = editor->getActiveFrame()->getActiveLayer();
     toolRuntimeContext.preview = editor->preview();
+    toolRuntimeContext.drawingSession = editor->getDrawingSession();
     toolRuntimeContext.viewport = _viewport;
     toolRuntimeContext.canvasSettings = editor->getCanvasSettings();
 
@@ -49,7 +51,10 @@ void ToolManager::onPressed(int x, int y, int button){
     buttonMousePressed = (KEY_MOUSE)button;
 
     switch(buttonMousePressed){
-        case KEY_MOUSE::RIGHT_BUTTON: _rightButtonPressed->onPressed(x, y, toolRuntimeContext); break;
+        case KEY_MOUSE::RIGHT_BUTTON:
+             _rightButtonPressed->onPressed(x, y, toolRuntimeContext); 
+            initialized = true;
+            break;
         case KEY_MOUSE::LEFT_BUTTON: _leftButtonPressed->onPressed(x, y, toolRuntimeContext); break;
         default: _otherButtonPressed->onPressed(x, y, toolRuntimeContext); break;
     }
@@ -67,7 +72,10 @@ void ToolManager::onReleased(int x, int y, int button){
     if(static_cast<int>(buttonMousePressed) != button) return;
     
     switch((KEY_MOUSE)button){
-        case KEY_MOUSE::RIGHT_BUTTON: _rightButtonPressed->onRelease(); break;
+        case KEY_MOUSE::RIGHT_BUTTON: 
+            _rightButtonPressed->onRelease();
+            initialized = false;
+            break;
         case KEY_MOUSE::LEFT_BUTTON: _leftButtonPressed->onRelease(); break;
         default: _otherButtonPressed->onRelease(); break;
     }
@@ -90,25 +98,3 @@ void ToolManager::onScroll(int deltaY, int x, int y){
 CursorContext* ToolManager::getCursorContext(){
     return _rightButtonPressed->getCursorContext();
 }
-
-#include <emscripten/bind.h>
-
-using namespace emscripten;
-
-EMSCRIPTEN_BINDINGS(pixel_editor_module){
-    class_<ToolManager>("ToolManager")
-        .constructor<EditorManager*, ViewportContext*>()
-        .function("onPressed", &ToolManager::onPressed)
-        .function("onTracking", &ToolManager::onTracking)
-        .function("onReleased", &ToolManager::onReleased)
-        
-        .function("onPressed", &ToolManager::onPressed)
-        .function("onTracking", &ToolManager::onTracking)
-        .function("onReleased", &ToolManager::onReleased)
-
-        .function("onPinchPressed", &ToolManager::onPinchPressed)
-        .function("onPinchTracking", &ToolManager::onPinchTracking)
-        .function("onPinchReleased", &ToolManager::onScroll)
-        .function("onScroll", &ToolManager::onScroll)
-        ;
-};

@@ -24,7 +24,6 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     _pressed = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     _from = _pressed;
 
-    // if(_mode == ENUM_MODE::SELECTED){
     if(_selectContext->enabled){
         if(_resizeSession->begin(world, _toolRuntimeContext)){
             _mode = ENUM_MODE::RESIZE;
@@ -49,8 +48,6 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
 void SelectStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     if (to.x == _from.x && to.y == _from.y) return;
-
-    // flagBounding = _selectContext->selectionBox.getBounding();
     
     if(_mode == ENUM_MODE::SELECT){
         _selectSession->update(to);
@@ -68,7 +65,7 @@ void SelectStrategy::onTracking(int x, int y){
         _rotateSession->update(to);
     }
 
-    if(_selectContext->enabled) {
+    if(_mode != ENUM_MODE::SELECT) {
         draw();
     }
 
@@ -79,52 +76,28 @@ void SelectStrategy::onRelease(){
 
     if(_mode == ENUM_MODE::SELECT){
         _selectSession->end();
-        if(_selectContext->enabled) draw();
-    }
 
+        if(_selectContext->enabled){
+             draw();
+        }
+    }
     _mode = ENUM_MODE::SELECTED;
-
 }
-
-void SelectStrategy::putMirroredPixel(int x, int y, unsigned int color){
-    _toolRuntimeContext.preview->putPixel(x, y,  GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(x, y), color));
-
-    int toMirrorX = _symmetryContext->pointMirrored(x, _toolRuntimeContext.layer->getWidth());
-    int toMirrorY = _symmetryContext->pointMirrored(y, _toolRuntimeContext.layer->getHeight());
-
-    if(_symmetryContext->isMirrorX){
-        _toolRuntimeContext.preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, y), color));
-    }
-    if(_symmetryContext->isMirrorY){
-        _toolRuntimeContext.preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(x, toMirrorY), color));
-    }
-    if(_symmetryContext->isMirrorX && _symmetryContext->isMirrorY){
-        _toolRuntimeContext.preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(_toolRuntimeContext.preview->getPixel(toMirrorX, toMirrorY), color));
-    }
-}
-
 
 void SelectStrategy::clear(){
-    
     for (int y = _selectContext->srcArea.start.y; y < _selectContext->srcArea.end.y; ++y) {
-        Point p;
-        p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
         for (int x = _selectContext->srcArea.start.x; x < _selectContext->srcArea.end.x; ++x) {
-            p.x = GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth());
-            _toolRuntimeContext.preview->putPixel(p.x, p.y, 0x0);
+            _toolRuntimeContext.drawingSession->putPixel(x, y, 0x0);
         }
     }
 }
 void SelectStrategy::draw(){
-    DirtyManager * dirtyManager = _toolRuntimeContext.editor->getDirtyManager();
-    dirtyManager->markDirty(_toolRuntimeContext.preview->getDirtyArea());
-    _toolRuntimeContext.preview->clear();
+    _toolRuntimeContext.drawingSession->clear();
 
     if(_cutting) clear();
     
     Bounding destBounding = _selectContext->selectionBox.getBounding();
     _toolRuntimeContext.clampBounding(destBounding);
-    dirtyManager->markDirty(destBounding);
     
     const PointF* scale = _selectContext->transformation.getScale();
     PointF _dstCenter = _selectContext->selectionBox.getCenter();
@@ -146,19 +119,13 @@ void SelectStrategy::draw(){
             
             if((color >> 24 & 0xFF) == 0) { continue; }
             
-            Point clampedPoint = {
-                GraphicsEngine::clampedTilePoint(dx, _toolRuntimeContext.layer->getWidth()),
-                GraphicsEngine::clampedTilePoint(dy, _toolRuntimeContext.layer->getHeight())
-            };
-            putMirroredPixel(clampedPoint.x, clampedPoint.y, color);
+            _toolRuntimeContext.drawingSession->blendMirroredPixel(dx, dy, color, _symmetryContext);
         }
     }
 }
 void SelectStrategy::done() {
-    _toolRuntimeContext.preview->commit();
-    _toolRuntimeContext.preview->clear();
+    _toolRuntimeContext.drawingSession->commit();
 
-    
     if (_selectContext->data) {
         delete _selectContext->data;
         _selectContext->data = nullptr;
@@ -173,7 +140,7 @@ void SelectStrategy::done() {
     _cutting = false;
 }
 void SelectStrategy::abort(){
-    _toolRuntimeContext.preview->clear();
+    _toolRuntimeContext.drawingSession->clear();
 
     _selectContext->selectionBox = SelectionBox();
     _selectContext->transformation = Transformation();
