@@ -98,7 +98,6 @@ void Surface::setSize(int width, int height){
     _length = width*height;
     _width = width;
     _height = height;
-    printf("hs: %i\n", _height);
 }
 void Surface::allocBuffer(){
     _data = (unsigned int*) malloc(_length*sizeof(unsigned int));

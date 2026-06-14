@@ -7,9 +7,6 @@ private:
     
 public:
 virtual ~IRenderPass() = default;
-
-virtual void init() = 0;
-virtual void upload(Bounding area) = 0;
-virtual void draw() = 0;
+virtual void render() = 0;
 };
 #endif

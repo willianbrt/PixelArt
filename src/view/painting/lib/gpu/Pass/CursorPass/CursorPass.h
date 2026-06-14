@@ -45,8 +45,8 @@ public:
     CursorPass(EditorManager* manager, ToolManager* toolManager, ViewportContext* viewport);
     ~CursorPass();
 
-    void init() override;
-    void draw() override;
-    void upload(Bounding area) override;
+    void init();
+    void render() override;
+    void upload(Bounding area);
 };
 #endif

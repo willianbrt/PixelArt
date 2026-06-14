@@ -77,7 +77,7 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport) {
 }
 SketchPass::~SketchPass(){}
 
-void SketchPass::draw(){
+void SketchPass::render(){
     editor = _manager->getActiveEditor();
     if(!editor) return;
     _surface = editor->getSurface();
@@ -134,6 +134,3 @@ void SketchPass::draw(){
 
     quad.draw();
 }
-
-void SketchPass::init(){}
-void SketchPass::upload(Bounding area){}

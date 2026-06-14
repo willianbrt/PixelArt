@@ -41,8 +41,6 @@ public:
     SketchPass(EditorManager* manager, ViewportContext* viewport);
     ~SketchPass();
 
-    void draw() override;
-    void init() override;
-    void upload(Bounding area) override;
+    void render() override;
 };
 #endif

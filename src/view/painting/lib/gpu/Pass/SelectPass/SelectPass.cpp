@@ -149,9 +149,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
 }
 SelectPass::~SelectPass(){}
 
-void SelectPass::init(){
-}
-void SelectPass::draw(){
+void SelectPass::render(){
     editor = _manager->getActiveEditor();
     if(!editor) return;
     
@@ -203,6 +201,4 @@ void SelectPass::draw(){
     glUniform1i(enabledLocation, select->enabled);
 
     quad.draw();
-}
-void SelectPass::upload(Bounding area){
 }

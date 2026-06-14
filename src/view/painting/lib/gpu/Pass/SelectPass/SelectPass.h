@@ -45,8 +45,6 @@ public:
     SelectPass(EditorManager* manager, ViewportContext* viewport);
     ~SelectPass();
 
-    void init() override;
-    void draw() override;
-    void upload(Bounding area) override;
+    void render();
 };
 #endif
