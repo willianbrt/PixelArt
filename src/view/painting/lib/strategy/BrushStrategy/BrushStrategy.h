@@ -25,6 +25,7 @@ private:
 
     int _heightPattern;
     int _widthPattern;
+    bool _initialized = false;
     
     void drawHorizontalBrush(Point to, Point from);
     void drawVerticalBrush(Point to, Point from);
@@ -36,6 +37,7 @@ public:
     void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
     void onTracking(int x, int y) override;
     void onRelease() override;
+    bool isInitialized() override;
     void done() override;
     void abort() override;
     CursorContext* getCursorContext() override;

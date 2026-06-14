@@ -11,6 +11,7 @@ public:
     virtual ~IToolStrategy() = default;
     virtual void done() = 0;
     virtual void abort() = 0;
+    virtual bool isInitialized() = 0;
     virtual CursorContext* getCursorContext() = 0;
 
 };

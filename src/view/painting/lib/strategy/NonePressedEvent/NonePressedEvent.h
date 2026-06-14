@@ -8,12 +8,14 @@ class NonePressedEvent : public IPressedStrategy {
 private:
     ToolRuntimeContext _toolRuntimeContext;
     CursorContext _cursorContext;
+    bool _initialized = false;
 public:
     NonePressedEvent();
 
     void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
     void onTracking(int x, int y) override;
     void onRelease() override;
+    bool isInitialized() override;
     void done() override;
     void abort() override;
     CursorContext* getCursorContext() override;

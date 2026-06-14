@@ -41,7 +41,7 @@ private:
     CursorContext _cursorContext;
 
     ENUM_MODE _mode;
-
+    bool _initialized;
 
     void clear();
     void draw();
@@ -54,6 +54,7 @@ public:
     void onTracking(int x, int y) override;
     void onRelease() override;
 
+    bool isInitialized() override;
     void done() override;
     void abort() override;
     CursorContext* getCursorContext() override;

@@ -46,7 +46,7 @@ public:
     ~CursorPass();
 
     void init();
-    void render() override;
+    void render();
     void upload(Bounding area);
 };
 #endif

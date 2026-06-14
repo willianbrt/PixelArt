@@ -18,6 +18,7 @@ _symmetryContext(symmetryContext)
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
     // _cursorContext.enable = false;
+    _initialized = true;
     _toolRuntimeContext.drawingSession->begin(_toolRuntimeContext.layer);
     
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
@@ -142,11 +143,16 @@ void BrushStrategy::stamp(Point pixel){
         }
     }
 }
+bool BrushStrategy::isInitialized(){
+    return _initialized;
+}
 void BrushStrategy::done() {
     _toolRuntimeContext.drawingSession->commit();
+    _initialized = false;
 }
 void BrushStrategy::abort(){
     _toolRuntimeContext.drawingSession->clear();
+    _initialized = false;
 }
 CursorContext* BrushStrategy::getCursorContext(){
     // _cursorContext.pattern = _brushContext->selectedPattern;

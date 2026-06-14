@@ -161,8 +161,6 @@ void SelectPass::render(){
     Bounding area = preview->getDirtyArea();
     if(area.getWidth() > 0 && area.getHeight() > 0) texture.upload(area);
     if(area != _area){
-        printf("(%i,%i), (%i,%i)\n", area.start.x, area.start.y, area.end.x, area.end.y);
-
         if(area.getWidth() == 0 && area.getHeight() == 0) texture.upload({{0,0}, {preview->getWidth(), preview->getHeight()}});
         else if(_area != Bounding()) texture.upload(_area);
 

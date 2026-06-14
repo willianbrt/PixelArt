@@ -15,7 +15,6 @@ void DrawingSession::begin(Layer* layer){
 
     _preview->setTarget(layer);
     _dirtyManager->markDirty(dirty);
-    // _dirtyManager->markDirty({{0,0}, {layer->getWidth(), layer->getHeight()}});
 }
 
 void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext){    

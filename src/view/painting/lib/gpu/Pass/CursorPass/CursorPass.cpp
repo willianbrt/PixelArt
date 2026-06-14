@@ -74,7 +74,7 @@ void CursorPass::init(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     initialized = true;
 }
-void CursorPass::draw(){
+void CursorPass::render(){
     editor = _manager->getActiveEditor();
     if(!editor) return;
     Surface* _surface = editor->getSurface();

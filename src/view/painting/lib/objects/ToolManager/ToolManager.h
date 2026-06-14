@@ -27,20 +27,19 @@ struct ToolSettings{
 };
 
 class ToolManager {
-    bool initialized;
-    IPressedStrategy* _leftButtonPressed;
-    IPressedStrategy* _rightButtonPressed;
-    IPressedStrategy* _otherButtonPressed;
+    IPressedStrategy* _leftButtonPressed = nullptr;
+    IPressedStrategy* _rightButtonPressed = nullptr;
+    IPressedStrategy* _otherButtonPressed = nullptr;
 
-    EditorManager* _editorManager;
-    ViewportContext* _viewport;
+    EditorManager* _editorManager = nullptr;
+    ViewportContext* _viewport = nullptr;
     ToolRuntimeContext toolRuntimeContext;
 
     KEY_MOUSE buttonMousePressed = KEY_MOUSE::UNPRESSED; 
 public:
     ToolManager(EditorManager* editorManager, ViewportContext* viewport);
     
-    // void changeToolPressed(std::string toolName);
+    void finishActiveTool();
     void setRightToolPressed(IPressedStrategy* toolPressed);
     void setLeftToolPressed(IPressedStrategy* toolPressed);
     void setOtherToolPressed(IPressedStrategy* toolPressed);

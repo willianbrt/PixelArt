@@ -9,9 +9,16 @@ _viewport(viewport)
 
 }
 
-void ToolManager::setRightToolPressed(IPressedStrategy* toolPressed){
-    if(initialized)
+void ToolManager::finishActiveTool(){
+    if(!_rightButtonPressed) return;
+    if(_rightButtonPressed->isInitialized()){
         _rightButtonPressed->done();
+        
+    }
+}
+
+void ToolManager::setRightToolPressed(IPressedStrategy* toolPressed){
+    finishActiveTool();
     
     _rightButtonPressed = toolPressed;
 }
@@ -51,10 +58,7 @@ void ToolManager::onPressed(int x, int y, int button){
     buttonMousePressed = (KEY_MOUSE)button;
 
     switch(buttonMousePressed){
-        case KEY_MOUSE::RIGHT_BUTTON:
-             _rightButtonPressed->onPressed(x, y, toolRuntimeContext); 
-            initialized = true;
-            break;
+        case KEY_MOUSE::RIGHT_BUTTON: _rightButtonPressed->onPressed(x, y, toolRuntimeContext);  break;
         case KEY_MOUSE::LEFT_BUTTON: _leftButtonPressed->onPressed(x, y, toolRuntimeContext); break;
         default: _otherButtonPressed->onPressed(x, y, toolRuntimeContext); break;
     }
@@ -72,10 +76,7 @@ void ToolManager::onReleased(int x, int y, int button){
     if(static_cast<int>(buttonMousePressed) != button) return;
     
     switch((KEY_MOUSE)button){
-        case KEY_MOUSE::RIGHT_BUTTON: 
-            _rightButtonPressed->onRelease();
-            initialized = false;
-            break;
+        case KEY_MOUSE::RIGHT_BUTTON: _rightButtonPressed->onRelease(); break;
         case KEY_MOUSE::LEFT_BUTTON: _leftButtonPressed->onRelease(); break;
         default: _otherButtonPressed->onRelease(); break;
     }

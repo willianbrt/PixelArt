@@ -9,6 +9,8 @@ SelectStrategy::SelectStrategy(SelectContext* selectContext, SymmetryContext* sy
     _rotateSession = new RotateSession(_selectContext);
     _translateSession = new TranslateSession(_selectContext);
     _selectSession = new SelectSession(_selectContext);
+
+    _initialized = selectContext->enabled;
 }
 SelectStrategy::~SelectStrategy(){
     delete _selectContext->data;
@@ -24,7 +26,7 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     _pressed = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     _from = _pressed;
 
-    if(_selectContext->enabled){
+    if(_initialized){
         if(_resizeSession->begin(world, _toolRuntimeContext)){
             _mode = ENUM_MODE::RESIZE;
             return;
@@ -44,6 +46,7 @@ void SelectStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     _mode = ENUM_MODE::SELECT;
     _selectSession->begin(world, _toolRuntimeContext);
     _cutting = true;
+    _initialized = true;
 }
 void SelectStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
@@ -80,6 +83,7 @@ void SelectStrategy::onRelease(){
         if(_selectContext->enabled){
              draw();
         }
+        _initialized = _selectContext->enabled;
     }
     _mode = ENUM_MODE::SELECTED;
 }
@@ -123,6 +127,10 @@ void SelectStrategy::draw(){
         }
     }
 }
+
+bool SelectStrategy::isInitialized(){
+    return _initialized;
+}
 void SelectStrategy::done() {
     _toolRuntimeContext.drawingSession->commit();
 
@@ -138,6 +146,7 @@ void SelectStrategy::done() {
 
     _mode = ENUM_MODE::SELECT;
     _cutting = false;
+    _initialized = false;
 }
 void SelectStrategy::abort(){
     _toolRuntimeContext.drawingSession->clear();
@@ -149,5 +158,6 @@ void SelectStrategy::abort(){
 
     _cutting = false;
     _mode = ENUM_MODE::SELECT;
+    _initialized = false;
 }
 CursorContext* SelectStrategy::getCursorContext() {return &_cursorContext;};
