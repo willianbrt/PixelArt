@@ -41,7 +41,12 @@ struct Point{
     int y = 0;
     Point(int x, int y) : x(x), y(y){}
     Point(){}
-
+    bool operator!=(const Point& point) const{
+        return point.x != x || point.y != y;
+    }
+    bool operator==(const Point& point) const{
+        return point.x == x && point.y == y;
+    }
     
 };
 
@@ -85,6 +90,12 @@ struct Bounding{
         start.y = std::min(s.y, e.y);
         end.x   = std::max(s.x, e.x);
         end.y   = std::max(s.y, e.y);
+    }
+    bool operator!=(const Bounding& area) const{
+        return area.start.x != start.x || area.start.y != start.y || area.end.x != end.x || area.end.y != end.y;
+    }
+    bool operator==(const Bounding& area) const{
+        return area.start.x == start.x && area.start.y == start.y && area.end.x == end.x && area.end.y == end.y;
     }
     int getWidth() const { return end.x - start.x; }
     int getHeight() const { return end.y - start.y; }

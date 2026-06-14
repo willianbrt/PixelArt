@@ -69,6 +69,10 @@ void Preview::clear(){
     dirtyArea.end = {INT_MIN, INT_MIN};
 }
 Bounding Preview::getDirtyArea(){
+    if(dirtyArea.start.x == INT_MAX && dirtyArea.start.y == INT_MAX && dirtyArea.end.x == INT_MIN && dirtyArea.end.y == INT_MIN){
+        return {{0,0},{0,0}};
+    }
+
     return dirtyArea;
 }
 Layer* Preview::getTarget(){

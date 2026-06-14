@@ -28,5 +28,6 @@ public:
     void active();
     void init(ISurface* surface);
     void upload(const Bounding& area);
+    bool isInitialized();
 };
 #endif

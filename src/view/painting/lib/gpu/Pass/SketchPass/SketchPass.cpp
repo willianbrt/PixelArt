@@ -83,7 +83,7 @@ void SketchPass::render(){
     _surface = editor->getSurface();
     if(!_surface) return;
 
-    texture.init(_surface);
+    if(!texture.isInitialized()) texture.init(_surface);
 
     DirtyManager * dirtyManager = editor->getDirtyManager();
     if(dirtyManager->hasDirty()){

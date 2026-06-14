@@ -154,20 +154,18 @@ void SelectPass::render(){
     if(!editor) return;
     
     Preview* preview = editor->preview();
-    if(preview){
-        texture.init(preview);
-    }
+    if(!texture.isInitialized() && preview) texture.init(preview);
 
     SelectContext* select = editor->getSelectContext();    
     
     Bounding area = preview->getDirtyArea();
-    if(area.start.x != _area.start.x || area.start.y != _area.start.y || area.end.x != _area.end.x || area.end.y != _area.end.y){
-        if(area.start.x != INT_MAX && area.start.y != INT_MAX && area.end.x != INT_MIN && area.end.y != INT_MIN){
-            texture.upload(area);
-        }
-        if(_area.start.x != INT_MAX && _area.start.y != INT_MAX && _area.end.x != INT_MIN && _area.end.y != INT_MIN){
-            texture.upload(_area);
-        }
+    if(area.getWidth() > 0 && area.getHeight() > 0) texture.upload(area);
+    if(area != _area){
+        printf("(%i,%i), (%i,%i)\n", area.start.x, area.start.y, area.end.x, area.end.y);
+
+        if(area.getWidth() == 0 && area.getHeight() == 0) texture.upload({{0,0}, {preview->getWidth(), preview->getHeight()}});
+        else if(_area != Bounding()) texture.upload(_area);
+
         _area = area;
     }
     

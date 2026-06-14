@@ -21,6 +21,7 @@ void Texture::active(){
 }
 
 void Texture::init(ISurface* surface){
+    printf("i texture: %i\n", id);
     _surface = surface;
     _width = _surface->getWidth();
     _height = _surface->getHeight();
@@ -81,4 +82,7 @@ void Texture::upload(const Bounding& area){
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+}
+bool Texture::isInitialized(){
+    return initialized;
 }
