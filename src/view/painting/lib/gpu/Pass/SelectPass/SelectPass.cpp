@@ -139,7 +139,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
     shader.use();
 
     glUniformBlockBinding(shader.id(),  glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
-    texture = Texture(&shader, "texs");
+    texture = Texture(1, &shader, "texs");
 
     texSizeLocation = glGetUniformLocation(shader.id(),"texSize");
     selectSizeLocation = glGetUniformLocation(shader.id(),"selectSize");

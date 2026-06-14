@@ -42,7 +42,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, Viewpor
     shader.use();
 
     glUniformBlockBinding(shader.id(),  glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
-    texture = Texture(&shader, "texB");
+    texture = Texture(2, &shader, "texB");
     texSizeLocationH = glGetUniformLocation(shader.id(),"texSize");
     brushSizeLocation = glGetUniformLocation(shader.id(),"brushSize");
 }

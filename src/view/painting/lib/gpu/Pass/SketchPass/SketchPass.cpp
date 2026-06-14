@@ -68,7 +68,7 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport) {
     globalUBO.create();
     glUniformBlockBinding(shader.id(), glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
 
-    texture = Texture(&shader, "tex");
+    texture = Texture(1, &shader, "tex");
 
     texSizeLocation = glGetUniformLocation(shader.id(),"texSize");
     gridDivisionsLocation = glGetUniformLocation(shader.id(),"gridDivisions");

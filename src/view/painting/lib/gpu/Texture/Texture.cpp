@@ -1,23 +1,18 @@
 #include "./Texture.h"
 
-int Texture::nTexture = 0;
-
 Texture::Texture(){}
-Texture::Texture(Shader* shader, std::string name){
-    id = nTexture;    
+Texture::Texture(int zIndex, Shader* shader, std::string name){
+    _zIndex = zIndex;    
     uniformTexture = glGetUniformLocation(shader->id(), name.c_str());
     _shader = shader;
-
-    nTexture++;
 }
 Texture::~Texture(){
-    nTexture--;
 }
 
 void Texture::active(){
-    glActiveTexture(GL_TEXTURE0 + id);
+    glActiveTexture(GL_TEXTURE0 + _zIndex);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(uniformTexture, 0);
+    glUniform1i(uniformTexture, _zIndex);
 }
 
 void Texture::init(ISurface* surface){
@@ -28,7 +23,7 @@ void Texture::init(ISurface* surface){
     create();
 }
 void Texture::create(){
-    printf("i texture: %i\n", id);
+    // printf("i texture: %i\n", id);
 
     _width = _surface->getWidth();
     _height = _surface->getHeight();

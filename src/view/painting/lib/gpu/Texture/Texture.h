@@ -18,14 +18,12 @@ private:
     GLuint texture;
     GLint uniformTexture;
 
-    int id = 0;
-
-    static int nTexture;
+    int _zIndex = 0;
     
     void create();
 public:
     Texture();
-    Texture(Shader* shader, std::string name);
+    Texture(int zIndex, Shader* shader, std::string name);
     ~Texture();
     void active();
     void init(ISurface* surface);
