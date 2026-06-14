@@ -147,6 +147,7 @@ void SelectStrategy::done() {
     _mode = ENUM_MODE::SELECT;
     _cutting = false;
     _initialized = false;
+    _cursorContext.enable = true;
 }
 void SelectStrategy::abort(){
     _toolRuntimeContext.drawingSession->clear();
@@ -159,5 +160,6 @@ void SelectStrategy::abort(){
     _cutting = false;
     _mode = ENUM_MODE::SELECT;
     _initialized = false;
+    _cursorContext.enable = true;
 }
 CursorContext* SelectStrategy::getCursorContext() {return &_cursorContext;};

@@ -21,6 +21,8 @@ private:
     int id = 0;
 
     static int nTexture;
+    
+    void create();
 public:
     Texture();
     Texture(Shader* shader, std::string name);

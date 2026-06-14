@@ -1,13 +1,13 @@
 #include "BrushContext.h"
 
 std::vector<Pattern> BrushContext::pattern = {
-    {
+    Pattern(
         "dot",
         {
             0x000000FF 
         }, 1, 1
-    },
-    {
+    ),
+    Pattern(
         "brush_1",
         {
             0x00000000, 0x00000022, 0x00000022, 0x00000033,
@@ -16,7 +16,7 @@ std::vector<Pattern> BrushContext::pattern = {
             0x00000022, 0x00000000, 0x00000033, 0x00000022,
             0x00000000, 0x00000022, 0x00000022, 0x00000033
         }, 4, 5
-    }
+    )
 };
 
 BrushContext::BrushContext(){}

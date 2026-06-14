@@ -17,7 +17,7 @@ _symmetryContext(symmetryContext)
 }
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
-    // _cursorContext.enable = false;
+    _cursorContext.enable = false;
     _initialized = true;
     _toolRuntimeContext.drawingSession->begin(_toolRuntimeContext.layer);
     
@@ -43,8 +43,6 @@ void BrushStrategy::onTracking(int x, int y){
     _from = to;
 }
 void BrushStrategy::onRelease(){
-    // _cursorContext.enable = true;
-
     done();
 }
 
@@ -149,13 +147,15 @@ bool BrushStrategy::isInitialized(){
 void BrushStrategy::done() {
     _toolRuntimeContext.drawingSession->commit();
     _initialized = false;
+    _cursorContext.enable = true;
 }
 void BrushStrategy::abort(){
     _toolRuntimeContext.drawingSession->clear();
     _initialized = false;
+    _cursorContext.enable = true;
 }
 CursorContext* BrushStrategy::getCursorContext(){
-    // _cursorContext.pattern = _brushContext->selectedPattern;
-    // _cursorContext.scale = _drawingContext->size;
+    _cursorContext.pattern = _brushContext->selectedPattern;
+    _cursorContext.scale = _drawingContext->size;
     return &_cursorContext;
 }

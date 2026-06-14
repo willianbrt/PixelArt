@@ -154,7 +154,7 @@ void SelectPass::render(){
     if(!editor) return;
     
     Preview* preview = editor->preview();
-    if(!texture.isInitialized() && preview) texture.init(preview);
+    texture.init(preview);
 
     SelectContext* select = editor->getSelectContext();    
     

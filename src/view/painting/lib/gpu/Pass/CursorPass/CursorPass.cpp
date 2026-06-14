@@ -41,86 +41,36 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, Viewpor
     shader.create(fs);
     shader.use();
 
+    glUniformBlockBinding(shader.id(),  glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
+    texture = Texture(&shader, "texB");
     texSizeLocationH = glGetUniformLocation(shader.id(),"texSize");
     brushSizeLocation = glGetUniformLocation(shader.id(),"brushSize");
 }
 CursorPass::~CursorPass(){}
 
-void CursorPass::init(){
-    if (glIsTexture(texture)) {
-        glDeleteTextures(1, &texture);
-    }
-    glUniformBlockBinding(shader.id(),  glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
-
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        hover->pattern->width,
-        hover->pattern->height,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        hover->pattern->buffer.data()
-    );
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    initialized = true;
-}
 void CursorPass::render(){
     editor = _manager->getActiveEditor();
     if(!editor) return;
     Surface* _surface = editor->getSurface();
     if(!_surface) return;
     
-    hover = _toolManager->getCursorContext();
-    if(hover == nullptr)  return;
-    if(hover->pattern->buffer.size() == 0)  return;
+    CursorContext* cursor = _toolManager->getCursorContext();
+    if(cursor == nullptr)  return;
+    if(cursor->pattern == nullptr)  return;
+    if(!cursor->pattern->getBuffer())  return;
 
-    if(!initialized && hover->pattern->buffer.data() != nullptr){
-         init();
-    }
-    if(!initialized) return;
+    texture.init(cursor->pattern);
+    if(!texture.isInitialized()) return;
 
-    upload(Bounding());
     shader.use();
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(glGetUniformLocation(shader.id(),"texB"), 2);
-
+    texture.active();
     quad.bind();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     glUniform2f(texSizeLocationH, _surface->getWidth(), _surface->getHeight());
-    glUniform2f(brushSizeLocation, hover->pattern->width, hover->pattern->height);
+    glUniform2f(brushSizeLocation, cursor->pattern->getWidth(), cursor->pattern->getHeight());
 
     quad.draw();
-}
-void CursorPass::upload(Bounding area){
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    glTexSubImage2D(
-        GL_TEXTURE_2D,
-        0,
-        0,
-        0,
-        hover->pattern->width,
-        hover->pattern->height,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        hover->pattern->buffer.data()
-    );
 }

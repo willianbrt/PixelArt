@@ -13,7 +13,6 @@ void ToolManager::finishActiveTool(){
     if(!_rightButtonPressed) return;
     if(_rightButtonPressed->isInitialized()){
         _rightButtonPressed->done();
-        
     }
 }
 
@@ -52,7 +51,6 @@ void ToolManager::build(){
 
 void ToolManager::onPressed(int x, int y, int button){
     build();
-    
     if(buttonMousePressed != KEY_MOUSE::UNPRESSED) return;
     
     buttonMousePressed = (KEY_MOUSE)button;

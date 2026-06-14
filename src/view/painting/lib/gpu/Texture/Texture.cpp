@@ -21,8 +21,15 @@ void Texture::active(){
 }
 
 void Texture::init(ISurface* surface){
-    printf("i texture: %i\n", id);
+    if(surface == _surface && initialized) return;
+    initialized = false;
+
     _surface = surface;
+    create();
+}
+void Texture::create(){
+    printf("i texture: %i\n", id);
+
     _width = _surface->getWidth();
     _height = _surface->getHeight();
     
@@ -55,7 +62,7 @@ void Texture::init(ISurface* surface){
 
 void Texture::upload(const Bounding& area){
     if(_width != _surface->getWidth() || _height != _surface->getHeight()) {
-        init(_surface);
+        create();
         return;
     }
 

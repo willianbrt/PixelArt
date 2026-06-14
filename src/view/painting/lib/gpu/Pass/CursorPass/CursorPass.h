@@ -16,37 +16,27 @@
 #include "../../../context/ViewportContext/ViewportContext.h"
 #include "../../Quad/Quad.h"
 #include "../../Shader/Shader.h"
+#include "../../Texture/Texture.h"
 
 class CursorPass : public IRenderPass {
 private:
     Surface* surface;
     ViewportContext* _viewport;
-    CursorContext* hover;
     Editor* editor;
     EditorManager* _manager;
     ToolManager* _toolManager;
     
-    GLuint programHover;
-    GLuint canvasCursorHover;
-    GLuint texture;
-    GLint cursorLocation;
     GLint brushSizeLocation;
-    GLint posH;
-    GLint positionLocationH;
-    GLint scaleLocationH;
     GLint texSizeLocationH;
-    GLint resolutionLocationH;
     
-    bool initialized;
     Quad quad;
     Shader shader;
+    Texture texture;
 
 public:
     CursorPass(EditorManager* manager, ToolManager* toolManager, ViewportContext* viewport);
     ~CursorPass();
 
-    void init();
     void render();
-    void upload(Bounding area);
 };
 #endif
