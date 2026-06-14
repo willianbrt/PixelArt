@@ -24,7 +24,6 @@ private:
     CursorContext* hover;
     Editor* editor;
     EditorManager* _manager;
-    unsigned int* preview;
     
     GLint texSizeLocation;
     GLint resizeHandleLocation;

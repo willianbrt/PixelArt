@@ -153,33 +153,23 @@ void SelectPass::render(){
     editor = _manager->getActiveEditor();
     if(!editor) return;
     
-    if(preview != editor->preview()->getBuffer()){
-        preview = editor->preview()->getBuffer();
-        texture.init(editor->preview());
+    Preview* preview = editor->preview();
+    if(preview){
+        texture.init(preview);
     }
 
     SelectContext* select = editor->getSelectContext();    
     
-    // DirtyManager * dirtyManager = editor->getDirtyManager();
-    // Bounding area = dirtyManager->dirty();
-    Bounding area = editor->preview()->getDirtyArea();
+    Bounding area = preview->getDirtyArea();
     if(area.start.x != _area.start.x || area.start.y != _area.start.y || area.end.x != _area.end.x || area.end.y != _area.end.y){
-        if(area.start.x != INT_MAX && area.start.y != INT_MAX && area.end.x != INT_MIN && area.end.y != INT_MIN)
+        if(area.start.x != INT_MAX && area.start.y != INT_MAX && area.end.x != INT_MIN && area.end.y != INT_MIN){
             texture.upload(area);
-        if(_area.start.x != INT_MAX && _area.start.y != INT_MAX && _area.end.x != INT_MIN && _area.end.y != INT_MIN)
+        }
+        if(_area.start.x != INT_MAX && _area.start.y != INT_MAX && _area.end.x != INT_MIN && _area.end.y != INT_MIN){
             texture.upload(_area);
+        }
         _area = area;
     }
-    // Bounding area = editor->preview()->getDirtyArea();
-    // if(area.start.x != INT_MAX && area.start.y != INT_MAX && area.end.x != INT_MIN && area.end.y != INT_MIN){
-    //     upload(area);
-    //     if(area.start.x != _area.start.x || area.start.y != _area.start.y || area.end.x != _area.end.x || area.end.y != _area.end.y){
-    //         if(_area.start.x != INT_MAX && _area.start.y != INT_MAX && _area.end.x != INT_MIN && _area.end.y != INT_MIN)
-    //             upload(_area);
-    //     }
-    //     _area = area;
-    // }
-
     
     shader.use();
     
