@@ -86,9 +86,9 @@ struct Bounding{
         end.x   = std::max(s.x, e.x);
         end.y   = std::max(s.y, e.y);
     }
-    int getWidth(){ return end.x - start.x; }
-    int getHeight(){ return end.y - start.y; }
-    PointF getCenter(){
+    int getWidth() const { return end.x - start.x; }
+    int getHeight() const { return end.y - start.y; }
+    PointF getCenter()  const {
         return {
             (start.x + end.x) * 0.5f,
             (start.y + end.y) * 0.5f

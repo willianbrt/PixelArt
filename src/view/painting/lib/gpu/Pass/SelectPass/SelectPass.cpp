@@ -138,36 +138,18 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
     shader.create(fs);
     shader.use();
 
-    // texture = glGetUniformLocation(shader.id(),"texs");
+    glUniformBlockBinding(shader.id(),  glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
+    texture = Texture(&shader, "texs");
+
     texSizeLocation = glGetUniformLocation(shader.id(),"texSize");
     selectSizeLocation = glGetUniformLocation(shader.id(),"selectSize");
     enabledLocation = glGetUniformLocation(shader.id(),"enabled");
+    resizeHandleLocation = glGetUniformLocation(shader.id(),"resizeHandle[0]");
+    rotateHandleLocation = glGetUniformLocation(shader.id(),"rotateHandle[0]");
 }
 SelectPass::~SelectPass(){}
 
 void SelectPass::init(){
-    glUniformBlockBinding(shader.id(),  glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
-    
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        editor->getWidth(),
-        editor->getHeight(),
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        preview
-    );
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    initialized = true;
 }
 void SelectPass::draw(){
     editor = _manager->getActiveEditor();
@@ -175,7 +157,7 @@ void SelectPass::draw(){
     
     if(preview != editor->preview()->getBuffer()){
         preview = editor->preview()->getBuffer();
-        init();
+        texture.init(editor->preview());
     }
 
     SelectContext* select = editor->getSelectContext();    
@@ -185,9 +167,9 @@ void SelectPass::draw(){
     Bounding area = editor->preview()->getDirtyArea();
     if(area.start.x != _area.start.x || area.start.y != _area.start.y || area.end.x != _area.end.x || area.end.y != _area.end.y){
         if(area.start.x != INT_MAX && area.start.y != INT_MAX && area.end.x != INT_MIN && area.end.y != INT_MIN)
-            upload(area);
+            texture.upload(area);
         if(_area.start.x != INT_MAX && _area.start.y != INT_MAX && _area.end.x != INT_MIN && _area.end.y != INT_MIN)
-            upload(_area);
+            texture.upload(_area);
         _area = area;
     }
     // Bounding area = editor->preview()->getDirtyArea();
@@ -202,20 +184,18 @@ void SelectPass::draw(){
 
     
     shader.use();
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(glGetUniformLocation(shader.id(), "texs"), 1);
+    
+    texture.active();
 
     quad.bind();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-       
+    
     CanvasSettings* canvasSettings = editor->getCanvasSettings();
-    glUniform2fv(glGetUniformLocation(shader.id(),"resizeHandle[0]"), 4, select->getAllHandle(canvasSettings).data());
-    glUniform2fv(glGetUniformLocation(shader.id(),"rotateHandle[0]"), 4, select->getAllRotateHandle(canvasSettings).data());
+    glUniform2fv(resizeHandleLocation, 4, select->getAllHandle(canvasSettings).data());
+    glUniform2fv(rotateHandleLocation, 4, select->getAllRotateHandle(canvasSettings).data());
     glUniform2f(selectSizeLocation, editor->getWidth(), editor->getHeight());
     
     std::array<float, 8> r = select->getAllHandle(canvasSettings);
@@ -225,27 +205,4 @@ void SelectPass::draw(){
     quad.draw();
 }
 void SelectPass::upload(Bounding area){
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, editor->getWidth());
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, area.start.x);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, area.start.y);
-
-    glTexSubImage2D(
-        GL_TEXTURE_2D,
-        0,
-        area.start.x,
-        area.start.y,
-        area.getWidth(),
-        area.getHeight(),
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        preview
-    );
-
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 }

@@ -3,7 +3,7 @@
 SketchPass::SketchPass(){
     
 }
-SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport){
+SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport) {
     _manager = manager;
     _viewport = viewport;
     const char* fs =
@@ -66,8 +66,9 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport){
     shader.use();
 
     globalUBO.create();
-    blockIndex = glGetUniformBlockIndex(shader.id(),  "GlobalData");
-    glUniformBlockBinding(shader.id(), blockIndex,  0);
+    glUniformBlockBinding(shader.id(), glGetUniformBlockIndex(shader.id(),  "GlobalData"),  0);
+
+    texture = Texture(&shader, "tex");
 
     texSizeLocation = glGetUniformLocation(shader.id(),"texSize");
     gridDivisionsLocation = glGetUniformLocation(shader.id(),"gridDivisions");
@@ -76,51 +77,24 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport){
 }
 SketchPass::~SketchPass(){}
 
-void SketchPass::init(){
-    if (glIsTexture(texture)) {
-        glDeleteTextures(1, &texture);
-    }
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        _surface->getWidth(),
-        _surface->getHeight(),
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        _surface->getBuffer()
-    );
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-}
-
 void SketchPass::draw(){
     editor = _manager->getActiveEditor();
     if(!editor) return;
     _surface = editor->getSurface();
     if(!_surface) return;
-    if(!glIsTexture(texture)) init();
+
+    texture.init(_surface);
 
     DirtyManager * dirtyManager = editor->getDirtyManager();
     if(dirtyManager->hasDirty()){
         editor->compose(dirtyManager->dirty());
-        upload(dirtyManager->dirty());
+        texture.upload(dirtyManager->dirty());
         dirtyManager->validade();
     }
     
     shader.use();
     
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(glGetUniformLocation(shader.id(), "tex"), 0);
+    texture.active();
     
     quad.bind();
     
@@ -161,28 +135,5 @@ void SketchPass::draw(){
     quad.draw();
 }
 
-void SketchPass::upload(Bounding area){
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, _surface->getWidth());
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, area.start.x);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, area.start.y);
-
-    glTexSubImage2D(
-        GL_TEXTURE_2D,
-        0,
-        area.start.x,
-        area.start.y,
-        area.getWidth(),
-        area.getHeight(),
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        _surface->getBuffer()
-    );
-
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-}
+void SketchPass::init(){}
+void SketchPass::upload(Bounding area){}

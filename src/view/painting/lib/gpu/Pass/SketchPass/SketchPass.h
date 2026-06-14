@@ -14,6 +14,7 @@
 #include "../../Quad/Quad.h"
 #include "../../Shader/Shader.h"
 #include "../GlobalUBO/GlobalUBO.h"
+#include "../../Texture/Texture.h"
 
 class SketchPass : public IRenderPass {
 private:
@@ -24,25 +25,24 @@ private:
     EditorManager* _manager;
 
     GLuint program;
-    GLuint texture;
     GLint pos;
     GLint texSizeLocation;
     GLint gridDivisionsLocation;
     GLint lightColorLocation;
     GLint darkColorLocation;
-
+    
+    Texture texture;
     Quad quad;
     Shader shader;
     GlobalUBO globalUBO;
-    GLuint blockIndex;
 
 public:
     SketchPass();
     SketchPass(EditorManager* manager, ViewportContext* viewport);
     ~SketchPass();
 
-    void init() override;
     void draw() override;
+    void init() override;
     void upload(Bounding area) override;
 };
 #endif

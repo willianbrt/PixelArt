@@ -38,10 +38,12 @@ public:
     Preview(int width, int height);
     ~Preview();
 
-    void putPixel(int x, int y, unsigned int color);
-    unsigned int getPixel(int x, int y);
-    unsigned int getPixel(unsigned int index);
-    unsigned int* getBuffer();
+    void putPixel(int x, int y, unsigned int color) override;
+    unsigned int getPixel(int x, int y) override;
+    unsigned int getPixel(unsigned int index) override;
+    int getWidth() override;
+    int getHeight() override;
+    unsigned int* getBuffer() override;
 
     bool isDirty(unsigned int index);
     Bounding getDirtyArea();

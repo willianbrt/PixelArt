@@ -15,6 +15,7 @@
 #include "../../../context/ViewportContext/ViewportContext.h"
 #include "../../Quad/Quad.h"
 #include "../../Shader/Shader.h"
+#include "../../Texture/Texture.h"
 
 class SelectPass : public IRenderPass {
 private:
@@ -25,15 +26,9 @@ private:
     EditorManager* _manager;
     unsigned int* preview;
     
-    GLuint programSelect;
-    GLuint canvasSelect;
-    GLuint texture;
-    GLint posSelect;
-    GLint positionLocation;
-    GLint cursorWorldLocation;
-    GLint scaleLocation;
     GLint texSizeLocation;
-    GLint resolutionLocation;
+    GLint resizeHandleLocation;
+    GLint rotateHandleLocation;
     GLint selectSizeLocation;
     GLint enabledLocation;
     
@@ -41,6 +36,7 @@ private:
     Bounding _area;
 
     GLint cursorLocation;
+    Texture texture;
     Quad quad;
     Shader shader;
 

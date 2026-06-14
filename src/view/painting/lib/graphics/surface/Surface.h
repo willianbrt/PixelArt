@@ -5,9 +5,10 @@
 #include <algorithm>
 #include "../Pixel/Pixel.h"
 #include "../GraphicsEngine/GraphicsEngine.h"
+#include "../../interfaces/ISurface/ISurface.h"
 #include <assert.h>
 
-class Surface{
+class Surface : public ISurface{
 protected:
     unsigned int* _data = nullptr;
     int _width = 0;
@@ -22,15 +23,17 @@ public:
     ~Surface();
 
     uintptr_t getBufferPtr();
-    unsigned int* getBuffer();
-    int getWidth();
-    int getHeight();
-    unsigned int getLength();
     Surface* crop(Bounding bound);
-    unsigned int getPixel(int x, int y);
-    unsigned int getPixel(unsigned int index);
-    void putPixel(int x, int y, unsigned int colorHex, int nRows, int nCols, bool isMirrorX, bool isMirrorY);
-    void putPixel(int x, int y, unsigned int colorHex);
+
+    unsigned int getPixel(int x, int y) override;
+    unsigned int getPixel(unsigned int index) override;
+    void putPixel(int x, int y, unsigned int colorHex) override;
+    unsigned int* getBuffer() override;
+    int getWidth() override;
+    int getHeight() override;
+    unsigned int getLength();
+
+
     void putPixel(unsigned int index, unsigned int colorHex);
     void setSize(int width, int height);
     bool isInsideSkecth(int x, int y);

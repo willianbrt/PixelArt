@@ -74,23 +74,6 @@ unsigned int Surface::getPixel(unsigned int index) {
     
     return _data[index];
 }
-void Surface::putPixel(int x, int y, unsigned int colorHex,
-     int nRows, int nCols,
-     bool isMirrorX, bool isMirrorY){
-    if(x >= _width*nRows || y >= _height*nCols || x < 0 || y < 0) return;
-
-    x %= _width;
-    y %= _height;
-
-    putPixel(x + y*_width, colorHex);
-    
-    if(isMirrorX)
-        putPixel((_width - x - 1) + y*_width, colorHex);
-    if(isMirrorY)
-        putPixel(x + (_height - y - 1)*_width, colorHex);
-    if(isMirrorX && isMirrorY)
-        putPixel((_width - x - 1) + (_height - y - 1)*_width, colorHex);
-}
 void Surface::putPixel(int x, int y, unsigned int colorHex){
     ASSERT_MSG(x < _width, "[putPixel] (%i, %i - %i) error: x maior que a width;", x, y, _width);
     ASSERT_MSG(x >= 0, "[putPixel] (%i, %i - %i) error: x menor que 0;", x, y, _width);

@@ -74,3 +74,10 @@ Bounding Preview::getDirtyArea(){
 Layer* Preview::getTarget(){
     return _layer;
 }
+ int Preview::getWidth(){
+    return _layer->getWidth();
+} 
+int Preview::getHeight(){
+     return _layer->getHeight();
+
+ }
