@@ -12,6 +12,7 @@
 #include "../../objects/preview/Preview.h"
 #include "../../objects/layer/Layers.h"
 #include "../../objects/DrawingSession/DrawingSession.h"
+#include "../../rasterize/LineRasterize/LineRasterize.h"
 
 class BrushStrategy : public IPressedStrategy {
 private:

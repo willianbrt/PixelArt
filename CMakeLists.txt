@@ -19,6 +19,7 @@ file(GLOB_RECURSE SOURCES
     ${SRC_DIR}/lib/graphics/*/*.cpp
     ${SRC_DIR}/lib/observers/*/*.cpp
     ${SRC_DIR}/lib/strategy/*/*.cpp
+    ${SRC_DIR}/lib/rasterize/*/*.cpp
     ${SRC_DIR}/lib/objects/*/*.cpp
     ${SRC_DIR}/lib/commands/*/*.cpp
     ${SRC_DIR}/lib/context/*/*.cpp

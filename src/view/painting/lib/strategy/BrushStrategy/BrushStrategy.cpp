@@ -32,67 +32,18 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
 }
 void BrushStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
-    if (to.x == _from.x && to.y == _from.y) return;
-    
-    if (std::abs(to.x - _from.x) > std::abs(to.y - _from.y)) {
-        drawHorizontalBrush(_from, to);
-    } else {
-        drawVerticalBrush(_from, to);
+    if (to == _from) return;
+
+    LineRasterize line(_from, to);
+    while(line.hasNext()){
+        Point p = line.next();
+        stamp(p);
     }
-    
+
     _from = to;
 }
 void BrushStrategy::onRelease(){
     done();
-}
-
-void BrushStrategy::drawHorizontalBrush(Point to, Point from){
-    if(to.x < from.x){
-        std::swap(to, from);
-    }
-    
-    int dx = to.x - from.x;
-    int dy = to.y - from.y;
-
-    int dir = (dy < 0) ? -1 : 1;
-    dy = std::abs(dy); 
-
-    int D = 2*dy - dx;
-    int y = from.y;
-    
-    for(int x = from.x; x <= to.x; x++){
-        stamp({ x, y });
-        
-        if (D >= 0){
-            y+=dir;
-            D -= 2*dx;
-        }
-        D += 2*dy;
-    }
-}
-void BrushStrategy::drawVerticalBrush(Point to, Point from){
-    if(to.y < from.y){
-        std::swap(to, from);
-    }
-    
-    int dx = to.x - from.x;
-    int dy = to.y - from.y;
-    
-    int dir = (dx < 0) ? -1 : 1;
-    dx = std::abs(dx); 
-    
-    int D = 2*dx - dy;
-    int x = from.x;
-    
-    for(int y = from.y; y <= to.y; y++){ 
-        stamp({ x, y });
-        
-        if (D > 0){
-            x+=dir;
-            D -= 2*dy;
-        }
-        D += 2*dx;
-    }
 }
 
 void BrushStrategy::stamp(Point pixel){
