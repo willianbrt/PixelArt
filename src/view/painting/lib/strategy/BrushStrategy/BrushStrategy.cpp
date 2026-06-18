@@ -27,6 +27,14 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
     _widthPattern = _brushContext->selectedPattern->width*_drawingContext->size;
     
     stamp(to);
+
+    Point p;
+    StampRasterize stamp(to, {_widthPattern, _heightPattern}, {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight});
+    while(stamp.hasNext()){
+        p = stamp.next();
+
+        printf("%i, %i\n", p.x, p.y);
+    }
     
     _from = to;
 }
@@ -37,7 +45,8 @@ void BrushStrategy::onTracking(int x, int y){
     LineRasterize line(_from, to);
     while(line.hasNext()){
         Point p = line.next();
-        stamp(p);
+
+        // stamp(p);
     }
 
     _from = to;

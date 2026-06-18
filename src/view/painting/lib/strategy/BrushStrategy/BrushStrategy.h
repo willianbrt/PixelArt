@@ -13,6 +13,7 @@
 #include "../../objects/layer/Layers.h"
 #include "../../objects/DrawingSession/DrawingSession.h"
 #include "../../rasterize/LineRasterize/LineRasterize.h"
+#include "../../rasterize/StampRasterize/StampRasterize.h"
 
 class BrushStrategy : public IPressedStrategy {
 private:
