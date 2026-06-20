@@ -52,6 +52,12 @@ PointF Transformation::rotate(const PointF& ap) {
         ap.x * _sin + ap.y * _cos
     };
 };
+PointF Transformation::scale(const PointF& ap) {
+    return  {
+        ap.x * _scale.x,
+        ap.y * _scale.y
+    };
+};
 PointF Transformation::unrotate(const PointF& ap) {
     return  {
         ap.x * _cos + ap.y * _sin,
@@ -69,4 +75,11 @@ PointF Transformation::fromHeight(float t, const PointF& c) {
         c.x - t * _sin,
         c.y + t * _cos
     };
+};
+Bounding Transformation::transform(const Point& size, const Point& c) {
+    // return {
+    //     ((point.x-c.x) * _cos - (point.y - c.y) * _sin) + c.x,
+    //     ((point.x-c.x) * _sin + (point.y - c.y) * _cos) + c.y
+    // };
+    return Bounding();
 };

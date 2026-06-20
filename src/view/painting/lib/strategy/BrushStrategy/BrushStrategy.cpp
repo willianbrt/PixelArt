@@ -25,15 +25,31 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
     
     _heightPattern = _brushContext->selectedPattern->height*_drawingContext->size;
     _widthPattern = _brushContext->selectedPattern->width*_drawingContext->size;
+    float halfW = _widthPattern*0.5f;
+    float halfH = _heightPattern*0.5f;
     
-    stamp(to);
+    printf("w %i, h %i\n", _widthPattern, _heightPattern);
 
-    Point p;
-    StampRasterize stamp(to, {_widthPattern, _heightPattern}, {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight});
+    Transformation transformation;
+    transformation.setScale({2.0f, 2.0f});
+
+    StampRasterize stamp(to,
+        {_brushContext->selectedPattern->width, _brushContext->selectedPattern->height},
+        {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight}, transformation);
     while(stamp.hasNext()){
-        p = stamp.next();
+        Point it = stamp.next();
 
-        printf("%i, %i\n", p.x, p.y);
+        
+        PointF src = transformation.unrotate({it.x  + 0.5f - to.x,  it.y + 0.5f - to.y});
+        src.x = std::floor(src.x / transformation.getScale()->x + halfW);
+        src.y = std::floor(src.y / transformation.getScale()->y + halfH);
+
+        unsigned int topColor = _drawingContext->color;
+        // // GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[src.y* _brushContext->selectedPattern->width + src.x] & 0xFF) / 255.0f);
+
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, topColor, _symmetryContext);
+
+        printf("it: (%i, %i) src: (%f, %f)\n", it.x, it.y, src.x, src.y);
     }
     
     _from = to;

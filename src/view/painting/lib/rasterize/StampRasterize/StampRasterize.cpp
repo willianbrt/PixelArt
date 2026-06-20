@@ -1,55 +1,65 @@
 #include "./StampRasterize.h"
 
-StampRasterize::StampRasterize(const Point& point, const Point& sizePattern, const Point& crop){
+StampRasterize::StampRasterize(const Point& center, const Point& sizePattern, const Point& crop, const Transformation&transformation){
+    _transformation = transformation;
 
+    // Point resizedPattern = _transformation.scale(sizePattern);
+    
+    const PointF* scale = _transformation.getScale();
+    float halfW = (sizePattern.x * scale->x *0.5f);
+    float halfH = (sizePattern.y * scale->y *0.5f);
 
-    Point startPixel = {
-        point.x - (sizePattern.x >> 1),
-        point.y - (sizePattern.y >> 1)
+    start = {
+        center.x - halfW,
+        center.y - halfH
     };
 
-    if(startPixel.x >= crop.x || startPixel.y >= crop.y) return;
-    if(startPixel.x < -sizePattern.x || startPixel.y < -sizePattern.y) return;
+    end = {
+        center.x + halfW,
+        center.y + halfH
+    };
+    start = _transformation.rotate(start);
+    end = _transformation.rotate(end);
 
 
-    
-    boundingStamp.start.x = startPixel.x < 0 ? 0 : startPixel.x;
-    boundingStamp.start.y = startPixel.y < 0 ? 0 : startPixel.y;
-    boundingStamp.end.x = startPixel.x + sizePattern.x >= crop.x ? crop.x : startPixel.x + sizePattern.x;  
-    boundingStamp.end.y = startPixel.y + sizePattern.y >= crop.y ? crop.y : startPixel.y + sizePattern.y;
-    
-    
-    _hasNext =  !(point.y == boundingStamp.end.x && point.y == boundingStamp.end.y);
+    start.x = start.x < 0.0f ? 0.0f : start.x;
+    start.y = start.y < 0.0f ? 0.0f : start.y;
+    end.x = end.x >= crop.x ? crop.x : end.x;  
+    end.y = end.y >= crop.y ? crop.y : end.y;
 
-    _current = boundingStamp.start;
-    // int startSrcX = startPixel.x < 0 ? -startPixel.x  / _drawingContext->size : 0;
-    // int startErrX = startPixel.x < 0 ? startPixel.x % sizePattern.x : 0;
-    
-    // int srcY =  startPixel.y < 0 ? -startPixel.y  / _drawingContext->size : 0;
-    // int errY = startPixel.y < 0 ? startPixel.y % sizePattern.y : 0;
-    
+    // start.x = start.x < 0.0f ? 0.0f : start.x;
+    // start.y = start.y < 0.0f ? 0.0f : start.y;
+    // end.x = start.x + sizePattern.x >= crop.x ? crop.x : start.x + sizePattern.x;  
+    // end.y = start.y + sizePattern.y >= crop.y ? crop.y : start.y + sizePattern.y;
 
+    _current = {(int)std::floor(start.x+0.5f), (int)std::floor(start.y+0.5f)};
+    _hasNext = (start.x < end.x && start.y < end.y);
+    
+if(_hasNext)
+    printf("sx %i, sy %i - ex %f, ey %f\n", _current.x, _current.y, end.x, end.y);
 }
+ 
+
 StampRasterize::~StampRasterize(){}
 
 bool StampRasterize::hasNext() const {
-    return _current.y < boundingStamp.end.y;
+    printf("py %i, ey %f\n", _current.y, end.y);
+    return _current.y < end.y;
 }
 Point StampRasterize::next() {
-    if(!(_current.y < boundingStamp.end.y)){
+    if(!(_current.y < end.y)){
         return _current;
-    }
-
-    Point point = _current;
+    }    
     
+    Point point = _current;
+
+
     _current.x++;
     
-    if (_current.x >=  boundingStamp.end.x) {
-        _current.x = boundingStamp.start.x;
+    if (_current.x >=  end.x) {
+        _current.x = start.x;
         _current.y++;
     }
 
-
     return point;
-
 }
