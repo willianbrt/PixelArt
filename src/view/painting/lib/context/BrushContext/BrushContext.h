@@ -2,6 +2,7 @@
 #define BRUSHCONTEXT_H
 #include "../../interfaces/IToolContext/IToolContext.h"
 #include "../../interfaces/ISurface/ISurface.h"
+#include "../../graphics/Transformation/Transformation.h"
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -29,6 +30,7 @@ private:
 
 public:
     BrushContext();
+    Transformation transformation;
     Pattern* selectedPattern;
     static std::vector<Pattern> pattern;
     std::vector<Pattern>::iterator findPattern(std::string name);

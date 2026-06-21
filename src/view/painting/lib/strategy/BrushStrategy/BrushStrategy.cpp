@@ -10,7 +10,9 @@ _symmetryContext(symmetryContext)
     _drawingContext->color = 0xff0000ff;
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
-    
+
+    _brushContext->transformation.setScale({1.0f, 1.0f});
+    _brushContext->transformation.setRad(45  * M_PI / 180);
 
     _symmetryContext->isMirrorX =false;
     _symmetryContext->isMirrorY =false;
@@ -25,31 +27,38 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
     
     _heightPattern = _brushContext->selectedPattern->height*_drawingContext->size;
     _widthPattern = _brushContext->selectedPattern->width*_drawingContext->size;
-    float halfW = _widthPattern*0.5f;
-    float halfH = _heightPattern*0.5f;
-    
-    printf("w %i, h %i\n", _widthPattern, _heightPattern);
 
-    Transformation transformation;
-    transformation.setScale({2.0f, 2.0f});
+    
+    const PointF* scale = _brushContext->transformation.getScale();
+    float halfW = _brushContext->selectedPattern->width*0.5f;
+    float halfH = _brushContext->selectedPattern->height*0.5f;
+
 
     StampRasterize stamp(to,
         {_brushContext->selectedPattern->width, _brushContext->selectedPattern->height},
-        {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight}, transformation);
+        {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight}, _brushContext->transformation);
     while(stamp.hasNext()){
         Point it = stamp.next();
-
+            
+        float dx = (it.x + 0.5f) - to.x ;
+        float dy = (it.y + 0.5f) - to.y ;
         
-        PointF src = transformation.unrotate({it.x  + 0.5f - to.x,  it.y + 0.5f - to.y});
-        src.x = std::floor(src.x / transformation.getScale()->x + halfW);
-        src.y = std::floor(src.y / transformation.getScale()->y + halfH);
+        PointF src = _brushContext->transformation.unrotate({dx,  dy});
+        src.x = std::floor((src.x/ scale->x) + halfW);
+        src.y = std::floor((src.y/ scale->y) + halfH);
+
+
+        // Point src = stamp.getSrcPoint();
+
+        if(src.x < 0 || src.y < 0 || src.x > _brushContext->selectedPattern->width || src.y > _brushContext->selectedPattern->height) continue;
+        
+        printf("it: (%i, %i) src: (%f, %f)\n", it.x, it.y, src.x, src.y);
 
         unsigned int topColor = _drawingContext->color;
-        // // GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[src.y* _brushContext->selectedPattern->width + src.x] & 0xFF) / 255.0f);
+
+        // GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[src.y* _brushContext->selectedPattern->width + src.x] & 0xFF) / 255.0f);
 
         _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, topColor, _symmetryContext);
-
-        printf("it: (%i, %i) src: (%f, %f)\n", it.x, it.y, src.x, src.y);
     }
     
     _from = to;

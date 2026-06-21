@@ -37,24 +37,3 @@ std::vector<Pattern>::iterator BrushContext::findPattern(std::string name){
     }
     return it;
 }
-
-// #include <emscripten/bind.h>
-
-// using namespace emscripten;
-
-// EMSCRIPTEN_BINDINGS(pixel_editor_module){
-//     register_vector<Pattern>("VectorPattern");
-    
-//     value_object<Pattern>("Pattern")
-//         .field("name", &Pattern::name)
-//         .field("buffer", &Pattern::buffer)
-//         .field("width", &Pattern::width)
-//         .field("height", &Pattern::height)
-//         ;
-
-//     class_<BrushContext>("BrushContext")
-//         .constructor<>()
-//         .property("selectedPattern", &BrushContext::selectedPattern)
-//         .property("pattern", &BrushContext::pattern)
-//         ;
-// };

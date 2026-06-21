@@ -7,11 +7,14 @@
 class Transformation {
 private:
     PointF _scale = {1.0f,1.0f};
+    PointF _invScale = {1.0f,1.0f};
 
     float _angleRad;
     float _cos;
     float _sin;
 
+    float absCos;
+    float absSin;
     PointF _delta;
 
 public:
@@ -22,6 +25,8 @@ public:
 
     void setScale(PointF scale);
     const PointF* getScale() const;
+    const PointF* getInvScale() const;
+    
     void setDelta(PointF delta);
     const PointF* getDelta() const;
 
@@ -35,7 +40,7 @@ public:
     PointF fromWidth(float t, const PointF& c);
     PointF fromHeight (float t, const PointF& c);
     
-    Bounding transform(const Point& size, const Point& c);
+    void transform(Bounding& bounding, const Point& size, const Point& c) const;
 };
 
 

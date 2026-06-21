@@ -3,63 +3,65 @@
 StampRasterize::StampRasterize(const Point& center, const Point& sizePattern, const Point& crop, const Transformation&transformation){
     _transformation = transformation;
 
-    // Point resizedPattern = _transformation.scale(sizePattern);
+    _scale = transformation.getInvScale();
+    halfW = sizePattern.y * 0.5f;
+    halfH = sizePattern.x * 0.5f;
+
+    transformation.transform(bounding, sizePattern, center);
+    printf("sx %i, sy %i - ex %i, ey %i\n", bounding.start.x, bounding.start.y, bounding.end.x, bounding.end.y);
     
-    const PointF* scale = _transformation.getScale();
-    float halfW = (sizePattern.x * scale->x *0.5f);
-    float halfH = (sizePattern.y * scale->y *0.5f);
-
-    start = {
-        center.x - halfW,
-        center.y - halfH
-    };
-
-    end = {
-        center.x + halfW,
-        center.y + halfH
-    };
-    start = _transformation.rotate(start);
-    end = _transformation.rotate(end);
+    bounding.start.x = bounding.start.x < 0 ? 0 : bounding.start.x;
+    bounding.start.y = bounding.start.y < 0 ? 0 : bounding.start.y;
+    bounding.end.x = bounding.end.x >= crop.x ? crop.x : bounding.end.x;
+    bounding.end.y = bounding.end.y >= crop.y ? crop.y : bounding.end.y;
 
 
-    start.x = start.x < 0.0f ? 0.0f : start.x;
-    start.y = start.y < 0.0f ? 0.0f : start.y;
-    end.x = end.x >= crop.x ? crop.x : end.x;  
-    end.y = end.y >= crop.y ? crop.y : end.y;
+    _current =  bounding.start;
+    _hasNext = bounding.start.x < bounding.end.x && bounding.start.y < bounding.end.y;
+    _center = center;
 
-    // start.x = start.x < 0.0f ? 0.0f : start.x;
-    // start.y = start.y < 0.0f ? 0.0f : start.y;
-    // end.x = start.x + sizePattern.x >= crop.x ? crop.x : start.x + sizePattern.x;  
-    // end.y = start.y + sizePattern.y >= crop.y ? crop.y : start.y + sizePattern.y;
-
-    _current = {(int)std::floor(start.x+0.5f), (int)std::floor(start.y+0.5f)};
-    _hasNext = (start.x < end.x && start.y < end.y);
+    dx = _current.x - _center.x + 0.5f;
+    dy = _current.y - _center.y + 0.5f;
+    PointF srcf = _transformation.unrotate({dx,  dy});
+    src.x = std::floor(srcf.x * _scale->x + halfW);
+    src.y = std::floor(srcf.y * _scale->y + halfH);
     
-if(_hasNext)
-    printf("sx %i, sy %i - ex %f, ey %f\n", _current.x, _current.y, end.x, end.y);
+    // printf("sx %i, sy %i - ex %f, ey %f\n", _current.x, _current.y, end.x, end.y);
 }
  
 
 StampRasterize::~StampRasterize(){}
 
 bool StampRasterize::hasNext() const {
-    printf("py %i, ey %f\n", _current.y, end.y);
-    return _current.y < end.y;
+    //  printf("sx %i, sy %i - ex %i, ey %i\n", _current.x, _current.y, bounding.end.x, bounding.end.y);
+    return _current.y <  bounding.end.y;
 }
 Point StampRasterize::next() {
-    if(!(_current.y < end.y)){
+    if(!(_current.y < bounding.end.y)){
         return _current;
     }    
     
     Point point = _current;
-
+      
 
     _current.x++;
+
+    dx = (_current.x - _center.x  + 0.5f) ;
     
-    if (_current.x >=  end.x) {
-        _current.x = start.x;
+    if (_current.x >=  bounding.end.x) {
+        _current.x =  bounding.start.x;
         _current.y++;
+
+        dy = (_current.y - _center.y + 0.5f) ;
     }
 
+    PointF srcf = _transformation.unrotate({dx,  dy});
+    src.x = std::floor(srcf.x * _scale->x + halfW);
+    src.y = std::floor(srcf.y * _scale->y + halfH);
+
     return point;
+}
+Point StampRasterize::getSrcPoint(){
+    // return _transformation.unrotate({dx,  dy});
+    return src;
 }

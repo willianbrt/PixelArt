@@ -10,9 +10,13 @@ Transformation::Transformation(){
 }
 void Transformation::setScale(PointF scale){
     _scale = scale;
+    _invScale = {1.0f/_scale.x, 1.0f/_scale.y}; 
 }
 const PointF* Transformation::getScale() const {
     return &_scale;
+}
+const PointF* Transformation::getInvScale() const {
+    return &_invScale;
 }
 
 void Transformation::setDelta(PointF delta){
@@ -30,6 +34,8 @@ void Transformation::setRad(const float rad){
     _angleRad = rad;
     _cos = std::cos(_angleRad);
     _sin = std::sin(_angleRad);
+    absCos = std::abs(_cos);
+    absSin = std::abs(_sin);
 }
 PointF Transformation::distance(const PointF& p, const PointF& c) {
     return PointF(p.x - c.x, p.y - c.y);
@@ -76,10 +82,16 @@ PointF Transformation::fromHeight(float t, const PointF& c) {
         c.y + t * _cos
     };
 };
-Bounding Transformation::transform(const Point& size, const Point& c) {
-    // return {
-    //     ((point.x-c.x) * _cos - (point.y - c.y) * _sin) + c.x,
-    //     ((point.x-c.x) * _sin + (point.y - c.y) * _cos) + c.y
-    // };
-    return Bounding();
+void Transformation::transform(Bounding& bounding, const Point& size, const Point& c) const {
+    float halfW = (size.x * _scale.x *0.5f);
+    float halfH = (size.y * _scale.y *0.5f);
+
+    float extX = halfW * absCos + halfH * absSin;
+    float extY = halfW * absSin + halfH * absCos;
+
+    bounding.start.x = (int)std::floor((c.x + 0.5f) - extX);
+    bounding.start.y = (int)std::floor((c.y + 0.5f) - extY);
+    
+    bounding.end.x   = (int)std::ceil((c.x + 0.5f) + extX);
+    bounding.end.y   = (int)std::ceil((c.y + 0.5f) + extY);
 };
