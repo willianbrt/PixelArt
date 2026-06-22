@@ -25,23 +25,7 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
     
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
         
-    StampRasterize stamp(to,
-        {_brushContext->selectedPattern->width, _brushContext->selectedPattern->height},
-        {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight}, _brushContext->transformation);
-
-    while(stamp.hasNext()){
-        Point it = stamp.next();
-        Point src = stamp.getSrcPoint();
-            
-        if(src.x < 0 || src.y < 0 || src.x > _brushContext->selectedPattern->width || src.y > _brushContext->selectedPattern->height) continue;
-        
-
-        unsigned int topColor = _drawingContext->color;
-
-        // GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[src.y* _brushContext->selectedPattern->width + src.x] & 0xFF) / 255.0f);
-
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, topColor, _symmetryContext);
-    }
+    draw(to);
     
     _from = to;
 }
@@ -52,8 +36,7 @@ void BrushStrategy::onTracking(int x, int y){
     LineRasterize line(_from, to);
     while(line.hasNext()){
         Point p = line.next();
-
-        // stamp(p);
+        draw(p);
     }
 
     _from = to;
@@ -62,50 +45,22 @@ void BrushStrategy::onRelease(){
     done();
 }
 
-void BrushStrategy::stamp(Point pixel){
-    Point startPixel = {
-        pixel.x - (_widthPattern >> 1),
-        pixel.y - (_heightPattern >> 1)
-    };
+void BrushStrategy::draw(const Point& pixel){
+    StampRasterize stamp(pixel,
+        {_brushContext->selectedPattern->width, _brushContext->selectedPattern->height},
+        {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight},
+        _brushContext->transformation);
 
-    if(startPixel.x >= _toolRuntimeContext.screenWidth || startPixel.y >= _toolRuntimeContext.screenHeight) return;
-    if(startPixel.x < -_widthPattern || startPixel.y < -_heightPattern) return;
-    
-    Bounding boundingStamp;
-    boundingStamp.start.x = startPixel.x < 0 ? 0 : startPixel.x;
-    boundingStamp.start.y = startPixel.y < 0 ? 0 : startPixel.y;
-    boundingStamp.end.x = startPixel.x + _widthPattern >= _toolRuntimeContext.screenWidth ? _toolRuntimeContext.screenWidth : startPixel.x + _widthPattern;  
-    boundingStamp.end.y = startPixel.y + _heightPattern >= _toolRuntimeContext.screenHeight ? _toolRuntimeContext.screenHeight : startPixel.y + _heightPattern;
-    
-    
-    int startSrcX = startPixel.x < 0 ? -startPixel.x  / _drawingContext->size : 0;
-    int startErrX = startPixel.x < 0 ? startPixel.x % _widthPattern : 0;
-    
-    int srcY =  startPixel.y < 0 ? -startPixel.y  / _drawingContext->size : 0;
-    int errY = startPixel.y < 0 ? startPixel.y % _heightPattern : 0;
-    
-    for(int y = boundingStamp.start.y; y < boundingStamp.end.y; y ++){
-        int srcX = startSrcX;
-        int errX = startErrX;
-        
-        for(int x =  boundingStamp.start.x; x <  boundingStamp.end.x; x ++){
-            unsigned int topColor = _drawingContext->color;
-            GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[srcY* _brushContext->selectedPattern->width + srcX] & 0xFF) / 255.0f);
+    while(stamp.hasNext()){
+        Point it = stamp.next();
+        Point src = stamp.getSrcPoint();
+            
+        if(src.x < 0 || src.y < 0 || src.x > _brushContext->selectedPattern->width || src.y > _brushContext->selectedPattern->height) continue;
 
-            _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, topColor, _symmetryContext);
+        unsigned int topColor = _drawingContext->color;
+        GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[src.y* _brushContext->selectedPattern->width + src.x] & 0xFF) / 255.0f);
 
-            errX += _brushContext->selectedPattern->width;
-            if(errX >= _widthPattern){
-                srcX++;
-                errX-=_widthPattern;
-            }
-        }
-
-        errY += _brushContext->selectedPattern->height;
-        if(errY >= _heightPattern){
-            srcY++;
-            errY-=_heightPattern;
-        }
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, topColor, _symmetryContext);
     }
 }
 bool BrushStrategy::isInitialized(){

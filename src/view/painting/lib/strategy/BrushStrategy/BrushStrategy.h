@@ -31,7 +31,7 @@ private:
     
     void drawHorizontalBrush(Point to, Point from);
     void drawVerticalBrush(Point to, Point from);
-    void stamp(Point pixel);
+    void draw(const Point& pixel);
 
 public:
     BrushStrategy(BrushContext* brushContext, DrawingContext* context, SymmetryContext* symmetryContext);

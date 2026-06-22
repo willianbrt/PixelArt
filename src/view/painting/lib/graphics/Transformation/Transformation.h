@@ -41,6 +41,7 @@ public:
     PointF fromHeight (float t, const PointF& c);
     
     void transform(Bounding& bounding, const Point& size, const Point& c) const;
+    void untransform(PointF& out, const PointF& ap) const;
 };
 
 

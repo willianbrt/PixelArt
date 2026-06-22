@@ -1,20 +1,12 @@
 #include "./StampRasterize.h"
 
 StampRasterize::StampRasterize(const Point& center, const Point& sizePattern, const Point& crop, const Transformation&transformation){
-    cos = std::cos(transformation.getRad());
-    sin = std::sin(transformation.getRad());
+    _transformation = transformation;
+    _transformation.setDelta({ sizePattern.x * 0.5f, sizePattern.y * 0.5f });
 
-    _scale = transformation.getInvScale();
-    const PointF* scale = transformation.getScale();
-    float halfW = sizePattern.x * 0.5f;
-    float halfH = sizePattern.y * 0.5f;
 
-    transformation.transform(bounding, sizePattern, center);
-    // printf("sx %i, sy %i - ex %i, ey %i - hw %f, hh %f - cx %i, cy %i \n",
-    //      bounding.start.x, bounding.start.y,
-    //      bounding.end.x, bounding.end.y,
-    //      halfW, halfH, center.x, center.y);
-    
+    _transformation.transform(bounding, sizePattern, center);
+
     bounding.start.x = bounding.start.x < 0 ? 0 : bounding.start.x;
     bounding.start.y = bounding.start.y < 0 ? 0 : bounding.start.y;
     bounding.end.x = bounding.end.x >= crop.x ? crop.x : bounding.end.x;
@@ -24,12 +16,9 @@ StampRasterize::StampRasterize(const Point& center, const Point& sizePattern, co
     _current =  bounding.start;
     _hasNext = bounding.start.x < bounding.end.x && bounding.start.y < bounding.end.y;
     
-    initial = transformation.unrotate({ (_current.x + 0.5f - (float)center.x),  (_current.y + 0.5f - (float)center.y) });
-    initial.x *= _scale->x;
-    initial.y *= _scale->y;
-    initial.x += halfW;
-    initial.y += halfH;
-    src = initial;
+    delta.x = (_current.x + 0.5f - (float)center.x);
+    delta.y = (_current.y + 0.5f - (float)center.y);
+    _transformation.untransform(src, delta);
 }
  
 
@@ -48,25 +37,18 @@ Point StampRasterize::next() {
     _currentSrc = { (int)std::floor(src.x), (int)std::floor(src.y) };      
 
     _current.x++;
-
-    src.x += cos * _scale->x;
-    src.y -= sin * _scale->y;
-
-    // src.x *= _scale->x;
-    // src.y *= _scale->y;
+    delta.x++;
+    
     if (_current.x >=  bounding.end.x) {
         _current.x =  bounding.start.x;
         _current.y++;
-
-        initial.x += sin * _scale->x;
-        initial.y += cos * _scale->y;
+        delta.x -= bounding.end.x - bounding.start.x;
+        delta.y++;
         
-        src.x = initial.x;
-        src.y = initial.y;
     }
+    
 
-
-
+    _transformation.untransform(src, delta);
     return point;
 }
 Point StampRasterize::getSrcPoint(){

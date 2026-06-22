@@ -7,13 +7,11 @@
 
 class StampRasterize {
 private:
+    Transformation _transformation;
     Point _current, _currentSrc;
     bool _hasNext;
     Bounding bounding;
-    float dx, dy;
-    float cos, sin;
-    PointF initial, src;
-    const PointF* _scale;
+    PointF src, delta;
 public:
 StampRasterize(const Point& center, const Point& sizePattern, const Point& crop, const Transformation&transformation);
 ~StampRasterize();

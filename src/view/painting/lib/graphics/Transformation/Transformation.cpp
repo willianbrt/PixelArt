@@ -95,3 +95,9 @@ void Transformation::transform(Bounding& bounding, const Point& size, const Poin
     bounding.end.x   = (int)std::ceil((c.x + 0.5f) + extX);
     bounding.end.y   = (int)std::ceil((c.y + 0.5f) + extY);
 };
+
+
+void Transformation::untransform(PointF& out, const PointF& ap) const{
+    out.x = (ap.x * _cos + ap.y * _sin) * _invScale.x + _delta.x;
+    out.y = (ap.x * -_sin + ap.y * _cos) * _invScale.y + _delta.y;
+};
