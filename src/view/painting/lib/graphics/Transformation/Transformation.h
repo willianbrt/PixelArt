@@ -20,7 +20,7 @@ private:
 public:
     Transformation();
 
-    float getRad();
+    float getRad() const;
     void setRad(const float rad);
 
     void setScale(PointF scale);
@@ -36,7 +36,7 @@ public:
     PointF translate(const PointF& p, const PointF delta);
     PointF rotate(const PointF& ap);
     PointF scale(const PointF& ap);
-    PointF unrotate(const PointF& ap);
+    PointF unrotate(const PointF& ap) const;
     PointF fromWidth(float t, const PointF& c);
     PointF fromHeight (float t, const PointF& c);
     

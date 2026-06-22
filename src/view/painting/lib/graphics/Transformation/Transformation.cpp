@@ -27,7 +27,7 @@ const PointF* Transformation::getDelta() const {
 }
 
 
-float Transformation::getRad(){
+float Transformation::getRad() const {
     return _angleRad;
 }
 void Transformation::setRad(const float rad){
@@ -64,7 +64,7 @@ PointF Transformation::scale(const PointF& ap) {
         ap.y * _scale.y
     };
 };
-PointF Transformation::unrotate(const PointF& ap) {
+PointF Transformation::unrotate(const PointF& ap) const{
     return  {
         ap.x * _cos + ap.y * _sin,
         -ap.x * _sin + ap.y * _cos
@@ -91,7 +91,7 @@ void Transformation::transform(Bounding& bounding, const Point& size, const Poin
 
     bounding.start.x = (int)std::floor((c.x + 0.5f) - extX);
     bounding.start.y = (int)std::floor((c.y + 0.5f) - extY);
-    
+
     bounding.end.x   = (int)std::ceil((c.x + 0.5f) + extX);
     bounding.end.y   = (int)std::ceil((c.y + 0.5f) + extY);
 };

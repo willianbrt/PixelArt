@@ -11,7 +11,7 @@ _symmetryContext(symmetryContext)
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
 
-    _brushContext->transformation.setScale({1.0f, 1.0f});
+    _brushContext->transformation.setScale({2.0f, 2.0f});
     _brushContext->transformation.setRad(45  * M_PI / 180);
 
     _symmetryContext->isMirrorX =false;
@@ -24,35 +24,17 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
     _toolRuntimeContext.drawingSession->begin(_toolRuntimeContext.layer);
     
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
-    
-    _heightPattern = _brushContext->selectedPattern->height*_drawingContext->size;
-    _widthPattern = _brushContext->selectedPattern->width*_drawingContext->size;
-
-    
-    const PointF* scale = _brushContext->transformation.getScale();
-    float halfW = _brushContext->selectedPattern->width*0.5f;
-    float halfH = _brushContext->selectedPattern->height*0.5f;
-
-
+        
     StampRasterize stamp(to,
         {_brushContext->selectedPattern->width, _brushContext->selectedPattern->height},
         {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight}, _brushContext->transformation);
+
     while(stamp.hasNext()){
         Point it = stamp.next();
+        Point src = stamp.getSrcPoint();
             
-        float dx = (it.x + 0.5f) - to.x ;
-        float dy = (it.y + 0.5f) - to.y ;
-        
-        PointF src = _brushContext->transformation.unrotate({dx,  dy});
-        src.x = std::floor((src.x/ scale->x) + halfW);
-        src.y = std::floor((src.y/ scale->y) + halfH);
-
-
-        // Point src = stamp.getSrcPoint();
-
         if(src.x < 0 || src.y < 0 || src.x > _brushContext->selectedPattern->width || src.y > _brushContext->selectedPattern->height) continue;
         
-        printf("it: (%i, %i) src: (%f, %f)\n", it.x, it.y, src.x, src.y);
 
         unsigned int topColor = _drawingContext->color;
 
