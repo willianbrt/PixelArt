@@ -16,6 +16,7 @@
 #include "../../strategy/RotateSession/RotateSession.h"
 #include "../../strategy/TranslateSession/TranslateSession.h"
 #include "../../strategy/SelectSession/SelectSession.h"
+#include "../../rasterize/StampRasterize/StampRasterize.h"
 
 #include <optional>
 

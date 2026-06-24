@@ -14,7 +14,7 @@ bool SelectSession::begin(Point point, const ToolRuntimeContext& toolRuntimeCont
     _selectionContext->transformation = Transformation();
     _selectionContext->srcArea = Bounding();
 
-    _selectionContext->srcArea = Bounding(_startPoint, {_startPoint.x+1, _startPoint.y+1});
+    _selectionContext->srcArea = Bounding(_startPoint, _startPoint);
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
      
     _selectionContext->enabled = true;
@@ -22,8 +22,8 @@ bool SelectSession::begin(Point point, const ToolRuntimeContext& toolRuntimeCont
     return true;
 }
 void SelectSession::update(const Point& mouse){
-    _selectionContext->srcArea.end.x = mouse.x + 1;
-    _selectionContext->srcArea.end.y = mouse.y + 1;
+    _selectionContext->srcArea.end.x = mouse.x;
+    _selectionContext->srcArea.end.y = mouse.y;
     
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
     
@@ -34,13 +34,13 @@ void SelectSession::update(const Point& mouse){
 void SelectSession::end(){
     if(_selectionContext->srcArea.start.x >= _selectionContext->srcArea.end.x){
         std::swap(_selectionContext->srcArea.start.x, _selectionContext->srcArea.end.x);
-        _selectionContext->srcArea.start.x -= 1;
-        _selectionContext->srcArea.end.x += 1;
+        // _selectionContext->srcArea.start.x -= 1;
+        // _selectionContext->srcArea.end.x += 1;
     }
     if(_selectionContext->srcArea.start.y >= _selectionContext->srcArea.end.y){
         std::swap(_selectionContext->srcArea.start.y, _selectionContext->srcArea.end.y);
-        _selectionContext->srcArea.start.y -= 1;
-        _selectionContext->srcArea.end.y += 1;
+        // _selectionContext->srcArea.start.y -= 1;
+        // _selectionContext->srcArea.end.y += 1;
     }
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
     
@@ -52,10 +52,10 @@ void SelectSession::shrinkToTheDrawing(){
     Bounding delimit;
 
     _toolRuntimeContext.clampBounding(_selectionContext->srcArea);
-    for (int y = _selectionContext->srcArea.start.y; y < _selectionContext->srcArea.end.y; ++y) {
+    for (int y = _selectionContext->srcArea.start.y; y <= _selectionContext->srcArea.end.y; ++y) {
         Point p;
         p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
-        for (int x = _selectionContext->srcArea.start.x; x < _selectionContext->srcArea.end.x; ++x){
+        for (int x = _selectionContext->srcArea.start.x; x <= _selectionContext->srcArea.end.x; ++x){
             p.x = GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth());
             if((_toolRuntimeContext.layer->getPixel(p.x, p.y) >> 24 & 0xFF) == 0) continue;
 
@@ -72,11 +72,11 @@ void SelectSession::shrinkToTheDrawing(){
         _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
         return;
     }
-    delimit.end.x++;
-    delimit.end.y++;
     
     _selectionContext->srcArea = delimit;
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
+    Bounding bounding = _selectionContext->srcArea;
+    printf("finish: %i, %i - %i, %i\n", bounding.start.x,bounding.start.y, bounding.end.x, bounding.end.y);
 }
 
 void SelectSession::initSelectData(){

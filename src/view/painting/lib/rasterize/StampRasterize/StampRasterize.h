@@ -13,7 +13,7 @@ private:
     Bounding bounding;
     PointF src, delta;
 public:
-StampRasterize(const Point& center, const Point& sizePattern, const Point& crop, const Transformation&transformation);
+StampRasterize(const PointF& center, const Point& sizePattern, const Point& crop, const Transformation&transformation);
 ~StampRasterize();
 
 bool hasNext() const;

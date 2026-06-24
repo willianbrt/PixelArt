@@ -11,8 +11,8 @@ _symmetryContext(symmetryContext)
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
 
-    _brushContext->transformation.setScale({2.0f, 2.0f});
-    _brushContext->transformation.setRad(45  * M_PI / 180);
+    _brushContext->transformation.setScale({1.0f, 1.0f});
+    _brushContext->transformation.setRad(0  * M_PI / 180);
 
     _symmetryContext->isMirrorX =false;
     _symmetryContext->isMirrorY =false;
@@ -22,11 +22,11 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
     _cursorContext.enable = false;
     _initialized = true;
     _toolRuntimeContext.drawingSession->begin(_toolRuntimeContext.layer);
-    
+
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
-        
+
     draw(to);
-    
+
     _from = to;
 }
 void BrushStrategy::onTracking(int x, int y){
@@ -46,7 +46,7 @@ void BrushStrategy::onRelease(){
 }
 
 void BrushStrategy::draw(const Point& pixel){
-    StampRasterize stamp(pixel,
+    StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
         {_brushContext->selectedPattern->width, _brushContext->selectedPattern->height},
         {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight},
         _brushContext->transformation);
@@ -54,7 +54,7 @@ void BrushStrategy::draw(const Point& pixel){
     while(stamp.hasNext()){
         Point it = stamp.next();
         Point src = stamp.getSrcPoint();
-            
+
         if(src.x < 0 || src.y < 0 || src.x > _brushContext->selectedPattern->width || src.y > _brushContext->selectedPattern->height) continue;
 
         unsigned int topColor = _drawingContext->color;

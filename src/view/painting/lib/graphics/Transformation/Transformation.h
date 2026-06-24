@@ -40,7 +40,7 @@ public:
     PointF fromWidth(float t, const PointF& c);
     PointF fromHeight (float t, const PointF& c);
     
-    void transform(Bounding& bounding, const Point& size, const Point& c) const;
+    void transform(Bounding& bounding, const Point& size, const PointF& c) const;
     void untransform(PointF& out, const PointF& ap) const;
 };
 

@@ -60,9 +60,13 @@ void ResizeSession::update(const Point& mouse){
         (float)mouse.y
     };
 
-    PointF unrotate = _selectionContext->transformation.unrotate(_selectionContext->transformation.distance(pixel, *pivot));
+    PointF pixelEdge = pixel;
+    pixelEdge.x += (_selectionContext->selectionBox.sign[_activeMarker].x > 0) ? 1.0f : 0.0f;
+    pixelEdge.y += (_selectionContext->selectionBox.sign[_activeMarker].y > 0) ? 1.0f : 0.0f;
+
+    PointF unrotate = _selectionContext->transformation.unrotate(_selectionContext->transformation.distance(pixelEdge, *pivot));
     PointF resized = {
-        _selectionContext->selectionBox.sign[_activeMarker].x *  unrotate.x,
+        _selectionContext->selectionBox.sign[_activeMarker].x * unrotate.x,
         _selectionContext->selectionBox.sign[_activeMarker].y * unrotate.y
     };
 

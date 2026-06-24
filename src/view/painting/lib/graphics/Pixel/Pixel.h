@@ -97,8 +97,8 @@ struct Bounding{
     bool operator==(const Bounding& area) const{
         return area.start.x == start.x && area.start.y == start.y && area.end.x == end.x && area.end.y == end.y;
     }
-    int getWidth() const { return end.x - start.x; }
-    int getHeight() const { return end.y - start.y; }
+    int getWidth() const { return end.x - start.x + 1; }
+    int getHeight() const { return end.y - start.y + 1; }
     PointF getCenter()  const {
         return {
             (start.x + end.x) * 0.5f,

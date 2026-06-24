@@ -100,31 +100,30 @@ void SelectStrategy::draw(){
 
     if(_cutting) clear();
     
-    Bounding destBounding = _selectContext->selectionBox.getBounding();
-    _toolRuntimeContext.clampBounding(destBounding);
-    
-    const PointF* scale = _selectContext->transformation.getScale();
     PointF _dstCenter = _selectContext->selectionBox.getCenter();
-    PointF _srcCenter = _selectContext->srcArea.getCenter();
-    float halfW = (_selectContext->srcArea.getWidth()) * 0.5f;
-    float halfH = (_selectContext->srcArea.getHeight()) * 0.5f;
-    
-    for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
-        for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
-            PointF src = _selectContext->transformation.unrotate({dx  + 0.5f - _dstCenter.x, dy + 0.5f - _dstCenter.y});
-            src.x = std::floor(src.x / scale->x + halfW);
-            src.y = std::floor(src.y / scale->y + halfH);
+    StampRasterize stamp(_dstCenter,
+        {_selectContext->srcArea.getWidth(), _selectContext->srcArea.getHeight()},
+        {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight},
+        _selectContext->transformation);
 
 
-            if (!_selectContext->data->isInsideSkecth(src.x, src.y)) {
-                continue;
-            }
-            unsigned int color = _selectContext->data->getPixel(src.x, src.y);
+    // printf("c(%f, %f)\n",_dstCenter.x,_dstCenter.y );
+    // printf("sz(%i, %i)\n",_selectContext->srcArea.getWidth(),_selectContext->srcArea.getHeight() );
+        
+    while(stamp.hasNext()){
+        Point it = stamp.next();
+        Point src = stamp.getSrcPoint();
+        // printf("i(%i, %i), src(%i, %i)\n",it.x, it.y ,src.x, src.y);
+        if(src.x < 0 || src.y < 0 || src.x > _selectContext->srcArea.getWidth() || src.y > _selectContext->srcArea.getHeight()) continue;
+
+        if (!_selectContext->data->isInsideSkecth(src.x, src.y)) { continue; }
+        
+        unsigned int color = _selectContext->data->getPixel(src.x, src.y);
+        
+        if((color >> 24 & 0xFF) == 0) { continue; }
+        
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color, _symmetryContext);
             
-            if((color >> 24 & 0xFF) == 0) { continue; }
-            
-            _toolRuntimeContext.drawingSession->blendMirroredPixel(dx, dy, color, _symmetryContext);
-        }
     }
 }
 

@@ -5,9 +5,9 @@ SelectionBox::SelectionBox(){
 
 SelectionBox::SelectionBox(Bounding bounding){
     corners[ENUM_MARKER::TOP_LEFT]     = PointF(bounding.start.x, bounding.start.y);
-    corners[ENUM_MARKER::BOTTOM_RIGHT] = PointF(bounding.end.x, bounding.end.y);
-    corners[ENUM_MARKER::TOP_RIGHT]    = PointF(bounding.end.x, bounding.start.y);
-    corners[ENUM_MARKER::BOTTOM_LEFT]  = PointF(bounding.start.x, bounding.end.y);
+    corners[ENUM_MARKER::TOP_RIGHT]    = PointF(bounding.end.x + 1, bounding.start.y);
+    corners[ENUM_MARKER::BOTTOM_RIGHT] = PointF(bounding.end.x + 1, bounding.end.y + 1);
+    corners[ENUM_MARKER::BOTTOM_LEFT]  = PointF(bounding.start.x, bounding.end.y + 1);
 
         // printf("teste: %f,%f, ", corners[0].x, corners[0].y);
         // printf("%f,%f, ", corners[1].x, corners[1].y);
@@ -34,10 +34,12 @@ Bounding SelectionBox::getBounding(){
 }
 
 PointF SelectionBox::getCenter(){
-    return {
-        (corners[ENUM_MARKER::TOP_LEFT].x + corners[ENUM_MARKER::TOP_RIGHT].x + corners[ENUM_MARKER::BOTTOM_LEFT].x + corners[ENUM_MARKER::BOTTOM_RIGHT].x) * 0.25f,
-        (corners[ENUM_MARKER::TOP_LEFT].y + corners[ENUM_MARKER::TOP_RIGHT].y + corners[ENUM_MARKER::BOTTOM_LEFT].y + corners[ENUM_MARKER::BOTTOM_RIGHT].y) * 0.25f
-    };
+    // return {
+    //     (corners[ENUM_MARKER::TOP_LEFT].x + corners[ENUM_MARKER::TOP_RIGHT].x + corners[ENUM_MARKER::BOTTOM_LEFT].x + corners[ENUM_MARKER::BOTTOM_RIGHT].x) * 0.25f,
+    //     (corners[ENUM_MARKER::TOP_LEFT].y + corners[ENUM_MARKER::TOP_RIGHT].y + corners[ENUM_MARKER::BOTTOM_LEFT].y + corners[ENUM_MARKER::BOTTOM_RIGHT].y) * 0.25f
+    // };
+    Bounding bounding = getBounding();
+    return bounding.getCenter();
 }
 float SelectionBox::cross(PointF p1, PointF p2, PointF p3){
     return (p1.x - p2.x) * (p3.y - p2.y) - (p1.y - p2.y) * (p3.x - p2.x);
