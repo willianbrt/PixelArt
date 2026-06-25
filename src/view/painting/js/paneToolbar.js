@@ -30,7 +30,7 @@ export function buildPaneToolBar(){
 
     const btnLine = document.querySelector(".tool-line");
     btnLine.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(lineStrategy());
+        toolViewModel.setPressedTool("line");
         changeSelectTool.call(this);
     });
     const btnSquare = document.querySelector(".tool-square");

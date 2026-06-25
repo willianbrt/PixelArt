@@ -16,6 +16,10 @@ void PaneToolbarViewModel::setPressedTool(std::string tool){
         _toolManager->setRightToolPressed(new SelectStrategy(AppContext::instance().getEditorManager()->getActiveEditor()->getSelectContext(), &_toolSettings->symmetryContext));
         return;
     }
+    if(tool == "line"){
+        _toolManager->setRightToolPressed(new LineStrategy(&_toolSettings->lineContext, &_toolSettings->drawingContext, &_toolSettings->symmetryContext));
+        return;
+    }
 }
 #include <emscripten/bind.h>
 

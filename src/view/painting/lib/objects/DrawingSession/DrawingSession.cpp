@@ -20,8 +20,10 @@ void DrawingSession::begin(Layer* layer){
 void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext){    
     Layer* layer = _preview->getTarget();
 
-    x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
-    y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
+    if(symmetryContext->nTileX > 1)
+        x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
+    if(symmetryContext->nTileY > 1)
+        y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
 
     _preview->putPixel(x, y,  GraphicsEngine::blendColors(_preview->getPixel(x, y), color));
     

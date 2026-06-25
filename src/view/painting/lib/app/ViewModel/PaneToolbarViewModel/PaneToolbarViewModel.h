@@ -12,6 +12,7 @@
 #include "../../../strategy/BrushStrategy/BrushStrategy.h"
 #include "../../../strategy/NonePressedEvent/NonePressedEvent.h"
 #include "../../../strategy/SelectStrategy/SelectStrategy.h"
+#include "../../../strategy/LineStrategy/LineStrategy.h"
 
 
 class PaneToolbarViewModel  {

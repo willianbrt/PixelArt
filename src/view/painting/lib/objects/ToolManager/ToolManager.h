@@ -12,6 +12,7 @@
 #include "../../context/ViewportContext/ViewportContext.h"
 #include "../../context/DrawingContext/DrawingContext.h"
 #include "../../context/SymmetryContext/SymmetryContext.h"
+#include "../../context/LineContext/LineContext.h"
 
 enum class KEY_MOUSE {
     UNPRESSED = -1,
@@ -23,6 +24,7 @@ enum class KEY_MOUSE {
 struct ToolSettings{
     BrushContext    brushContext;
     DrawingContext  drawingContext;
+    LineContext  lineContext;
     SymmetryContext symmetryContext;
 };
 
