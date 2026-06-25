@@ -17,8 +17,8 @@ public:
 
     Pattern(std::string n, std::vector<unsigned int> b, int w, int h)
         : name(std::move(n)), buffer(std::move(b)), width(w), height(h) {}
-    int getWidth() override { return height; }
-    int getHeight() override { return width; }
+    int getWidth() override { return width; }
+    int getHeight() override { return height; }
     unsigned int* getBuffer() override { return buffer.data(); }
 
     void putPixel(int x, int y, unsigned int color) override {}
