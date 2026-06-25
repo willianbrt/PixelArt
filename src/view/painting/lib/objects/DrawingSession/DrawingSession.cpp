@@ -45,23 +45,25 @@ void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color, Symmet
 void DrawingSession::putMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext){
     Layer* layer = _preview->getTarget();
 
-    x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
-    y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
+    if(symmetryContext->nTileX > 1)
+        x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
+    if(symmetryContext->nTileY > 1)
+        y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
 
 
-    _preview->putPixel(x, y, _preview->getPixel(x, y));
+    _preview->putPixel(x, y, color);
     
     int toMirrorX = symmetryContext->pointMirrored(x, layer->getWidth());
     int toMirrorY = symmetryContext->pointMirrored(y, layer->getHeight());
 
     if(symmetryContext->isMirrorX){
-        _preview->putPixel(toMirrorX, y, _preview->getPixel(toMirrorX, y));
+        _preview->putPixel(toMirrorX, y, color);
     }            
     if(symmetryContext->isMirrorY){
-        _preview->putPixel(x, toMirrorY, _preview->getPixel(x, toMirrorY));
+        _preview->putPixel(x, toMirrorY, color);
     }
     if(symmetryContext->isMirrorX && symmetryContext->isMirrorY){
-        _preview->putPixel(toMirrorX, toMirrorY, _preview->getPixel(toMirrorX, toMirrorY));
+        _preview->putPixel(toMirrorX, toMirrorY, color);
         
     }
     _dirtyManager->markDirty(_preview->getDirtyArea());

@@ -19,7 +19,7 @@ export function buildPaneToolBar(){
     });
     const btnEraser = document.querySelector(".tool-eraser");
     btnEraser.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(eraseStrategy());
+        toolViewModel.setPressedTool("eraser");
         changeSelectTool.call(this);
     });
     const btnDropper = document.querySelector(".tool-dropper");

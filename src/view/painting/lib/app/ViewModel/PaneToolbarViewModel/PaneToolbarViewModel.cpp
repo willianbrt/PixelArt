@@ -20,6 +20,10 @@ void PaneToolbarViewModel::setPressedTool(std::string tool){
         _toolManager->setRightToolPressed(new LineStrategy(&_toolSettings->lineContext, &_toolSettings->drawingContext, &_toolSettings->symmetryContext));
         return;
     }
+    if(tool == "eraser"){
+        _toolManager->setRightToolPressed(new EraserStrategy(&_toolSettings->eraserContext, &_toolSettings->drawingContext, &_toolSettings->symmetryContext));
+        return;
+    }
 }
 #include <emscripten/bind.h>
 
