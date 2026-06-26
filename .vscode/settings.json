@@ -91,21 +91,6 @@
         "**/.svn": true,
         "**/.hg": true,
         "**/.DS_Store": true,
-        "**/Thumbs.db": true,
-        "[!s]*/**": true,
-        "s[!r]*/**": true,
-        "sr[!c]*/**": true,
-        "src/[!v]*/**": true,
-        "src/v[!i]*/**": true,
-        "src/vi[!e]*/**": true,
-        "src/vie[!w]*/**": true,
-        "src/view/[!p]*/**": true,
-        "src/view/p[!a]*/**": true,
-        "src/view/pa[!i]*/**": true,
-        "src/view/pai[!n]*/**": true,
-        "src/view/pain[!t]*/**": true,
-        "src/view/paint[!i]*/**": true,
-        "src/view/painti[!n]*/**": true,
-        "src/view/paintin[!g]*/**": true
+        "**/Thumbs.db": true
     },
 }

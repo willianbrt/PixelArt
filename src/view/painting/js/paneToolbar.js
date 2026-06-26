@@ -47,7 +47,7 @@ export function buildPaneToolBar(){
 
     const btnBucket = document.querySelector(".tool-bucket");
     btnBucket.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(bucketStrategy());
+        toolViewModel.setPressedTool("bucket");
         changeSelectTool.call(this);
     });
 

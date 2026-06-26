@@ -24,6 +24,10 @@ void PaneToolbarViewModel::setPressedTool(std::string tool){
         _toolManager->setRightToolPressed(new EraserStrategy(&_toolSettings->eraserContext, &_toolSettings->drawingContext, &_toolSettings->symmetryContext));
         return;
     }
+    if(tool == "bucket"){
+        _toolManager->setRightToolPressed(new BucketStrategy(&_toolSettings->bucketContext, &_toolSettings->drawingContext, &_toolSettings->symmetryContext));
+        return;
+    }
 }
 #include <emscripten/bind.h>
 
