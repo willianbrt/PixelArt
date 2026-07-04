@@ -2,7 +2,7 @@
 #define SHAPECONTEXT_H
 #include "../../interfaces/IToolContext/IToolContext.h"
 
-class ShapeContext : IToolContext{
+class CircleContext : IToolContext{
 public:
     bool isFilled;
 };

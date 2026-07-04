@@ -28,6 +28,10 @@ void PaneToolbarViewModel::setPressedTool(std::string tool){
         _toolManager->setRightToolPressed(new BucketStrategy(&_toolSettings->bucketContext, &_toolSettings->drawingContext, &_toolSettings->symmetryContext));
         return;
     }
+    if(tool == "circle"){
+        _toolManager->setRightToolPressed(new CircleStrategy(&_toolSettings->circleContext, &_toolSettings->drawingContext, &_toolSettings->symmetryContext));
+        return;
+    }
 }
 #include <emscripten/bind.h>
 

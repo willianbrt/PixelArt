@@ -41,7 +41,7 @@ export function buildPaneToolBar(){
 
     const btnCircle = document.querySelector(".tool-circle");
     btnCircle.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(circleStrategy());
+        toolViewModel.setPressedTool("circle");
         changeSelectTool.call(this);
     });
 
