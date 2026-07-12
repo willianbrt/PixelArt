@@ -14,6 +14,12 @@
 #include "../../objects/preview/Preview.h"
 #include "../../objects/layer/Layers.h"
 #include "../../objects/DrawingSession/DrawingSession.h"
+#include "../../rasterize/LineRasterize/LineRasterize.h"
+
+#include <iostream>
+#include <vector>
+#include <thread>
+#include <chrono>
 
 class CircleStrategy : public IPressedStrategy {
 private:
@@ -41,5 +47,12 @@ public:
     void done() override;
     void abort() override;
     CursorContext* getCursorContext() override;
+    void fillEllipseStrokeDistance(
+    int cx, int cy,
+    float rx, float ry,
+    float thickness,
+    float dashLength,   // tamanho do traço
+    float gapLength     // espaço
+);
 };
 #endif
