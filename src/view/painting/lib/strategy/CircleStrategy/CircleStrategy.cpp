@@ -1,108 +1,5 @@
 #include "./CircleStrategy.h"
 
-void CircleStrategy::fillEllipseStrokeDistance(
-    int cx, int cy,
-    float rx, float ry,
-    float thickness,
-    float dashLength,   // tamanho do traço
-    float gapLength     // espaço
-) {
-    _toolRuntimeContext.drawingSession->clear();
-    if (rx <= 0 || ry <= 0) return;
-
-    int rxOut = rx;
-    int ryOut = ry;
-
-    int rxIn = std::max(0.0f, rx - thickness);
-    int ryIn = std::max(0.0f, ry - thickness);
-
-    long long rxOut2 = (long long)rxOut * rxOut;
-    long long ryOut2 = (long long)ryOut * ryOut;
-
-    long long rxIn2  = (long long)rxIn * rxIn;
-    long long ryIn2  = (long long)ryIn * ryIn;
-
-    float acc = 0.0f;
-    float period = dashLength + gapLength;
-
-    const float SQRT2 = 1.41421356f;
-
-    int prevX = 0;
-    int prevY = ryOut;
-
-    for (int y = -ryOut; y <= ryOut; y++) {
-        int xOut = rxOut;
-
-        while ((long long)xOut * xOut * ryOut2 +
-            (long long)y * y * rxOut2 >
-            rxOut2 * ryOut2) {
-            xOut--;
-        }
-
-        int xIn = rxIn;
-
-        while (xIn > 0 &&
-            (long long)xIn * xIn * ryIn2 +
-            (long long)y * y * rxIn2 >
-            rxIn2 * ryIn2) {
-            xIn--;
-        }
-        
-
-        // percorre a borda externa (lado direito)
-        int px = xOut;
-        int py = y;
-
-        int dx = px - prevX;
-        int dy = py - prevY;
-
-        if (dx != 0 || dy != 0) {
-            acc += (dx != 0 && dy != 0) ? SQRT2 : 1.0f;
-        }
-
-        float m = fmod(acc, period);
-        bool draw = (m < dashLength);
-
-        if (draw) {
-            for (int x = xIn + 1; x <= xOut; x++) {
-
-                _toolRuntimeContext.drawingSession->putMirroredPixel(
-                    cx + x, cy + y,
-                    _drawingContext->color,
-                    _symmetryContext
-                );
-
-                _toolRuntimeContext.drawingSession->putMirroredPixel(
-                    cx - x, cy + y,
-                    _drawingContext->color,
-                    _symmetryContext
-                );
-            }
-        }
-
-        prevX = px;
-        prevY = py;
-    }
-}
-inline bool insideArc(
-    float x,
-    float y,
-    float rx,
-    float ry,
-    float start,
-    float end)
-{
-    // Ângulo paramétrico da elipse
-    float t = atan2(y / ry, x / rx);
-
-    if (t < 0)
-        t += 2.0f * M_PI;
-
-    if (start <= end)
-        return t >= start && t <= end;
-
-    return t >= start || t <= end;
-}
 inline int cross(const Point& A, const Point& B, const Point& P) {
     return (B.x - A.x)*(P.y - A.y) - (B.y - A.y)*(P.x - A.x);
 }
@@ -115,7 +12,7 @@ _drawingContext(drawingContext),
 _symmetryContext(symmetryContext)
 {
     _drawingContext->color = 0xff0000ff;
-    _drawingContext->size = 4;
+    _drawingContext->size = 3;
     _drawingContext->hardness = 1.0f;
 
     _symmetryContext->isMirrorX =false;
@@ -156,12 +53,14 @@ void CircleStrategy::onTracking(int x, int y){
 }
 void CircleStrategy::onRelease(){ done(); }
 
-
 void CircleStrategy::draw(const Point& pixel){
     _toolRuntimeContext.drawingSession->clear();
 
     auto plot = [&](int sx, int sy, unsigned int color){
-        _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x  + sx, pixel.y + sy, color, _symmetryContext);
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(pixel.x  +  sx, pixel.y + sy, color, _symmetryContext);
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(pixel.x  -  sx, pixel.y + sy, color, _symmetryContext);
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(pixel.x  +  sx, pixel.y - sy, color, _symmetryContext);
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(pixel.x  -  sx, pixel.y - sy, color, _symmetryContext);
     };
         plot(0 , 0, 0xFFFF00FF);
 
@@ -193,89 +92,10 @@ void CircleStrategy::draw(const Point& pixel){
     const int patternLength = gap + linelength;
     int acc;
     float m = 0;
-    Point start = outter;
+    Point start = outter, sinner = inner;
 
-    
-    auto cinner = [&](Point& p){
-        float nx = (float)p.x/ (float)radius2.x;
-        float ny = (float)p.y/ (float)radius2.y;
-
-        float length = sqrt(nx*nx + ny*ny);
-        if (length < 1e-6f) length = 1.0f;
-        nx /= length;
-        ny /= length;
-
-        Point inner;
-        inner.x = std::max((int)(p.x - nx * (_drawingContext->size-1)), 0);
-        inner.y = std::max((int)(p.y - ny * (_drawingContext->size-1)), 0);
-        return inner;
-
-    };
-    auto circleTest = [&](const Point& center, int radius, const Point& p) {
-        int dx = p.x - center.x;
-        int dy = p.y - center.y;
-        return dx*dx + dy*dy - radius*radius;
-    };
-    auto drawell = [&](const Point& start, const Point& outter, const Point& inners, const Point& innere) {
-        
-        int minX = std::min(std::min(std::min(start.x, outter.x), inners.x), innere.x);
-        int maxX = std::max(std::max(std::max(start.x, outter.x), inners.x), innere.x);
-        int minY = std::min(std::min(std::min(start.y, outter.y), inners.y), innere.y);
-        int maxY = std::max(std::max(std::max(start.y, outter.y), inners.y), innere.y);
-
-        int rxy = radius2.x * radius2.y;
-        for(int y = minY; y <= maxY; y++){
-            for(int x = minX; x <= maxX; x++){
-
-
-                int v = x*x*radius2.y + y*y*radius2.x;
-                int limit = radius2.x * radius2.y + (radius2.x + radius2.y);
-
-                if (v > limit) continue;
-
-                int v2 = x*x*radiusInner2.y + y*y*radiusInner2.x;
-                int limit2 = radiusInner2.x * radiusInner2.y - (radiusInner2.x + radiusInner2.y);
-                if (v2 <= limit2) continue;
-
-
-                int cs = cross({0,0}, inners,{x,y});
-                int ce = cross({0,0}, innere,{x,y});
-                if(ce < 0 || cs > 0) continue;
-                plot(+ x , + y, 0x0000ffFF);
-                plot(- x , + y, 0x0000ffFF);
-                plot(+ x , - y, 0x0000ffFF);
-                plot(- x , - y, 0x0000ffFF);
-            }
-        }
-        // plot(+ inners.x , + inners.y, 0x00FF00FF);
-        // plot(- inners.x , + inners.y, 0x00FF00FF);
-        // plot(+ inners.x , - inners.y, 0x00FF00FF);
-        // plot(- inners.x , - inners.y, 0x00FF00FF);
-
-        // plot(+ innere.x , + innere.y, 0x00ffffFF);
-        // plot(- innere.x , + innere.y, 0x00ffffFF);
-        // plot(+ innere.x , - innere.y, 0x00ffffFF);
-        // plot(- innere.x , - innere.y, 0x00ffffFF);
-
-        // plot(+ start.x , + start.y, 0xFFFF00FF);
-        // plot(- start.x , + start.y, 0xFFFF00FF);
-        // plot(+ start.x , - start.y, 0xFFFF00FF);
-        // plot(- start.x , - start.y, 0xFFFF00FF);
-
-        // plot(+ outter.x , + outter.y, 0xaa00aaFF);
-        // plot(- outter.x , + outter.y, 0xaa00aaFF);
-        // plot(+ outter.x , - outter.y, 0xaa00aaFF);
-        // plot(- outter.x , - outter.y, 0xaa00aaFF);
-            
-        
-    };
-
-    Point dl;
-    float dp;
-    int prevYOuter = outter.y;
-    int prevYInner = inner.y;
-    int prevXOuter = outter.x;
-    int prevXInner = inner.x;
+    Point dl,dli;
+    float dp,dpi;
     while(delta.x < delta.y){        
         m = fmod(acc, patternLength);
 
@@ -283,43 +103,51 @@ void CircleStrategy::draw(const Point& pixel){
             start = outter;
             dl = delta;
             dp = decisionParam;
+
+            sinner = inner;
+            dli = deltaInner;
+            dpi = dpInner;
         }
-        if(m < linelength ){
+        if(m < linelength && false){
             int tx =  std::max(outter.x, inner.x);
             for(int ty = outter.y; ty >= inner.y; ty--){
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + tx, pixel.y + ty, 0xffaa00ff, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - tx, pixel.y + ty, 0xffaa00ff, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + tx, pixel.y - ty, 0xffaa00ff, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - tx, pixel.y - ty, 0xffaa00ff, _symmetryContext);
+                plot(tx, ty, 0xffaa00dd);
             }
 
-
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + outter.x, pixel.y + outter.y, _drawingContext->color, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - outter.x, pixel.y + outter.y, _drawingContext->color, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + outter.x, pixel.y - outter.y, _drawingContext->color, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - outter.x, pixel.y - outter.y, _drawingContext->color, _symmetryContext);
-            
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + inner.x, pixel.y + inner.y, _drawingContext->color, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - inner.x, pixel.y + inner.y, _drawingContext->color, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + inner.x, pixel.y - inner.y, _drawingContext->color, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - inner.x, pixel.y - inner.y, _drawingContext->color, _symmetryContext);
-                    
+            traceSymetricOutline(inner, outter, pixel);       
         }
-        prevYOuter = outter.y;
-        prevYInner = inner.y;
-        prevXOuter = outter.x;
-        prevXInner = inner.x;
 
 
-        if(m == (linelength-1) && gap > 0 && false){
-            Point inners = cinner(start);
-            Point innere = cinner(outter);
-            Point i = start;
+        if(m == (linelength-1)){
+            Point i = start, ii = sinner;
             while(i.x <= outter.x){
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + i.x, pixel.y + i.y, _drawingContext->color, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - i.x, pixel.y + i.y, _drawingContext->color, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + i.x, pixel.y - i.y, _drawingContext->color, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - i.x, pixel.y - i.y, _drawingContext->color, _symmetryContext);
+                
+                // int tx =  std::max(i.x, ii.x);
+                // for(int ty = i.y; ty >= ii.y; ty--){
+                    
+                int minX = std::min(i.x, ii.x);
+                int minY = std::min(i.y, ii.y);
+                int maxX = std::max(i.x, ii.x);
+                int maxY = std::max(i.y, ii.y);
+                for(int ty = minY; ty <= maxY; ty++){
+                    for(int tx = minX; tx <= maxX; tx++){
+                        Point p = {tx, ty};
+                        // int cs = std::abs(cross({0,0}, start,p));
+                        // int ce = std::abs(cross({0,0}, outter,p));
+                        // if(ce > 1 || cs < 1) continue;
+
+
+                        // if (!insideSector(p, start, outter)) continue;
+                        int cs = cross(sinner, start,p);
+                        int ce = cross(inner, outter,p);
+                        if(ce < 0 || cs > 0) continue;
+
+                        plot(tx, ty, 0xffaa00dd);
+                    }
+                }
+
+                // traceSymetricOutline(ii, i, pixel);
+                
                 i.x++;
                 dl.x += twoRy2;
                 
@@ -330,8 +158,19 @@ void CircleStrategy::draw(const Point& pixel){
                     dl.y -= twoRx2;
                     dp += radius2.y + dl.x - dl.y;
                 }
+                ii.x++;
+                dli.x += twoRIy2;
+
+                if(dli.x >= dli.y) continue;
+                
+                if (dpi < 0) {
+                    dpi += radiusInner2.y + dli.x;
+                } else {
+                    ii.y--;
+                    dli.y -= twoRIx2;
+                    dpi += radiusInner2.y + dli.x - dli.y;
+                }
             }
-            // drawell(start, outter, inners, innere);
         }
 
         
@@ -363,10 +202,11 @@ void CircleStrategy::draw(const Point& pixel){
         }
 
     }
+    // return;
     
     decisionParam  = radius2.y * outter.x*outter.x + radius2.x * outter.y*(outter.y  - 1) + (radius2.x  >> 2) - radius2.x*radius2.y;
     dpInner  = radiusInner2.y * inner.x*inner.x + radiusInner2.x * inner.y*(inner.y  - 1) + (radiusInner2.x  >> 2) - radiusInner2.x*radiusInner2.y;
-  
+
     while (outter.y >= 0){
         m = fmod(acc, patternLength);
 
@@ -375,19 +215,31 @@ void CircleStrategy::draw(const Point& pixel){
             start = outter;
             dl = delta;
             dp = decisionParam;
+
+            sinner = inner;
+            dli = deltaInner;
+            dpi = dpInner;
         }
 
-        if(m == (linelength-1)&& gap >0 && false){
-            Point inners = cinner(start);
-            Point innere = cinner(outter);
-            
-            Point i = start;
+        if(m == (linelength-1)){
+            Point i = start, ii =sinner;
             while(i.y >= outter.y){
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + i.x, pixel.y + i.y, _drawingContext->color, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - i.x, pixel.y + i.y, _drawingContext->color, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + i.x, pixel.y - i.y, _drawingContext->color, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - i.x, pixel.y - i.y, _drawingContext->color, _symmetryContext);
-                        
+                int minX = std::min(i.x, ii.x);
+                int minY = std::min(i.y, ii.y);
+                int maxX = std::max(i.x, ii.x);
+                int maxY = std::max(i.y, ii.y);
+                for(int ty = minY; ty <= maxY; ty++){
+                    for(int tx = minX; tx <= maxX; tx++){
+                        Point p = {tx,ty};
+                        int cs = cross(sinner, start,p);
+                        int ce = cross(inner, outter,p);
+                        if(ce < 0 || cs > 0) continue;
+
+                        plot(tx, ty, 0xffaa00dd);
+                    }
+                }
+                // traceSymetricOutline(ii, i, pixel);
+                
                 i.y--;
                 dl.y -= twoRx2;
 
@@ -398,35 +250,32 @@ void CircleStrategy::draw(const Point& pixel){
                     dl.x += twoRy2;
                     dp += radius2.x - dl.y + dl.x;
                 }
+
+                ii.y--;
+                dli.y -= twoRIx2;
+
+                if (dpi > 0) {
+                    dpi += radiusInner2.x - dli.y;
+                } else {
+                    ii.x++;
+                    dli.x += twoRIy2;
+                    dpi += radiusInner2.x - dli.y + dli.x;
+                }
             }
-            // drawell(start, outter, inners, innere);
         }
 
-        if(m < linelength){
-            int ty = std::max(outter.y, inner.y);
-            for(int tx = outter.x; tx >= inner.x; tx--){
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + tx, pixel.y + ty, 0xffaaaaff, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - tx, pixel.y + ty, 0xffaaaaff, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + tx, pixel.y - ty, 0xffaaaaff, _symmetryContext);
-                _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - tx, pixel.y - ty, 0xffaaaaff, _symmetryContext);
+        if(m < linelength && false){
+
+            int minX = std::min(outter.x, inner.x);
+            int minY = std::min(outter.y, inner.y);
+            int maxX = std::max(outter.x, inner.x);
+            int maxY = std::max(outter.y, inner.y);
+            for(int ty = minY; ty <= maxY; ty++){
+                for(int tx = minX; tx <= maxX; tx++){
+                    plot(tx, ty, 0xffaa00dd);
+                }
             }
-            
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + outter.x, pixel.y + outter.y, 0xff00ffff, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - outter.x, pixel.y + outter.y, 0xff00ffff, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + outter.x, pixel.y - outter.y, 0xff00ffff, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - outter.x, pixel.y - outter.y, 0xff00ffff, _symmetryContext);
-            
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + inner.x, pixel.y + inner.y, 0xff00ffff, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - inner.x, pixel.y + inner.y, 0xff00ffff, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x + inner.x, pixel.y - inner.y, 0xff00ffff, _symmetryContext);
-            _toolRuntimeContext.drawingSession->putMirroredPixel(pixel.x - inner.x, pixel.y - inner.y, 0xff00ffff, _symmetryContext);
         }
-
-
-        prevYOuter = outter.y;
-        prevYInner = inner.y;
-        prevXOuter = outter.x;
-        prevXInner = inner.x;
 
 
         outter.y--;
@@ -456,30 +305,66 @@ void CircleStrategy::draw(const Point& pixel){
     }
 
     
-    if(m < linelength-1 && gap >0&& false){
-        Point inners = cinner(start);
-        Point innere = cinner(outter);
-        drawell(start, outter, inners, innere);
+    if(m < linelength-1){
+        Point i = start, ii =sinner;
+        while(i.y >= outter.y){
+            int minX = std::min(i.x, ii.x);
+            int minY = std::min(i.y, ii.y);
+            int maxX = std::max(i.x, ii.x);
+            int maxY = std::max(i.y, ii.y);
+            for(int ty = minY; ty <= maxY; ty++){
+                for(int tx = minX; tx <= maxX; tx++){
+                    Point p = {tx,ty};
+                    int cs = cross(sinner, start,p);
+                    int ce = cross(inner, outter,p);
+                    if(ce < 0 || cs > 0) continue;
+
+                    plot(tx, ty, 0xffaa00dd);
+                }
+            }
+            // traceSymetricOutline(ii, i, pixel);
+            
+            i.y--;
+            dl.y -= twoRx2;
+
+            if (dp > 0) {
+                dp += radius2.x - dl.y;
+            } else {
+                i.x++;
+                dl.x += twoRy2;
+                dp += radius2.x - dl.y + dl.x;
+            }
+
+            ii.y--;
+            dli.y -= twoRIx2;
+
+            if (dpi > 0) {
+                dpi += radiusInner2.x - dli.y;
+            } else {
+                ii.x++;
+                dli.x += twoRIy2;
+                dpi += radiusInner2.x - dli.y + dli.x;
+            }
+        }
     }
 }
 
 void CircleStrategy::traceSymetricOutline(const Point& from, const Point& to, const Point& center) {
-    // for(int y = from.y; y <= to.y; y++){
-    //     for(int x = from.x; x <= to.x; x++){
-    //         _toolRuntimeContext.drawingSession->putMirroredPixel(center.x + x, center.y + y,  _drawingContext->color, _symmetryContext);
-    //         _toolRuntimeContext.drawingSession->putMirroredPixel(center.x - x, center.y + y,  _drawingContext->color, _symmetryContext);
-    //         _toolRuntimeContext.drawingSession->putMirroredPixel(center.x + x, center.y - y,  _drawingContext->color, _symmetryContext);
-    //         _toolRuntimeContext.drawingSession->putMirroredPixel(center.x - x, center.y - y,  _drawingContext->color, _symmetryContext);
-    //     }
-    // }
-    // for(int y = (to.y - (_drawingContext->size>>1)); y < (to.y + (_drawingContext->size>>1)); y++){
-    //     for(int x = (to.x - (_drawingContext->size>>1)); x < (to.x + (_drawingContext->size>>1)); x++){
-    //         _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x, center.y + y, 0xFFFF00aa, _symmetryContext);
-    //         _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x - x, center.y + y, 0xFFFF00aa, _symmetryContext);
-    //         _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x, center.y - y, 0xFFFF00aa, _symmetryContext);
-    //         _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x - x, center.y - y, 0xFFFF00aa, _symmetryContext);
-    //     }
-    // }
+    
+    for(int y = from.y; y <= to.y; y++){
+        for(int x = from.x; x <= to.x; x++){
+            
+            // Point p = {tx,ty};
+            // int cs = cross({0,0}, start,p);
+            // int ce = cross({0,0}, outter,p);
+            // if(ce < 0 || cs > 0) continue;
+
+            // _toolRuntimeContext.drawingSession->putMirroredPixel(center.x + x, center.y + y,  _drawingContext->color, _symmetryContext);
+            // _toolRuntimeContext.drawingSession->putMirroredPixel(center.x - x, center.y + y,  _drawingContext->color, _symmetryContext);
+            // _toolRuntimeContext.drawingSession->putMirroredPixel(center.x + x, center.y - y,  _drawingContext->color, _symmetryContext);
+            // _toolRuntimeContext.drawingSession->putMirroredPixel(center.x - x, center.y - y,  _drawingContext->color, _symmetryContext);
+        }
+    }
 
     _toolRuntimeContext.drawingSession->putMirroredPixel(center.x + from.x, center.y + from.y, 0x00FFFFFF, _symmetryContext);
     _toolRuntimeContext.drawingSession->putMirroredPixel(center.x - from.x, center.y + from.y, 0x00FFFFFF, _symmetryContext);
