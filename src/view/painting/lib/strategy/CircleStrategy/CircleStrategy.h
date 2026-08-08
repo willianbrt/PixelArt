@@ -15,6 +15,7 @@
 #include "../../objects/layer/Layers.h"
 #include "../../objects/DrawingSession/DrawingSession.h"
 #include "../../rasterize/LineRasterize/LineRasterize.h"
+#include "../../rasterize/CircleRasterize/CircleRasterize.h"
 
 #include <iostream>
 #include <vector>
