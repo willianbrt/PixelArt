@@ -34,78 +34,96 @@ void CircleStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
     if (to == _flagPoint) return;
 
+    _toolRuntimeContext.drawingSession->clear();
+
 
     Point center = {
         (pivotPoint.x + to.x ) >> 1,
         (pivotPoint.y + to.y ) >> 1
     };
     
-    auto plot = [&](Point p, unsigned int color){
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + p.x, center.y + p.y, color, _symmetryContext);
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x - p.x, center.y + p.y, color, _symmetryContext);
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + p.x, center.y - p.y, color, _symmetryContext);
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x - p.x, center.y - p.y, color, _symmetryContext);
+    const Point diameter = { 
+        std::max(std::abs(to.x - pivotPoint.x), _drawingContext->size-1), 
+        std::max(std::abs(to.y - pivotPoint.y), _drawingContext->size-1)
     };
-    _toolRuntimeContext.drawingSession->clear();
-
+    const int offsetX = diameter.x %2;
+    const int offsetY = diameter.y %2;
     
     const Point radius = { 
-        std::abs(to.x - pivotPoint.x) >> 1, 
-        std::abs(to.y - pivotPoint.y) >> 1
-    };;
-    const Point radiusInner = { std::max(radius.x - _drawingContext->size + 1, 0), std::max(radius.y - _drawingContext->size + 1, 0) };
-
+        diameter.x >> 1, 
+        diameter.y >> 1
+    };
     CircleRasterize circle(radius);
-    CircleRasterize icircle(radiusInner);
 
     
     unsigned int color = 0xFF0000aa;
-    const int gap = 1;
+    const int gap = 3;
     const int linelength = 3;
     const int patternLength = gap + linelength;
+
+    Point _dir[4] = {
+        {+1, +1},
+        {+1, -1},
+        {-1, -1},
+        {-1, +1},
+    };
 
 
     vector<Point> quad;
     while(circle.hasNext()){
         Point p = circle.next();
-        // if(_circleContext->isFilled){
-        //     for(int y = center.y + p.y; y > center.y; y--){
-        //         _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + p.x,  y, color, _symmetryContext);
-        //     }
-        // }
-        if(icircle.hasNext()){
-            Point ip = icircle.next();
-            _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + ip.x,  center.y + ip.y, color, _symmetryContext);
-        }
         quad.push_back(p);
     }
+
 
     int start = 0;
     int end = quad.size();
     int dir = 1;
     int acc = 0;
-    for(int q = 0; q < 4; q++){
+    Point flag = quad[0];
+    Point externo = {
+        center.x + quad[0].x + offsetX,
+        center.y + quad[0].y + offsetY,
+    },
+    interno = {
+        (quad[0].x < _drawingContext->size) ? center.x + offsetX : externo.x-(_drawingContext->size-1),
+        (quad[0].y < _drawingContext->size) ? center.y + offsetY : externo.y-(_drawingContext->size-1),
+    };
+    
+    // Point externo = {
+    //     center.x + quad[0].x + offsetX + (_drawingContext->size>>1 ),
+    //     center.y + quad[0].y + offsetY + (_drawingContext->size>>1 ),
+    // },
+    // interno = {
+    //     externo.x-(_drawingContext->size-1),
+    //     externo.y-(_drawingContext->size-1),
+    // };
+    // interno = {
+    //     (quad[0].x < _drawingContext->size) ? center.x + offsetX : externo.x-(_drawingContext->size-1),
+    //     (quad[0].y < _drawingContext->size) ? center.y + offsetY : externo.y-(_drawingContext->size-1),
+    // };
+
+    for(int y = interno.y; y <= externo.y; y++){
+        for(int x = center.x +1; x <= externo.x; x++){
+            _toolRuntimeContext.drawingSession->blendMirroredPixel(x,y, color, _symmetryContext);
+        }
+    }
+    Point fstart = interno, fend = externo;
+    Point startDash = externo, endDash = externo;
+
+
+    for(int q = 0; q < 1; q++){
+        const Point sign = _dir[q];
         for(int i = start; i != end; i+= dir){
             Point p = quad[i];
 
-            if(acc == (linelength-1)){
-                int a = 0;
-            }
 
             Point point[4] = {
-                {center.x + p.x, center.y + p.y},
-                {center.x + p.x, center.y - p.y},
+                {center.x + p.x + offsetX, center.y + p.y + offsetY},
+                {center.x + p.x + offsetX, center.y - p.y},
                 {center.x - p.x, center.y - p.y},
-                {center.x - p.x, center.y + p.y},
+                {center.x - p.x, center.y + p.y + offsetY},
             };
-
-            if(point[3].x == point[q].x && q == 0) continue; else
-            if((point[2].x == point[q].x || point[0].y == point[q].y) && q == 1) continue; else
-            if(point[3].y == point[q].y && q == 2) continue;
-            
-            if(acc == patternLength){
-                acc=0;
-            }
             
             if(_circleContext->isFilled){
                 if(quad[i > 0 ? i-1 : 0].x != quad[i].x || i == 0) {
@@ -123,11 +141,108 @@ void CircleStrategy::onTracking(int x, int y){
                 }
             }
 
-            if((acc-i) >= linelength && q == 3) { break; }
+
+            // if(point[3].x == point[q].x && q == 0) continue; else
+            // if((point[2].x == point[q].x || point[0].y == point[q].y) && q == 1) continue; else
+            // if(point[3].y == point[q].y && q == 2) continue;
             
-            if(acc < linelength && !_circleContext->isFilled){
-                _toolRuntimeContext.drawingSession->blendMirroredPixel(point[q].x, point[q].y, color, _symmetryContext);
+
+            if(acc == (linelength-1)){
+                int a = 0;
             }
+            if(acc == patternLength){
+                acc=0;
+                // startDash = point[q];
+                // endDash = point[q+gap*dir];
+                // endDash = point[std::min(std::max(q+gap*dir, 0), (int)quad.size()-1)];
+            }
+            if(acc == 0){
+                startDash = quad[std::min(std::max(i+linelength*dir, 0), (int)quad.size()-1)];
+
+                startDash.x = center.x + offsetX + startDash.x * _dir[q].x;
+                startDash.y = center.y + offsetY + startDash.y * _dir[q].y;
+
+                endDash = quad[std::min(std::max(i+(patternLength)*dir, 0), (int)quad.size()-1)];
+                endDash.x = center.x + offsetX + endDash.x * _dir[q].x;
+                endDash.y = center.y + offsetY + endDash.y * _dir[q].y;
+            }
+
+
+            // _toolRuntimeContext.drawingSession->blendMirroredPixel(startDash.x, startDash.y, 0x00FF00ff, _symmetryContext);
+            // _toolRuntimeContext.drawingSession->blendMirroredPixel(endDash.x, endDash.y, 0xFFFF00ff, _symmetryContext);
+            
+            
+            if((acc-i) >= linelength && q == 3) { break; }
+            if(acc<linelength)
+            // _toolRuntimeContext.drawingSession->blendMirroredPixel(point[q].x,point[q].y, 0x0000FFaa, _symmetryContext);
+            // _toolRuntimeContext.drawingSession->blendMirroredPixel(point[q].x, point[q].y, color, _symmetryContext);
+                
+            externo = {
+                point[q].x,
+                point[q].y,
+            };
+            interno = {
+                (p.x < _drawingContext->size) ? center.x + offsetX  : externo.x-(_drawingContext->size-1)*sign.x,
+                (p.y < _drawingContext->size) ? center.y + offsetY  : externo.y-(_drawingContext->size-1)*sign.y,
+            };
+            // externo = {
+            //     point[q].x,
+            //     point[q].y,
+            // };
+            // interno = {
+            //     (p.x < _drawingContext->size) ? center.x + offsetX  : externo.x-(_drawingContext->size-1)*sign.x,
+            //     (p.y < _drawingContext->size) ? center.y + offsetY  : externo.y-(_drawingContext->size-1)*sign.y,
+            // };
+
+
+
+            if(externo.x < interno.x)std::swap(interno.x, externo.x);
+            if(externo.y < interno.y)std::swap(interno.y, externo.y);
+            
+            if(q == 3){ externo.x = std::min(externo.x, center.x); }
+            
+            for(int y = point[q].y-(_drawingContext->size-1); y <= point[q].y; y++){
+                for(int x = point[q].x-(_drawingContext->size-1); x <= point[q].x; x++){
+                    int cs = cross(startDash, {center.x+offsetX, center.y+offsetY}, {x,y});
+                    int ce = cross(endDash,   {center.x+offsetX, center.y+offsetY}, {x,y});
+                    // if (cs <= 0 || ce >= 0) {
+                    // _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, color, _symmetryContext);
+                    // }
+                    if (cs < 0 || ce > 0) {
+                        _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, 0xFFFF00FF, _symmetryContext);
+                    }
+                    // if(ce == 0 ) {
+                    // _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, color, _symmetryContext);
+                    // }
+                    // if(!(cs >= 0 || ce <= 0)) continue;
+
+                    // _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, color, _symmetryContext);
+                }
+            }
+            
+            // for(int y = interno.y; y <= externo.y; y++){
+            //     for(int x = interno.x; x <= externo.x; x++){
+            //         if((x <= fend.x && x >= fstart.x) && (y <= fend.y && y >= fstart.y)) continue;
+
+            //         int cs = cross(startDash, {center.x+offsetX, center.y+offsetY}, {x,y});
+            //         int ce = cross(endDash,   {center.x+offsetX, center.y+offsetY}, {x,y});
+            //         if (cs <= 0 || ce >= 0) {
+            //         _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, color, _symmetryContext);
+            //         }
+            //         if (!(cs <= 0 || ce >= 0)) {
+            //         _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, 0xFFFF00FF, _symmetryContext);
+            //         }
+            //         // if(ce == 0 ) {
+            //         // _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, color, _symmetryContext);
+            //         // }
+            //         // if(!(cs >= 0 || ce <= 0)) continue;
+
+            //         // _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, color, _symmetryContext);
+            //     }
+            // }
+
+            fstart = interno, fend = externo;
+            flag = point[q];
 
             acc++;
         }
