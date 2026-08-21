@@ -54,6 +54,10 @@ void CircleStrategy::onTracking(int x, int y){
         diameter.y >> 1
     };
     CircleRasterize circle(radius);
+    CircleRasterize icircle({ 
+       ( radius.x - (_drawingContext->size-1)), 
+       ( radius.y - (_drawingContext->size-1))
+    });
 
     
     unsigned int color = 0xFF0000aa;
@@ -63,16 +67,18 @@ void CircleStrategy::onTracking(int x, int y){
 
 
     Point flag ={INT_MIN,INT_MIN};
+    Point fstart, fend;
     while(circle.hasNext()){
         Point p = circle.next();
+        Point ip = icircle.next();
                 
         Point externo = {
-            center.x + p.x + offsetX,
-            center.y + p.y + offsetY,
+            p.x,
+            p.y,
         },
         interno = {
-            (p.x < _drawingContext->size) ? center.x + offsetX : externo.x-(_drawingContext->size-1),
-            (p.y < _drawingContext->size) ? center.y + offsetY : externo.y-(_drawingContext->size-1),
+            (p.x < _drawingContext->size) ? 0 : externo.x-(_drawingContext->size-1),
+            (p.y < _drawingContext->size) ? 0 : externo.y-(_drawingContext->size-1),
         };
 
         if(_circleContext->isFilled){
@@ -91,16 +97,47 @@ void CircleStrategy::onTracking(int x, int y){
                 }
             }
         } else {
-            if(!(p.x == 0 && offsetX == 0)){
-                if(!(p.y == 0 && offsetY == 0))
-                    _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + p.x + offsetX, center.y + p.y + offsetY, color, _symmetryContext);
-                _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + p.x + offsetX, center.y - p.y, color, _symmetryContext);
+            auto draw4 = [&](int x, int y){
+                if(!(x == 0 && offsetX == 0)){
+                    if(!(y == 0 && offsetY == 0))
+                        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x + offsetX, center.y + y + offsetY, color, _symmetryContext);
+                    _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x + offsetX, center.y - y, color, _symmetryContext);
+                }
+                if(!(y == 0 && offsetY == 0)){
+                    _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x - x, center.y + y + offsetY, color, _symmetryContext);
+                }
+                _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x - x, center.y - y, color, _symmetryContext);
+            };
+
+            // draw4(ip.x, ip.y);
+            // draw4(interno.x, interno.y);
+            if(flag.x != p.x){
+                for(int y = ip.y; y <= p.y; y++){
+                    // if((externo.x <= fend.x && externo.x >= fstart.x) && (y < fend.y && y >= fstart.y)) continue;
+                    
+                    draw4(p.x, y);
+                }
             }
-            if(!(p.y == 0 && offsetY == 0)){
-                _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x - p.x, center.y + p.y + offsetY, color, _symmetryContext);
+            if(flag.y != ip.y){
+                for(int x = ip.x; x <= p.x; x++){
+                    // if((x <= fend.x && x >= fstart.x) && (interno.y < fend.y && interno.y >= fstart.y)) continue;
+                    draw4(x, ip.y);
+                }
             }
-            _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x - p.x, center.y - p.y, color, _symmetryContext);
+            // for(int y = interno.y; y <= externo.y; y++){
+            //     if((externo.x <= fend.x && externo.x >= fstart.x) && (y < fend.y && y >= fstart.y)) continue;
+                
+            //     draw4(externo.x, y);
+            // }
+            // for(int x = interno.x; x < externo.x; x++){
+            //     if((x <= fend.x && x >= fstart.x) && (interno.y < fend.y && interno.y >= fstart.y)) continue;
+            //     draw4(x, interno.y);
+            // }
         }
+        fstart = ip;
+        fend = p;
+        // fstart = interno;
+        // fend = externo;
 
         flag = p;
     }
