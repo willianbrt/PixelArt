@@ -2,11 +2,13 @@
 #define CIRCLERASTERIZE_H
 
 #include "../../graphics/Pixel/Pixel.h"
+#include <functional>
 
 class CircleRasterize {
 private:
     Point _current;
 
+    Point _diameter;
     Point _radius;
     Point _radius2;
     int _twoRx2;
@@ -15,16 +17,24 @@ private:
     int _decisionParam;
     Point _delta;
 
+    
+    int offsetX;
+    int offsetY;
+    
+
     bool _horizontal;
     bool _hasNext;
 
 public:
 CircleRasterize(CircleRasterize& circle);
-CircleRasterize(const Point& radius);
+CircleRasterize(const Point& diameter);
 ~CircleRasterize();
 
 bool hasNext() const;
 Point next();
+void nextHorizontal();
+void nextVertical();
+void draw(std::function<void (Point, unsigned int)> callback);
 
 };
 #endif
