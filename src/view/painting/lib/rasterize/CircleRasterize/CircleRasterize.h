@@ -16,7 +16,8 @@ private:
     Point _outter;
     int _decisionParam;
     Point _delta;
-
+    int _thinkenss = 1;
+    bool _isFilled = false;
     
     int offsetX;
     int offsetY;
@@ -37,5 +38,7 @@ void nextHorizontal();
 void nextVertical();
 void draw(std::function<void (const int&, const int&, const unsigned int&)> callback);
 
+void thinkenss(int& thinkenss);
+void filled(bool& isFilled);
 };
 #endif

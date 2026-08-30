@@ -5,7 +5,7 @@ Editor::Editor(int width, int height) {
     printf("he: %i\n", _sketch->getHeight());
     _preview = new Preview(width, height);
     
-    _drawingSession = new DrawingSession(_preview, &dirtyManager);
+    _drawingSession = new DrawingSession(_preview, &dirtyManager, &_symmetry);
 
     _canvasSettings = new CanvasSettings();
     _select = new SelectContext();

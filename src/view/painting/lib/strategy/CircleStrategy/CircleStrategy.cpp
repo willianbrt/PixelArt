@@ -47,17 +47,16 @@ void CircleStrategy::onTracking(int x, int y){
         // std::max(std::abs(to.y - pivotPoint.y), _drawingContext->size-1)
     };
     
-    const Point radius = { 
-        diameter.x >> 1, 
-        diameter.y >> 1
-    };
-    CircleRasterize tcircle(diameter);
-
     auto draw4 = [&](const int& x, const int& y, const unsigned int& color){
         _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x, center.y + y, color, _symmetryContext);
     };
 
-    tcircle.draw(draw4);
+    CircleRasterize circle(diameter);
+    circle.filled(_circleContext->isFilled);
+    circle.thinkenss(_drawingContext->size);
+    circle.draw(draw4);
+
+
     _flagPoint = to;
 }
 void CircleStrategy::onRelease(){ done(); }

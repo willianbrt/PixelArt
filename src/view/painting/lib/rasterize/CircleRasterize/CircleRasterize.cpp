@@ -47,6 +47,8 @@ bool CircleRasterize::hasNext() const {
     return _hasNext;
 }
 
+void CircleRasterize::thinkenss(int& thinkenss) { _thinkenss = thinkenss; }
+void CircleRasterize::filled(bool& isFilled) { _isFilled = isFilled; }
 Point CircleRasterize::next() {
     Point p = _current;
 
@@ -121,12 +123,9 @@ void CircleRasterize::nextVertical() {
     }
 }
 void CircleRasterize::draw(std::function<void (const int&, const int&, const unsigned int&)> callback) {
-    int size = 3;
-
-    CircleRasterize icircle({
-        std::max((_radius.x - size + 1) << 1, 0),
-        std::max((_radius.y - size + 1) << 1, 0),
-    });
+    Point innerDiameter = (_isFilled) ? Point(0, 0) : 
+        Point(std::max((_radius.x - _thinkenss + 1) << 1, 0), std::max((_radius.y - _thinkenss + 1) << 1, 0));
+    CircleRasterize icircle(innerDiameter);
 
     Point lStart = {INT_MAX, INT_MAX};
     

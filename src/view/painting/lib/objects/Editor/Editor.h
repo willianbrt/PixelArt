@@ -22,6 +22,7 @@
 #include "../../graphics/surface/Surface.h"
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../context/SelectContext/SelectContext.h"
+#include "../../context/SymmetryContext/SymmetryContext.h"
 
 enum EDITOR_EVENT_TYPE{
     DRAW,
@@ -36,6 +37,7 @@ class Editor
 private:
     Surface* _sketch = nullptr;
     SelectContext* _select = nullptr;
+    SymmetryContext _symmetry;
 
     vector<std::unique_ptr<Frame>> frames;
     vector<IEditorObserver*> observers;
