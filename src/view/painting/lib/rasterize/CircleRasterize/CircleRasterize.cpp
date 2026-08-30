@@ -120,7 +120,7 @@ void CircleRasterize::nextVertical() {
         _decisionParam += _radius2.x - _delta.y + _delta.x;
     }
 }
-void CircleRasterize::draw(std::function<void (Point, unsigned int)> callback) {
+void CircleRasterize::draw(std::function<void (const int&, const int&, const unsigned int&)> callback) {
     int size = 3;
 
     CircleRasterize icircle({
@@ -132,17 +132,7 @@ void CircleRasterize::draw(std::function<void (Point, unsigned int)> callback) {
     
     while(_delta.x < _delta.y){
         for(int y = icircle._current.y; y <= _current.y; y++){
-
-            if(!(_current.x == 0 && offsetX == 0)){
-                if(!(y == 0 && offsetY == 0))
-                    callback({_current.x + offsetX, y + offsetY}, 0x00ff00a6);
-                callback({_current.x + offsetX, -y}, 0x00ff00a6);
-            }
-            if(!(_current.y == 0 && offsetY == 0)){
-                callback({-_current.x, y + offsetY}, 0x00ff00a6);
-            }
-            callback({-_current.x, -y}, 0x00ff00a6);
-            
+            putSymmetric(_current.x, y, 0x00ff00a6, callback);
         }
 
         lStart = icircle._current;
@@ -168,29 +158,12 @@ void CircleRasterize::draw(std::function<void (Point, unsigned int)> callback) {
     while(_current.y >= 0){
         if(lStart.y <= _current.y && lStart.x != _current.x){
             for(int y = lStart.y; y <= _current.y; y++){
-                if(!(_current.x == 0 && offsetX == 0)){
-                    if(!(y == 0 && offsetY == 0))
-                        callback({_current.x + offsetX, y + offsetY}, 0x00ff00a6);
-                    callback({_current.x + offsetX, -y}, 0x00ff00a6);
-                }
-                if(!(_current.y == 0 && offsetY == 0)){
-                    callback({-_current.x, y + offsetY}, 0x00ff00a6);
-                }
-                callback({-_current.x, -y}, 0x00ff00a6);
+                putSymmetric(_current.x, y, 0x00ff00a6, callback);
             }
             lStart.x = _current.x;
         }else if(lStart.y > _current.y){
             for(int x = icircle._current.x; x <= _current.x; x++){
-
-                if(!(x == 0 && offsetX == 0)){
-                    if(!(_current.y == 0 && offsetY == 0))
-                        callback({x + offsetX, _current.y + offsetY}, 0x00ff00a6);
-                    callback({x + offsetX, -_current.y}, 0x00ff00a6);
-                }
-                if(!(_current.y == 0 && offsetY == 0)){
-                    callback({-x, _current.y + offsetY}, 0x00ff00a6);
-                }
-                callback({-x, -_current.y}, 0x00ff00a6);
+                putSymmetric(x, _current.y, 0x00ff00a6, callback);
             }
         }
 
@@ -200,4 +173,16 @@ void CircleRasterize::draw(std::function<void (Point, unsigned int)> callback) {
         
     }
     _hasNext = false;
+}
+void CircleRasterize::putSymmetric(const int& x, const int& y, const unsigned int& color, std::function<void (const int&, const int& , const unsigned int&)> callback){
+    if(!(x == 0 && offsetX == 0)){
+        if(!(y == 0 && offsetY == 0)){
+            callback(x + offsetX,  y + offsetY, color);
+        }
+        callback(x + offsetX,- y, color);
+    }
+    if(!(y == 0 && offsetY == 0)){
+        callback(- x,  y + offsetY, color);
+    }
+   callback(- x, - y, color);
 }

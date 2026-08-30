@@ -25,6 +25,7 @@ private:
     bool _horizontal;
     bool _hasNext;
 
+    void putSymmetric(const int& x, const int& y, const unsigned int& color, std::function<void (const int&, const int&, const unsigned int&)> callback);
 public:
 CircleRasterize(CircleRasterize& circle);
 CircleRasterize(const Point& diameter);
@@ -34,7 +35,7 @@ bool hasNext() const;
 Point next();
 void nextHorizontal();
 void nextVertical();
-void draw(std::function<void (Point, unsigned int)> callback);
+void draw(std::function<void (const int&, const int&, const unsigned int&)> callback);
 
 };
 #endif

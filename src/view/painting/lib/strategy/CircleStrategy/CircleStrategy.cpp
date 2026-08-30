@@ -53,8 +53,8 @@ void CircleStrategy::onTracking(int x, int y){
     };
     CircleRasterize tcircle(diameter);
 
-    auto draw4 = [&](Point p, unsigned int color){
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + p.x, center.y + p.y, color, _symmetryContext);
+    auto draw4 = [&](const int& x, const int& y, const unsigned int& color){
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x, center.y + y, color, _symmetryContext);
     };
 
     tcircle.draw(draw4);
