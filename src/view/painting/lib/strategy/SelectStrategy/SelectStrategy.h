@@ -31,7 +31,6 @@ private:
     };
 
     Point _pressed, _from;
-    SymmetryContext* _symmetryContext;
     SelectContext* _selectContext;
     ToolRuntimeContext _toolRuntimeContext;
     ResizeSession* _resizeSession;
@@ -48,7 +47,7 @@ private:
     void draw();
 
 public:
-    SelectStrategy(SelectContext* selectContext, SymmetryContext* context);
+    SelectStrategy(SelectContext* selectContext);
     ~SelectStrategy();
 
     void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;

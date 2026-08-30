@@ -19,8 +19,8 @@ class DrawingSession {
     void begin(Layer* layer);
     void commit();
     void clear();
-    void blendMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext);
-    void putMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext);
+    void blendMirroredPixel(int x, int y, unsigned int color);
+    void putMirroredPixel(int x, int y, unsigned int color);
     void blendPixel(int x, int y, unsigned int color);
     void putPixel(int x, int y, unsigned int color);
 };

@@ -2,17 +2,14 @@
 
 CircleStrategy::~CircleStrategy(){}
 
-CircleStrategy::CircleStrategy(CircleContext* circleContext,  DrawingContext* drawingContext, SymmetryContext* symmetryContext) :
+CircleStrategy::CircleStrategy(CircleContext* circleContext,  DrawingContext* drawingContext) :
 _circleContext(circleContext),
-_drawingContext(drawingContext),
-_symmetryContext(symmetryContext)
+_drawingContext(drawingContext)
 {
     _drawingContext->color = 0xff0000ff;
     _drawingContext->size = 3;
     _drawingContext->hardness = 1.0f;
 
-    _symmetryContext->isMirrorX =false;
-    _symmetryContext->isMirrorY =false;
     _circleContext->isFilled = false;
 }
 void CircleStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
@@ -44,7 +41,7 @@ void CircleStrategy::onTracking(int x, int y){
     };
     
     auto draw4 = [&](const int& x, const int& y, const unsigned int& color){
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x, center.y + y, color, _symmetryContext);
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x, center.y + y, color);
     };
 
     CircleRasterize circle(diameter);

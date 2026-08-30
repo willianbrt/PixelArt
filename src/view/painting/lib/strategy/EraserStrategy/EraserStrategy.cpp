@@ -1,17 +1,12 @@
 #include "EraserStrategy.h"
 
-EraserStrategy::EraserStrategy(EraserContext* eraserContext, DrawingContext* drawingContext, SymmetryContext* symmetryContext) :
+EraserStrategy::EraserStrategy(EraserContext* eraserContext, DrawingContext* drawingContext) :
 _eraserContext(eraserContext),
-_drawingContext(drawingContext),
-_symmetryContext(symmetryContext)
+_drawingContext(drawingContext)
 {
     _drawingContext->color = 0xff0000ff;
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
-
-
-    _symmetryContext->isMirrorX =false;
-    _symmetryContext->isMirrorY =false;
 }
 void EraserStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
@@ -39,7 +34,7 @@ void EraserStrategy::draw(const Point& pixel){
     LineRasterize line(_from, pixel);
     while(line.hasNext()){
         Point p = line.next();
-        _toolRuntimeContext.drawingSession->putMirroredPixel(p.x, p.y, 0X0, _symmetryContext);
+        _toolRuntimeContext.drawingSession->putMirroredPixel(p.x, p.y, 0X0);
     }
 }
 bool EraserStrategy::isInitialized(){

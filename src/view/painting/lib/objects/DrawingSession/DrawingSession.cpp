@@ -18,7 +18,7 @@ void DrawingSession::begin(Layer* layer){
     _dirtyManager->markDirty(dirty);
 }
 
-void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext){    
+void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color){    
     Layer* layer = _preview->getTarget();
 
     if(_symmetryContext->nTileX > 1)
@@ -43,7 +43,7 @@ void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color, Symmet
     }
     _dirtyManager->markDirty(_preview->getDirtyArea());
 }
-void DrawingSession::putMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext){
+void DrawingSession::putMirroredPixel(int x, int y, unsigned int color){
     Layer* layer = _preview->getTarget();
 
     if(_symmetryContext->nTileX > 1)

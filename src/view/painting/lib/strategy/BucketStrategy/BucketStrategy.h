@@ -7,7 +7,6 @@
 #include "../../context/CursorContext/CursorContext.h"
 #include "../../context/DrawingContext/DrawingContext.h"
 #include "../../context/LineContext/LineContext.h"
-#include "../../context/SymmetryContext/SymmetryContext.h"
 #include "../../context/BucketContext/BucketContext.h"
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 #include "../../graphics/Pixel/Pixel.h"
@@ -21,7 +20,6 @@ private:
     DrawingContext* _drawingContext = nullptr;
     BucketContext* _bucketContext = nullptr;
     CursorContext _cursorContext;
-    SymmetryContext* _symmetryContext = nullptr;
     
     ToolRuntimeContext _toolRuntimeContext;
 
@@ -31,7 +29,7 @@ private:
 
     
 public:
-    BucketStrategy(BucketContext* bucketContext, DrawingContext* context, SymmetryContext* symmetryContext);
+    BucketStrategy(BucketContext* bucketContext, DrawingContext* context);
     ~BucketStrategy();
 
     void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;

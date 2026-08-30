@@ -6,7 +6,6 @@
 #include "../../context/CursorContext/CursorContext.h"
 #include "../../context/DrawingContext/DrawingContext.h"
 #include "../../context/LineContext/LineContext.h"
-#include "../../context/SymmetryContext/SymmetryContext.h"
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/preview/Preview.h"
@@ -21,7 +20,6 @@ private:
     DrawingContext* _drawingContext = nullptr;
     LineContext* _lineContext = nullptr;
     CursorContext _cursorContext;
-    SymmetryContext* _symmetryContext = nullptr;
     
     ToolRuntimeContext _toolRuntimeContext;
 
@@ -34,7 +32,7 @@ private:
     void draw(const Point& pixel);
 
 public:
-    LineStrategy(LineContext* brushContext, DrawingContext* context, SymmetryContext* symmetryContext);
+    LineStrategy(LineContext* brushContext, DrawingContext* context);
 
     void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
     void onTracking(int x, int y) override;

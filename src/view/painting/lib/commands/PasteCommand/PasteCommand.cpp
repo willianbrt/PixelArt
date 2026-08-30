@@ -8,9 +8,7 @@ PasteCommand::PasteCommand(Editor* editor, Clipboard* clipboard, ToolManager* to
 PasteCommand::~PasteCommand(){
 }
 void PasteCommand::execute(){
-    ToolSettings* toolSettings = AppContext::instance().getToolSettings();
-    _toolManager->setRightToolPressed(new SelectStrategy(_editor->getSelectContext(), &toolSettings->symmetryContext));
+    _toolManager->setRightToolPressed(new SelectStrategy(_editor->getSelectContext()));
     _clipboard->paste(_editor);
-
 }
 void PasteCommand::undo(){}

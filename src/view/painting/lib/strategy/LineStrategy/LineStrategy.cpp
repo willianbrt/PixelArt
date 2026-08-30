@@ -1,17 +1,12 @@
 #include "LineStrategy.h"
 
-LineStrategy::LineStrategy(LineContext* lineContext, DrawingContext* drawingContext, SymmetryContext* symmetryContext) :
+LineStrategy::LineStrategy(LineContext* lineContext, DrawingContext* drawingContext) :
 _lineContext(lineContext),
-_drawingContext(drawingContext),
-_symmetryContext(symmetryContext)
+_drawingContext(drawingContext)
 {
-
     _drawingContext->color = 0xff0000ff;
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
-
-    _symmetryContext->isMirrorX =false;
-    _symmetryContext->isMirrorY =false;
 }
 void LineStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
@@ -38,7 +33,7 @@ void LineStrategy::draw(const Point& pixel){
     LineRasterize line(_from, pixel);
     while(line.hasNext()){
         Point p = line.next();
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(p.x, p.y, _drawingContext->color, _symmetryContext);
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(p.x, p.y, _drawingContext->color);
     }
 }
 bool LineStrategy::isInitialized(){

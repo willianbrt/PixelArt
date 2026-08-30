@@ -2,17 +2,14 @@
 BucketStrategy::~BucketStrategy(){}
 
 
-BucketStrategy::BucketStrategy(BucketContext* bucketContext,  DrawingContext* drawingContext, SymmetryContext* symmetryContext) :
+BucketStrategy::BucketStrategy(BucketContext* bucketContext,  DrawingContext* drawingContext) :
 _bucketContext(bucketContext),
-_drawingContext(drawingContext),
-_symmetryContext(symmetryContext)
+_drawingContext(drawingContext)
 {
     _drawingContext->color = 0xff0000ff;
     _drawingContext->size = 1;
     _drawingContext->hardness = 1.0f;
 
-    _symmetryContext->isMirrorX =false;
-    _symmetryContext->isMirrorY =false;
 }
 void BucketStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
@@ -56,7 +53,7 @@ void BucketStrategy::draw(const Point& pixel){
         
         if(_toolRuntimeContext.preview->getPixel(_current.x, _current.y) != startColorHEX) continue;
 
-        _toolRuntimeContext.drawingSession->putMirroredPixel(_current.x, _current.y, _drawingContext->color, _symmetryContext);
+        _toolRuntimeContext.drawingSession->putMirroredPixel(_current.x, _current.y, _drawingContext->color);
 
         queue.push_back(Point(point.x+1, point.y));
         queue.push_back(Point(point.x-1, point.y));

@@ -1,9 +1,8 @@
 #include "BrushStrategy.h"
 
-BrushStrategy::BrushStrategy(BrushContext* brushContext, DrawingContext* drawingContext, SymmetryContext* symmetryContext) :
+BrushStrategy::BrushStrategy(BrushContext* brushContext, DrawingContext* drawingContext) :
 _brushContext(brushContext),
-_drawingContext(drawingContext),
-_symmetryContext(symmetryContext)
+_drawingContext(drawingContext)
 {
     _brushContext->setActivePattern("brush_1");
 
@@ -13,9 +12,6 @@ _symmetryContext(symmetryContext)
 
     _brushContext->transformation.setScale({1.0f, 1.0f});
     _brushContext->transformation.setRad(0  * M_PI / 180);
-
-    _symmetryContext->isMirrorX =false;
-    _symmetryContext->isMirrorY =false;
 }
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
@@ -60,7 +56,7 @@ void BrushStrategy::draw(const Point& pixel){
         unsigned int topColor = _drawingContext->color;
         GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[src.y* _brushContext->selectedPattern->width + src.x] & 0xFF) / 255.0f);
 
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, topColor, _symmetryContext);
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, topColor);
     }
 }
 bool BrushStrategy::isInitialized(){
