@@ -35,7 +35,7 @@ export function buildPaneToolBar(){
     });
     const btnSquare = document.querySelector(".tool-square");
     btnSquare.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(squareStrategy());
+        toolViewModel.setPressedTool("square");
         changeSelectTool.call(this);
     });
 

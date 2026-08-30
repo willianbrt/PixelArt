@@ -16,6 +16,7 @@
 #include "../../../strategy/EraserStrategy/EraserStrategy.h"
 #include "../../../strategy/BucketStrategy/BucketStrategy.h"
 #include "../../../strategy/CircleStrategy/CircleStrategy.h"
+#include "../../../strategy/SquareStrategy/SquareStrategy.h"
 
 
 class PaneToolbarViewModel  {

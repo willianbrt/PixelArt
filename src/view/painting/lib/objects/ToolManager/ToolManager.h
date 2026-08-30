@@ -16,6 +16,7 @@
 #include "../../context/EraserContext/EraserContext.h"
 #include "../../context/BucketContext/BucketContext.h"
 #include "../../context/CircleContext/CircleContext.h"
+#include "../../context/SquareContext/SquareContext.h"
 
 enum class KEY_MOUSE {
     UNPRESSED = -1,
@@ -32,6 +33,7 @@ struct ToolSettings{
     BucketContext  bucketContext;
     SymmetryContext symmetryContext;
     CircleContext circleContext;
+    SquareContext squareContext;
 };
 
 class ToolManager {

@@ -32,6 +32,10 @@ void PaneToolbarViewModel::setPressedTool(std::string tool){
         _toolManager->setRightToolPressed(new CircleStrategy(&_toolSettings->circleContext, &_toolSettings->drawingContext));
         return;
     }
+    if(tool == "square"){
+        _toolManager->setRightToolPressed(new SquareStrategy(&_toolSettings->squareContext, &_toolSettings->drawingContext));
+        return;
+    }
 }
 #include <emscripten/bind.h>
 
