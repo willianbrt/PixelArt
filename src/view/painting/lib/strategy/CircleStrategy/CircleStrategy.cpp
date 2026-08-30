@@ -19,49 +19,39 @@ void CircleStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     _toolRuntimeContext.drawingSession->begin(_toolRuntimeContext.layer);
 
     pivotPoint = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
-
-    _flagPoint = pivotPoint;
+    _to = pivotPoint;
 }
 void CircleStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
-    if (to == _flagPoint) return;
+    if (to == _to) return;
+    _to = to;
 
-    _toolRuntimeContext.drawingSession->clear();
-
-    Point center = {
-        (pivotPoint.x + to.x ) >> 1,
-        (pivotPoint.y + to.y ) >> 1
-    };
-    
-    const Point diameter = { 
-        std::abs(to.x - pivotPoint.x), 
-        std::abs(to.y - pivotPoint.y)
-        // std::max(std::abs(to.x - pivotPoint.x), _drawingContext->size-1), 
-        // std::max(std::abs(to.y - pivotPoint.y), _drawingContext->size-1)
-    };
-    
-    auto draw4 = [&](const int& x, const int& y, const unsigned int& color){
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(center.x + x, center.y + y, color);
-    };
-
-    CircleRasterize circle(diameter);
-    circle.filled(_circleContext->isFilled);
-    circle.thinkenss(_drawingContext->size);
-    circle.draw(draw4);
-
-
-    _flagPoint = to;
+    draw();
 }
 void CircleStrategy::onRelease(){ done(); }
 
-void CircleStrategy::draw(const Point& pixel){
+void CircleStrategy::draw(){
+    _toolRuntimeContext.drawingSession->clear();
+
+    const Point center = {
+        (pivotPoint.x + _to.x) >> 1,
+        (pivotPoint.y + _to.y) >> 1
+    };
+    
+    const Point diameter = { 
+        std::max(std::abs(_to.x - pivotPoint.x), _drawingContext->size-1), 
+        std::max(std::abs(_to.y - pivotPoint.y), _drawingContext->size-1)
+    };
+    
+    CircleRasterize circle(diameter, center);
+    circle.filled(_circleContext->isFilled);
+    circle.thinkenss(_drawingContext->size);
+    circle.draw(*this);
+}
+void CircleStrategy::plot(const int& x, const int& y){
+    _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, _drawingContext->color);
 }
 
-void CircleStrategy::traceSymetricOutline(const Point& from, const Point& to, const Point& center) {
-}
-
-void CircleStrategy::traceFilled(const Point& from, const Point& center) {
-}
 bool CircleStrategy::isInitialized(){
     return _initialized;
 }

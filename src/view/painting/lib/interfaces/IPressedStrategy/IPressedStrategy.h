@@ -16,6 +16,11 @@ public:
 
 };
 
+class IDraw{
+public:
+    virtual void plot(const int& x, const int& y) = 0;
+};
+
 class IPressedStrategy : public IToolStrategy {
 protected:
 public:

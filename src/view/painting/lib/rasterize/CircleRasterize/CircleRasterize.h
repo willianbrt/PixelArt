@@ -2,13 +2,14 @@
 #define CIRCLERASTERIZE_H
 
 #include "../../graphics/Pixel/Pixel.h"
+#include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
 #include <functional>
 
 class CircleRasterize {
 private:
     Point _current;
 
-    Point _diameter;
+    Point _diameter, _center;
     Point _radius;
     Point _radius2;
     int _twoRx2;
@@ -26,17 +27,17 @@ private:
     bool _horizontal;
     bool _hasNext;
 
-    void putSymmetric(const int& x, const int& y, const unsigned int& color, std::function<void (const int&, const int&, const unsigned int&)> callback);
+    void putSymmetric(const int& x, const int& y, IDraw& callback);
 public:
 CircleRasterize(CircleRasterize& circle);
-CircleRasterize(const Point& diameter);
+CircleRasterize(const Point& diameter, const Point& center);
 ~CircleRasterize();
 
 bool hasNext() const;
 Point next();
 void nextHorizontal();
 void nextVertical();
-void draw(std::function<void (const int&, const int&, const unsigned int&)> callback);
+void draw(IDraw& callback);
 
 void thinkenss(int& thinkenss);
 void filled(bool& isFilled);

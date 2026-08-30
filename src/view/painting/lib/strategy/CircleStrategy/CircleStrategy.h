@@ -21,9 +21,9 @@
 #include <thread>
 #include <chrono>
 
-class CircleStrategy : public IPressedStrategy {
+class CircleStrategy : public IPressedStrategy, public IDraw {
 private:
-    Point _flagPoint, pivotPoint;
+    Point _to, pivotPoint;
     DrawingContext* _drawingContext = nullptr;
     CircleContext* _circleContext = nullptr;
     CursorContext _cursorContext;
@@ -31,10 +31,8 @@ private:
     ToolRuntimeContext _toolRuntimeContext;
 
     bool _initialized = false;
-    
-    void draw(const Point& pixel);
-    void traceSymetricOutline(const Point& from, const Point& to, const Point& center);
-    void traceFilled(const Point& from, const Point& center);
+    void draw();
+    void plot(const int& x, const int& y) override;
 public:
     CircleStrategy(CircleContext* circleContext, DrawingContext* context);
     ~CircleStrategy();
@@ -46,12 +44,5 @@ public:
     void done() override;
     void abort() override;
     CursorContext* getCursorContext() override;
-    void fillEllipseStrokeDistance(
-    int cx, int cy,
-    float rx, float ry,
-    float thickness,
-    float dashLength,   // tamanho do traço
-    float gapLength     // espaço
-);
 };
 #endif
