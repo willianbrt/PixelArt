@@ -1,10 +1,6 @@
 #include "./CircleStrategy.h"
 
-inline int cross(const Point& A, const Point& B, const Point& P) {
-    return (B.x - A.x)*(P.y - A.y) - (B.y - A.y)*(P.x - A.x);
-}
 CircleStrategy::~CircleStrategy(){}
-
 
 CircleStrategy::CircleStrategy(CircleContext* circleContext,  DrawingContext* drawingContext, SymmetryContext* symmetryContext) :
 _circleContext(circleContext),
