@@ -16,7 +16,7 @@
 
 class LineStrategy : public IPressedStrategy {
 private:
-    Point _from;
+    Point _to, _pivot;
     DrawingContext* _drawingContext = nullptr;
     LineContext* _lineContext = nullptr;
     CursorContext _cursorContext;
@@ -29,7 +29,7 @@ private:
     
     void drawHorizontalBrush(Point to, Point from);
     void drawVerticalBrush(Point to, Point from);
-    void draw(const Point& pixel);
+    void draw();
 
 public:
     LineStrategy(LineContext* brushContext, DrawingContext* context);

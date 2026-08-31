@@ -4,7 +4,7 @@ LineRasterize::LineRasterize(const Point& from, const Point& to){
     _to = to;
     _current.x = from.x;
     _current.y = from.y;
-    _hasNext = !(_current.x == _to.x && _current.y == _to.y);
+    _hasNext = true;
 
     _delta.x = std::abs(_to.x - _current.x);
     _delta.y = -std::abs(_to.y - _current.y);
@@ -24,6 +24,7 @@ Point LineRasterize::next() {
 
     if (_current.x == _to.x && _current.y == _to.y) {
         _hasNext = false;
+        printf("fim\n");
         return p;
     }
 
