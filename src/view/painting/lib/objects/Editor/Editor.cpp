@@ -2,7 +2,6 @@
 
 Editor::Editor(int width, int height) {
     _sketch = new Surface(width, height);
-    printf("he: %i\n", _sketch->getHeight());
     _preview = new Preview(width, height);
     
     _drawingSession = new DrawingSession(_preview, &dirtyManager, &_symmetry);
@@ -165,6 +164,9 @@ CanvasSettings* Editor::getCanvasSettings(){
 }
 SelectContext* Editor::getSelectContext(){
     return _select;
+}
+SymmetryContext* Editor::getSymmetryContext(){
+    return &_symmetry;
 }
 Point Editor::getCanvasSize(){
     return {

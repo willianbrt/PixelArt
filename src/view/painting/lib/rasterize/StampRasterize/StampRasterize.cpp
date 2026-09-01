@@ -15,8 +15,6 @@ StampRasterize::StampRasterize(const PointF& center, const Point& sizePattern, c
     bounding.end.x = bounding.end.x >= crop.x ? crop.x : bounding.end.x;
     bounding.end.y = bounding.end.y >= crop.y ? crop.y : bounding.end.y;
 
-    printf("b: %i, %i - %i, %i\n", bounding.start.x,bounding.start.y, bounding.end.x, bounding.end.y);
-
     _current =  bounding.start;
     _hasNext = bounding.start.x < bounding.end.x && bounding.start.y < bounding.end.y;
     

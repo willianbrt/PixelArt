@@ -7,17 +7,23 @@ const thickness = document.querySelector("input[name='size']");
 const hardness = document.querySelector("input[name='strength']");
 hardness.value = 100;
 // checked
-var isPixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
-var isMirrorX = document.querySelector("#mirror-x input[type='checkbox']");
-var isMirrorY = document.querySelector("#mirror-y input[type='checkbox']");
-var isFill = document.querySelector("#fill input[type='checkbox']");
+var pixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
+var mirrorX = document.querySelector("#mirror-x input[type='checkbox']");
+var mirrorY = document.querySelector("#mirror-y input[type='checkbox']");
+var fill = document.querySelector("#fill input[type='checkbox']");
 
 
 export function buildPaneToolBar(){
     const toolViewModel = app.paneToolViewModel();
     const drawingSettings = app.drawingSettingsVM();
+    const symmetrySettings = app.symmetrySettingsVM();
     thickness.onchange = (e)=>{ drawingSettings.setSize(parseInt(e.srcElement.value)); }
     hardness.onchange = (e)=>{ drawingSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
+    mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
+    mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
+    fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
+
+
     // thickness.onchange = (e)=>{ drawingSettings.setColor(parseInt(e.srcElement.value)); }
 
 

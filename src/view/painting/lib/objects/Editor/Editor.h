@@ -84,5 +84,6 @@ public:
     Point getCanvasSize();
     DirtyManager* getDirtyManager();
     DrawingSession* getDrawingSession();
+    SymmetryContext* getSymmetryContext();
 };
 #endif

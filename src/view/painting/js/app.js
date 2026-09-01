@@ -27,6 +27,7 @@ async function init(){
         paneToolViewModel: (frame)=> { return new module.PaneToolbarViewModel(); },
         layerViewModel: (layerID)=> { return new module.LayerViewModel(layerID); },
         drawingSettingsVM: (layerID)=> { return new module.DrawingSettingsVM(); },
+        symmetrySettingsVM: (layerID)=> { return new module.SymmetrySettingsVM(); },
         shortcuts
     });
 
