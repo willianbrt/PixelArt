@@ -6,10 +6,6 @@ BucketStrategy::BucketStrategy(BucketContext* bucketContext,  DrawingContext* dr
 _bucketContext(bucketContext),
 _drawingContext(drawingContext)
 {
-    _drawingContext->color = 0xff0000ff;
-    _drawingContext->size = 1;
-    _drawingContext->hardness = 1.0f;
-
 }
 void BucketStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;

@@ -4,9 +4,6 @@ LineStrategy::LineStrategy(LineContext* lineContext, DrawingContext* drawingCont
 _lineContext(lineContext),
 _drawingContext(drawingContext)
 {
-    _drawingContext->color = 0xff0000aa;
-    _drawingContext->size = 3;
-    _drawingContext->hardness = 1.0f;
 }
 void LineStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;

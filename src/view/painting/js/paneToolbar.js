@@ -3,10 +3,24 @@ import HandlerEvents from './handlerEvents.js'
 
 const handlerEvents = HandlerEvents(document.querySelector("canvas#painting"));
 
+const thickness = document.querySelector("input[name='size']");
+const hardness = document.querySelector("input[name='strength']");
+hardness.value = 100;
+// checked
+var isPixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
+var isMirrorX = document.querySelector("#mirror-x input[type='checkbox']");
+var isMirrorY = document.querySelector("#mirror-y input[type='checkbox']");
+var isFill = document.querySelector("#fill input[type='checkbox']");
+
 
 export function buildPaneToolBar(){
     const toolViewModel = app.paneToolViewModel();
-    
+    const drawingSettings = app.drawingSettingsVM();
+    thickness.onchange = (e)=>{ drawingSettings.setSize(parseInt(e.srcElement.value)); }
+    hardness.onchange = (e)=>{ drawingSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
+    // thickness.onchange = (e)=>{ drawingSettings.setColor(parseInt(e.srcElement.value)); }
+
+
     const btnPencil = document.querySelector(".tool-pencil");
     btnPencil.addEventListener("click", function(e){
         toolViewModel.setPressedTool("brush");
@@ -155,4 +169,16 @@ function createFloatingToolbar() {
 
         content.appendChild(btn);
     }
+}
+
+function getPattern(jsPattern) {
+    let cppPattern = new module.VectorVectorFloat();
+
+    jsPattern.forEach(row => {
+        let rowVec = new module.VectorFloat();
+        row.forEach(v => rowVec.push_back(v*getWeight()));
+        cppPattern.push_back(rowVec);
+    });
+
+    return cppPattern;
 }

@@ -6,10 +6,6 @@ SquareStrategy::SquareStrategy(SquareContext* squareContext,  DrawingContext* dr
 _squareContext(squareContext),
 _drawingContext(drawingContext)
 {
-    _drawingContext->color = 0xff0000aa;
-    _drawingContext->size = 3;
-    _drawingContext->hardness = 1.0f;
-
     _squareContext->isFilled = false;
 }
 void SquareStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){

@@ -4,9 +4,6 @@ EraserStrategy::EraserStrategy(EraserContext* eraserContext, DrawingContext* dra
 _eraserContext(eraserContext),
 _drawingContext(drawingContext)
 {
-    _drawingContext->color = 0xff0000ff;
-    _drawingContext->size = 1;
-    _drawingContext->hardness = 1.0f;
 }
 void EraserStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;

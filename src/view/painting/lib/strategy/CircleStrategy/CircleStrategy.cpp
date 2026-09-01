@@ -6,10 +6,6 @@ CircleStrategy::CircleStrategy(CircleContext* circleContext,  DrawingContext* dr
 _circleContext(circleContext),
 _drawingContext(drawingContext)
 {
-    _drawingContext->color = 0xff0000ff;
-    _drawingContext->size = 3;
-    _drawingContext->hardness = 1.0f;
-
     _circleContext->isFilled = false;
 }
 void CircleStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){

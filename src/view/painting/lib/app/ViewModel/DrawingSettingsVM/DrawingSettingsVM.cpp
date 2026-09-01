@@ -15,7 +15,8 @@ void DrawingSettingsVM::setSize(int size){
 void DrawingSettingsVM::setHardness(float hardness){
     if(hardness < 0.0f || hardness > 1.0f) return;
 
-    _toolSettings->drawingContext.hardness = (int)(hardness*255.0f);
+    _toolSettings->drawingContext.hardness = hardness;
+    _toolSettings->drawingContext.color = (_toolSettings->drawingContext.color & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f);
 }
 void DrawingSettingsVM::setColor(unsigned int color){
     _toolSettings->drawingContext.color = color;

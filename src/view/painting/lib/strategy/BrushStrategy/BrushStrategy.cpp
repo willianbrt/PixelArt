@@ -5,11 +5,6 @@ _brushContext(brushContext),
 _drawingContext(drawingContext)
 {
     _brushContext->setActivePattern("brush_1");
-
-    _drawingContext->color = 0xff0000ff;
-    _drawingContext->size = 1;
-    _drawingContext->hardness = 1.0f;
-
     _brushContext->transformation.setScale({1.0f, 1.0f});
     _brushContext->transformation.setRad(0  * M_PI / 180);
 }
