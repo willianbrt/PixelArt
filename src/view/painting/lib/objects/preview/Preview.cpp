@@ -24,8 +24,8 @@ void Preview::putPixel(int x, int y, unsigned int colorHex){
     dirtyArea.start.x = std::min(dirtyArea.start.x, x);
     dirtyArea.start.y = std::min(dirtyArea.start.y, y);
     
-    dirtyArea.end.x = std::max(dirtyArea.end.x, x+1);
-    dirtyArea.end.y = std::max(dirtyArea.end.y, y+1);
+    dirtyArea.end.x = std::max(dirtyArea.end.x, x);
+    dirtyArea.end.y = std::max(dirtyArea.end.y, y);
     
     unsigned int index = x + y*_layer->getWidth();
     _newColor[index] = colorHex;

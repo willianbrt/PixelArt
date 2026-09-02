@@ -42,10 +42,10 @@ void Editor::compose(Bounding area){
 
 
     float opacity = 0.3;
-    for(int y = area.start.y; y < area.end.y; y++){
+    for(int y = area.start.y; y <= area.end.y; y++){
         int index = y * _sketch->getWidth() + area.start.x;
         
-        for(int x = area.start.x; x < area.end.x; x++){
+        for(int x = area.start.x; x <= area.end.x; x++){
             // previous frame
             unsigned int colorHex = activeFrameIndex > 0 ? frames[activeFrameIndex - 1].get()->getPixel(index) : 0;
             GraphicsEngine::setOpacity(colorHex, opacity);
@@ -95,7 +95,7 @@ unique_ptr<Frame> Editor::removeFrame(size_t index){
     unique_ptr<Frame> removedFrame = std::move(frames[index]);
     frames.erase(frames.begin() + index);
     
-    dirtyManager.markDirty({{0,0},{_sketch->getWidth(), _sketch->getHeight()}});
+    dirtyManager.markDirty({{0,0},{_sketch->getWidth()-1, _sketch->getHeight()-1}});
 
     return removedFrame;
 }
@@ -106,7 +106,7 @@ void Editor::changeActiveFrame(Guid id){
     _preview = new Preview(_sketch->getWidth(), _sketch->getHeight());
     _preview->setTarget(activeFrame->getActiveLayer());
 
-    dirtyManager.markDirty({{0,0},{_sketch->getWidth(), _sketch->getHeight()}});
+    dirtyManager.markDirty({{0,0},{_sketch->getWidth()-1, _sketch->getHeight()-1}});
 
     for (auto* obs : observers) {
         obs->onChangeActiveFrame(id);
@@ -127,7 +127,7 @@ void Editor::bringFrameTo(Guid id, size_t toIndex){
         std::rotate(frames.begin() + toIndex, frames.begin() + fromIndex, frames.begin() + fromIndex + 1);
     }
 
-    dirtyManager.markDirty({{0,0},{_sketch->getWidth(), _sketch->getHeight()}});
+    dirtyManager.markDirty({{0,0},{_sketch->getWidth()-1, _sketch->getHeight()-1}});
     for (auto* obs : observers) {
         obs->onMoveFrameTo(id, toIndex);
     }
