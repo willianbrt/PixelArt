@@ -36,11 +36,11 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport) {
         {
             vec2 transformedUV = pixel / texSize;
             
-            if(transformedUV.x < 0.0 || transformedUV.x > 1.0 || transformedUV.y < 0.0 || transformedUV.y > 1.0) discard;
+            if(transformedUV.x < 0.0 || transformedUV.x > repeat.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y) discard;
             
             vec4 color = vec4(1.0, 0.0, 0.0, 1.0);
-            vec2 thickness = 1.0 / (zoom * texSize);
-            transformedUV = fract(transformedUV * repeat);
+            vec2 thickness = 1.0 / (zoom/repeat * texSize);
+            transformedUV = fract(transformedUV );
 
             vec4 textureColor = texture(tex, transformedUV).abgr;
             color = mix(color, textureColor, textureColor.a);
@@ -104,6 +104,7 @@ void SketchPass::render(){
     glEnableVertexAttribArray(pos);
     glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
+    SymmetryContext* symmetryContext = editor->getSymmetryContext();
     CanvasSettings* canvasSettings = editor->getCanvasSettings();
     Point panning = canvasSettings->getSketchPosition();
     Point cursorLocation = canvasSettings->cursorToCanvas(_viewport->cursorX, _viewport->cursorY);
@@ -117,8 +118,8 @@ void SketchPass::render(){
     data.cursorLocation[1] = cursorLocation.y;
     data.pan[0] = panning.x;
     data.pan[1] = panning.y;
-    data.repeat[0] = canvasSettings->getTilesX();
-    data.repeat[1] = canvasSettings->getTilesY();
+    data.repeat[0] = symmetryContext->nTileX;
+    data.repeat[1] = symmetryContext->nTileY;
     data.zoom[0] = canvasSettings->getScale();
     data.zoom[1] = canvasSettings->getScale();
     data.time = glfwGetTime();

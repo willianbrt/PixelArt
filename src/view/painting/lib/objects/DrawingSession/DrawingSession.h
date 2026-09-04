@@ -6,6 +6,7 @@
 #include "../../objects/preview/Preview.h"
 #include "../../objects/DirtyManager/DirtyManager.h"
 #include "../../objects/layer/Layers.h"
+#include "../../objects/CanvasSettings/CanvasSettings.h"
 #include <array>
 
 class DrawingSession {

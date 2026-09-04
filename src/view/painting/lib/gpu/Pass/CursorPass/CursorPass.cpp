@@ -27,7 +27,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, Viewpor
         out vec4 fragColor;
         void main(){
             vec2 transformedUV = pixel / texSize;
-            if(transformedUV.x < 0.0 || transformedUV.x > 1.0 || transformedUV.y < 0.0 || transformedUV.y > 1.0) discard;
+            if(transformedUV.x < 0.0 || transformedUV.x > repeat.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y) discard;
 
             vec2 pixelHover = (pixel-cursorLocation) + floor(brushSize*0.5);
             vec2 hoverUV = pixelHover / brushSize;

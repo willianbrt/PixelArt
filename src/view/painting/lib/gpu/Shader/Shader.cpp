@@ -21,7 +21,7 @@ const char* Shader::vertex_data = R"(#version 300 es
         uv = position * 0.5 + 0.5;
         uv = vec2(uv.x, 1.0 - uv.y) * resolution;
         
-        pixel = (uv - pan) / (zoom + repeat-1.0);
+        pixel = (uv - pan) / (zoom /repeat);
 
         gl_Position = vec4(position,0.0,1.0);
     }

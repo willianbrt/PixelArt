@@ -11,6 +11,7 @@
 #include "../../../objects/EditorManager/EditorManager.h"
 #include "../../../context/CursorContext/CursorContext.h"
 #include "../../../context/ViewportContext/ViewportContext.h"
+#include "../../../context/SymmetryContext/SymmetryContext.h"
 #include "../../Quad/Quad.h"
 #include "../../Shader/Shader.h"
 #include "../GlobalUBO/GlobalUBO.h"
