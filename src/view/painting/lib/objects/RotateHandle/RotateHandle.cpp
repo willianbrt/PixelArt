@@ -22,7 +22,7 @@ bool RotateHandle::isActive(){ return true; }
 bool RotateHandle::hitTest(Point point, CanvasSettings* viewport){
     PointF position = getPosition(viewport);
 
-    float halfHitBox = size*0.5f* viewport->getScale();
+    float halfHitBox = size*0.5f* viewport->canvasTransform.scale;
     return (point.x >= position.x - halfHitBox && point.x < position.x + halfHitBox) &&
         (point.y >= position.y - halfHitBox && point.y < position.y + halfHitBox);
 }

@@ -17,7 +17,7 @@ public:
     DrawingSession* drawingSession;
     ViewportContext* viewport;
     CanvasSettings* canvasSettings;
-    int screenWidth, screenHeight;
+    Point drawingAreaSize;
     void clampBounding(Bounding& bounding);
 };
 

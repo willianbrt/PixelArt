@@ -41,10 +41,7 @@ void ToolManager::build(){
     toolRuntimeContext.drawingSession = editor->getDrawingSession();
     toolRuntimeContext.viewport = _viewport;
     toolRuntimeContext.canvasSettings = editor->getCanvasSettings();
-
-    Point canvasSize = editor->getCanvasSize();
-    toolRuntimeContext.screenWidth = canvasSize.x;
-    toolRuntimeContext.screenHeight = canvasSize.y;
+    toolRuntimeContext.drawingAreaSize = editor->getDrawingAreaSize();
 
 }
 

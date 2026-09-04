@@ -23,12 +23,12 @@ void BucketStrategy::onTracking(int x, int y){}
 void BucketStrategy::onRelease(){ done(); }
 
 void BucketStrategy::draw(const Point& pixel){
-    if(pixel.x >= _toolRuntimeContext.screenWidth || pixel.y >= _toolRuntimeContext.screenHeight || pixel.x < 0 || pixel.y < 0)
+    if(pixel.x >= _toolRuntimeContext.drawingAreaSize.x || pixel.y >= _toolRuntimeContext.drawingAreaSize.y || pixel.x < 0 || pixel.y < 0)
         return;
     
     Point _current;
-    _current.x = GraphicsEngine::clampedTilePoint(pixel.x, _toolRuntimeContext.screenHeight);
-    _current.y = GraphicsEngine::clampedTilePoint(pixel.y, _toolRuntimeContext.screenWidth);
+    _current.x = GraphicsEngine::clampedTilePoint(pixel.x, _toolRuntimeContext.drawingAreaSize.y);
+    _current.y = GraphicsEngine::clampedTilePoint(pixel.y, _toolRuntimeContext.drawingAreaSize.x);
 
     const unsigned int startColorHEX = _toolRuntimeContext.preview->getPixel(_current.x, _current.y);
 
@@ -42,10 +42,10 @@ void BucketStrategy::draw(const Point& pixel){
         Point point = queue.back();
         queue.pop_back();
         
-        if(point.x >= _toolRuntimeContext.screenWidth || point.y >= _toolRuntimeContext.screenHeight || point.x < 0 || point.y < 0) continue;
+        if(point.x >= _toolRuntimeContext.drawingAreaSize.x || point.y >= _toolRuntimeContext.drawingAreaSize.y || point.x < 0 || point.y < 0) continue;
 
-        _current.x = GraphicsEngine::clampedTilePoint(point.x, _toolRuntimeContext.screenHeight);
-        _current.y = GraphicsEngine::clampedTilePoint(point.y, _toolRuntimeContext.screenWidth);
+        _current.x = GraphicsEngine::clampedTilePoint(point.x, _toolRuntimeContext.drawingAreaSize.y);
+        _current.y = GraphicsEngine::clampedTilePoint(point.y, _toolRuntimeContext.drawingAreaSize.x);
         
         if(_toolRuntimeContext.preview->getPixel(_current.x, _current.y) != startColorHEX) continue;
 

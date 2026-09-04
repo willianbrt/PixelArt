@@ -106,7 +106,6 @@ void SketchPass::render(){
 
     SymmetryContext* symmetryContext = editor->getSymmetryContext();
     CanvasSettings* canvasSettings = editor->getCanvasSettings();
-    Point panning = canvasSettings->getSketchPosition();
     Point cursorLocation = canvasSettings->cursorToCanvas(_viewport->cursorX, _viewport->cursorY);
 
     GlobalData data;
@@ -116,18 +115,18 @@ void SketchPass::render(){
     data.cursor[1] = _viewport->cursorY;
     data.cursorLocation[0] = cursorLocation.x;
     data.cursorLocation[1] = cursorLocation.y;
-    data.pan[0] = panning.x;
-    data.pan[1] = panning.y;
-    data.repeat[0] = symmetryContext->nTileX;
-    data.repeat[1] = symmetryContext->nTileY;
-    data.zoom[0] = canvasSettings->getScale();
-    data.zoom[1] = canvasSettings->getScale();
+    data.pan[0] = canvasSettings->canvasTransform.pan.x;
+    data.pan[1] = canvasSettings->canvasTransform.pan.y;
+    data.repeat[0] = canvasSettings->tilingContext.isTilingX ? TilingContext::N_TILE_X : 1;
+    data.repeat[1] = canvasSettings->tilingContext.isTilingY ? TilingContext::N_TILE_Y : 1;
+    data.zoom[0] = canvasSettings->canvasTransform.scale;
+    data.zoom[1] = canvasSettings->canvasTransform.scale;
     data.time = glfwGetTime();
 
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO.id());
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
 
-    glUniform2f(gridDivisionsLocation, canvasSettings->getGridDivisionsX(), canvasSettings->getGridDivisionsY());
+    glUniform2f(gridDivisionsLocation, canvasSettings->gridContext.divisionsX, canvasSettings->gridContext.divisionsY);
     
     glUniform2f(texSizeLocation, _surface->getWidth(), _surface->getHeight());
     glUniform4f(lightColorLocation, 1,1,1,1);

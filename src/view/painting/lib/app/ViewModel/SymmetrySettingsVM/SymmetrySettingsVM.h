@@ -16,8 +16,8 @@ public:
 
     void setMirrorX(bool active);
     void setMirrorY(bool active);
-    void setNTileX(int size);
-    void setNTileY(int size);
+    void enabledTilingX(bool enabled);
+    void enabledTilingY(bool enabled);
     
 };
 

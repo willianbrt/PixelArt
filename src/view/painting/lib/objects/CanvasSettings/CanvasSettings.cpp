@@ -3,60 +3,36 @@
 
 CanvasSettings::CanvasSettings(){
 }
-void CanvasSettings::setTilesX(int tilesX){
-    _tilesX = tilesX; 
-}
-void CanvasSettings::setTilesY(int tilesY){
-    _tilesY = tilesY; 
-}
-void CanvasSettings::setScale(float scale){
-    _scale = scale;
-}
 
-void CanvasSettings::setGridDivisionsX(int gridDivisionsX){
-    _gridDivisionsX = gridDivisionsX;
-}
-void CanvasSettings::setGridDivisionsY(int gridDivisionsY){
-    _gridDivisionsY = gridDivisionsY;
-}
-int CanvasSettings::getGridDivisionsX(){ return _gridDivisionsX; }
-int CanvasSettings::getGridDivisionsY(){ return _gridDivisionsY; }
-int CanvasSettings::getTilesX(){
-    return _tilesX;
-}
-int CanvasSettings::getTilesY(){
-    return _tilesY;
-}
-float CanvasSettings::getScale(){
-    return _scale;
-}
-Point CanvasSettings::getSketchPosition(){
-    return _sketchPosition;
-}
+Point CanvasSettings::cursorToCanvas(int x, int y){
+    Point p;
+    p.x = (tilingContext.isTilingX) ?
+        (int)std::floor((x - canvasTransform.pan.x) / (canvasTransform.scale / TilingContext::N_TILE_X)) :
+        (int)std::floor((x - canvasTransform.pan.x) / (canvasTransform.scale));
+    p.y = (tilingContext.isTilingY) ? 
+        (int)std::floor((y - canvasTransform.pan.y) / (canvasTransform.scale / TilingContext::N_TILE_Y)) :
+        (int)std::floor((y - canvasTransform.pan.y) / (canvasTransform.scale));
 
-void CanvasSettings::setSketchPosition(int x, int y){
-    _sketchPosition.x = x;
-    _sketchPosition.y = y;
-}
-
-
-
-Point CanvasSettings::cursorToCanvas(int x, int y){    
-    return {
-        (int)std::floor((x - _sketchPosition.x) / _scale),
-        (int)std::floor((y - _sketchPosition.y) / _scale)
-    };
+    return p;
 }
 
 Point CanvasSettings::canvasToWorld(int x, int y){
-    return {
-       (int)((x + _sketchPosition.x) * _scale),
-       (int)((y + _sketchPosition.y) * _scale)
-    };
+    Point p;
+    p.x = (tilingContext.isTilingX) ?
+        (int)std::floor((x - canvasTransform.pan.x) / (canvasTransform.scale / TilingContext::N_TILE_X)) :
+        (int)std::floor((x - canvasTransform.pan.x) / (canvasTransform.scale));
+    p.y = (tilingContext.isTilingY) ? 
+        (int)std::floor((y - canvasTransform.pan.y) / (canvasTransform.scale / TilingContext::N_TILE_Y)) :
+        (int)std::floor((y - canvasTransform.pan.y) / (canvasTransform.scale));
+    return p;
 }
 PointF CanvasSettings::canvasToWorld(float x, float y){
-    return {
-       (x + _sketchPosition.x) * _scale,
-       (y + _sketchPosition.y) * _scale
-    };
+    PointF p;
+    p.x = (tilingContext.isTilingX) ?
+        (x - canvasTransform.pan.x) / (canvasTransform.scale / TilingContext::N_TILE_X) :
+        (x - canvasTransform.pan.x) / (canvasTransform.scale);
+    p.y = (tilingContext.isTilingY) ? 
+        (y - canvasTransform.pan.y) / (canvasTransform.scale / TilingContext::N_TILE_Y) :
+        (y - canvasTransform.pan.y) / (canvasTransform.scale);
+    return p;
 }

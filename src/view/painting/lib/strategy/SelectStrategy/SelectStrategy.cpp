@@ -102,17 +102,13 @@ void SelectStrategy::draw(){
     PointF _dstCenter = _selectContext->selectionBox.getCenter();
     StampRasterize stamp(_dstCenter,
         {_selectContext->srcArea.getWidth(), _selectContext->srcArea.getHeight()},
-        {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight},
+        _toolRuntimeContext.drawingAreaSize,
         _selectContext->transformation);
 
 
-    // printf("c(%f, %f)\n",_dstCenter.x,_dstCenter.y );
-    // printf("sz(%i, %i)\n",_selectContext->srcArea.getWidth(),_selectContext->srcArea.getHeight() );
-        
     while(stamp.hasNext()){
         Point it = stamp.next();
         Point src = stamp.getSrcPoint();
-        // printf("i(%i, %i), src(%i, %i)\n",it.x, it.y ,src.x, src.y);
         if(src.x < 0 || src.y < 0 || src.x > _selectContext->srcArea.getWidth() || src.y > _selectContext->srcArea.getHeight()) continue;
 
         if (!_selectContext->data->isInsideSkecth(src.x, src.y)) { continue; }

@@ -1,9 +1,10 @@
 #include "DrawingSession.h"
 
-DrawingSession::DrawingSession(Preview* preview, DirtyManager* dirtyManager, SymmetryContext* symmetryContext)
+DrawingSession::DrawingSession(Preview* preview, DirtyManager* dirtyManager, SymmetryContext* symmetryContext, CanvasSettings* canvasSettings)
 {
     _preview = preview;
     _dirtyManager = dirtyManager;
+    _canvasSettings = canvasSettings;
     _symmetryContext = symmetryContext;
 }
 void DrawingSession::begin(Layer* layer){
@@ -21,10 +22,12 @@ void DrawingSession::begin(Layer* layer){
 void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color){    
     Layer* layer = _preview->getTarget();
 
-    if(_symmetryContext->nTileX > 1)
+    if(_canvasSettings->tilingContext.isTilingX){
         x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
-    if(_symmetryContext->nTileY > 1)
+    }
+    if(_canvasSettings->tilingContext.isTilingY){
         y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
+    }
 
     _preview->putPixel(x, y,  GraphicsEngine::blendColors(_preview->getPixel(x, y), color));
     
@@ -46,9 +49,9 @@ void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color){
 void DrawingSession::putMirroredPixel(int x, int y, unsigned int color){
     Layer* layer = _preview->getTarget();
 
-    if(_symmetryContext->nTileX > 1)
+    if(_canvasSettings->tilingContext.isTilingX)
         x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
-    if(_symmetryContext->nTileY > 1)
+    if(_canvasSettings->tilingContext.isTilingY)
         y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
 
 

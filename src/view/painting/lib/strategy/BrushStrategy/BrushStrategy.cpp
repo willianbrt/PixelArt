@@ -28,6 +28,8 @@ void BrushStrategy::onTracking(int x, int y){
     while(line.hasNext()){
         Point p = line.next();
         draw(p);
+
+        // _toolRuntimeContext.drawingSession->blendMirroredPixel(p.x, p.y, _drawingContext->color);
     }
 
     _from = to;
@@ -39,7 +41,7 @@ void BrushStrategy::onRelease(){
 void BrushStrategy::draw(const Point& pixel){
     StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
         {_brushContext->selectedPattern->width, _brushContext->selectedPattern->height},
-        {_toolRuntimeContext.screenWidth, _toolRuntimeContext.screenHeight},
+        _toolRuntimeContext.drawingAreaSize,
         _brushContext->transformation);
 
     while(stamp.hasNext()){
@@ -47,7 +49,7 @@ void BrushStrategy::draw(const Point& pixel){
         Point src = stamp.getSrcPoint();
 
         if(src.x < 0 || src.y < 0 || src.x > _brushContext->selectedPattern->width || src.y > _brushContext->selectedPattern->height) continue;
-
+        
         unsigned int topColor = _drawingContext->color;
         GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[src.y* _brushContext->selectedPattern->width + src.x] & 0xFF) / 255.0f);
 

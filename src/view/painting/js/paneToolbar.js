@@ -22,9 +22,9 @@ export function buildPaneToolBar(){
     mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
     mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
-    symmetrySettings.setNTileX(3);
-    symmetrySettings.setNTileY(3);
-
+    
+    symmetrySettings.enabledTilingX(true);
+    symmetrySettings.enabledTilingY(true);
     // thickness.onchange = (e)=>{ drawingSettings.setColor(parseInt(e.srcElement.value)); }
 
 

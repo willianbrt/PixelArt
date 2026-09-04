@@ -4,13 +4,12 @@ Editor::Editor(int width, int height) {
     _sketch = new Surface(width, height);
     _preview = new Preview(width, height);
     
-    _drawingSession = new DrawingSession(_preview, &dirtyManager, &_symmetry);
+    _canvasSettings.canvasTransform.scale = 15.0f;
+    _canvasSettings.gridContext.divisionsX = 32;
+    _canvasSettings.gridContext.divisionsY = 32;
+    _drawingSession = new DrawingSession(_preview, &dirtyManager, &_symmetry, &_canvasSettings);
 
-    _canvasSettings = new CanvasSettings();
     _select = new SelectContext();
-    _canvasSettings->setScale(15.0f);
-    _canvasSettings->setGridDivisionsX(32);
-    _canvasSettings->setGridDivisionsY(32);
 
 }
 Editor::~Editor(){
@@ -160,7 +159,7 @@ Frame* Editor::getActiveFrame(){
 }
 
 CanvasSettings* Editor::getCanvasSettings(){
-    return _canvasSettings;
+    return &_canvasSettings;
 }
 SelectContext* Editor::getSelectContext(){
     return _select;
@@ -168,10 +167,10 @@ SelectContext* Editor::getSelectContext(){
 SymmetryContext* Editor::getSymmetryContext(){
     return &_symmetry;
 }
-Point Editor::getCanvasSize(){
+Point Editor::getDrawingAreaSize(){
     return {
-        _canvasSettings->getTilesX() * _sketch->getWidth(),
-        _canvasSettings->getTilesY() * _sketch->getHeight()
+        ((_canvasSettings.tilingContext.isTilingX) ? TilingContext::N_TILE_X : 1) * _sketch->getWidth(),
+        ((_canvasSettings.tilingContext.isTilingY) ? TilingContext::N_TILE_Y : 1) * _sketch->getHeight()
     };
 }
 DirtyManager* Editor::getDirtyManager(){

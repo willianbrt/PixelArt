@@ -43,7 +43,7 @@ private:
     vector<IEditorObserver*> observers;
     Frame* activeFrame = nullptr;
     Preview* _preview = nullptr;
-    CanvasSettings* _canvasSettings = nullptr;
+    CanvasSettings _canvasSettings;
     // DirtyManager* dirtyManager = nullptr;
     DirtyManager dirtyManager;
     DrawingSession* _drawingSession = nullptr;
@@ -81,7 +81,7 @@ public:
 
     CanvasSettings* getCanvasSettings();
     SelectContext* getSelectContext();
-    Point getCanvasSize();
+    Point getDrawingAreaSize();
     DirtyManager* getDirtyManager();
     DrawingSession* getDrawingSession();
     SymmetryContext* getSymmetryContext();

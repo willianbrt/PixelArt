@@ -14,9 +14,10 @@ class DrawingSession {
     Preview* _preview = nullptr;
     DirtyManager* _dirtyManager = nullptr;
     SymmetryContext* _symmetryContext = nullptr;
+    CanvasSettings* _canvasSettings = nullptr;
 
     public:
-    DrawingSession(Preview* preview, DirtyManager* dirtyManager, SymmetryContext* symmetryContext);
+    DrawingSession(Preview* preview, DirtyManager* dirtyManager, SymmetryContext* symmetryContext, CanvasSettings* canvasSettings);
     void begin(Layer* layer);
     void commit();
     void clear();

@@ -3,10 +3,10 @@
 
 
 void ToolRuntimeContext::clampBounding(Bounding& bounding){
-    bounding.start.y = std::max(bounding.start.y,0);
     bounding.start.x = std::max(bounding.start.x,0);
-    bounding.end.y = std::min(bounding.end.y, screenHeight);
-    bounding.end.x = std::min(bounding.end.x, screenWidth);
+    bounding.start.y = std::max(bounding.start.y,0);
+    bounding.end.x = std::min(bounding.end.x, drawingAreaSize.x);
+    bounding.end.y = std::min(bounding.end.y, drawingAreaSize.y);
 }
 
 
