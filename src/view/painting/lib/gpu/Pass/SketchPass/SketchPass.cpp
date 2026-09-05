@@ -42,7 +42,7 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport) {
 
             vec4 color = vec4(0.0);
             vec4 textureColor = texture(tex, transformedUV).abgr;
-            if(floor(pixel / texSize) != vec2(1.0,1.0)){
+            if(floor(pixel / texSize) != (repeat-1.0)/2.0){
                 textureColor = mix(color, textureColor, 0.9);
             }
 
