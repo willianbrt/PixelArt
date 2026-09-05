@@ -17,6 +17,7 @@
 #include "../../../strategy/BucketStrategy/BucketStrategy.h"
 #include "../../../strategy/CircleStrategy/CircleStrategy.h"
 #include "../../../strategy/SquareStrategy/SquareStrategy.h"
+#include "../../../strategy/ZoomStrategy/ZoomStrategy.h"
 
 
 class PaneToolbarViewModel  {

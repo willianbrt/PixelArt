@@ -23,10 +23,10 @@ export function buildPaneToolBar(){
     mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
     
-    symmetrySettings.enabledTilingX(true);
-    symmetrySettings.enabledTilingY(true);
-    // thickness.onchange = (e)=>{ drawingSettings.setColor(parseInt(e.srcElement.value)); }
-
+    // symmetrySettings.enabledTilingX(true);
+    // symmetrySettings.enabledTilingY(true);
+    // thickness.onchange = (e)=>{ drawingSetting   s.setColor(parseInt(e.srcElement.value)); }
+    toolViewModel.setPressedTool("brush");
 
     const btnPencil = document.querySelector(".tool-pencil");
     btnPencil.addEventListener("click", function(e){

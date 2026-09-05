@@ -27,6 +27,9 @@ void ToolManager::setLeftToolPressed(IPressedStrategy* toolPressed){
 void ToolManager::setOtherToolPressed(IPressedStrategy* toolPressed){
     _otherButtonPressed = toolPressed;
 }
+void ToolManager::setToolScroll(IScrollStrategy* tool){
+    _onScroll = tool;
+}
 
 IPressedStrategy* ToolManager::getToolPressed(){
     return _rightButtonPressed;
@@ -86,10 +89,12 @@ void ToolManager::onPinchTracking(int x1, int y1, int x2, int y2){}
 void ToolManager::onPinchReleased(int x1, int y1, int x2, int y2){}
 
 void ToolManager::onScroll(int deltaY, int x, int y){
-    // if(deltaY < 0)
-    //     onScroll(x, y);
-    // else
-    //     onScroll(x, y);
+    build();
+    if(deltaY < 0)
+        _onScroll->onScrollUp(x, y, toolRuntimeContext);
+    else
+        _onScroll->onScrollDown(x, y, toolRuntimeContext);
+    
 }
 CursorContext* ToolManager::getCursorContext(){
     return _rightButtonPressed->getCursorContext();

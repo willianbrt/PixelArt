@@ -2,6 +2,8 @@
 #define TOOLMANAGER_H
 
 #include "../../interfaces/IPressedStrategy/IPressedStrategy.h"
+#include "../../interfaces/IScrollStrategy/IScrollStrategy.h"
+
 #include "../../strategy/NonePressedEvent/NonePressedEvent.h"
 #include "../../interfaces/IToolContext/IToolContext.h"
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
@@ -40,6 +42,7 @@ class ToolManager {
     IPressedStrategy* _leftButtonPressed = nullptr;
     IPressedStrategy* _rightButtonPressed = nullptr;
     IPressedStrategy* _otherButtonPressed = nullptr;
+    IScrollStrategy* _onScroll = nullptr;
 
     EditorManager* _editorManager = nullptr;
     ViewportContext* _viewport = nullptr;
@@ -53,6 +56,7 @@ public:
     void setRightToolPressed(IPressedStrategy* toolPressed);
     void setLeftToolPressed(IPressedStrategy* toolPressed);
     void setOtherToolPressed(IPressedStrategy* toolPressed);
+    void setToolScroll(IScrollStrategy* tool);
 
     void onPressed();
     void onPressed(int x, int y, int button);

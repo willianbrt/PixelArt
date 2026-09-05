@@ -4,6 +4,8 @@
 PaneToolbarViewModel::PaneToolbarViewModel(){
    _toolManager = AppContext::instance().getToolManager();
    _toolSettings = AppContext::instance().getToolSettings();
+
+   _toolManager->setToolScroll(new ZoomStrategy());
 }
 PaneToolbarViewModel::~PaneToolbarViewModel(){
 }
