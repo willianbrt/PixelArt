@@ -105,8 +105,10 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
         void main(){
            if(!enabled) discard;
            vec2 transformedUV = pixel / texSize;
+           if(transformedUV.x < 0.0 || transformedUV.x > repeat.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y) discard;
+           transformedUV = fract(transformedUV);
 
-           vec2 lineSize = 1.0/(zoom*selectSize);
+           vec2 lineSize = repeat/(zoom*selectSize);
 
            float mask = hasEdge(transformedUV);
            fragColor = mix(vec4(0.0), vec4(0.32,0.21,0.36,0.5), mask);
