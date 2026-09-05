@@ -151,7 +151,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
 }
 SelectPass::~SelectPass(){}
 
-void SelectPass::render(){
+void SelectPass::render(){  
     editor = _manager->getActiveEditor();
     if(!editor) return;
     

@@ -34,16 +34,17 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport) {
 
         void main()
         {
-            vec2 transformedUV = pixel / texSize;
-            
-            if(transformedUV.x < 0.0 || transformedUV.x > repeat.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y) discard;
-            
-            vec4 color = vec4(1.0, 0.0, 0.0, 1.0);
-            vec2 thickness = 1.0 / (zoom/repeat * texSize);
-            transformedUV = fract(transformedUV );
+            vec2 thickness = repeat / (zoom * texSize);
 
+            vec2 transformedUV = pixel / texSize;
+            if(transformedUV.x < 0.0 || transformedUV.x > repeat.x+thickness.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y+thickness.y) discard;
+            transformedUV = fract(transformedUV);
+
+            vec4 color = vec4(0.0);
             vec4 textureColor = texture(tex, transformedUV).abgr;
-            color = mix(color, textureColor, textureColor.a);
+            if(floor(pixel / texSize) != vec2(1.0,1.0)){
+                textureColor = mix(color, textureColor, 0.9);
+            }
 
             vec2 divisions = min(gridDivisions, texSize);
             vec2 cellSize = texSize / divisions;
@@ -54,11 +55,11 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport) {
             color = mix(background, textureColor, textureColor.a);
 
             vec2 gridPos = mod(transformedUV, cellSize / texSize);
-
-            float line = step(gridPos.x, thickness.x) + step(gridPos.y, thickness.y);
-            line = clamp(line, 0.0, 1.0);
-
-            fragColor = mix(color, vec4(0.0, 0.0, 0.0, 1.0), line);
+            float grid = clamp(step(gridPos.x, thickness.x) + step(gridPos.y, thickness.y), 0.0, 1.0);
+            color = mix(color, vec4(0.0, 0.0, 0.0, 1.0), grid);
+            
+            float outline = clamp(step(transformedUV.x, thickness.x) + step(transformedUV.y, thickness.y), 0.0, 1.0);
+            fragColor = mix(color, vec4(0.87,0.411,0.0,1.0), outline);
         })";
 
     quad.create();
