@@ -51,11 +51,7 @@ int main()
         return EM_TRUE;
     });
     emscripten_set_wheel_callback("#painting", nullptr, EM_FALSE, [](int eventType, const EmscriptenWheelEvent *e, void *userData){
-        Point point;
-        windowCursorToCanvas(e->mouse.targetX, e->mouse.targetY, &point.x, &point.y);
-        
-        toolManager->onScroll(e->deltaY, point.x, point.y);
-
+        toolManager->onScroll(e->deltaY, e->mouse.targetX,e->mouse.targetY);
         return EM_TRUE;
     });
     emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_FALSE, [](int eventType, const  EmscriptenUiEvent *e, void *userData){
