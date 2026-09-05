@@ -115,7 +115,7 @@ void SelectStrategy::draw(){
         
         unsigned int color = _selectContext->data->getPixel(src.x, src.y);
         
-        if((color >> 24 & 0xFF) == 0) { continue; }
+        if((color & 0xFF) == 0) { continue; }
         
         _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color);
             

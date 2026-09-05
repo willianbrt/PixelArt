@@ -57,7 +57,7 @@ void SelectSession::shrinkToTheDrawing(){
         p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
         for (int x = _selectionContext->srcArea.start.x; x <= _selectionContext->srcArea.end.x; ++x){
             p.x = GraphicsEngine::clampedTilePoint(x, _toolRuntimeContext.layer->getWidth());
-            if((_toolRuntimeContext.layer->getPixel(p.x, p.y) >> 24 & 0xFF) == 0) continue;
+            if((_toolRuntimeContext.layer->getPixel(p.x, p.y) & 0xFF) == 0) continue;
 
             if(x < delimit.start.x)  delimit.start.x = x;
             if(y < delimit.start.y)  delimit.start.y = y;
@@ -76,7 +76,6 @@ void SelectSession::shrinkToTheDrawing(){
     _selectionContext->srcArea = delimit;
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
     Bounding bounding = _selectionContext->srcArea;
-    printf("finish: %i, %i - %i, %i\n", bounding.start.x,bounding.start.y, bounding.end.x, bounding.end.y);
 }
 
 void SelectSession::initSelectData(){
