@@ -88,8 +88,8 @@ void SelectStrategy::onRelease(){
 }
 
 void SelectStrategy::clear(){
-    for (int y = _selectContext->srcArea.start.y; y < _selectContext->srcArea.end.y; ++y) {
-        for (int x = _selectContext->srcArea.start.x; x < _selectContext->srcArea.end.x; ++x) {
+    for (int y = _selectContext->srcArea.start.y; y <= _selectContext->srcArea.end.y; ++y) {
+        for (int x = _selectContext->srcArea.start.x; x <= _selectContext->srcArea.end.x; ++x) {
             _toolRuntimeContext.drawingSession->putPixel(x, y, 0x0);
         }
     }
