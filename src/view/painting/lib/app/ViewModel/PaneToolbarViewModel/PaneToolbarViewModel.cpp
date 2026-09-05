@@ -6,6 +6,7 @@ PaneToolbarViewModel::PaneToolbarViewModel(){
    _toolSettings = AppContext::instance().getToolSettings();
 
    _toolManager->setToolScroll(new ZoomStrategy());
+   _toolManager->setOtherToolPressed(new PanStrategy());
 }
 PaneToolbarViewModel::~PaneToolbarViewModel(){
 }
