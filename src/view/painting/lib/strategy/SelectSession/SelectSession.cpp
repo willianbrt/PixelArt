@@ -34,13 +34,9 @@ void SelectSession::update(const Point& mouse){
 void SelectSession::end(){
     if(_selectionContext->srcArea.start.x >= _selectionContext->srcArea.end.x){
         std::swap(_selectionContext->srcArea.start.x, _selectionContext->srcArea.end.x);
-        // _selectionContext->srcArea.start.x -= 1;
-        // _selectionContext->srcArea.end.x += 1;
     }
     if(_selectionContext->srcArea.start.y >= _selectionContext->srcArea.end.y){
         std::swap(_selectionContext->srcArea.start.y, _selectionContext->srcArea.end.y);
-        // _selectionContext->srcArea.start.y -= 1;
-        // _selectionContext->srcArea.end.y += 1;
     }
     _selectionContext->selectionBox = SelectionBox(_selectionContext->srcArea);
     
@@ -51,7 +47,11 @@ void SelectSession::end(){
 void SelectSession::shrinkToTheDrawing(){
     Bounding delimit;
 
-    _toolRuntimeContext.clampBounding(_selectionContext->srcArea);
+    _selectionContext->srcArea.start.x = std::max(_selectionContext->srcArea.start.x,0);
+    _selectionContext->srcArea.start.y = std::max(_selectionContext->srcArea.start.y,0);
+    _selectionContext->srcArea.end.x = std::min(std::min(_selectionContext->srcArea.end.x, _selectionContext->srcArea.start.x+_toolRuntimeContext.layer->getWidth()-1), _toolRuntimeContext.drawingAreaSize.x);
+    _selectionContext->srcArea.end.y = std::min(std::min(_selectionContext->srcArea.end.y, _selectionContext->srcArea.start.y+_toolRuntimeContext.layer->getHeight()-1), _toolRuntimeContext.drawingAreaSize.y);
+
     for (int y = _selectionContext->srcArea.start.y; y <= _selectionContext->srcArea.end.y; ++y) {
         Point p;
         p.y = GraphicsEngine::clampedTilePoint(y, _toolRuntimeContext.layer->getHeight());
@@ -103,6 +103,4 @@ void SelectSession::initSelectData(){
             _selectionContext->data->putPixel(x, y, _toolRuntimeContext.layer->getPixel(p.x , p.y));
         }
     }
-    
-    // _selectionContext->enabled = true;
 }
