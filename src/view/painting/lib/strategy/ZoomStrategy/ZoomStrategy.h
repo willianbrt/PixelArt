@@ -20,8 +20,5 @@ public:
 
     void onScrollUp(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
     void onScrollDown(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
-    void zoom(float scale, Point positionCursor);
-    void moveTo(Point p);
-    Point getInitialPosition();
 };
 #endif

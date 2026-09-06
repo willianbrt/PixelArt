@@ -30,8 +30,5 @@ public:
     void done() override;
     void abort() override;
     CursorContext* getCursorContext() override;
-
-    void moveTo(Point p);
-    Point getInitialPosition();
 };
 #endif

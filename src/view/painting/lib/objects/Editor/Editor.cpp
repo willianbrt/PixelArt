@@ -3,14 +3,10 @@
 Editor::Editor(int width, int height) {
     _sketch = new Surface(width, height);
     _preview = new Preview(width, height);
-    
-    _canvasSettings.canvasTransform.scale = 15.0f;
-    _canvasSettings.gridContext.divisionsX = 32;
-    _canvasSettings.gridContext.divisionsY = 32;
+
     _drawingSession = new DrawingSession(_preview, &dirtyManager, &_symmetry, &_canvasSettings);
 
     _select = new SelectContext();
-
 }
 Editor::~Editor(){
     frames.clear();

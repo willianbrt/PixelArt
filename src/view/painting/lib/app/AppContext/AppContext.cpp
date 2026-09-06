@@ -51,6 +51,9 @@ void AppContext::render(){
 EditorManager* AppContext::getEditorManager(){
     return _editorManager.get();
 }
+ViewportContext* AppContext::getViewport(){
+    return _viewportContext;
+}
 GLFWwindow* AppContext::getWindow(){
     return _window;
 }

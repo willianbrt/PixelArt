@@ -39,6 +39,7 @@ public:
     
     EditorManager* getEditorManager();
     GLFWwindow* getWindow();
+    ViewportContext* getViewport();
     ToolManager* getToolManager();
     ToolSettings* getToolSettings();
     Clipboard* getClipboard();

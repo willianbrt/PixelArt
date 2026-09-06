@@ -34,6 +34,12 @@ void EditorManagerViewModel::changeActiveEditor(int id){
 }
 void EditorManagerViewModel::createProject(int width, int height){
     _manager->createProject(width,height);
+
+    Surface* sketch = _manager->getActiveEditor()->getSurface();
+    ViewportContext* viewport =  AppContext::instance().getViewport();
+    CanvasSettings* canvas = _manager->getActiveEditor()->getCanvasSettings();
+    canvas->zoom(canvas->getFitScale(viewport, sketch),{0,0}, viewport, sketch);
+    canvas->pan(canvas->getFitPosition(viewport, sketch), viewport, sketch);
 }
 void EditorManagerViewModel::render(){
     // _manager->getActiveEditor()->render();
@@ -43,6 +49,12 @@ void EditorManagerViewModel::render(){
 // }
 void EditorManagerViewModel::resize(int width, int height){
     _manager->getActiveEditor()->resize(width, height);
+    
+    Surface* sketch = _manager->getActiveEditor()->getSurface();
+    ViewportContext* viewport =  AppContext::instance().getViewport();
+    CanvasSettings* canvas = _manager->getActiveEditor()->getCanvasSettings();
+    canvas->zoom(canvas->getFitScale(viewport, sketch),{0,0}, viewport, sketch);
+    canvas->pan(canvas->getFitPosition(viewport, sketch), viewport, sketch);
 }
 void EditorManagerViewModel::onChangeActiveEditor(Guid id){
     auto it = observable.find(EDITOR_MANAGER_EVENT_TYPE::CHANGE_ACTIVE_EDITOR);
