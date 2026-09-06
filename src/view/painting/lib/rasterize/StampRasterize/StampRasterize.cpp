@@ -6,13 +6,16 @@ StampRasterize::StampRasterize(const PointF& center, const Point& sizePattern, c
     
     _transformation.transform(bounding, sizePattern, center);
 
-    bounding.start.x = bounding.start.x < 0 ? 0 : bounding.start.x;
-    bounding.start.y = bounding.start.y < 0 ? 0 : bounding.start.y;
-    bounding.end.x = bounding.end.x >= crop.x ? crop.x : bounding.end.x;
-    bounding.end.y = bounding.end.y >= crop.y ? crop.y : bounding.end.y;
+    if((bounding.end.x > 0 && bounding.end.y > 0) && (bounding.start.x < crop.x && bounding.start.y < crop.y)){
+        bounding.start.x = bounding.start.x < 0 ? 0 : bounding.start.x;
+        bounding.start.y = bounding.start.y < 0 ? 0 : bounding.start.y;
+        bounding.end.x = bounding.end.x >= crop.x ? crop.x : bounding.end.x;
+        bounding.end.y = bounding.end.y >= crop.y ? crop.y : bounding.end.y;
+    } else {
+        bounding = Bounding();
+    }
     
     _current =  bounding.start;
-    _hasNext = bounding.start.x < bounding.end.x && bounding.start.y < bounding.end.y;
     
     delta.x = (_current.x + 0.5f - (float)center.x);
     delta.y = (_current.y + 0.5f - (float)center.y);
@@ -29,8 +32,8 @@ Point StampRasterize::next() {
     if(!(_current.y < bounding.end.y)){
         _currentSrc = { (int)std::floor(src.x), (int)std::floor(src.y) };
         return _current;
-    }    
-    
+    }
+
     Point point = _current;
     _currentSrc = { (int)std::floor(src.x), (int)std::floor(src.y) };      
 
@@ -44,7 +47,6 @@ Point StampRasterize::next() {
         delta.y++;
         
     }
-    
 
     _transformation.untransform(src, delta);
     return point;
