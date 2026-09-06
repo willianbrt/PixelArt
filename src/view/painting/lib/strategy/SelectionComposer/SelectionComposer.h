@@ -22,8 +22,7 @@
 class SelectionComposer{
 public:
     SelectionComposer();
-    void draw(SelectContext* selection, SymmetryContext* symmetryContext, ToolRuntimeContext& toolRuntimeContext);
-    void clear(Bounding flagBounding, SelectContext* selection, SymmetryContext* symmetryContext, ToolRuntimeContext& toolRuntimeContext);
-    void putMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext, ToolRuntimeContext& toolRuntimeContext);
+    void draw(SelectContext* selection, ToolRuntimeContext& toolRuntimeContext);
+    void clear(Bounding flagBounding, SelectContext* selection, ToolRuntimeContext& toolRuntimeContext);
 };
 #endif

@@ -105,7 +105,6 @@ void SelectStrategy::draw(){
         _toolRuntimeContext.drawingAreaSize,
         _selectContext->transformation);
 
-
     while(stamp.hasNext()){
         Point it = stamp.next();
         Point src = stamp.getSrcPoint();

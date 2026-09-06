@@ -86,17 +86,23 @@ PointF Transformation::fromHeight(float t, const PointF& c) {
     };
 };
 void Transformation::transform(Bounding& bounding, const Point& size, const PointF& c) const {
-    float halfW = (size.x * _scale.x *0.5f);
-    float halfH = (size.y * _scale.y *0.5f);
+    float halfW = (size.x * _scale.x) * 0.5f;
+    float halfH = (size.y * _scale.y) * 0.5f;
+    float ax = halfW * _cos;
+    float ay = halfW * _sin;
 
-    float extX = halfW * absCos + halfH * absSin;
-    float extY = halfW * absSin + halfH * absCos;
+    float bx = halfH * _sin;
+    float by = halfH * _cos;
 
-    bounding.start.x = (int)std::floor(c.x  - extX);
-    bounding.start.y = (int)std::floor(c.y  - extY);
+    float extX = std::max(std::abs(ax + bx), std::abs(ax - bx));
+    float extY = std::max(std::abs(ay + by), std::abs(ay - by));
 
-    bounding.end.x   = (int)std::floor(c.x + extX);
-    bounding.end.y   = (int)std::floor(c.y + extY);
+    bounding.start.x = (int)std::floor(c.x - extX);
+    bounding.start.y = (int)std::floor(c.y - extY);
+
+    bounding.end.x   = (int)std::ceil (c.x + extX);
+    bounding.end.y   = (int)std::ceil (c.y + extY);
+
 };
 
 

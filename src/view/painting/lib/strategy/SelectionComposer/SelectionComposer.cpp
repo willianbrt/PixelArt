@@ -3,7 +3,7 @@
 SelectionComposer::SelectionComposer(){
 
 }
-void SelectionComposer::draw(SelectContext* selection, SymmetryContext* symmetryContext, ToolRuntimeContext& toolRuntimeContext){
+void SelectionComposer::draw(SelectContext* selection,  ToolRuntimeContext& toolRuntimeContext){
     Bounding destBounding = selection->selectionBox.getBounding();
     toolRuntimeContext.clampBounding(destBounding);
 
@@ -13,6 +13,8 @@ void SelectionComposer::draw(SelectContext* selection, SymmetryContext* symmetry
     float halfW = (selection->srcArea.getWidth()) * 0.5f;
     float halfH = (selection->srcArea.getHeight()) * 0.5f;
         
+    printf("expected: (%u,%u) - (%u, %u)\n", destBounding.start.x, destBounding.start.y, destBounding .end.x, destBounding .end.y);
+    return;
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
             PointF src = selection->transformation.unrotate({dx  + 0.5f - _dstCenter.x, dy + 0.5f - _dstCenter.y});
@@ -25,17 +27,17 @@ void SelectionComposer::draw(SelectContext* selection, SymmetryContext* symmetry
             }
             unsigned int color = selection->data->getPixel(src.x, src.y);
             
-            if((color >> 24 & 0xFF) == 0) { continue; }
+            if((color & 0xFF) == 0) { continue; }
             
             Point clampedPoint = {
                 GraphicsEngine::clampedTilePoint(dx, toolRuntimeContext.layer->getWidth()),
                 GraphicsEngine::clampedTilePoint(dy, toolRuntimeContext.layer->getHeight())
             };
-            putMirroredPixel(clampedPoint.x, clampedPoint.y, color, symmetryContext, toolRuntimeContext);
+            toolRuntimeContext.drawingSession->putMirroredPixel(clampedPoint.x, clampedPoint.y, color);
         }
     }
 }
-void SelectionComposer::clear(Bounding flagBounding, SelectContext* selection, SymmetryContext* symmetryContext, ToolRuntimeContext& toolRuntimeContext){
+void SelectionComposer::clear(Bounding flagBounding, SelectContext* selection,  ToolRuntimeContext& toolRuntimeContext){
     toolRuntimeContext.clampBounding(flagBounding);
     for (int y = flagBounding.start.y; y < flagBounding.end.y; ++y) {
         Point p;
@@ -45,27 +47,10 @@ void SelectionComposer::clear(Bounding flagBounding, SelectContext* selection, S
 
             if((p.x >= selection->srcArea.start.x && p.x < selection->srcArea.end.x) &&
                 (p.y >= selection->srcArea.start.y && p.y < selection->srcArea.end.y)){
-                toolRuntimeContext.preview->putPixel(p.x, p.y, 0x0);
+                toolRuntimeContext.drawingSession->putPixel(p.x, p.y, 0x0);
                 continue;
             }
         }
     }
 }
 
-
-void SelectionComposer::putMirroredPixel(int x, int y, unsigned int color, SymmetryContext* symmetryContext, ToolRuntimeContext& toolRuntimeContext){
-    toolRuntimeContext.preview->putPixel(x, y,  GraphicsEngine::blendColors(toolRuntimeContext.preview->getPixel(x, y), color));
-
-    int toMirrorX = symmetryContext->pointMirrored(x, toolRuntimeContext.layer->getWidth());
-    int toMirrorY = symmetryContext->pointMirrored(y, toolRuntimeContext.layer->getHeight());
-
-    if(symmetryContext->isMirrorX){
-        toolRuntimeContext.preview->putPixel(toMirrorX, y, GraphicsEngine::blendColors(toolRuntimeContext.preview->getPixel(toMirrorX, y), color));
-    }
-    if(symmetryContext->isMirrorY){
-        toolRuntimeContext.preview->putPixel(x, toMirrorY, GraphicsEngine::blendColors(toolRuntimeContext.preview->getPixel(x, toMirrorY), color));
-    }
-    if(symmetryContext->isMirrorX && symmetryContext->isMirrorY){
-        toolRuntimeContext.preview->putPixel(toMirrorX, toMirrorY, GraphicsEngine::blendColors(toolRuntimeContext.preview->getPixel(toMirrorX, toMirrorY), color));
-    }
-}
