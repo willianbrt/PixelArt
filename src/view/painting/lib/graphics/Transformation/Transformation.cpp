@@ -100,8 +100,8 @@ void Transformation::transform(Bounding& bounding, const Point& size, const Poin
     bounding.start.x = (int)std::floor(c.x - extX);
     bounding.start.y = (int)std::floor(c.y - extY);
 
-    bounding.end.x   = (int)std::ceil (c.x + extX);
-    bounding.end.y   = (int)std::ceil (c.y + extY);
+    bounding.end.x   = (int)std::floor(c.x + extX);
+    bounding.end.y   = (int)std::floor(c.y + extY);
 
 };
 
