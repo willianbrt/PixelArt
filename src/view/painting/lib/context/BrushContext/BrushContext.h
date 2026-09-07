@@ -7,7 +7,6 @@
 #include <vector>
 #include <string>
 
-
 struct Pattern : public ISurface{
 public:
     std::string name;
@@ -15,7 +14,7 @@ public:
     int width;
     int height;
 
-    Pattern(std::string n, std::vector<unsigned int> b, int w, int h)
+    Pattern(std::string n, std::vector<unsigned int> b, int w, int h)   
         : name(std::move(n)), buffer(std::move(b)), width(w), height(h) {}
     int getWidth() override { return width; }
     int getHeight() override { return height; }
