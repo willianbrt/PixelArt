@@ -7,6 +7,7 @@
     <!-- <script src="./js/index.js" type="module"></script> -->
     <script src="./js/teste.js" type="module"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,700,0,0" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet"/>
     <link href="assets/painting.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body data-theme="dark" style="touch-action:none">
@@ -77,10 +78,33 @@
         <section class="pane" id="pane-top">
             <div class="pane-content" id="pane-tool-options">
                 <div class="body">
-                    <div class="row g-4">
-                        <button class="btn-ghost-action" id="undo"><span class="material-symbols-outlined">undo</span> </button>
-                        <button class="btn-ghost-action" id="redo"><span class="material-symbols-outlined">redo</span> </button>
+                    <div class="row g-16">
+                        <div class="input-group">
+                            <button class="btn-primary" id="undo"><span class="material-symbols-outlined">undo</span> </button>
+                            <button class="btn-primary" id="redo"><span class="material-symbols-outlined">redo</span> </button>
+                        </div>
                         <div id="tool-options">
+                            
+                            <!-- <button class="btn-primary">
+                                <span class="material-symbols-outlined">brush</span>
+                            </button>
+                            <button class="btn-primary">
+                                <span class="material-symbols-outlined">grid_view</span>
+                            </button> -->
+                            <div class="input-group">
+                                <div class="brush-pattern active">
+                                    <!-- <canvas width="32" height="32"></canvas> -->
+                                    <span class="material-icons">square</span>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <div class="brush-pattern active">
+                                    <!-- <canvas width="32" height="32"></canvas> -->
+                                    <span class="material-icons">line</span>
+                                </div>
+                            </div>
+
+
                             <div class="input-group">
                                 <span class="input-label">Tamanho:</span>
                                 <input name="size" type="number" value="1" min="1" max="100" style="width: 32px;"/>
@@ -161,7 +185,7 @@
 
                     <div class="form-group col" id="picker-control">
                         <div class="row">
-                            <select name="color-pattern">
+                            <select class="select-ghost" name="color-pattern">
                                 <option selected>HEX</option>
                                 <option>RGB</option>
                                 <option>HSL</option>
@@ -211,7 +235,7 @@
                     </div>
                     
                     <div class="top-pane">
-                        <select name="palette"></select>
+                        <select class="select-ghost" name="palette"></select>
                         <button class="btn-ghost-action" id="new-palette"><span class="material-symbols-outlined">add</span></button>
                         <button class="btn-ghost-action" id="trash-palette"><span class="material-symbols-outlined">delete</span></button>
                     </div>
@@ -284,7 +308,7 @@
             <div class="pane-content" id="pane-frames">
                 <div class="header">
                     <h4>Quadros</h4>
-                    <select id="time-all-frame">
+                    <select class="select-ghost" id="time-all-frame">
                         <option value="60">60 ms</option>
                         <option value="60">60 ms</option>
                         <option value="60">60 ms</option>
@@ -311,6 +335,58 @@
         </section>
     </section>
 
+    <div class="modal " id="modal-brush">
+        <div class="modal-content">
+            <div class="col g-8">
+                
+                <div class="col g-8">
+                    <h5 class="">${Basic Shapes}</h5>
+                    <div class="row g-4">
+                        <div class="brush-pattern active"><span class="material-icons">square</span></div>
+                        <div class="brush-pattern"><span class="material-icons">circle</span></div>
+                    </div>
+                </div>
+
+                <span class="line"></span>
+                
+                <div class="col g-4">
+                    <div class="row a-left g-4">
+                        <select class="select-ghost">
+                            <option>Pattern</option>
+                            <option>Stamp</option>
+                        </select>
+                    </div>
+
+                    <div class="list-pattern">
+                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                        <div class="brush-pattern active"> <canvas width="24" height="24"></canvas> </div>
+                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                    </div>
+                </div>
+
+                <div class="form-group row g-4">
+                    <div class="input-group">
+                        <span class="input-label">${Mode}</span>
+                        <button class="btn-primary">
+                            <span class="material-symbols-outlined">brush</span>
+                        </button>
+                        <button class="btn-primary">
+                            <span class="material-symbols-outlined">grid_view</span>
+                        </button>
+                        <select>
+                            <option>Brush</option>
+                            <option>Align to Local</option>
+                            <option>Align to Source</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal hidden" id="modal-palette-name">
         <div class="modal-content">
             <div class="form-group row g-4">

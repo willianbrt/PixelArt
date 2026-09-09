@@ -63,7 +63,9 @@ select{
     background-color: transparent;
     font-family: "Jersey 10", sans-serif;
     font-size: 16px;
-    padding: 8px 16px;
+    padding: 4px 8px;
+    background: #896a95;
+    border-radius: 4px;
 }
 select option{
     color: var(--light-text-color);
@@ -74,6 +76,10 @@ select option{
 select option:hover{
     background-color: var(--hover-color);
     outline: none;
+}
+
+select.select-ghost{
+    background: transparent;
 }
 
 body{
@@ -92,7 +98,7 @@ body{
 }
 
 #drawing-area canvas#painting{
-    background-color: var(--background-color);
+    background-color: var(--background-dark-color);
     position: absolute;
 }
 .content {
@@ -105,8 +111,6 @@ body{
     grid-template-rows: auto 1fr auto;
     overflow: hidden;
     
-    background: #441d51;
-    gap: 4px;
     padding: 4px;
 } 
 #drawing-area{
@@ -168,8 +172,8 @@ body{
 #pane-footer{
     grid-area: footer;
 }
-.pane{
-    background: #441d51;
+.pane, .content{
+    background: var(--panel-outline-color);
     gap: 4px;
     overflow-y: auto;
 }
@@ -180,27 +184,27 @@ body{
     overflow: hidden;
     width: 100%;
 }
-.pane-content .body::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 6px;
 }
-.pane-content .body::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: transparent;
   width: 0px;
   position: absolute;
   border-radius: 0px;
 }
-.pane-content .body::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: hsl(283, 24%, 42%);
   border-radius: 4px;
 }
 
 .pane-content .body{
-    background-color: var(--primary-color);
+    background-color: var(--background-color);
     width: auto;
     overflow-y: auto;
 }
 .pane .tabs{
-    background-color: var(--primary-color);
+    background-color: var(--background-color);
 }
 .pane .tab{
     padding: 16px 4px;
@@ -215,7 +219,6 @@ body{
 }
 .pane .header{
     background-color: var(--panel-outline-color);
-    background-color: #441D51;
     padding:8px 16px;
     text-align: center;
     display: flex;
@@ -262,6 +265,9 @@ body{
 }
 .pane #pane-tool button.tool.active {
     background: #3d2745 !important;
+}
+#pane-tool-options button {
+    padding: 6px !important;
 }
 
 .opacity{
@@ -569,7 +575,7 @@ div.frame.active::before{
 }
 .modal{
     position: absolute;
-    background-color: #53365E;
+    background-color: var(--background-color);
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -697,4 +703,46 @@ section#pane-top{
 section#pane-footer{
 
 }
+}
+#pane-tool-options .brush-pattern span{
+    font-size: 16px;
+}
+#pane-tool-options .brush-pattern{
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+}
+#modal-brush {
+    max-width:240px;
+}
+span.line{
+    display: block;
+    height: 1px;
+    width: 90%;
+    background-color: #ffffff55;
+    margin: auto;
+}
+.brush-pattern{
+    color: #000;
+    background-color: white;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.brush-pattern span{
+    font-size: 24px;
+}
+.brush-pattern.active{
+    box-shadow: inset #E06900 0px 0px 0px 2px;
+}
+.list-pattern{
+    display: flex;
+    flex-wrap:wrap;
+    column-gap: 4px;
+    row-gap: 6px; 
+    max-height: 80px;
+    overflow: auto;
 }
