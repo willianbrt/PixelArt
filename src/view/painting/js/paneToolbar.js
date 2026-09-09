@@ -1,7 +1,5 @@
 import { app } from "./app.js"
-import HandlerEvents from './handlerEvents.js'
 
-const handlerEvents = HandlerEvents(document.querySelector("canvas#painting"));
 
 const thickness = document.querySelector("input[name='size']");
 const hardness = document.querySelector("input[name='strength']");
@@ -88,17 +86,6 @@ export function buildPaneToolBar(){
     btnRedo.addEventListener("click", function(e){
         history.redo();
     });
-
-    // handlerEvents.setScrollEvent(onZoomScrollStrategy(), false);
-    // handlerEvents.setDoubleTouchEvent(onZoomDoubleTouchStrategy(), false);
-    // handlerEvents.setDoubleTouchEvent(onZoomDoubleTouchStrategy(), false);
-    // handlerEvents.setScrollEvent(onSizeStrategy(), true);
-    // handlerEvents.setGenericButtonMousePressedEvent(onPanningStrategy());
-    // handlerEvents.setLeftButtonMousePressedEvent(eraseStrategy());
-    // handlerEvents.setRightButtonMousePressedEvent(onPanningStrategy());
-    // handlerEvents.setMoveEvent((x,y)=>{console.log("m",x,y)});
-
-    // btnPencil.click();
 }
 
 function changeSelectTool(){

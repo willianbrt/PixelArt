@@ -32,7 +32,7 @@ int main()
     emscripten_set_mousedown_callback("#painting", nullptr, EM_FALSE, [](int eventType, const EmscriptenMouseEvent *e, void *userData){
         toolManager->onPressed(e->targetX, e->targetY, e->button);
         
-        return EM_TRUE;
+        return EM_FALSE;
     });
     emscripten_set_mousemove_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_FALSE, [](int eventType, const EmscriptenMouseEvent *e, void *userData){
         Point point;
@@ -40,7 +40,7 @@ int main()
 
         toolManager->onTracking(point.x, point.y);
 
-        return EM_TRUE;
+        return EM_FALSE;
     });
     emscripten_set_mouseup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_FALSE, [](int eventType, const EmscriptenMouseEvent *e, void *userData){
         Point point;
@@ -48,17 +48,17 @@ int main()
 
         toolManager->onReleased(point.x, point.y, e->button);
 
-        return EM_TRUE;
+        return EM_FALSE;
     });
     emscripten_set_wheel_callback("#painting", nullptr, EM_FALSE, [](int eventType, const EmscriptenWheelEvent *e, void *userData){
         toolManager->onScroll(e->deltaY, e->mouse.targetX,e->mouse.targetY);
-        return EM_TRUE;
+        return EM_FALSE;
     });
     emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_FALSE, [](int eventType, const  EmscriptenUiEvent *e, void *userData){
         getCanvasRect("#drawing-area", &canvasWidth, &canvasHeight);
         app.resize(canvasWidth, canvasHeight);
 
-        return EM_TRUE;
+        return EM_FALSE;
     });
 
 
