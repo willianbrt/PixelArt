@@ -8,6 +8,7 @@
     <script src="./js/teste.js" type="module"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,700,0,0" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet"/>
+
     <link href="assets/painting.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body data-theme="dark" style="touch-action:none">
@@ -84,26 +85,12 @@
                             <button class="btn-primary" id="redo"><span class="material-symbols-outlined">redo</span> </button>
                         </div>
                         <div id="tool-options">
-                            
-                            <!-- <button class="btn-primary">
-                                <span class="material-symbols-outlined">brush</span>
-                            </button>
-                            <button class="btn-primary">
-                                <span class="material-symbols-outlined">grid_view</span>
-                            </button> -->
                             <div class="input-group">
-                                <div class="brush-pattern active">
+                                <div class="brush-pattern active" id="btn-modal-brush">
                                     <!-- <canvas width="32" height="32"></canvas> -->
                                     <span class="material-icons">square</span>
                                 </div>
                             </div>
-                            <div class="input-group">
-                                <div class="brush-pattern active">
-                                    <!-- <canvas width="32" height="32"></canvas> -->
-                                    <span class="material-icons">line</span>
-                                </div>
-                            </div>
-
 
                             <div class="input-group">
                                 <span class="input-label">Tamanho:</span>
@@ -255,16 +242,6 @@
         
         <section id="drawing-area">
             <canvas id="painting"></canvas>
-            <div id="render-area">
-                
-                <div id="selected-area">
-                    <span class="marker" data-marker="0" id="m-top-left" ></span>
-                    <span class="marker" data-marker="1" id="m-bottom-left"></span>
-                    <span class="marker" data-marker="2" id="m-top-right"></span>
-                    <span class="marker" data-marker="3" id="m-bottom-right"></span>
-                </div>
-            </div>
-
         </section>
 
         <section class="pane" id="pane-right">
@@ -335,58 +312,118 @@
         </section>
     </section>
 
-    <div class="modal " id="modal-brush">
-        <div class="modal-content">
+    <div class="modal hidden" id="modal-brush">
+        <div class="modal-content row g-16">
             <div class="col g-8">
+                <div class="brush-pattern active" style="width:80px;height:80px;margin: 0 auto;">
+                    <span class="material-icons">square</span>
+                </div>
                 
+                <div class="form-group col g-8">
+                    <div class="col">
+                        <span class="input-label">Tamanho:</span>
+                        <div class="input-group">
+                            <input type="range">
+                            <span class="input-label">10px</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <span class="input-label">Espaçamento:</span>
+                        <div class="input-group">
+                            <input type="range">
+                            <span class="input-label">10px</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <span class="input-label">Suavizar:</span>
+                        <div class="input-group">
+                            <input type="range">
+                            <span class="input-label">10px</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col g-16">
                 <div class="col g-8">
                     <h5 class="">${Basic Shapes}</h5>
                     <div class="row g-4">
                         <div class="brush-pattern active"><span class="material-icons">square</span></div>
                         <div class="brush-pattern"><span class="material-icons">circle</span></div>
+                        <div class="btn-choice active">Custom</div>
                     </div>
-                </div>
-
-                <span class="line"></span>
-                
-                <div class="col g-4">
-                    <div class="row a-left g-4">
-                        <select class="select-ghost">
-                            <option>Pattern</option>
-                            <option>Stamp</option>
-                        </select>
-                    </div>
-
                     <div class="list-pattern">
                         <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
                         <div class="brush-pattern active"> <canvas width="24" height="24"></canvas> </div>
                         <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
                         <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
                         <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                    </div>
+                    <div class="carousel-pages">
+                        <span class="material-icons" id="previous-page">arrow_left</span>
+                        <span class="btn-carousel" data-page="1"></span>
+                        <span class="btn-carousel active" data-page="2"></span>
+                        <span class="btn-carousel" data-page="3"></span>
+                        <span class="btn-carousel" data-page="4"></span>
+                        <span class="btn-carousel" data-page="5"></span>
+                        <span class="material-icons" id="next-page">arrow_right</span>
                     </div>
                 </div>
-
-                <div class="form-group row g-4">
-                    <div class="input-group">
-                        <span class="input-label">${Mode}</span>
-                        <button class="btn-primary">
-                            <span class="material-symbols-outlined">brush</span>
-                        </button>
-                        <button class="btn-primary">
-                            <span class="material-symbols-outlined">grid_view</span>
-                        </button>
-                        <select>
-                            <option>Brush</option>
-                            <option>Align to Local</option>
-                            <option>Align to Source</option>
+            
+                <div class="col g-8">
+                    <div class="input-group a-right">
+                        <h5>${Fill}</h5>
+                        <select class="select-ghost">
+                            <option>Solid Color</option>
+                            <option>Stamp</option>
+                            <option>Pattern</option>
                         </select>
+                    </div>
+
+                    <div class="tab-select col g-8" id="pattern">
+                        <div class="list-pattern">
+                            <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                            <div class="brush-pattern active"> <canvas width="24" height="24"></canvas> </div>
+                            <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                            <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                            <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
+                        </div>
+                        <div class="carousel-pages">
+                            <span class="material-icons" id="previous-page">arrow_left</span>
+                            <span class="btn-carousel" data-page="1"></span>
+                            <span class="btn-carousel active" data-page="2"></span>
+                            <span class="btn-carousel" data-page="3"></span>
+                            <span class="btn-carousel" data-page="4"></span>
+                            <span class="btn-carousel" data-page="5"></span>
+                            <span><span class="material-icons" id="next-page">arrow_right</span></span>
+                        </div>
+                        <div class="form-group col g-8">
+                            <div class="input-group">
+                                <span class="input-label">Mask:</span>
+                                <select>
+                                    <option>Align to Local</option>
+                                    <option>Align to Source</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col g-4">
+                    <div class="input-group">
+                        <input type="checkbox" id="p-perfect">
+                        <label class="input-label" for="p-perfect">Pixel Perfect</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="checkbox" id="b-snap">
+                        <label class="input-label" for="b-snap">Snap to Grid</label>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+
     <div class="modal hidden" id="modal-palette-name">
         <div class="modal-content">
             <div class="form-group row g-4">
@@ -437,6 +474,29 @@
         }
     </script>
    
+    <script type="module">
+        let btnOpenModalBrush = document.querySelector("#btn-modal-brush");
+        let modalBrush = document.querySelector("#modal-brush");
+        btnOpenModalBrush.addEventListener("click",()=>{
+            modalBrush.classList.toggle("hidden", false);
+
+            let abort = new AbortController();
+            
+            abort.signal.addEventListener("abort", () => {
+                modalBrush.classList.toggle("hidden", true);
+                console.log("b")
+            });
+
+            window.addEventListener("mousedown", function(){
+                if (btnOpenModalBrush.contains(event.target) || modalBrush.contains(event.target)){
+                    return;
+                }                
+                abort.abort();
+            }, { signal:abort.signal });
+        });
+    </script>
+
+
     <script type="module">
         import { Chromatic, ColorFactory } from "./js/chromatic.js"
         let factoryColor = ColorFactory();
@@ -650,7 +710,7 @@
                 modalPaletteName.classList.toggle("hidden", true);
             });
 
-            window.addEventListener("click", function(){
+            window.addEventListener("mousedown", function(){
                 if(btnAddPalette.contains(event.target)){
                     if(!addPalette()){
                         return;

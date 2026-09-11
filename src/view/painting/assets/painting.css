@@ -35,7 +35,8 @@ input[type="range"]{
     background-color: transparent;
     padding: 0;
     margin: 0;
-    accent-color: #525E36;
+    accent-color: var(--emphasis-color);
+    width:  100px;
 }
 input[type="range"]::-webkit-slider-runnable-track {
     -webkit-appearance : none;
@@ -45,8 +46,8 @@ input[type="range"]::-webkit-slider-runnable-track {
 }
 input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance : none;
-    background : #525E36;
-    accent-color: #525E36;
+    background : var(--emphasis-color);
+    accent-color: var(--emphasis-color);
     height: 12px;
     width:  12px;
     border-radius: 50%;
@@ -186,6 +187,7 @@ body{
 }
 *::-webkit-scrollbar {
   width: 6px;
+  height: 4px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
@@ -603,11 +605,14 @@ input{
     padding: 4px 8px;
     width: calc(100% - 16px);
 }
-.input-group{
-    display: flex;
+#inp-hex.input-group{
     text-align: center;
     align-items: center;
+}
+.input-group{
+    display: flex;
     gap:4px;
+    align-items: center;
 }
 div#picker-control {
     padding: 4px 8px;
@@ -712,37 +717,64 @@ section#pane-footer{
     height: 24px;
     border-radius: 4px;
 }
-#modal-brush {
-    max-width:240px;
+#modal-brush .content{
+    max-height: 272px;
 }
 span.line{
     display: block;
     height: 1px;
     width: 90%;
     background-color: #ffffff55;
-    margin: auto;
+    margin: 8px auto;
 }
 .brush-pattern{
     color: #000;
-    background-color: white;
+    background-color: #ffffff21;
     border-radius: 8px;
     width: 32px;
     height: 32px;
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
 }
 .brush-pattern span{
     font-size: 24px;
 }
 .brush-pattern.active{
-    box-shadow: inset #E06900 0px 0px 0px 2px;
+    box-shadow: inset var(--emphasis-color) 0px 0px 0px 2px;
 }
 .list-pattern{
     display: flex;
-    flex-wrap:wrap;
     column-gap: 4px;
     row-gap: 6px; 
-    max-height: 80px;
-    overflow: auto;
+    overflow: hidden;
+    /* padding:8px 0; */
+}
+.carousel-pages span{
+    font-size: 16px;
+}
+.carousel-pages {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 4px;
+    align-items: center;
+}
+.btn-carousel.active{
+    background: var(--emphasis-color);
+    opacity: 100%;
+}
+.btn-carousel{
+    height: 8px;
+    width:  8px;
+    background: var(--light-text-color);
+    opacity: 50%;
+    border-radius: 50%;
+    display: block;
+    float: left;
+    cursor: pointer;
+}
+#next-page,#previous-page{
+    cursor: pointer;
 }

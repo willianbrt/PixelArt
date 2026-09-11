@@ -178,11 +178,6 @@ button.btn-premium {
    column-gap: 20px; 
 }
 .row.a-center, .col.a-center{
-    align-items: center;
-    justify-content: end;
-}
-.row.a-left, .col.a-left{
-    align-items: end;
     justify-content: end;
 }
 .mb-4{
@@ -190,4 +185,11 @@ button.btn-premium {
 }
 .text-primary{
     color: var(--secondary-color);
+}
+
+
+div> input[type="checkbox"]{
+    display: inline-flex;
+    /* font-family: "Jersey 10"; */
+    width: auto;
 }
