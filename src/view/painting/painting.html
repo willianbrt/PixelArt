@@ -360,13 +360,6 @@
                         <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
                     </div>
                     <div class="carousel-pages">
-                        <span class="material-icons" id="previous-page">arrow_left</span>
-                        <span class="btn-carousel" data-page="1"></span>
-                        <span class="btn-carousel active" data-page="2"></span>
-                        <span class="btn-carousel" data-page="3"></span>
-                        <span class="btn-carousel" data-page="4"></span>
-                        <span class="btn-carousel" data-page="5"></span>
-                        <span class="material-icons" id="next-page">arrow_right</span>
                     </div>
                 </div>
             
@@ -389,13 +382,6 @@
                             <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
                         </div>
                         <div class="carousel-pages">
-                            <span class="material-icons" id="previous-page">arrow_left</span>
-                            <span class="btn-carousel" data-page="1"></span>
-                            <span class="btn-carousel active" data-page="2"></span>
-                            <span class="btn-carousel" data-page="3"></span>
-                            <span class="btn-carousel" data-page="4"></span>
-                            <span class="btn-carousel" data-page="5"></span>
-                            <span><span class="material-icons" id="next-page">arrow_right</span></span>
                         </div>
                         <div class="form-group col g-8">
                             <div class="input-group">
@@ -494,6 +480,107 @@
                 abort.abort();
             }, { signal:abort.signal });
         });
+
+        let list = [{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32}]
+
+        let pages = document.querySelector(".list-pattern");
+        let control = document.querySelector(".carousel-pages");
+        let start = 0, end = 4;
+        let activePattern = 0;
+        let index = 0;
+        if(list.length > 1){
+            let btnNext = document.createElement("span");
+            btnNext.className = "material-icons";
+            btnNext.innerText = "arrow_right";
+            btnNext.addEventListener("click", function(e){
+                if(index >= list.length-1) return;
+                index++;
+
+                changeIndex(index);
+
+                control.querySelector('.btn-carousel.active')?.classList.remove('active');
+                if(index > end){
+                    control.querySelector(`.btn-carousel[data-index="${index-5}"]`)?.remove();
+                    end=index;
+                    start=index-4;
+                    control.append(createBtnIndex(index));
+                    return;
+                }
+                let toActive = control.querySelector(`.btn-carousel[data-index="${index}"]`);
+                toActive.classList.add("active");
+            });
+            control.append(btnNext);
+        }
+        if(list.length > 1){
+            let btnPrevious = document.createElement("span");
+            btnPrevious.className = "material-icons";
+            btnPrevious.innerText = "arrow_left";
+            btnPrevious.addEventListener("click", function(e){
+                if(index <= 0) return;
+                index--;
+
+                changeIndex(index);
+
+                control.querySelector('.btn-carousel.active')?.classList.remove('active');
+                if(index < start){
+                    control.querySelector(`.btn-carousel[data-index="${Math.min(index+5, list.length-1)}"]`)?.remove();
+                    start=index;
+                    end=index+4;
+                    control.prepend(createBtnIndex(index));
+                    return;
+                }
+                let toActive = control.querySelector(`.btn-carousel[data-index="${index}"]`);
+                toActive.classList.add("active");
+            });
+            control.prepend(btnPrevious);
+        }
+
+        for(let i = 0; i <= 4; i++ ){
+            control.append(createBtnIndex(i));
+        }
+        function createBtnIndex(i){
+            let btnIndex = document.createElement("span");
+            btnIndex.className = "btn-carousel";
+            
+            if(index == i){
+                changeIndex(i);
+                btnIndex.classList.add("active");
+            }
+            
+            btnIndex.dataset.index = i;
+            btnIndex.addEventListener("click", function(e){
+                control.querySelector('.btn-carousel.active')?.classList.remove('active');
+                this.classList.add("active");
+                index=i;
+            });
+            return btnIndex;
+        }
+
+        function changeIndex(i){
+            pages.innerHTML = "";
+
+            for(let i = 0; i <= 4; i++ ){
+                    
+                let canvasPattern = document.createElement("canvas");
+                canvasPattern.width = 32;
+                canvasPattern.height = 32;
+
+                let brushPattern = document.createElement("div");
+                brushPattern.className = "brush-pattern";
+                if(activePattern == i)
+                    brushPattern.classList.add("active");
+
+                brushPattern.append(canvasPattern);
+                brushPattern.addEventListener("click", function(e){
+                    pages.querySelector('.brush-pattern.active')?.classList.remove('active');
+                    this.classList.add("active");
+                    activePattern = i;
+                });
+
+                pages.append(brushPattern);
+            }
+        }
+
     </script>
 
 
