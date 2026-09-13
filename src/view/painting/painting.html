@@ -360,6 +360,7 @@
                         <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
                     </div>
                     <div class="carousel-pages">
+                        <div class="carousel-list-index"></div>
                     </div>
                 </div>
             
@@ -382,6 +383,7 @@
                             <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
                         </div>
                         <div class="carousel-pages">
+                            <div class="carousel-list-index"></div>
                         </div>
                         <div class="form-group col g-8">
                             <div class="input-group">
@@ -481,62 +483,91 @@
             }, { signal:abort.signal });
         });
 
-        let list = [{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32},{w:32, h:32}]
+        let list = [
+            {w:32, h:32},
+            {w:32, h:32},
+            {w:32, h:32},
+            {w:32, h:32},
+            {w:32, h:32},
+            {w:32, h:32},
+            {w:32, h:32},
+            {w:32, h:32}
+        ];
 
         let pages = document.querySelector(".list-pattern");
         let control = document.querySelector(".carousel-pages");
-        let start = 0, end = 4;
+        let controlPageList = document.querySelector(".carousel-list-index");
+
+        const MAX_NUMBER_INDICES = 5;
+        let start = 0, end = MAX_NUMBER_INDICES-1;
         let activePattern = 0;
         let index = 0;
-        if(list.length > 1){
-            let btnNext = document.createElement("span");
-            btnNext.className = "material-icons";
-            btnNext.innerText = "arrow_right";
-            btnNext.addEventListener("click", function(e){
-                if(index >= list.length-1) return;
-                index++;
+        
+        let btnNext = document.createElement("span");
+        btnNext.className = "material-icons";
+        btnNext.classList.toggle("disabled", index >= list.length-1);
+        btnNext.innerText = "arrow_right";
+        btnNext.addEventListener("click", next);
+        control.append(btnNext);
+        
+        let btnPrevious = document.createElement("span");
+        btnPrevious.className = "material-icons";
+        btnPrevious.classList.toggle("disabled", index <= 0);
+        btnPrevious.innerText = "arrow_left";
+        btnPrevious.addEventListener("click", previous);
+        control.prepend(btnPrevious);
 
-                changeIndex(index);
+        function next(e){
+            if(index >= list.length-1)  return; 
 
-                control.querySelector('.btn-carousel.active')?.classList.remove('active');
-                if(index > end){
-                    control.querySelector(`.btn-carousel[data-index="${index-5}"]`)?.remove();
-                    end=index;
-                    start=index-4;
-                    control.append(createBtnIndex(index));
-                    return;
+            index++;
+            
+            if(index > (start+MAX_NUMBER_INDICES/2)){
+                start = Math.floor(index-MAX_NUMBER_INDICES/2)+1;
+                end = Math.floor(start+4);
+
+                control.querySelector(`.btn-carousel[data-index="${start-1}"]`)?.remove();
+                if(end > list.length-1){
+                    end = list.length-1;
+                }  else{
+                    controlPageList.append(createBtnIndex(end));
                 }
-                let toActive = control.querySelector(`.btn-carousel[data-index="${index}"]`);
-                toActive.classList.add("active");
-            });
-            control.append(btnNext);
+
+            }
+            control.querySelector('.btn-carousel.active')?.classList.remove('active');
+            control.querySelector(`.btn-carousel[data-index="${index}"]`).classList.add("active");
+            changeIndex(index);
+
+            btnNext.classList.toggle("disabled", index >= list.length-1);
+            btnPrevious.classList.toggle("disabled", index <= 0);
         }
-        if(list.length > 1){
-            let btnPrevious = document.createElement("span");
-            btnPrevious.className = "material-icons";
-            btnPrevious.innerText = "arrow_left";
-            btnPrevious.addEventListener("click", function(e){
-                if(index <= 0) return;
-                index--;
-
-                changeIndex(index);
-
-                control.querySelector('.btn-carousel.active')?.classList.remove('active');
-                if(index < start){
-                    control.querySelector(`.btn-carousel[data-index="${Math.min(index+5, list.length-1)}"]`)?.remove();
-                    start=index;
-                    end=index+4;
-                    control.prepend(createBtnIndex(index));
-                    return;
+        function previous(){
+            if(index <= 0) return;
+            index--;
+            
+            if(index < (start+MAX_NUMBER_INDICES/2)){
+                if(index < Math.floor((list.length)-(MAX_NUMBER_INDICES/2)) && end >= MAX_NUMBER_INDICES){
+                    control.querySelector(`.btn-carousel[data-index="${end}"]`)?.remove();
+                    end --;
                 }
-                let toActive = control.querySelector(`.btn-carousel[data-index="${index}"]`);
-                toActive.classList.add("active");
-            });
-            control.prepend(btnPrevious);
-        }
 
-        for(let i = 0; i <= 4; i++ ){
-            control.append(createBtnIndex(i));
+                if(start > 0){
+                    start--;
+                    controlPageList.prepend(createBtnIndex(start));
+                }
+            }
+            
+            control.querySelector('.btn-carousel.active')?.classList.remove('active');
+            control.querySelector(`.btn-carousel[data-index="${index}"]`).classList.add("active");
+            changeIndex(index);
+
+            btnNext.classList.toggle("disabled", index >= list.length-1);
+            btnPrevious.classList.toggle("disabled", index <= 0);
+        }
+        
+
+        for(let i = 0; i <= end; i++ ){
+            controlPageList.append(createBtnIndex(i));
         }
         function createBtnIndex(i){
             let btnIndex = document.createElement("span");

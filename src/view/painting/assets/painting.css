@@ -751,19 +751,29 @@ span.line{
     overflow: hidden;
     /* padding:8px 0; */
 }
-.carousel-pages span{
-    font-size: 16px;
+.carousel-pages .disabled{
+    color: var(--light-text-color);
+    opacity: 0.3;
 }
-.carousel-pages {
+.carousel-pages, .carousel-list-index {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+.carousel-pages span{
+    font-size: 16px;
+}
+.carousel-list-index {
     gap: 4px;
     align-items: center;
 }
 .btn-carousel.active{
     background: var(--emphasis-color);
     opacity: 100%;
+    height: 6px;
+    width:  6px;
 }
 .btn-carousel{
     height: 8px;
