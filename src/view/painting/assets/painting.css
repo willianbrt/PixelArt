@@ -385,7 +385,7 @@ input[type="range"].slider::-webkit-slider-runnable-track{
 .btn-ghost-action:hover{
     background-color: var(--hover-color);
 }
-.btn-choice{
+.btn-choice, .tab-nav-item{
     font-family: 'Jersey 10';
     background: transparent;
     color: var(--light-text-color);
@@ -403,7 +403,7 @@ input[type="range"].slider::-webkit-slider-runnable-track{
     box-shadow: 0px 0px 10px 1px #0000004d inset;
     text-wrap-mode: nowrap;
 }
-.btn-choice:has(input[type="checkbox"]:checked) {
+.btn-choice:has(input[type="checkbox"]:checked), .tab-nav-item.active {
     outline: #301439 2px solid;
     background: #bbaac0;
     color: #301439;
@@ -787,4 +787,12 @@ span.line{
 }
 #next-page,#previous-page{
     cursor: pointer;
+}
+.tab-select{
+    display: none;
+}
+.tab-select.active{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }

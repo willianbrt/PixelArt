@@ -110,24 +110,24 @@
                                 <span class="input-label">px</span>
                             </div>
                             
-                            <label class="btn-choice active" id="pixel-perfect">
+                            <label class="btn-choice " id="pixel-perfect">
                                 <input type="checkbox"/>
                                 <span class="material-symbols-outlined">line_curve</span> 
                                 Pixel Perfect
                             </label>
                             
-                            <label class="btn-choice active" id="mirror-x">
+                            <label class="btn-choice " id="mirror-x">
                                 <input type="checkbox"/>
                                 <span class="material-symbols-outlined">flip</span>
                                 Espelhar X
                             </label>
                             
-                            <label class="btn-choice active" id="mirror-y">
+                            <label class="btn-choice " id="mirror-y">
                                 <input type="checkbox"/>
                                 <span class="material-symbols-outlined" style="transform: rotate(90deg);">flip</span>
                                 Espelhar Y
                             </label>
-                            <label class="btn-choice active" id="fill">
+                            <label class="btn-choice " id="fill">
                                 <input type="checkbox">
                                 <span class="material-symbols-outlined">colors</span>Preencher</label>
                             </label>
@@ -346,52 +346,68 @@
             
             <div class="col g-16">
                 <div class="col g-8">
-                    <h5 class="">${Basic Shapes}</h5>
-                    <div class="row g-4">
-                        <div class="brush-pattern active"><span class="material-icons">square</span></div>
-                        <div class="brush-pattern"><span class="material-icons">circle</span></div>
-                        <div class="btn-choice active">Custom</div>
-                    </div>
-                    <div class="list-pattern">
-                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                        <div class="brush-pattern active"> <canvas width="24" height="24"></canvas> </div>
-                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                        <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                    </div>
-                    <div class="carousel-pages">
-                        <div class="carousel-list-index"></div>
+                    <h5 class="">${Brush Tip}</h5>
+                    <div class="tab col g-4">
+                        <div class="row g-4 tab-nav">
+                            <div class="tab-nav-item active" data-page-id="shape-patterns">Shape</div>
+                            <div class="tab-nav-item" data-page-id="custom-patterns">Custom</div>
+                        </div>
+                        
+                        <div class="tab-items">
+                            <div class="tab-select active" id="shape-patterns">
+                                <div class="list-pattern">
+                                    <div class="brush-pattern active"><span class="material-icons">square</span></div>
+                                    <div class="brush-pattern"><span class="material-icons">circle</span></div>
+                                </div>
+                                <div class="carousel-pages">
+                                    <div class="carousel-list-index"></div>
+                                </div>
+                            </div>
+
+                            <div class="tab-select" id="custom-patterns">
+                                <div class="list-pattern">
+                                </div>
+                                <div class="carousel-pages">
+                                    <div class="carousel-list-index"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             
                 <div class="col g-8">
-                    <div class="input-group a-right">
-                        <h5>${Fill}</h5>
-                        <select class="select-ghost">
-                            <option>Solid Color</option>
-                            <option>Stamp</option>
-                            <option>Pattern</option>
-                        </select>
-                    </div>
+                    <div class="tab">
+                        <div class="input-group a-right">
+                            <h5>${Fill}</h5>
+                            <select class="select-ghost" id="mode-brush">
+                                <option value="solid">Solid Color</option>
+                                <option value="stamp">Stamp</option>
+                                <option value="pattern">Pattern</option>
+                            </select>
+                        </div>
 
-                    <div class="tab-select col g-8" id="pattern">
-                        <div class="list-pattern">
-                            <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                            <div class="brush-pattern active"> <canvas width="24" height="24"></canvas> </div>
-                            <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                            <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                            <div class="brush-pattern"> <canvas width="24" height="24"></canvas> </div>
-                        </div>
-                        <div class="carousel-pages">
-                            <div class="carousel-list-index"></div>
-                        </div>
-                        <div class="form-group col g-8">
-                            <div class="input-group">
-                                <span class="input-label">Mask:</span>
-                                <select>
-                                    <option>Align to Local</option>
-                                    <option>Align to Source</option>
-                                </select>
+                        <div class="tab" id="tab-fill">
+                            <div class="tab-select" id="pane-solid"></div>
+                            <div class="tab-select" id="pane-stamp"></div>
+                            <div class="tab-select" id="pane-pattern">
+                                <div id="mask-patterns">
+                                    <div class="list-pattern">
+                                    </div>
+                                
+                                    <div class="carousel-pages">
+                                        <div class="carousel-list-index"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col g-8">
+                                    <div class="input-group">
+                                        <span class="input-label">Mask:</span>
+                                        <select>
+                                            <option>Align to Local</option>
+                                            <option>Align to Source</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -472,7 +488,6 @@
             
             abort.signal.addEventListener("abort", () => {
                 modalBrush.classList.toggle("hidden", true);
-                console.log("b")
             });
 
             window.addEventListener("mousedown", function(){
@@ -482,6 +497,50 @@
                 abort.abort();
             }, { signal:abort.signal });
         });
+    
+        let tab = document.querySelector(".tab");
+        let nav = tab.querySelector(".tab-nav");
+        let navItems = nav.querySelectorAll(".tab-nav-item");
+        navItems.forEach((navItem)=>{
+            navItem.onclick = ()=>{
+                nav.querySelector(".tab-nav-item.active")?.classList.remove("active");
+                tab.querySelector(".tab-items .tab-select.active")?.classList.remove("active");
+
+                navItem.classList.add("active");
+                let tabPane = document.getElementById(navItem.dataset.pageId);
+                tabPane?.classList.add("active");
+            }
+        });
+
+        let tabFill = document.querySelector("#tab-fill");
+        let mode = {
+            "solid": ()=>{
+                let lastActivePane = tabFill.querySelector(".tab-select.active");
+                lastActivePane?.classList.remove("active");
+                
+                let activePane = tabFill.querySelector("#pane-solid");
+                activePane.classList.add("active");
+            },
+            "stamp": ()=>{
+                let lastActivePane = tabFill.querySelector(".tab-select.active");
+                lastActivePane?.classList.remove("active");
+                
+                let activePane = tabFill.querySelector("#pane-stamp");
+                activePane.classList.add("active");
+            },
+            "pattern": ()=>{
+                let lastActivePane = tabFill.querySelector(".tab-select.active");
+                lastActivePane?.classList.remove("active");
+
+                let activePane = tabFill.querySelector("#pane-pattern");
+                activePane.classList.add("active");
+            },
+        };
+
+        let panePattern = document.querySelector("#pattern");
+        let selectModeBrush = document.querySelector("#mode-brush");
+        selectModeBrush.onchange = (e)=>{ mode[e.srcElement.value]() };
+        mode[selectModeBrush.value]();
 
         let list = [
             {w:32, h:32},
@@ -493,125 +552,132 @@
             {w:32, h:32},
             {w:32, h:32}
         ];
+        carousel({id: "#custom-patterns", search: ()=>{}});
+        carousel({id: "#mask-patterns", search: ()=>{}});
 
-        let pages = document.querySelector(".list-pattern");
-        let control = document.querySelector(".carousel-pages");
-        let controlPageList = document.querySelector(".carousel-list-index");
+        function carousel(options){
+            let { id, search } = options;
 
-        const MAX_NUMBER_INDICES = 5;
-        let start = 0, end = MAX_NUMBER_INDICES-1;
-        let activePattern = 0;
-        let index = 0;
-        
-        let btnNext = document.createElement("span");
-        btnNext.className = "material-icons";
-        btnNext.classList.toggle("disabled", index >= list.length-1);
-        btnNext.innerText = "arrow_right";
-        btnNext.addEventListener("click", next);
-        control.append(btnNext);
-        
-        let btnPrevious = document.createElement("span");
-        btnPrevious.className = "material-icons";
-        btnPrevious.classList.toggle("disabled", index <= 0);
-        btnPrevious.innerText = "arrow_left";
-        btnPrevious.addEventListener("click", previous);
-        control.prepend(btnPrevious);
+            let carouselElem = document.querySelector(id);
+            let pages = carouselElem.querySelector(".list-pattern");
+            let control = carouselElem.querySelector(".carousel-pages");
+            let controlPageList = carouselElem.querySelector(".carousel-list-index");
 
-        function next(e){
-            if(index >= list.length-1)  return; 
-
-            index++;
+            const MAX_NUMBER_INDICES = 5;
+            let start = 0, end = MAX_NUMBER_INDICES-1;
+            let activePattern = 0;
+            let index = 0;
             
-            if(index > (start+MAX_NUMBER_INDICES/2)){
-                start = Math.floor(index-MAX_NUMBER_INDICES/2)+1;
-                end = Math.floor(start+4);
-
-                control.querySelector(`.btn-carousel[data-index="${start-1}"]`)?.remove();
-                if(end > list.length-1){
-                    end = list.length-1;
-                }  else{
-                    controlPageList.append(createBtnIndex(end));
-                }
-
-            }
-            control.querySelector('.btn-carousel.active')?.classList.remove('active');
-            control.querySelector(`.btn-carousel[data-index="${index}"]`).classList.add("active");
-            changeIndex(index);
-
+            let btnNext = document.createElement("span");
+            btnNext.className = "material-icons";
             btnNext.classList.toggle("disabled", index >= list.length-1);
+            btnNext.innerText = "arrow_right";
+            btnNext.addEventListener("click", next);
+            control.append(btnNext);
+            
+            let btnPrevious = document.createElement("span");
+            btnPrevious.className = "material-icons";
             btnPrevious.classList.toggle("disabled", index <= 0);
-        }
-        function previous(){
-            if(index <= 0) return;
-            index--;
-            
-            if(index < (start+MAX_NUMBER_INDICES/2)){
-                if(index < Math.floor((list.length)-(MAX_NUMBER_INDICES/2)) && end >= MAX_NUMBER_INDICES){
-                    control.querySelector(`.btn-carousel[data-index="${end}"]`)?.remove();
-                    end --;
+            btnPrevious.innerText = "arrow_left";
+            btnPrevious.addEventListener("click", previous);
+            control.prepend(btnPrevious);
+
+            function next(e){
+                if(index >= list.length-1)  return; 
+
+                index++;
+                
+                if(index > (start+MAX_NUMBER_INDICES/2)){
+                    start = Math.floor(index-MAX_NUMBER_INDICES/2)+1;
+                    end = Math.floor(start+4);
+
+                    control.querySelector(`.btn-carousel[data-index="${start-1}"]`)?.remove();
+                    if(end > list.length-1){
+                        end = list.length-1;
+                    }  else{
+                        controlPageList.append(createBtnIndex(end));
+                    }
+
                 }
-
-                if(start > 0){
-                    start--;
-                    controlPageList.prepend(createBtnIndex(start));
-                }
-            }
-            
-            control.querySelector('.btn-carousel.active')?.classList.remove('active');
-            control.querySelector(`.btn-carousel[data-index="${index}"]`).classList.add("active");
-            changeIndex(index);
-
-            btnNext.classList.toggle("disabled", index >= list.length-1);
-            btnPrevious.classList.toggle("disabled", index <= 0);
-        }
-        
-
-        for(let i = 0; i <= end; i++ ){
-            controlPageList.append(createBtnIndex(i));
-        }
-        function createBtnIndex(i){
-            let btnIndex = document.createElement("span");
-            btnIndex.className = "btn-carousel";
-            
-            if(index == i){
-                changeIndex(i);
-                btnIndex.classList.add("active");
-            }
-            
-            btnIndex.dataset.index = i;
-            btnIndex.addEventListener("click", function(e){
                 control.querySelector('.btn-carousel.active')?.classList.remove('active');
-                this.classList.add("active");
-                index=i;
-            });
-            return btnIndex;
-        }
+                control.querySelector(`.btn-carousel[data-index="${index}"]`).classList.add("active");
+                changeIndex(index);
 
-        function changeIndex(i){
-            pages.innerHTML = "";
-
-            for(let i = 0; i <= 4; i++ ){
-                    
-                let canvasPattern = document.createElement("canvas");
-                canvasPattern.width = 32;
-                canvasPattern.height = 32;
-
-                let brushPattern = document.createElement("div");
-                brushPattern.className = "brush-pattern";
-                if(activePattern == i)
-                    brushPattern.classList.add("active");
-
-                brushPattern.append(canvasPattern);
-                brushPattern.addEventListener("click", function(e){
-                    pages.querySelector('.brush-pattern.active')?.classList.remove('active');
-                    this.classList.add("active");
-                    activePattern = i;
-                });
-
-                pages.append(brushPattern);
+                btnNext.classList.toggle("disabled", index >= list.length-1);
+                btnPrevious.classList.toggle("disabled", index <= 0);
             }
-        }
+            function previous(){
+                if(index <= 0) return;
+                index--;
+                
+                if(index < (start+MAX_NUMBER_INDICES/2)){
+                    if(index < Math.floor((list.length)-(MAX_NUMBER_INDICES/2)) && end >= MAX_NUMBER_INDICES){
+                        control.querySelector(`.btn-carousel[data-index="${end}"]`)?.remove();
+                        end --;
+                    }
 
+                    if(start > 0){
+                        start--;
+                        controlPageList.prepend(createBtnIndex(start));
+                    }
+                }
+                
+                control.querySelector('.btn-carousel.active')?.classList.remove('active');
+                control.querySelector(`.btn-carousel[data-index="${index}"]`).classList.add("active");
+                changeIndex(index);
+
+                btnNext.classList.toggle("disabled", index >= list.length-1);
+                btnPrevious.classList.toggle("disabled", index <= 0);
+            }
+            
+
+            for(let i = 0; i <= end; i++ ){
+                controlPageList.append(createBtnIndex(i));
+            }
+            function createBtnIndex(i){
+                let btnIndex = document.createElement("span");
+                btnIndex.className = "btn-carousel";
+                
+                if(index == i){
+                    changeIndex(i);
+                    btnIndex.classList.add("active");
+                }
+                
+                btnIndex.dataset.index = i;
+                btnIndex.addEventListener("click", function(e){
+                    control.querySelector('.btn-carousel.active')?.classList.remove('active');
+                    this.classList.add("active");
+                    index=i;
+                });
+                return btnIndex;
+            }
+
+            function changeIndex(i){
+                pages.innerHTML = "";
+
+                for(let i = 0; i <= 4; i++ ){
+                        
+                    let canvasPattern = document.createElement("canvas");
+                    canvasPattern.width = 32;
+                    canvasPattern.height = 32;
+
+                    let brushPattern = document.createElement("div");
+                    brushPattern.className = "brush-pattern";
+                    if(activePattern == i)
+                        brushPattern.classList.add("active");
+
+                    brushPattern.append(canvasPattern);
+                    brushPattern.addEventListener("click", function(e){
+                        pages.querySelector('.brush-pattern.active')?.classList.remove('active');
+                        this.classList.add("active");
+                        activePattern = i;
+                    });
+
+                    pages.append(brushPattern);
+                }
+            }
+
+        }
     </script>
 
 
