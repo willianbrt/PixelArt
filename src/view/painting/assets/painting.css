@@ -25,6 +25,13 @@ h5{
     font-size: 16px;
     line-height: 16px;
 }
+.text{
+    font-family: "Jersey 10", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: var(--light-text-color);
+    margin: 0;
+}
 
 input[type="range"]{
     -webkit-appearance : none;
