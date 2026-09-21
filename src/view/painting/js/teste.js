@@ -38,7 +38,6 @@ window.onload = async ()=>{
         description: "teste",
         scope: "global",
         callback: ()=>{
-            console.log("copiar")
             const surface = editorManagerViewModel.copy();
             clipboard = surface;
             channel.postMessage({ action: "SET_CLIPBOARD", clipboard: surface});
