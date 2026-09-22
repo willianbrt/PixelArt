@@ -32,6 +32,21 @@ void BrushSettingsVM::setPattern(string pattern){
     }
     _toolSettings->brushContext.getPattern(pattern);
 }
+emscripten::val BrushSettingsVM::getShape(string pattern){
+
+    ISurface* s = _toolManager->getCursorContext()->pattern;
+//     layerDTO.buffer = emscripten::val(emscripten::typed_memory_view(layer->getWidth()* layer->getHeight()*4, reinterpret_cast<uint8_t*>(layer->getBuffer())));
+
+    // if(pattern == "square"){
+    //     _toolSettings->brushContext.getPattern("dot");
+    //     return;
+    // }
+    // if(pattern == "circle"){
+    //     _toolSettings->brushContext.getPattern("circle");
+    //     return;
+    // }
+    return emscripten::val(emscripten::typed_memory_view(s->getWidth()* s->getHeight()*4, reinterpret_cast<uint8_t*>(s->getBuffer())));
+}
 
 #include <emscripten/bind.h>
 
@@ -44,5 +59,6 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setHardness", &BrushSettingsVM::setHardness)
         .function("setColor", &BrushSettingsVM::setColor)
         .function("setPattern", &BrushSettingsVM::setPattern)
+        .function("getShape", &BrushSettingsVM::getShape)
         ;
 };

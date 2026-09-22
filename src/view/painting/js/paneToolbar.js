@@ -13,6 +13,7 @@ var fill = document.querySelector("#fill input[type='checkbox']");
 
 export function buildPaneToolBar(){
     const toolViewModel = app.paneToolViewModel();
+    const brushSettings = app.brushSettingsVM();
     const drawingSettings = app.drawingSettingsVM();
     const symmetrySettings = app.symmetrySettingsVM();
     thickness.onchange = (e)=>{ drawingSettings.setSize(parseInt(e.srcElement.value)); }
@@ -35,6 +36,7 @@ export function buildPaneToolBar(){
     btnBrush.addEventListener("click", function(e){
         toolViewModel.setPressedTool("brush");
         changeSelectTool.call(this);
+        // console.log(brushSettings.getShape("circle"))
     });
     const btnEraser = document.querySelector(".tool-eraser");
     btnEraser.addEventListener("click", function(e){

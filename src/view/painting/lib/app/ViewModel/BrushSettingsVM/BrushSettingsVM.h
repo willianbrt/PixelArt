@@ -2,6 +2,7 @@
 #ifndef BRUSHSETTINGSVM_H
 #define BRUSHSETTINGSVM_H
 
+#include <emscripten/val.h>
 #include "../../AppContext/AppContext.h"
 #include "../../../objects/ToolManager/ToolManager.h"
 #include "../../../rasterize/CircleRasterize/CircleRasterize.h"
@@ -20,6 +21,7 @@ public:
     void setColor(unsigned int color);
     
     void setPattern(string shape);
+    emscripten::val getShape(string shape);
 };
 
 #endif
