@@ -24,7 +24,6 @@ Point LineRasterize::next() {
 
     if (_current.x == _to.x && _current.y == _to.y) {
         _hasNext = false;
-        printf("fim\n");
         return p;
     }
 

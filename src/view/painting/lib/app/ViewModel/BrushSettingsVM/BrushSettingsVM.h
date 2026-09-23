@@ -6,7 +6,25 @@
 #include "../../AppContext/AppContext.h"
 #include "../../../objects/ToolManager/ToolManager.h"
 #include "../../../rasterize/CircleRasterize/CircleRasterize.h"
+#include "../../../rasterize/LineRasterize/LineRasterize.h"
 
+class DrawBuffer : public IDraw{
+private:
+    Surface* surface;
+public:
+    DrawBuffer(int width, int height){
+        surface = new Surface(width, height);
+    }
+    ~DrawBuffer(){
+        free(surface);
+    }
+    void plot(const int& x, const int& y) override{
+        surface->putPixel(x,y,0xFF);
+    }
+    Surface* getSurface(){
+        return surface;
+    }
+};
 class BrushSettingsVM  {
 private:
     ToolManager* _toolManager;

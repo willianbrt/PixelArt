@@ -33,19 +33,34 @@ void BrushSettingsVM::setPattern(string pattern){
     _toolSettings->brushContext.getPattern(pattern);
 }
 emscripten::val BrushSettingsVM::getShape(string pattern){
+    DrawBuffer draw(_toolSettings->drawingContext.size, _toolSettings->drawingContext.size);
+    Surface* surface = draw.getSurface();
+    
+    if(pattern == "circle"){
+        CircleRasterize circle(
+            {_toolSettings->drawingContext.size-1, _toolSettings->drawingContext.size-1},
+            {(_toolSettings->drawingContext.size>>1),(_toolSettings->drawingContext.size>>1)}
+        );
+        bool isFilled = true;
+        circle.filled(isFilled);
+        circle.draw(draw);
+    }
+    if(pattern == "square"){
+        std::fill(surface->getBuffer(), surface->getBuffer()+surface->getLength(), 0xFF);
+        // std::memset(surface->getBuffer(), 0xFF, surface->getLength()*sizeof(unsigned int));
+    }
+    if(pattern == "line"){
+        LineRasterize line(
+            {_toolSettings->drawingContext.size-1,0},
+            {0,_toolSettings->drawingContext.size-1}
+        );
+        while(line.hasNext()){
+            Point p = line.next();
+            surface->putPixel(p.x,p.y,0xFF);
+        }
+    }
 
-    ISurface* s = _toolManager->getCursorContext()->pattern;
-//     layerDTO.buffer = emscripten::val(emscripten::typed_memory_view(layer->getWidth()* layer->getHeight()*4, reinterpret_cast<uint8_t*>(layer->getBuffer())));
-
-    // if(pattern == "square"){
-    //     _toolSettings->brushContext.getPattern("dot");
-    //     return;
-    // }
-    // if(pattern == "circle"){
-    //     _toolSettings->brushContext.getPattern("circle");
-    //     return;
-    // }
-    return emscripten::val(emscripten::typed_memory_view(s->getWidth()* s->getHeight()*4, reinterpret_cast<uint8_t*>(s->getBuffer())));
+    return emscripten::val(emscripten::typed_memory_view(surface->getWidth()* surface->getHeight()*4, reinterpret_cast<uint8_t*>(surface->getBuffer())));
 }
 
 #include <emscripten/bind.h>

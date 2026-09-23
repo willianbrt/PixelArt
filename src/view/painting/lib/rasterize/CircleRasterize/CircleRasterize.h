@@ -38,7 +38,6 @@ Point next();
 void nextHorizontal();
 void nextVertical();
 void draw(IDraw& callback);
-
 void thinkenss(int& thinkenss);
 void filled(bool& isFilled);
 };

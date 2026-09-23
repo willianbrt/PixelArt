@@ -36,7 +36,7 @@ export function buildPaneToolBar(){
     btnBrush.addEventListener("click", function(e){
         toolViewModel.setPressedTool("brush");
         changeSelectTool.call(this);
-        // console.log(brushSettings.getShape("circle"))
+        console.log(brushSettings.getShape("line"))
     });
     const btnEraser = document.querySelector(".tool-eraser");
     btnEraser.addEventListener("click", function(e){
