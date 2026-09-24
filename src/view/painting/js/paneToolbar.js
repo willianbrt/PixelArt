@@ -1,4 +1,6 @@
 import { app } from "./app.js"
+import {database} from "./repository.js"
+import { modal, carousel } from "./elements.js"
 
 
 const thickness = document.querySelector("input[name='size']");
@@ -10,6 +12,59 @@ var mirrorX = document.querySelector("#mirror-x input[type='checkbox']");
 var mirrorY = document.querySelector("#mirror-y input[type='checkbox']");
 var fill = document.querySelector("#fill input[type='checkbox']");
 
+let modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
+let shapePagination = carousel({
+    id: "#shape-patterns",
+    empty: ()=>{
+        let elem = document.createElement("span");
+        elem.className = "text";
+        elem.innerText = "Nenhuma pincel encontrado.";
+        return elem;
+    },
+    search: async (index,limit)=>{
+        let table = await database.table("pattern");
+        let data = await table.getAll(index*limit, limit);
+        let size = await table.size();
+
+        return {data, dataLength: size};
+    },
+    element: elemPagination
+});
+
+let customShapePagination = carousel({
+    id: "#custom-patterns",
+    empty: ()=>{
+        let elem = document.createElement("span");
+        elem.className = "text";
+        elem.innerText = "Nenhum pincel encontrado.";
+        return elem;
+    },
+    search: async (index,limit)=>{
+        let table = await database.table("pattern");
+        let data = await table.getAll(index*limit, limit);
+        let size = await table.size();
+
+        return {data, dataLength: size};
+    },
+    element: elemPagination
+});
+let maskPagination  = carousel({
+    id: "#mask-patterns",
+    empty: ()=>{
+        let elem = document.createElement("span.text");
+        elem.className = "text";
+        elem.innerText = "Nenhuma máscara encontrada.";
+        return elem;
+    },
+    search: async (index,limit)=>{
+        let table = await database.table("pattern");
+        let data = await table.getAll(index*limit, limit);
+        let size = await table.size();
+
+        return {data, dataLength: size};
+    },
+    element: elemPagination
+});
 
 export function buildPaneToolBar(){
     const toolViewModel = app.paneToolViewModel();
@@ -177,4 +232,43 @@ function getPattern(jsPattern) {
     });
 
     return cppPattern;
+}
+
+
+function elemPagination(data){
+    const pageElementList = this;
+
+    const imgData = new ImageData(new Uint8ClampedArray(data.buffer), data.width,data.height);
+    const SIZE_DEST_CANVAS = {x:24, y: 24};
+    let scale = Math.min(SIZE_DEST_CANVAS.x/data.width, SIZE_DEST_CANVAS.y/data.height);
+    let resized = {x: data.width*scale, y: data.height*scale}
+    let pan = {
+        x: (SIZE_DEST_CANVAS.x - resized.x) / 2,
+        y: (SIZE_DEST_CANVAS.y - resized.y) / 2
+    };
+
+    let offPattern = document.createElement("canvas");
+    offPattern.width = data.width;
+    offPattern.height = data.height;
+    const offContext = offPattern.getContext("2d");
+    offContext.putImageData(imgData, 0, 0);
+
+    let canvasPattern = document.createElement("canvas");
+    canvasPattern.width = SIZE_DEST_CANVAS.x;
+    canvasPattern.height = SIZE_DEST_CANVAS.y;
+    const context = canvasPattern.getContext("2d");
+    context.imageSmoothingEnabled = false;
+    context.drawImage(offPattern, pan.x, pan.y, resized.x,resized.y);
+
+    let brushPattern = document.createElement("div");
+    brushPattern.className = "brush-pattern";
+    // if(activePattern == i)
+    //     brushPattern.classList.add("active");
+
+    brushPattern.append(canvasPattern);
+    brushPattern.addEventListener("click", function(e){
+        pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
+        this.classList.add("active");
+    });
+    return brushPattern;
 }
