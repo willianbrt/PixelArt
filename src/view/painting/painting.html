@@ -545,18 +545,21 @@
             let paletteList = [];
 
             let paletteDefault = paletteConcrete("Default");
-            paletteDefault.addColor([255,0,0]);
-            paletteDefault.addColor([0,255,0]);
+            [[255,0,0], [0,255,0]].forEach(value=>{
+                paletteDefault.addColor(value);
+            });
             paletteList.push(paletteDefault)
 
             let paletteSombras = paletteConcrete("Sombras");
-            paletteSombras.addColor([255,0,0]);
-            paletteSombras.addColor([50,0,55]);
+            [[255,0,0], [50,0,55]].forEach(value=>{
+                paletteSombras.addColor(value);
+            });
             paletteList.push(paletteSombras)
 
             let paletteLuzes = paletteConcrete("Luzes");
-            paletteLuzes.addColor([50,0,100]);
-            paletteLuzes.addColor([255,0,255]);
+            [[50,0,100],[255,0,255]].forEach(value=>{
+                paletteLuzes.addColor(value);
+            })
             paletteList.push(paletteLuzes)
 
             return {
@@ -590,8 +593,7 @@
         let workPrimaryColor = document.querySelector(".work-color.primary-color");
         let workSecondaryColor = document.querySelector(".work-color.secondary-color");
 
-        let btnOpenModalAddPalette = document.querySelector("#new-palette");
-        let modalPaletteName = document.querySelector("#modal-palette-name");
+        let modalPaletteName = modal({modalId: "modal-palette-name", triggerId: "new-palette"});
         let btnAddPalette = document.querySelector("#add-palette");
         let btnRemovePalette = document.querySelector("#trash-palette");
 
@@ -714,32 +716,7 @@
             loadActivePalette();
         });
 
-        btnOpenModalAddPalette.addEventListener("click", function(e){
-            modalPaletteName.classList.toggle("hidden", false);
-
-            let abort = new AbortController();
-            
-            abort.signal.addEventListener("abort", () => {
-                modalPaletteName.classList.toggle("hidden", true);
-            });
-
-            window.addEventListener("mousedown", function(){
-                if(btnAddPalette.contains(event.target)){
-                    if(!addPalette()){
-                        return;
-                    }
-                }
-
-                if (btnOpenModalAddPalette.contains(event.target) || modalPaletteName.contains(event.target)
-                    && !btnAddPalette.contains(event.target)){
-                    return;
-                }
-                
-                abort.abort();
-            }, { signal:abort.signal });
-        });
-
-        function addPalette(){
+        btnAddPalette.onclick = ()=>{
             try{
                 let inpNamePalette = document.querySelector("input[name='name-palette']");
                 let namePalette = inpNamePalette.value;
@@ -754,10 +731,9 @@
                 loadActivePalette();
                 inpNamePalette.value = "";
 
-                return true;
+                modalPaletteName.close();
             } catch(e){
                 console.error(e);
-                return false;
             }
         }
 
