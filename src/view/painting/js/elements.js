@@ -22,7 +22,7 @@ export function modal(options){
     function close(){
         modalElem.classList.toggle("hidden", true);
     }
-    return Object.assign(open, close);
+    return Object.assign(modalElem, { open, close });
 }
     
 
