@@ -1,4 +1,4 @@
-export function Chromatic(options){
+export async function Chromatic(options){
     const RAD_360 = 2 * Math.PI;
     const RAD_TO_DEG = 180 / Math.PI;
     const DEG_TO_RAD = Math.PI / 180;
@@ -308,10 +308,19 @@ export function Chromatic(options){
 }
 
 export function ColorFactory(){
-    function buildByDecimal(bigint){
-        const r =  bigint & 0xFF;
-        const g = (bigint >>> 8) & 0xFF;
-        const b = (bigint >>> 16) & 0xFF;
+    function buildByDecimal(bigint, littlendian = true){
+        let r, g, b, a;
+        if(littlendian){
+            r = (bigint >>> 24) & 0xFF;
+            g = (bigint >>> 16) & 0xFF;
+            b = (bigint >>> 8) & 0xFF;
+            a = bigint & 0xFF;
+        } else{
+            r = bigint & 0xFF;
+            g = (bigint >>> 8) & 0xFF;
+            b = (bigint >>> 16) & 0xFF;
+            a = (bigint >>> 24) & 0xFF;
+        }
         
         return {
             rgb: {r, g, b},
@@ -319,29 +328,28 @@ export function ColorFactory(){
             hex: rgbToHex(r,g,b),
             hex16: rgbToHex16(r, g, b),
             hex32: rgbToHex32(r, g, b),
-            getRGBLittleEndian: getRGBLittleEndian(r,g,b)
+            littleEndian: getRGBLittleEndian(r,g,b)
         }
     }
     function buildByRGB(r,g,b){
         return {
-            rgb: {r, g, b},
+            rgb: {r:parseInt(r), g:parseInt(g), b:parseInt(b)},
             hsl: rgbToHsl(r, g, b),
             hex: rgbToHex(r,g,b),
             hex16: rgbToHex16(r, g, b),
             hex32: rgbToHex32(r, g, b),
-            getRGBLittleEndian: getRGBLittleEndian(r,g,b)
+            littleEndian: getRGBLittleEndian(r,g,b)
         }
     }
     function buildByHSL(h,s,l){
         const {r,g,b} = hslToRgb(h,s,l);
-        
         return {
             rgb: {r,g,b},
             hsl: { h, s, l},
             hex: rgbToHex(r,g,b),
             hex16: rgbToHex16(r, g, b),
             hex32: rgbToHex32(r, g, b),
-            getRGBLittleEndian: getRGBLittleEndian(r,g,b)
+            littleEndian: getRGBLittleEndian(r,g,b)
         };
     }
     function buildByHex(hex){
@@ -353,7 +361,7 @@ export function ColorFactory(){
             hex: hex,
             hex16: rgbToHex16(r, g, b),
             hex32: rgbToHex32(r, g, b),
-            getRGBLittleEndian: getRGBLittleEndian(r,g,b)
+            littleEndian: getRGBLittleEndian(r,g,b)
         }
     }
     

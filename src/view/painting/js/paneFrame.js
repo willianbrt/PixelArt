@@ -5,7 +5,7 @@ import { buildPaneLayers } from "./paneLayer.js"
 let _paneFramesViewModel;
 let _listFrame;
 
-export function buildPaneFrames(paneFramesViewModel){
+export async function buildPaneFrames(paneFramesViewModel){
     _paneFramesViewModel = paneFramesViewModel;
     
     _listFrame = document.getElementById("list-frames");

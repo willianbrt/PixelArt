@@ -18,8 +18,17 @@ void DrawingSettingsVM::setHardness(float hardness){
     _toolSettings->drawingContext.hardness = hardness;
     _toolSettings->drawingContext.color = (_toolSettings->drawingContext.color & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f);
 }
-void DrawingSettingsVM::setColor(unsigned int color){
-    _toolSettings->drawingContext.color = color;
+void DrawingSettingsVM::setColor(int r, int g, int b){
+    _toolSettings->drawingContext.color = r << 24 | g << 16 | b << 8 | static_cast<int>(_toolSettings->drawingContext.hardness * 255.0f);
+}
+int DrawingSettingsVM::getSize(){
+    return _toolSettings->drawingContext.size;
+}
+float DrawingSettingsVM::getHardness(){
+    return _toolSettings->drawingContext.hardness;
+}
+unsigned int DrawingSettingsVM::getColor(){
+    return _toolSettings->drawingContext.color;
 }
 
 #include <emscripten/bind.h>
@@ -32,5 +41,8 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setSize", &DrawingSettingsVM::setSize)
         .function("setHardness", &DrawingSettingsVM::setHardness)
         .function("setColor", &DrawingSettingsVM::setColor)
+        .function("getColor", &DrawingSettingsVM::getColor)
+        .function("getHardness", &DrawingSettingsVM::getHardness)
+        .function("getSize", &DrawingSettingsVM::getSize)
         ;
 };

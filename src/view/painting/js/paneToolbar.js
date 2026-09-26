@@ -1,5 +1,4 @@
 import { app } from "./app.js"
-import {database} from "./repository.js"
 import { modal, carousel } from "./elements.js"
 
 
@@ -12,61 +11,7 @@ var mirrorX = document.querySelector("#mirror-x input[type='checkbox']");
 var mirrorY = document.querySelector("#mirror-y input[type='checkbox']");
 var fill = document.querySelector("#fill input[type='checkbox']");
 
-let modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
-let shapePagination = carousel({
-    id: "#shape-patterns",
-    empty: ()=>{
-        let elem = document.createElement("span");
-        elem.className = "text";
-        elem.innerText = "Nenhuma pincel encontrado.";
-        return elem;
-    },
-    search: async (index,limit)=>{
-        let table = await database.table("pattern");
-        let data = await table.getAll(index*limit, limit);
-        let size = await table.size();
-
-        return {data, dataLength: size};
-    },
-    element: elemPagination
-});
-
-let customShapePagination = carousel({
-    id: "#custom-patterns",
-    empty: ()=>{
-        let elem = document.createElement("span");
-        elem.className = "text";
-        elem.innerText = "Nenhum pincel encontrado.";
-        return elem;
-    },
-    search: async (index,limit)=>{
-        let table = await database.table("pattern");
-        let data = await table.getAll(index*limit, limit);
-        let size = await table.size();
-
-        return {data, dataLength: size};
-    },
-    element: elemPagination
-});
-let maskPagination  = carousel({
-    id: "#mask-patterns",
-    empty: ()=>{
-        let elem = document.createElement("span.text");
-        elem.className = "text";
-        elem.innerText = "Nenhuma máscara encontrada.";
-        return elem;
-    },
-    search: async (index,limit)=>{
-        let table = await database.table("pattern");
-        let data = await table.getAll(index*limit, limit);
-        let size = await table.size();
-
-        return {data, dataLength: size};
-    },
-    element: elemPagination
-});
-
-export function buildPaneToolBar(){
+export async function buildPaneToolBar(){
     const toolViewModel = app.paneToolViewModel();
     const brushSettings = app.brushSettingsVM();
     const drawingSettings = app.drawingSettingsVM();
@@ -76,7 +21,61 @@ export function buildPaneToolBar(){
     mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
     mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
-    
+        
+    let modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
+    let shapePagination = carousel({
+        id: "#shape-patterns",
+        empty: ()=>{
+            let elem = document.createElement("span");
+            elem.className = "text";
+            elem.innerText = "Nenhuma pincel encontrado.";
+            return elem;
+        },
+        search: async (index,limit)=>{
+            let table = await app.database.table("pattern");
+            let data = await table.getAll(index*limit, limit);
+            let size = await table.size();
+
+            return {data, dataLength: size};
+        },
+        element: elemPagination
+    });
+
+    let customShapePagination = carousel({
+        id: "#custom-patterns",
+        empty: ()=>{
+            let elem = document.createElement("span");
+            elem.className = "text";
+            elem.innerText = "Nenhum pincel encontrado.";
+            return elem;
+        },
+        search: async (index,limit)=>{
+            let table = await app.database.table("pattern");
+            let data = await table.getAll(index*limit, limit);
+            let size = await table.size();
+
+            return {data, dataLength: size};
+        },
+        element: elemPagination
+    });
+    let maskPagination  = carousel({
+        id: "#mask-patterns",
+        empty: ()=>{
+            let elem = document.createElement("span.text");
+            elem.className = "text";
+            elem.innerText = "Nenhuma máscara encontrada.";
+            return elem;
+        },
+        search: async (index,limit)=>{
+            let table = await app.database.table("pattern");
+            let data = await table.getAll(index*limit, limit);
+            let size = await table.size();
+
+            return {data, dataLength: size};
+        },
+        element: elemPagination
+    });
+
     // symmetrySettings.enabledTilingX(true);
     // symmetrySettings.enabledTilingY(true);
     // thickness.onchange = (e)=>{ drawingSetting   s.setColor(parseInt(e.srcElement.value)); }

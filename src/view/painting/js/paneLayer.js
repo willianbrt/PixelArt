@@ -5,7 +5,7 @@ let _listLayer;
 let _layers = [];
 
 let inpOpacity;
-export function buildPaneLayers(paneLayersViewModel){
+export async function buildPaneLayers(paneLayersViewModel){
     _paneLayersViewModel = paneLayersViewModel;
 
     inpOpacity = document.querySelector("input[name='opacity-layer']");

@@ -2,6 +2,7 @@ import { init, app } from './app.js'
 import { buildPaneFrames } from "./paneFrame.js"
 import { buildPaneLayers } from "./paneLayer.js"
 import { buildPaneToolBar } from './paneToolbar.js';
+import { buildPanePalette } from './panePalette.js';
 import { Shortcuts } from './shortcuts.js';
 
 let clipboard;
@@ -25,6 +26,7 @@ window.onload = async ()=>{
     buildPaneFrames(app.paneFramesViewModel());
     buildPaneLayers(app.paneLayersViewModel());
     buildPaneToolBar();
+    buildPanePalette();
     buildShortcuts();
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});

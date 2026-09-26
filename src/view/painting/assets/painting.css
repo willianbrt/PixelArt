@@ -106,7 +106,7 @@ body{
 }
 
 #drawing-area canvas#painting{
-    background-color: var(--background-dark-color);
+    background-color: transparent;
     position: absolute;
 }
 .content {
@@ -126,7 +126,7 @@ body{
     /* overflow-y: auto;
     overflow-x: auto; */
     overflow: clip;
-    background-color: var(--background-color);
+    background-color: var(--background-dark-color);
     position: relative;
 }
 #selected-area{

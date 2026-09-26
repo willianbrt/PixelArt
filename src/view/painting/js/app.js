@@ -1,5 +1,6 @@
 import ModulePixelEditor from '../build/PixelEditor.js'
 import { Shortcuts } from './shortcuts.js';
+import {repository} from "./repository.js"
 
 var app;
 
@@ -16,11 +17,13 @@ async function init(){
         onRuntimeInitialized: () =>{}
     });
 
-    const shortcuts = Shortcuts();
+    const _shortcuts = Shortcuts();
+    const _database = await repository();
 
     app = Object.freeze({
         canvas,
         resize: module.resize,
+        database: _database,
         editorManagerViewModel: ()=> { return new module.EditorManagerViewModel(); },
         paneFramesViewModel: (editor)=> { return new module.PaneFramesViewModel(); },
         paneLayersViewModel: (frame)=> { return new module.PaneLayersViewModel(); },
@@ -29,7 +32,7 @@ async function init(){
         drawingSettingsVM: (layerID)=> { return new module.DrawingSettingsVM(); },
         brushSettingsVM: (layerID)=> { return new module.BrushSettingsVM(); },
         symmetrySettingsVM: (layerID)=> { return new module.SymmetrySettingsVM(); },
-        shortcuts
+        shortcuts: _shortcuts
     });
 
 
