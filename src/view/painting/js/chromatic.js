@@ -1,35 +1,190 @@
+async function ChromaticRender(canvas){
+    const gl = canvas.getContext("webgl2");
+
+    const vs = `#version 300 es
+    in vec2 pos;
+    out vec2 uv;
+
+    void main() {
+        uv = vec2(pos.x,  pos.y);
+        gl_Position = vec4(pos, 0, 1);
+    }
+    `;
+
+    const fs = `#version 300 es
+    precision mediump float;
+
+    in vec2 uv;
+    out vec4 outColor;
+    uniform float hue;
+    uniform vec2 res;
+    uniform vec2 hueMarkerPosition;
+    uniform vec2 colorMarkerPosition;
+    uniform vec2 rec;
+    uniform float thinknessHUE;
+
+    vec2 p;
+
+    vec3 hslTorgb(float h, float s, float l) {
+        float c = (1.0 - abs(2.0*l - 1.0)) * s;
+        float x = c * (1.0 - abs(mod(h*6.0, 2.0) - 1.0));
+        float m = l - c * 0.5;
+
+        vec3 rgb;
+
+        if (h < 1.0/6.0)      rgb = vec3(c,x,0);
+        else if (h < 2.0/6.0) rgb = vec3(x,c,0);
+        else if (h < 3.0/6.0) rgb = vec3(0,c,x);
+        else if (h < 4.0/6.0) rgb = vec3(0,x,c);
+        else if (h < 5.0/6.0) rgb = vec3(x,0,c);
+        else                  rgb = vec3(c,0,x);
+
+        return rgb + m;
+    }
+    float arc(vec2 center, float radius, float thickness){
+        vec2 d = p - center ;
+        float dist = length(d);
+
+        float halfT = thickness*0.5;
+        float edge = fwidth(dist);
+        float inner = smoothstep(radius - halfT - edge, radius - halfT + edge, dist);
+        float outer = smoothstep(radius + halfT - edge, radius + halfT + edge, dist);
+
+        return inner - outer;
+    }
+
+    void main() {
+        vec2 center = res*0.5;
+        vec2 start = center - (rec*0.5);
+        vec2 end = start + rec;
+        p = vec2(gl_FragCoord.x, res.y - gl_FragCoord.y);
+
+        if(p.x <= end.x && p.x >= start.x && p.y <= end.y && p.y >= start.y){
+            vec2 squareUV = (p - start) / (end - start);
+
+            float s = squareUV.x;
+            float l = 1.0-squareUV.y;
+            vec3 color = hslTorgb(hue, s, l);
+    
+            outColor = vec4(color, 1.0);
+        }
+        vec2 d = center - p;
+        float halfT = thinknessHUE*0.5;
+        float radius = min(center.x, center.y)-halfT;
+        float stroke = arc(center, radius, thinknessHUE);
+        
+        float angle = atan(d.y, d.x);
+        float _hue = (angle / 6.2831853) + 0.5;
+        
+        outColor = mix(outColor, vec4(hslTorgb(_hue, 1.0, 0.5), 1.0), stroke);
+        
+        float thinknessMarker = 2.0;
+        
+        float strokeHueMarker = arc(hueMarkerPosition, thinknessHUE*0.5-thinknessMarker, thinknessMarker);
+        outColor = mix(outColor, vec4(1.0), strokeHueMarker);
+        
+        float strokeColorMarker = arc(colorMarkerPosition, thinknessHUE*0.5-thinknessMarker, thinknessMarker);
+        outColor = mix(outColor, vec4(1.0), strokeColorMarker);
+    }`;
+
+    function shader(type, src){
+        let s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return s;
+    }
+    
+    let prog = gl.createProgram();
+    gl.attachShader(prog, shader(gl.VERTEX_SHADER, vs));
+    gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+    
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1,-1,  1,-1,  -1,1,
+        -1,1,   1,-1,   1,1
+    ]), gl.STATIC_DRAW);
+
+    const loc = gl.getAttribLocation(prog, "pos");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    
+    gl.viewport(0,0,canvas.width,canvas.height);
+    
+    const resLocation = gl.getUniformLocation(prog,"res");
+    const hueLocation = gl.getUniformLocation(prog,"hue");
+    const thinknessHUELocation = gl.getUniformLocation(prog,"thinknessHUE");
+    const saturationLocation = gl.getUniformLocation(prog,"saturation");
+    const lightnessLocation = gl.getUniformLocation(prog,"lightness");
+    const hueMarkerPositionLocation = gl.getUniformLocation(prog,"hueMarkerPosition");
+    const colorMarkerPositionLocation = gl.getUniformLocation(prog,"colorMarkerPosition");
+    const rectLocation = gl.getUniformLocation(prog,"rec");
+
+    function draw(obj){
+        let hueMarkerPosition = obj.hueMarkerPosition();
+        let colorMarkerPosition = obj.colorMarkerPosition();
+        let color = obj.color();
+        
+        gl.uniform1f(thinknessHUELocation, obj.thinknessMarker);
+        gl.uniform2f(rectLocation, obj.rect, obj.rect);
+        gl.uniform1f(hueLocation, color.hsl.h/255.0);
+        gl.uniform2f(resLocation, canvas.width,canvas.height);
+        gl.uniform2f(hueMarkerPositionLocation, hueMarkerPosition.x, hueMarkerPosition.y);
+        gl.uniform2f(colorMarkerPositionLocation, colorMarkerPosition.x, colorMarkerPosition.y);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+    return {
+        draw
+    };
+}
 export async function Chromatic(options){
-    const RAD_360 = 2 * Math.PI;
     const RAD_TO_DEG = 180 / Math.PI;
     const DEG_TO_RAD = Math.PI / 180;
 
-    let _color = ColorFactory().buildByHSL(0, 100, 50);
-
     const canvas = document.getElementById("color-picker");
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    
-    let hueMarkerPosition = { x:0, y:0 };
-    let colorMarkerPosition = { x:0, y:0 };
+
+    let _colorFactory = ColorFactory();
+    let _color = _colorFactory.buildByHSL(0, 100, 50);
+
+    const render = await ChromaticRender(canvas);
 
     const width = canvas.width;
     const height = canvas.height;
 
-    const padding = 5;
+    const offset = 5;
     const cx = width / 2;
     const cy = height / 2;
-    const offset = 10;
-    const outerRadius = Math.min(height, width)/2 - offset;
-    const strokeWidth = outerRadius*0.1;
-    const innerRadius = outerRadius - strokeWidth;
-    const centerRadius = innerRadius + strokeWidth/2;
-    const markerWidth = strokeWidth*0.3;
-    const markerRadius = strokeWidth-markerWidth*2;
-    
-    let chromatic = buildChromatic(innerRadius-padding, {x: cx,y:cy}, 90);
-    (()=>{
-        setColor(_color);
-        drawChromaticTriangle();
-    })();
+    const outerRadius = Math.min(height, width)*0.5;
+    const thinknessMarker = outerRadius*0.1;
+    const innerRadius = outerRadius - thinknessMarker;
+    const centerRadius = innerRadius + thinknessMarker*0.5;
+    const rect = (innerRadius-offset-offset)* Math.sqrt(2);
+
+    let picker = computeHSLPicker(rect, {x: cx,y:cy});
+
+    let opt = {
+        rect,
+        thinknessMarker,
+        hueMarkerPosition: ()=>{
+            const rad = _color.hsl.h * DEG_TO_RAD;
+            
+            return {
+                x: Math.cos(rad) * centerRadius + cx,
+                y: Math.sin(rad) * centerRadius + cy
+            };
+        },
+        colorMarkerPosition: ()=> {
+            return picker.getPositionColor(_color.hsl.s, _color.hsl.l);
+        },
+        color: ()=>{ return _color; }
+    };
+
+    render.draw(opt);
 
     let touchID;
     canvas.addEventListener("mousedown", (e)=>{ 
@@ -54,15 +209,20 @@ export async function Chromatic(options){
         eventPressPicker(cursorX, cursorY);
     });
     function eventPressPicker(cursorX, cursorY){
-        const distance = Math.sqrt((cursorX - cx) ** 2 + (cursorY - cy) ** 2);
-
-        if(distance >= innerRadius && distance <= outerRadius+offset)
-        {
-            onUpdateHue(cursorX, cursorY);
-        }
-        else if(chromatic.isInside({x:cursorX, y:cursorY}))
+        if(picker.isInside({x:cursorX, y:cursorY}, offset))
         {
             onUpdateColor(cursorX, cursorY);
+            return;
+        }
+
+        let dx = cursorX - cx;
+        let dy = cursorY - cy;
+        let dist2 = dx*dx + dy*dy;
+
+        if(!(dist2 < (innerRadius-offset)*(innerRadius-offset) || dist2 > (outerRadius+offset)*(outerRadius+offset)))
+        {
+            onUpdateHue(cursorX, cursorY);
+            return;
         }
     }
     function onUpdateColor(cursorX, cursorY){
@@ -130,176 +290,24 @@ export async function Chromatic(options){
         window.addEventListener("blur", ()=>{abort.abort()}, {once:true});
     }
     function setHueByPosition(x, y){
-        const dx = x - cx;
-        const dy = y - cy;
-        const rad = Math.atan2(dy, dx);
+        const rad = Math.atan2(y - cy, x - cx);
         const degree = (rad * RAD_TO_DEG + 360) % 360;
 
-        hueMarkerPosition.x = Math.cos(rad) * centerRadius + cx;
-        hueMarkerPosition.y = Math.sin(rad) * centerRadius + cy;
+        _color = _colorFactory.buildByHSL(degree, _color.hsl.s,_color.hsl.l);
 
-        _color = ColorFactory().buildByHSL(degree, _color.hsl.s,_color.hsl.l);
-        chromatic.setColor(degree);
-
-        requestAnimationFrame(drawChromaticTriangle);
-    }
-    function drawChromaticTriangle(){
-        const imageData = new ImageData(chromatic.bounding.width, chromatic.bounding.height);
-        const data = imageData.data;
-
-        for (let y = chromatic.bounding.min.y; y < chromatic.bounding.max.y; y++) {
-            for (let x = chromatic.bounding.min.x; x < chromatic.bounding.max.x; x++) {
-                try {
-                    const {r, g, b} = chromatic.getColor({ x, y }).rgb;
-
-                    const index = ((y-chromatic.bounding.min.y) * (chromatic.bounding.width) + (x-chromatic.bounding.min.x)) * 4;
-                    data[index] = r;
-                    data[index + 1] = g;
-                    data[index + 2] = b;
-                    data[index + 3] = 255;
-                } catch(e){
-                    continue;
-                }
-            }
-        }
-
-        ctx.clearRect(0, 0, width, height);
-        ctx.putImageData(imageData, chromatic.bounding.min.x, chromatic.bounding.min.y);
-        
-        drawColorWheel();
-
-
-        ctx.beginPath();
-        ctx.lineWidth = markerWidth;
-        ctx.strokeStyle  = "white";
-        ctx.arc(colorMarkerPosition.x, colorMarkerPosition.y, markerRadius, 0, RAD_360);
-        ctx.stroke();
-        ctx.closePath();
-
-        ctx.beginPath();
-        ctx.lineWidth = markerWidth;
-        ctx.strokeStyle  = "white";
-        ctx.arc(hueMarkerPosition.x, hueMarkerPosition.y, markerRadius, 0, RAD_360);
-        ctx.stroke();
-        ctx.closePath();
-    }
-    function drawColorWheel(){
-        let gradient = ctx.createConicGradient(0, cx, cy);
-        let endColor = 0;
-
-        const INCREMENT_END_COLOR = 1/360;
-        for (let angle = 0; angle < 360; angle += 1) {
-            gradient.addColorStop(endColor, `hsl(${angle}, 100%, 50%)`);
-            endColor += INCREMENT_END_COLOR;
-        }
-
-        ctx.beginPath();
-        ctx.lineWidth = strokeWidth;
-        ctx.strokeStyle = gradient;
-        ctx.arc(cx, cy, outerRadius-strokeWidth/2, 0, RAD_360);
-        ctx.stroke();
-        ctx.closePath();
+        requestAnimationFrame(()=>render.draw(opt));
     }
     function setColorByPoint(x, y){
-        colorMarkerPosition = chromatic.clampped(x, y);
-        _color = chromatic.getColor(colorMarkerPosition);
+        const colorMarkerPosition = picker.clampped(x, y);
+        _color = picker.getColor(_color.hsl.h, colorMarkerPosition);
         
-        requestAnimationFrame(drawChromaticTriangle);
+        requestAnimationFrame(()=>render.draw(opt));
         options?.onUpdateColor(_color);
     }
     function setColor(color){
-        try{
-            _color = color;
-            colorMarkerPosition = chromatic.getPositionColor(_color.hsl.s, _color.hsl.l);;
-
-            const rad = _color.hsl.h * DEG_TO_RAD;
-            
-            hueMarkerPosition.x = Math.cos(rad) * centerRadius + cx;
-            hueMarkerPosition.y = Math.sin(rad) * centerRadius + cy;
-
-            chromatic.setColor(_color.hsl.h);
-            requestAnimationFrame(drawChromaticTriangle);
-        } catch(e){
-            console.warn(e);
-        }
-
+        _color = color;
+        requestAnimationFrame(()=>render.draw(opt));
         options?.onUpdateColor(_color);
-    }
-    
-    function buildChromatic(radius, centerPosition){
-        let colorFactory = ColorFactory();
-        let targetColor = colorFactory.buildByHSL(0, 100, 50);
-
-        function setColor(hue) {
-            targetColor = colorFactory.buildByHSL(hue, 100, 50);
-        }
-
-        function getPositionColor(saturation, lightness) {
-            const bounding = getBounding();
-            
-            const x = saturation/100*bounding.width + bounding.min.x;
-            const y = (1-lightness/100)*bounding.height + bounding.min.y;
-
-            return clampped(x, y);
-        }
-
-        function getColor(point){
-            const bounding = getBounding();
-            const u = (point.x - bounding.min.x) / (bounding.width); // 0 a 1 no eixo X
-            const v = (point.y - bounding.min.y) / (bounding.height); // 0 a 1 no eixo Y
-
-            const w0 = (1 - u) * (1 - v); // canto superior esquerdo
-            const w1 = u * (1 - v);       // canto superior direito
-            const w2 = u * v;             // canto inferior direito
-            const w3 = (1 - u) * v;       // canto inferior esquerdo
-
-            const h = Math.round(targetColor.hsl.h);
-            const s = Math.round(100*w1 + 100*w2);
-            const l = Math.round(100*w0 + 100*w1);
-
-            return colorFactory.buildByHSL(h,s,l);
-        }
-
-        function isInside({x, y}){
-            const bounding = getBounding();
-            return x >= bounding.min.x && x <= bounding.max.x
-                && y >= bounding.min.y && y <= bounding.max.y;
-        }
-    
-        function clampped(x, y) {
-            const bounding = getBounding();
-
-            return{
-                x: Math.max(bounding.min.x, Math.min(bounding.max.x, x)),
-                y: Math.max(bounding.min.y, Math.min(bounding.max.y, y))
-            }
-        }
-
-        function getBounding(){
-            const offsetCenter = (radius * Math.sqrt(2)) / 2;
-            const min = {
-                x:  Math.floor(centerPosition.x - offsetCenter),
-                y:  Math.floor(centerPosition.y - offsetCenter)
-            };
-            const max = {
-                x:  Math.floor(centerPosition.x + offsetCenter),
-                y:  Math.floor(centerPosition.y + offsetCenter)
-            };
-            return {
-                min,
-                max,
-                width: max.x - min.x,
-                height: max.y - min.y
-            }
-        }
-        return {
-            bounding: getBounding(),
-            getColor,
-            isInside,
-            clampped,
-            setColor,
-            getPositionColor,
-        }
     }
 
     return {
@@ -307,6 +315,54 @@ export async function Chromatic(options){
     }
 }
 
+function computeHSLPicker(rect, center){
+    const _colorFactory = ColorFactory();
+    const bounding = {
+        min: {
+            x:  Math.floor(center.x - rect*0.5),
+            y:  Math.floor(center.y - rect*0.5)
+        },
+        max:{
+            x:  Math.floor(center.x+ rect*0.5),
+            y:  Math.floor(center.y+ rect*0.5)
+        },
+        width: function(){ return this.max.x - this.min.x;},
+        height: function(){ return this.max.y - this.min.y;}
+    };
+
+    function getPositionColor(saturation, lightness) {            
+        const x = saturation/100*bounding.width() + bounding.min.x;
+        const y = (1-lightness/100)*bounding.height() + bounding.min.y;
+
+        return clampped(x, y);
+    }
+    function getColor(hue, point){
+        const u = (point.x - bounding.min.x) / (bounding.width());
+        const v = (point.y - bounding.min.y) / (bounding.height());
+
+        const h = hue;
+        const s = Math.round(u * 100);
+        const l = Math.round((1 - v) * 100);
+
+        return _colorFactory.buildByHSL(h,s,l);
+    }
+    function isInside({x, y}, offset){
+        return x >= bounding.min.x-offset && x <= bounding.max.x + offset
+            && y >= bounding.min.y-offset && y <= bounding.max.y + offset;
+    }
+    function clampped(x, y) {
+        return {
+            x: Math.max(bounding.min.x, Math.min(bounding.max.x, x)),
+            y: Math.max(bounding.min.y, Math.min(bounding.max.y, y))
+        }
+    }
+    return {
+        getColor,
+        isInside,
+        getPositionColor,
+        clampped,
+    }
+}
 export function ColorFactory(){
     function buildByDecimal(bigint, littlendian = true){
         let r, g, b, a;
