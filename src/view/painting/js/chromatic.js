@@ -185,6 +185,7 @@ export async function Chromatic(options){
     };
 
     render.draw(opt);
+    setColor(_color);
 
     let touchID;
     canvas.addEventListener("mousedown", (e)=>{ 

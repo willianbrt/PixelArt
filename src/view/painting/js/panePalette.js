@@ -52,8 +52,6 @@ export async function buildPanePalette(){
         PaletteRepository(),
         Chromatic({
             content: document.getElementById("chromatic"),
-            width:100,
-            height:100,
             onUpdateColor: (color)=>{
                 inpColorHex.value = color.hex.replace(/^#/,"");
 
@@ -115,6 +113,17 @@ function addColorElement(color){
     spanColor.addEventListener("click", function(){
         swapActiveColor(color);
     });
+
+    spanColor.oncontextmenu = async function(e){
+        try{
+            const activePalette = await paletteRepository.getPalette(parseInt(selectPalette.value));
+            await activePalette.removeColor([color.rgb.r,color.rgb.g,color.rgb.b]);
+            this.remove();
+            e.preventDefault();
+        } catch(e){
+            console.error(e);
+        }
+    }
 }
 function swapActiveColor(color){
     const currentColor = factoryColor.buildByDecimal(drawingSettings.getColor());
@@ -140,18 +149,18 @@ function changeSecondaryColor(color){
     workSecondaryColor.style.background = secondaryColor.hex;
     oldColor.style.background = secondaryColor.hex;
 }
-function createPalette(){
+async function createPalette(){
     try{
         let inpNamePalette = document.querySelector("input[name='name-palette']");
         let namePalette = inpNamePalette.value;
-        paletteRepository.createPalette(namePalette)
+        const id  = await paletteRepository.createPalette(namePalette, [], false);
 
         let paletteOption = document.createElement("option");
-        paletteOption.value = namePalette;
+        paletteOption.value = id;
         paletteOption.innerText = namePalette;
         selectPalette.append(paletteOption);
 
-        selectPalette.value = namePalette;
+        selectPalette.value = id;
         loadActivePalette();
         inpNamePalette.value = "";
 
@@ -160,24 +169,32 @@ function createPalette(){
         console.error(e);
     }
 }
-function removePalette(){
-    paletteRepository.removePalette(selectPalette.value)
-    selectPalette.querySelector(`option[value=${selectPalette.value}]`).remove();
-    selectPalette.value = "Default";
-    loadActivePalette();
+async function removePalette(){
+    try{
+        await paletteRepository.removePalette(selectPalette.value);
+
+        selectPalette.querySelector(`option[value="${selectPalette.value}"]`).remove();
+        loadActivePalette();
+    }catch(e){
+        console.error(e);
+    }
 }
 
 async function createColor(){
-    const color = factoryColor.buildByDecimal(drawingSettings.getColor());
-    
-    const activePalette = await paletteRepository.getPalette(parseInt(selectPalette.value));
-    if(activePalette.colors.find((c)=> c[0] == color.rgb.r && c[1] == color.rgb.g && c[2] == color.rgb.b)){
-        return;
+    try{
+        const color = factoryColor.buildByDecimal(drawingSettings.getColor());
+        
+        const activePalette = await paletteRepository.getPalette(parseInt(selectPalette.value));
+        if(activePalette.colors.find((c)=> c[0] == color.rgb.r && c[1] == color.rgb.g && c[2] == color.rgb.b)){
+            return;
+        }
+        const id = await activePalette.addColor(color);
+        
+        addColorElement(color);
+        swapActiveColor(color);
+    } catch(e) {
+        console.error(e);
     }
-    activePalette.addColor(color);
-    
-    addColorElement(color);
-    swapActiveColor(color);
 }
 
 function updateHEX(){
@@ -214,33 +231,24 @@ async function PaletteRepository(){
 
     let palette = {
         createPalette: async function(name, colors = [], is_system){
-            table.put({name, colors, is_system});
+            return await table.put({name, colors, is_system});
         },
-        removePalette: async function(name){
-            const elem = await table.findBy("name", name);
+        removePalette: async function(id){
+            const elem = await table.findBy("id", parseInt(id));
             if(elem.is_system)
                 throw { source: "[PalletFactory]", description: "Object of System."};
 
             table.delete(elem.id);
         },
         getPalette: async function(id){
-            return Object.assign(await table.getById(id), {
-                getColor: function(color){
-                    let index = this.colors.findIndex(color);
+            return Object.assign(await table.getById(parseInt(id)), {
+                addColor: async function(color){
+                    return table.put({id: this.id, name: this.name, colors: this.colors, is_system: this.is_system});
+                },
+                removeColor: async function(color){
+                    let index = this.colors.findIndex((c)=> c[0] == color[0] && c[1] == color[1] && c[2] == color[2]);
                     if (index <= -1) return false;
-                    return this.colors[index];
-                },
-                getAllColors: function(){
-                    return this.colors;
-                },
-                addColor: function(color){
-                    this.colors.push([color.rgb.r, color.rgb.g, color.rgb.b]);
-                    table.put({id: this.id, name: this.name, colors: this.colors, is_system: this.is_system});
-                },
-                removeColor: function(color){
-                    let index = this.colors.findIndex(color);
-                    if (index <= -1) return false;
-                    this.colors.push(color);
+                    await table.put({id: this.id, name: this.name, colors: this.colors, is_system: this.is_system});
                 }
             });
         },

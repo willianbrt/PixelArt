@@ -9,6 +9,7 @@ export function repository(){
                 keyPath: "id",
                 autoIncrement: true
             });
+            s.createIndex('id', 'id');
             s.createIndex("buffer", "buffer", {unique:true});
         }
 
@@ -17,6 +18,7 @@ export function repository(){
                 keyPath: "id",
                 autoIncrement: true
             });
+            s.createIndex('id', 'id');
             s.createIndex('name', 'name');
         }
 
@@ -25,6 +27,7 @@ export function repository(){
                 keyPath: "id",
                 autoIncrement: true
             });
+            s.createIndex('id', 'id');
         }
     };
     return new Promise((resolve, reject) => {
