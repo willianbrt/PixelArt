@@ -21,6 +21,7 @@ void DrawingSession::begin(Layer* layer){
 
 void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color){    
     Layer* layer = _preview->getTarget();
+    if(layer->isLock()) return;
 
     if(_canvasSettings->tilingContext.isTilingX){
         x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
@@ -48,6 +49,7 @@ void DrawingSession::blendMirroredPixel(int x, int y, unsigned int color){
 }
 void DrawingSession::putMirroredPixel(int x, int y, unsigned int color){
     Layer* layer = _preview->getTarget();
+    if(layer->isLock()) return;
 
     if(_canvasSettings->tilingContext.isTilingX)
         x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
@@ -77,6 +79,7 @@ void DrawingSession::blendPixel(int x, int y, unsigned int color){
 }
 void DrawingSession::putPixel(int x, int y, unsigned int color){
     Layer* layer = _preview->getTarget();
+    if(layer->isLock()) return;
     
     x = GraphicsEngine::clampedTilePoint(x, layer->getWidth());
     y = GraphicsEngine::clampedTilePoint(y, layer->getHeight());
