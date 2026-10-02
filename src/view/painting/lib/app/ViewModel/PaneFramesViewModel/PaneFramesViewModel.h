@@ -30,6 +30,8 @@ private:
     void onMoveFrameTo(Guid id, int index) override;
 
     Editor* getActiveEditor();
+    EditorManager*  _manager;
+    Editor* _editor;
 public:
     PaneFramesViewModel();
     ~PaneFramesViewModel();

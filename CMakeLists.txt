@@ -44,27 +44,40 @@ target_compile_options(${TARGET} PRIVATE
 # Flags de link (Emscripten)
 target_link_options(${TARGET} PRIVATE
     -O3
-    -gsource-map
-
     -sENVIRONMENT=web
     -sMODULARIZE=1
     -sEXPORT_ES6=1
     -sALLOW_MEMORY_GROWTH=1
-    -sSTANDALONE_WASM=0
 
-    -sASSERTIONS
-    -sNO_DISABLE_EXCEPTION_CATCHING
-
-    -sFULL_ES3=1
     -sUSE_WEBGL2=1
     -sMIN_WEBGL_VERSION=2
     -sMAX_WEBGL_VERSION=2
+
     -sUSE_GLFW=3
 
-    --use-port=emdawnwebgpu
-    "SHELL:--js-library=${SRC_DIR}/js/library.js"
-
     -lembind
+    # -O3
+    # -gsource-map
+
+    # -sENVIRONMENT=web
+    # -sMODULARIZE=1
+    # -sEXPORT_ES6=1
+    # -sALLOW_MEMORY_GROWTH=1
+    # -sSTANDALONE_WASM=0
+
+    # -sASSERTIONS
+    # -sNO_DISABLE_EXCEPTION_CATCHING
+
+    # -sFULL_ES3=1
+    # -sUSE_WEBGL2=1
+    # -sMIN_WEBGL_VERSION=2
+    # -sMAX_WEBGL_VERSION=2
+    # -sUSE_GLFW=3
+
+    # --use-port=emdawnwebgpu
+    # "SHELL:--js-library=${SRC_DIR}/js/library.js"
+
+    # -lembind
 )
 
 # (Opcional) incluir diretórios se necessário

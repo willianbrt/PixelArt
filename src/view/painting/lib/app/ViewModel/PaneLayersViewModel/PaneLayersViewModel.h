@@ -33,6 +33,8 @@ private:
     vector<LayerViewModel> layerViewModel;
     
     Frame* getActiveFrame();
+    EditorManager*  _manager;
+    Editor* _editor;
     Frame* _frame;
     float _initialOpacity;
 

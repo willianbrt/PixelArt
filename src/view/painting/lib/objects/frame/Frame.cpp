@@ -129,7 +129,9 @@ unsigned int Frame::getPixel(unsigned int index){ return getPixel(index, 0, laye
     
     for(int layerIndex = fromIndex; layerIndex < toIndex; layerIndex++){
         Layer* layer = layers[layerIndex].get();
-        if(!layer->isVisible()) continue;
+        if(!layer->isVisible()){
+            continue;
+        }
 
         unsigned int colorLayer = layer->getPixel(index);
         GraphicsEngine::setOpacity(colorLayer, layer->getOpacity());

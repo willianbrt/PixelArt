@@ -2,9 +2,9 @@
 
 
 LayerViewModel::LayerViewModel(std::string layerID) {
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
+    _manager = AppContext::instance().getEditorManager();
+    _editor = _manager->getActiveEditor();
+    _frame = _editor->getActiveFrame();
     _layer = _frame->getLayerByID(Guid(layerID));
     _layer->registerEvent(this);
 }
@@ -50,6 +50,7 @@ void LayerViewModel::onIsVisibleLayer(){
     if (it != observable.end()) {
         it->second(_layer->isVisible());
     }
+    _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void LayerViewModel::onIsLockLayer(){
     auto it = observable.find(LAYER_EVENT_TYPE::IS_LOCK_LAYER);
@@ -62,6 +63,7 @@ void LayerViewModel::onOpacityLayer(){
     if (it != observable.end()) {
         it->second(_layer->getOpacity());
     }
+    _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void LayerViewModel::onRenameLayer(){
     auto it = observable.find(LAYER_EVENT_TYPE::RENAME_LAYER);

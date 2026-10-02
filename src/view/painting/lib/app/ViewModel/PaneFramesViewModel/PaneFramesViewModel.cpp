@@ -2,7 +2,9 @@
 
 
 PaneFramesViewModel::PaneFramesViewModel(){
-    getActiveEditor()->registerEvent(this);
+    _manager = AppContext::instance().getEditorManager();
+    _editor = _manager->getActiveEditor();
+    _editor->registerEvent(this);
 }
 Editor* PaneFramesViewModel::getActiveEditor(){
     EditorManager* _manager = AppContext::instance().getEditorManager();
@@ -36,6 +38,7 @@ void PaneFramesViewModel::onChangeActiveFrame(Guid id){
     if (it != observable.end()) {
         it->second(id.toString());
     }
+    _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void PaneFramesViewModel::onAddFrame(Frame* frame, size_t index){
     printf("add\n");
@@ -53,6 +56,7 @@ void PaneFramesViewModel::onAddFrame(Frame* frame, size_t index){
     if (it != observable.end()) {
         it->second(frameDTO, index);
     }
+    _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void PaneFramesViewModel::onRemoveFrame(Guid id){
     printf("remove\n");
@@ -60,6 +64,7 @@ void PaneFramesViewModel::onRemoveFrame(Guid id){
     if (it != observable.end()) {
         it->second(id.toString());
     }
+    _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void PaneFramesViewModel::onMoveFrameTo(Guid id, int index){
     printf("move\n");
@@ -67,6 +72,7 @@ void PaneFramesViewModel::onMoveFrameTo(Guid id, int index){
     if (it != observable.end()) {
         it->second(id, index);
     }
+    _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 
 FrameDTO PaneFramesViewModel::getFrameByIndex(size_t index){

@@ -190,12 +190,19 @@ void PaneLayersViewModel::onRemoveLayer(Guid id){
     if (it != observable.end()) {
         it->second(id.toString());
     }
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void PaneLayersViewModel::onMoveLayerTo(Guid id, int index){
     auto it = observable.find(FRAME_EVENT_TYPE::MOVE_LAYER_TO);
     if (it != observable.end()) {
         it->second(id, index);
     }
+
+    EditorManager*  _manager = AppContext::instance().getEditorManager();
+    Editor* _editor = _manager->getActiveEditor();
+    _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 
 /*

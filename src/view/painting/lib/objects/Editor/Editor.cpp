@@ -27,6 +27,7 @@ void Editor::compose(){
     compose(boundingSketch);
 }
 void Editor::compose(Bounding area){
+    printf("compor, %i-%i\n", area.end.x, area.end.y);
     if(area.start.x > _sketch->getWidth() || area.start.y > _sketch->getHeight()) return;
     if(area.start.x < 0 || area.start.y < 0) return;
 
@@ -34,8 +35,7 @@ void Editor::compose(Bounding area){
 
     Layer* drawingLayer = _preview ? _preview->getTarget() : nullptr;
     size_t drawingLayerIndex = activeFrame->getLayerIndex(drawingLayer->getID());
-
-
+    
     float opacity = 0.3;
     for(int y = area.start.y; y <= area.end.y; y++){
         int index = y * _sketch->getWidth() + area.start.x;
@@ -47,8 +47,9 @@ void Editor::compose(Bounding area){
 
             // active frame
             colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, 0, drawingLayerIndex));
-            if(drawingLayer){
+            if(drawingLayer && drawingLayer->isVisible()){
                 colorHex = GraphicsEngine::blendColors(colorHex, _preview->getPixel(index));
+                GraphicsEngine::setOpacity(colorHex, drawingLayer->getOpacity());
             } else {
                 colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, drawingLayerIndex, drawingLayerIndex+1));
             }
@@ -90,7 +91,7 @@ unique_ptr<Frame> Editor::removeFrame(size_t index){
     unique_ptr<Frame> removedFrame = std::move(frames[index]);
     frames.erase(frames.begin() + index);
     
-    dirtyManager.markDirty({{0,0},{_sketch->getWidth()-1, _sketch->getHeight()-1}});
+    
 
     return removedFrame;
 }
@@ -100,8 +101,6 @@ void Editor::changeActiveFrame(Guid id){
     if(_preview) free(_preview);
     _preview = new Preview(_sketch->getWidth(), _sketch->getHeight());
     _preview->setTarget(activeFrame->getActiveLayer());
-
-    dirtyManager.markDirty({{0,0},{_sketch->getWidth()-1, _sketch->getHeight()-1}});
 
     for (auto* obs : observers) {
         obs->onChangeActiveFrame(id);

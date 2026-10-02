@@ -19,6 +19,9 @@
 class LayerViewModel : ILayerObserver {
 private:
     Layer* _layer;
+    EditorManager*  _manager;
+    Editor* _editor;
+    Frame* _frame;
 
     unordered_map<LAYER_EVENT_TYPE, emscripten::val> observable;
     void onIsVisibleLayer() override;
