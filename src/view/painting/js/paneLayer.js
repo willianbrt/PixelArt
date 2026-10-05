@@ -1,26 +1,26 @@
 import { app } from "./app.js"
 
-let _paneLayersViewModel;
+let _frameVM;
 let _listLayer;
 let _layers = [];
 
 let inpOpacity;
-export async function buildPaneLayers(paneLayersViewModel){
-    _paneLayersViewModel = paneLayersViewModel;
+export async function buildPaneLayers(frameVM){
+    _frameVM = frameVM;
 
     inpOpacity = document.querySelector("input[name='opacity-layer']");
 
     ["mousedown", "touchstart"].forEach((eventType)=> function() {
         inpOpacity.addEventListener(eventType, function() {
-            _paneLayersViewModel.beginChangeActiveLayerOpacity();
+            _frameVM.beginChangeActiveLayerOpacity();
         });
     });
     inpOpacity.addEventListener("input", function() {
-        _paneLayersViewModel.onChangeActiveLayerOpacity(parseFloat(this.value / 100.0));
+        _frameVM.onChangeActiveLayerOpacity(parseFloat(this.value / 100.0));
     });
     ["mouseup", "touchend"].forEach((eventType)=> function() {
         inpOpacity.addEventListener(eventType, function() {
-            _paneLayersViewModel.endChangeActiveLayerOpacity();
+            _frameVM.endChangeActiveLayerOpacity();
         });
     });
 
@@ -32,22 +32,22 @@ export async function buildPaneLayers(paneLayersViewModel){
     let btnMoveDown = document.getElementById("move-down-layer");
     let btnMoveUp = document.getElementById("move-up-layer");
 
-    btnAddLayer.onclick = ()=> _paneLayersViewModel.createLayer();
-    btnRemoveLayer.onclick = ()=> _paneLayersViewModel.removeActiveLayer();
-    btnMoveDown.onclick = ()=> _paneLayersViewModel.moveDownActiveLayer();
-    btnMoveUp.onclick = ()=> _paneLayersViewModel.moveUpActiveLayer();
-    btnCloneLayer.onclick = ()=> _paneLayersViewModel.cloneActiveLayer();
+    btnAddLayer.onclick = ()=> _frameVM.createLayer();
+    btnRemoveLayer.onclick = ()=> _frameVM.removeActiveLayer();
+    btnMoveDown.onclick = ()=> _frameVM.moveDownActiveLayer();
+    btnMoveUp.onclick = ()=> _frameVM.moveUpActiveLayer();
+    btnCloneLayer.onclick = ()=> _frameVM.cloneActiveLayer();
 
-    _paneLayersViewModel.registerEvent("ADD_LAYER", onAddLayer);
-    _paneLayersViewModel.registerEvent("REMOVE_LAYER", onRemoveLayer);
-    _paneLayersViewModel.registerEvent("MOVE_LAYER_TO", onMoveLayerTo);
-    _paneLayersViewModel.registerEvent("CHANGE_ACTIVE_LAYER", onChangeActiveLayer);
+    _frameVM.registerEvent("ADD_LAYER", onAddLayer);
+    _frameVM.registerEvent("REMOVE_LAYER", onRemoveLayer);
+    _frameVM.registerEvent("MOVE_LAYER_TO", onMoveLayerTo);
+    _frameVM.registerEvent("CHANGE_ACTIVE_LAYER", onChangeActiveLayer);
 }
 
 function onChangeFrame(){
     _layers = _layers.filter((e)=> e.element.remove());
-    for(let i = 0; i < _paneLayersViewModel.getNumberLayers(); i++){
-        onAddLayer(_paneLayersViewModel.getLayerByIndex(i), i);
+    for(let i = 0; i < _frameVM.getNumberLayers(); i++){
+        onAddLayer(_frameVM.getLayerByIndex(i), i);
     }
 }
 
@@ -107,7 +107,7 @@ function createLayerElement(layer){
     let layerElement = document.createElement("div");
     layerElement.dataset.id = _layer.id;
     layerElement.classList.add("layer");
-    layerElement.onclick = ()=> _paneLayersViewModel.changeActiveLayer(_layer.id);
+    layerElement.onclick = ()=> _frameVM.changeActiveLayer(_layer.id);
     
 
     let nameLayer = document.createElement("div");
@@ -216,7 +216,7 @@ function createLayerElement(layer){
                 elementLast?.classList.remove("before-indicator");
             }
 
-            _paneLayersViewModel.moveLayerTo(_layer.id, elementLast.dataset.id);
+            _frameVM.moveLayerTo(_layer.id, elementLast.dataset.id);
             
             abort.abort();
         };

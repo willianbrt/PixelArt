@@ -1,22 +1,22 @@
-#include "PaneLayersViewModel.h"
+#include "FrameVM.h"
 
 
-PaneLayersViewModel::PaneLayersViewModel(){
+FrameVM::FrameVM(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
    _frame = _editor->getActiveFrame();
 
     _frame->registerEvent(this);
 }
-PaneLayersViewModel::~PaneLayersViewModel(){
+FrameVM::~FrameVM(){
 }
-Frame* PaneLayersViewModel::getActiveFrame(){
+Frame* FrameVM::getActiveFrame(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
 
    return _editor->getActiveFrame();
 }
-void PaneLayersViewModel::registerEvent(string eventType, emscripten::val callback){
+void FrameVM::registerEvent(string eventType, emscripten::val callback){
     if(eventType == "ADD_LAYER"){
         observable[FRAME_EVENT_TYPE::ADD_LAYER] = callback;
         return;
@@ -35,7 +35,7 @@ void PaneLayersViewModel::registerEvent(string eventType, emscripten::val callba
     }
 }
 
-LayerDTO PaneLayersViewModel::getLayerByIndex(size_t index){
+LayerDTO FrameVM::getLayerByIndex(size_t index){
     Layer* layer = _frame->getLayerByIndex(index);
 
     LayerDTO layerDTO;
@@ -51,16 +51,16 @@ LayerDTO PaneLayersViewModel::getLayerByIndex(size_t index){
     
     return layerDTO;
 }
-size_t PaneLayersViewModel::getNumberLayers(){
+size_t FrameVM::getNumberLayers(){
     return _frame->getLayersLength();
 }
 
 
 
-void PaneLayersViewModel::changeActiveLayer(std::string id){
+void FrameVM::changeActiveLayer(std::string id){
     getActiveFrame()->changeActiveLayer(Guid(id));
 }
-void PaneLayersViewModel::createLayer(){
+void FrameVM::createLayer(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -71,7 +71,7 @@ void PaneLayersViewModel::createLayer(){
     AddLayerCommand command(*_frame, std::move(layer), activeLayerIndex+1);
     command.execute();
 }
-void PaneLayersViewModel::removeActiveLayer(){
+void FrameVM::removeActiveLayer(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -80,7 +80,7 @@ void PaneLayersViewModel::removeActiveLayer(){
     RemoveLayerCommand command(*_frame, layer->getID());
     command.execute();
 }
-void PaneLayersViewModel::cloneActiveLayer(){
+void FrameVM::cloneActiveLayer(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -90,7 +90,7 @@ void PaneLayersViewModel::cloneActiveLayer(){
     command.execute();
 }
 
-void PaneLayersViewModel::moveLayerTo(std::string id, std::string afterId){
+void FrameVM::moveLayerTo(std::string id, std::string afterId){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -98,7 +98,7 @@ void PaneLayersViewModel::moveLayerTo(std::string id, std::string afterId){
     MoveLayerToCommand command(*_frame, Guid(id), _frame->getLayerIndex(Guid(afterId)));
     command.execute();
 }
-void PaneLayersViewModel::moveDownActiveLayer(){
+void FrameVM::moveDownActiveLayer(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -110,7 +110,7 @@ void PaneLayersViewModel::moveDownActiveLayer(){
     MoveLayerToCommand command(*_frame, layer->getID(), index - 1);
     command.execute();
 }
-void PaneLayersViewModel::moveUpActiveLayer(){
+void FrameVM::moveUpActiveLayer(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -123,12 +123,12 @@ void PaneLayersViewModel::moveUpActiveLayer(){
     MoveLayerToCommand command(*_frame, layer->getID(), index + 1);
     command.execute();
 }
-void PaneLayersViewModel::flipXLayer(){
+void FrameVM::flipXLayer(){
 }
-void PaneLayersViewModel::flipYLayer(){
+void FrameVM::flipYLayer(){
 }
 
-void PaneLayersViewModel::beginChangeActiveLayerOpacity(){
+void FrameVM::beginChangeActiveLayerOpacity(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -137,7 +137,7 @@ void PaneLayersViewModel::beginChangeActiveLayerOpacity(){
     
 }
 
-void PaneLayersViewModel::onChangeActiveLayerOpacity(float opacity){
+void FrameVM::onChangeActiveLayerOpacity(float opacity){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -145,7 +145,7 @@ void PaneLayersViewModel::onChangeActiveLayerOpacity(float opacity){
     _layer->setOpacity(opacity);
 }
 
-void PaneLayersViewModel::endChangeActiveLayerOpacity(){
+void FrameVM::endChangeActiveLayerOpacity(){
     EditorManager*  _manager = AppContext::instance().getEditorManager();
     Editor* _editor = _manager->getActiveEditor();
     Frame* _frame = _editor->getActiveFrame();
@@ -160,7 +160,7 @@ void PaneLayersViewModel::endChangeActiveLayerOpacity(){
 }
 
 
-void PaneLayersViewModel::onChangeActiveLayer(Guid id){
+void FrameVM::onChangeActiveLayer(Guid id){
     endChangeActiveLayerOpacity();
 
     auto it = observable.find(FRAME_EVENT_TYPE::CHANGE_ACTIVE_LAYER);
@@ -168,7 +168,7 @@ void PaneLayersViewModel::onChangeActiveLayer(Guid id){
         it->second(id.toString());
     }
 }
-void PaneLayersViewModel::onAddLayer(Layer* layer, size_t index){
+void FrameVM::onAddLayer(Layer* layer, size_t index){
     LayerDTO layerDTO;
     layerDTO.id = layer->getID().toString();
     layerDTO.name = layer->getName();
@@ -185,7 +185,7 @@ void PaneLayersViewModel::onAddLayer(Layer* layer, size_t index){
         it->second(layerDTO, index);
     }
 }
-void PaneLayersViewModel::onRemoveLayer(Guid id){
+void FrameVM::onRemoveLayer(Guid id){
     auto it = observable.find(FRAME_EVENT_TYPE::REMOVE_LAYER);
     if (it != observable.end()) {
         it->second(id.toString());
@@ -194,7 +194,7 @@ void PaneLayersViewModel::onRemoveLayer(Guid id){
     Editor* _editor = _manager->getActiveEditor();
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
-void PaneLayersViewModel::onMoveLayerTo(Guid id, int index){
+void FrameVM::onMoveLayerTo(Guid id, int index){
     auto it = observable.find(FRAME_EVENT_TYPE::MOVE_LAYER_TO);
     if (it != observable.end()) {
         it->second(id, index);
@@ -245,22 +245,22 @@ function hasLayerWithName(name){
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
-    class_<PaneLayersViewModel>("PaneLayersViewModel")
+    class_<FrameVM>("FrameVM")
         .constructor<>()
-        .function("getNumberLayers", &PaneLayersViewModel::getNumberLayers)
-        .function("getLayerByIndex", &PaneLayersViewModel::getLayerByIndex)
-        .function("registerEvent", &PaneLayersViewModel::registerEvent)
-        .function("changeActiveLayer", &PaneLayersViewModel::changeActiveLayer)
-        .function("createLayer", &PaneLayersViewModel::createLayer)
-        .function("cloneActiveLayer", &PaneLayersViewModel::cloneActiveLayer)
-        .function("moveLayerTo", &PaneLayersViewModel::moveLayerTo)
-        .function("moveDownActiveLayer", &PaneLayersViewModel::moveDownActiveLayer)
-        .function("moveUpActiveLayer", &PaneLayersViewModel::moveUpActiveLayer)
-        .function("removeActiveLayer", &PaneLayersViewModel::removeActiveLayer)
-        .function("flipXLayer", &PaneLayersViewModel::flipXLayer)
-        .function("flipYLayer", &PaneLayersViewModel::flipYLayer)
-        .function("beginChangeActiveLayerOpacity", &PaneLayersViewModel::beginChangeActiveLayerOpacity)
-        .function("onChangeActiveLayerOpacity", &PaneLayersViewModel::onChangeActiveLayerOpacity)
-        .function("endChangeActiveLayerOpacity", &PaneLayersViewModel::endChangeActiveLayerOpacity)
+        .function("getNumberLayers", &FrameVM::getNumberLayers)
+        .function("getLayerByIndex", &FrameVM::getLayerByIndex)
+        .function("registerEvent", &FrameVM::registerEvent)
+        .function("changeActiveLayer", &FrameVM::changeActiveLayer)
+        .function("createLayer", &FrameVM::createLayer)
+        .function("cloneActiveLayer", &FrameVM::cloneActiveLayer)
+        .function("moveLayerTo", &FrameVM::moveLayerTo)
+        .function("moveDownActiveLayer", &FrameVM::moveDownActiveLayer)
+        .function("moveUpActiveLayer", &FrameVM::moveUpActiveLayer)
+        .function("removeActiveLayer", &FrameVM::removeActiveLayer)
+        .function("flipXLayer", &FrameVM::flipXLayer)
+        .function("flipYLayer", &FrameVM::flipYLayer)
+        .function("beginChangeActiveLayerOpacity", &FrameVM::beginChangeActiveLayerOpacity)
+        .function("onChangeActiveLayerOpacity", &FrameVM::onChangeActiveLayerOpacity)
+        .function("endChangeActiveLayerOpacity", &FrameVM::endChangeActiveLayerOpacity)
         ;
 };

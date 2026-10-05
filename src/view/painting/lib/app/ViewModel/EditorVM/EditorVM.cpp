@@ -1,19 +1,19 @@
-#include "PaneFramesViewModel.h"
+#include "EditorVM.h"
 
 
-PaneFramesViewModel::PaneFramesViewModel(){
+EditorVM::EditorVM(){
     _manager = AppContext::instance().getEditorManager();
     _editor = _manager->getActiveEditor();
     _editor->registerEvent(this);
 }
-Editor* PaneFramesViewModel::getActiveEditor(){
+Editor* EditorVM::getActiveEditor(){
     EditorManager* _manager = AppContext::instance().getEditorManager();
 
     return _manager->getActiveEditor();
 }
-PaneFramesViewModel::~PaneFramesViewModel(){
+EditorVM::~EditorVM(){
 }
-void PaneFramesViewModel::registerEvent(string eventType, emscripten::val callback){
+void EditorVM::registerEvent(string eventType, emscripten::val callback){
     if(eventType == "ADD_FRAME"){
         observable[EDITOR_EVENT_TYPE::ADD_FRAME] = callback;
         return;
@@ -32,7 +32,7 @@ void PaneFramesViewModel::registerEvent(string eventType, emscripten::val callba
     }
 }
 
-void PaneFramesViewModel::onChangeActiveFrame(Guid id){
+void EditorVM::onChangeActiveFrame(Guid id){
     printf("active\n");
     auto it = observable.find(EDITOR_EVENT_TYPE::CHANGE_ACTIVE_FRAME);
     if (it != observable.end()) {
@@ -40,7 +40,7 @@ void PaneFramesViewModel::onChangeActiveFrame(Guid id){
     }
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
-void PaneFramesViewModel::onAddFrame(Frame* frame, size_t index){
+void EditorVM::onAddFrame(Frame* frame, size_t index){
     printf("add\n");
     Editor* _editor = getActiveEditor();
 
@@ -58,7 +58,7 @@ void PaneFramesViewModel::onAddFrame(Frame* frame, size_t index){
     }
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
-void PaneFramesViewModel::onRemoveFrame(Guid id){
+void EditorVM::onRemoveFrame(Guid id){
     printf("remove\n");
     auto it = observable.find(EDITOR_EVENT_TYPE::REMOVE_FRAME);
     if (it != observable.end()) {
@@ -66,7 +66,7 @@ void PaneFramesViewModel::onRemoveFrame(Guid id){
     }
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
-void PaneFramesViewModel::onMoveFrameTo(Guid id, int index){
+void EditorVM::onMoveFrameTo(Guid id, int index){
     printf("move\n");
     auto it = observable.find(EDITOR_EVENT_TYPE::MOVE_FRAME_TO);
     if (it != observable.end()) {
@@ -75,7 +75,7 @@ void PaneFramesViewModel::onMoveFrameTo(Guid id, int index){
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 
-FrameDTO PaneFramesViewModel::getFrameByIndex(size_t index){
+FrameDTO EditorVM::getFrameByIndex(size_t index){
     Editor* activeEditor = getActiveEditor();
     Frame* frame = activeEditor->getFrameByIndex(index);
 
@@ -89,15 +89,15 @@ FrameDTO PaneFramesViewModel::getFrameByIndex(size_t index){
     
     return frameDTO;
 }
-size_t PaneFramesViewModel::getNumberFrames(){
+size_t EditorVM::getNumberFrames(){
     return getActiveEditor()->getFramesLength();
 }
 
-void PaneFramesViewModel::changeActiveFrame(std::string id){
+void EditorVM::changeActiveFrame(std::string id){
     Editor* _editor = getActiveEditor();
     _editor->changeActiveFrame(Guid(id));
 }
-void PaneFramesViewModel::createFrame(){
+void EditorVM::createFrame(){
     Editor* _editor = getActiveEditor();
     auto frame = std::make_unique<Frame>();
     auto layer = std::make_unique<Layer>("layer 1", _editor->getWidth(), _editor->getHeight());
@@ -108,18 +108,18 @@ void PaneFramesViewModel::createFrame(){
     AddFrameCommand command(*_editor, std::move(frame), index);
     command.execute();
 }
-void PaneFramesViewModel::cloneActiveFrame(){
+void EditorVM::cloneActiveFrame(){
     Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
     CloneFrameCommand command(*_editor, frame->getID());
     command.execute();
 }
-void PaneFramesViewModel::moveFrameTo(std::string id, int index){
+void EditorVM::moveFrameTo(std::string id, int index){
     Editor* _editor = getActiveEditor();
     MoveFrameToCommand command(*_editor, Guid(id), index);
     command.execute();
 }
-void PaneFramesViewModel::moveDownActiveFrame(){
+void EditorVM::moveDownActiveFrame(){
     Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
     size_t index = _editor->getFrameIndex(frame->getID());
@@ -128,7 +128,7 @@ void PaneFramesViewModel::moveDownActiveFrame(){
     MoveFrameToCommand command(*_editor, frame->getID(), index - 1);
     command.execute();
 }
-void PaneFramesViewModel::moveUpActiveFrame(){
+void EditorVM::moveUpActiveFrame(){
     Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
     size_t index = _editor->getFrameIndex(frame->getID());
@@ -138,18 +138,18 @@ void PaneFramesViewModel::moveUpActiveFrame(){
     MoveFrameToCommand command(*_editor, frame->getID(), index + 1);
     command.execute();
 }
-void PaneFramesViewModel::removeActiveFrame(){
+void EditorVM::removeActiveFrame(){
     Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
 
     RemoveFrameCommand command(*_editor, frame->getID());
     command.execute();
 }
-void PaneFramesViewModel::flipXFrame(){
+void EditorVM::flipXFrame(){
     Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
 }
-void PaneFramesViewModel::flipYFrame(){
+void EditorVM::flipYFrame(){
     Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
 }
@@ -160,18 +160,18 @@ void PaneFramesViewModel::flipYFrame(){
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
-    class_<PaneFramesViewModel>("PaneFramesViewModel")
+    class_<EditorVM>("EditorVM")
         .constructor<>()
-        .function("getNumberFrames", &PaneFramesViewModel::getNumberFrames)
-        .function("getFrameByIndex", &PaneFramesViewModel::getFrameByIndex)
-        .function("registerEvent", &PaneFramesViewModel::registerEvent)
-        .function("changeActiveFrame", &PaneFramesViewModel::changeActiveFrame)
-        .function("createFrame", &PaneFramesViewModel::createFrame)
-        .function("cloneActiveFrame", &PaneFramesViewModel::cloneActiveFrame)
-        .function("moveFrameTo", &PaneFramesViewModel::moveFrameTo)
-        .function("moveDownActiveFrame", &PaneFramesViewModel::moveDownActiveFrame)
-        .function("moveUpActiveFrame", &PaneFramesViewModel::moveUpActiveFrame)
-        .function("removeActiveFrame", &PaneFramesViewModel::removeActiveFrame)
-        .function("flipXFrame", &PaneFramesViewModel::flipXFrame)
-        .function("flipYFrame", &PaneFramesViewModel::flipYFrame);
+        .function("getNumberFrames", &EditorVM::getNumberFrames)
+        .function("getFrameByIndex", &EditorVM::getFrameByIndex)
+        .function("registerEvent", &EditorVM::registerEvent)
+        .function("changeActiveFrame", &EditorVM::changeActiveFrame)
+        .function("createFrame", &EditorVM::createFrame)
+        .function("cloneActiveFrame", &EditorVM::cloneActiveFrame)
+        .function("moveFrameTo", &EditorVM::moveFrameTo)
+        .function("moveDownActiveFrame", &EditorVM::moveDownActiveFrame)
+        .function("moveUpActiveFrame", &EditorVM::moveUpActiveFrame)
+        .function("removeActiveFrame", &EditorVM::removeActiveFrame)
+        .function("flipXFrame", &EditorVM::flipXFrame)
+        .function("flipYFrame", &EditorVM::flipYFrame);
 };

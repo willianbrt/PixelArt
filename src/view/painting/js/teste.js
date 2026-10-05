@@ -29,11 +29,11 @@ window.onload = async ()=>{
     buildShortcuts();
 }
 
-function buildEditor(editorVM){ 
+function buildEditor(){ 
     console.log("j")
-    buildPaneFrames(app.paneFramesViewModel(), editorVM);
-    buildPaneLayers(app.paneLayersViewModel(), editorVM);
-    buildPaneToolBar(editorVM);
+    buildPaneFrames(app.editorVM());
+    buildPaneLayers(app.frameVM());
+    buildPaneToolBar();
 
     
     app.shortcuts.register({

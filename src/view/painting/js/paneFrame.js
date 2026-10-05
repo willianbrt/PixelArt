@@ -2,11 +2,11 @@ import { app } from "./app.js"
 
 import { buildPaneLayers } from "./paneLayer.js"
 
-let _paneFramesViewModel;
+let _layerVM;
 let _listFrame;
 
-export async function buildPaneFrames(paneFramesViewModel){
-    _paneFramesViewModel = paneFramesViewModel;
+export async function buildPaneFrames(layerVM){
+    _layerVM = layerVM;
     
     _listFrame = document.getElementById("list-frames");
     _listFrame.innerHTML = "";
@@ -26,19 +26,19 @@ export async function buildPaneFrames(paneFramesViewModel){
     let btnFlipXFrame = document.getElementById("flip-x");
     let btnFlipYFrame = document.getElementById("flip-y");
     
-    btnAddFrame.onclick = ()=> _paneFramesViewModel.createFrame();
-    btnRemoveFrame.onclick = ()=> _paneFramesViewModel.removeActiveFrame();
-    btnMoveDownFrame.onclick = ()=> _paneFramesViewModel.moveDownActiveFrame();
-    btnMoveUpFrame.onclick = ()=> _paneFramesViewModel.moveUpActiveFrame();
-    btnCloneFrame.onclick = ()=> _paneFramesViewModel.cloneActiveFrame();
+    btnAddFrame.onclick = ()=> _layerVM.createFrame();
+    btnRemoveFrame.onclick = ()=> _layerVM.removeActiveFrame();
+    btnMoveDownFrame.onclick = ()=> _layerVM.moveDownActiveFrame();
+    btnMoveUpFrame.onclick = ()=> _layerVM.moveUpActiveFrame();
+    btnCloneFrame.onclick = ()=> _layerVM.cloneActiveFrame();
 
-    btnFlipXFrame.onclick = ()=> _paneFramesViewModel.flipXActiveFrame();
-    btnFlipYFrame.onclick = ()=> _paneFramesViewModel.flipYActiveFrame();
+    btnFlipXFrame.onclick = ()=> _layerVM.flipXActiveFrame();
+    btnFlipYFrame.onclick = ()=> _layerVM.flipYActiveFrame();
     
-    _paneFramesViewModel.registerEvent("ADD_FRAME", onAddFrame);
-    _paneFramesViewModel.registerEvent("REMOVE_FRAME", onRemoveFrame);
-    _paneFramesViewModel.registerEvent("MOVE_FRAME_TO", onMoveFrameTo);
-    _paneFramesViewModel.registerEvent("CHANGE_ACTIVE_FRAME", onChangeActiveFrame);
+    _layerVM.registerEvent("ADD_FRAME", onAddFrame);
+    _layerVM.registerEvent("REMOVE_FRAME", onRemoveFrame);
+    _layerVM.registerEvent("MOVE_FRAME_TO", onMoveFrameTo);
+    _layerVM.registerEvent("CHANGE_ACTIVE_FRAME", onChangeActiveFrame);
 }
 function onAddFrame(frame, index){
     let frameElement = createFrameElement(frame);
@@ -128,7 +128,7 @@ function createFrameElement(frame){
     frameElement.append(canvas);
     
     frameElement.onclick = ()=>{
-        _paneFramesViewModel.changeActiveFrame(frame.id);
+        _layerVM.changeActiveFrame(frame.id);
     };
 
     return frameElement;

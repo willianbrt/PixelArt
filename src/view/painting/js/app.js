@@ -26,8 +26,8 @@ async function init(){
         database: _database,
         
         editorManagerViewModel:  new module.EditorManagerViewModel(),
-        paneFramesViewModel: (editor)=> { return new module.PaneFramesViewModel(); },
-        paneLayersViewModel: (frame)=> { return new module.PaneLayersViewModel(); },
+        editorVM: (editor)=> { return new module.EditorVM(); },
+        frameVM: (frame)=> { return new module.FrameVM(); },
         paneToolViewModel: (frame)=> { return new module.PaneToolbarViewModel(); },
         layerViewModel: (layerID)=> { return new module.LayerViewModel(layerID); },
         drawingSettingsVM: (layerID)=> { return new module.DrawingSettingsVM(); },

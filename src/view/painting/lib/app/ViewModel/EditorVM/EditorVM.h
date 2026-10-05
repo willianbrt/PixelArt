@@ -20,7 +20,7 @@
 #include "../../../strategy/SelectionComposer/SelectionComposer.h"
 
 
-class PaneFramesViewModel : IEditorObserver {
+class EditorVM : IEditorObserver {
 private:
     unordered_map<EDITOR_EVENT_TYPE, emscripten::val> observable;
     
@@ -33,8 +33,8 @@ private:
     EditorManager*  _manager;
     Editor* _editor;
 public:
-    PaneFramesViewModel();
-    ~PaneFramesViewModel();
+    EditorVM();
+    ~EditorVM();
 
     FrameDTO getFrameByIndex(size_t index);
     size_t getNumberFrames();

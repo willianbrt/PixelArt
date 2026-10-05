@@ -21,7 +21,7 @@
 #include "../../../commands/LayerOpacityCommand/LayerOpacityCommand.h"
 
 
-class PaneLayersViewModel : IFrameObserver {
+class FrameVM : IFrameObserver {
 private:
     unordered_map<FRAME_EVENT_TYPE, emscripten::val> observable;
     
@@ -39,8 +39,8 @@ private:
     float _initialOpacity;
 
 public:
-    PaneLayersViewModel();
-    ~PaneLayersViewModel();
+    FrameVM();
+    ~FrameVM();
     
     void registerEvent(string eventType, emscripten::val callback);
     
