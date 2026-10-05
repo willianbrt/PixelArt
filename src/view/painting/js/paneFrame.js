@@ -11,10 +11,6 @@ export async function buildPaneFrames(paneFramesViewModel){
     _listFrame = document.getElementById("list-frames");
     _listFrame.innerHTML = "";
 
-    for(let i = 0; i < _paneFramesViewModel.getNumberFrames(); i++){
-        let frameElement = createFrameElement(_paneFramesViewModel.getFrameByIndex(i));
-        _listFrame.append(frameElement);
-    }
     
     let headerFrame = document.querySelector("#pane-footer .header");
     headerFrame.onclick = function(e){
@@ -63,8 +59,6 @@ function onChangeActiveFrame(id){
     _listFrame.querySelectorAll("div.frame.active")
               .forEach((f)=>f.classList.remove("active"));
     frameElement?.classList.toggle("active", true);
-
-    buildPaneLayers(app.paneLayersViewModel());
 }
 function onMoveFrameTo(id, index){
     let frames = _listFrame.querySelectorAll("div.frame");

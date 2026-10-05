@@ -20,16 +20,22 @@ channel.onmessage = (e) => {
 window.onload = async ()=>{
     await init();
     
-    const editorManagerViewModel = app.editorManagerViewModel();
-    editorManagerViewModel.createProject(32, 32); 
-    
-    buildPaneFrames(app.paneFramesViewModel());
-    buildPaneLayers(app.paneLayersViewModel());
-    buildPaneToolBar();
-    buildPanePalette();
-    buildShortcuts();
+    app.editorManagerViewModel.registerEvent("ADD_EDITOR", buildEditor);
+    app.editorManagerViewModel.createProject(32, 32); 
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});
+
+    buildPanePalette();
+    buildShortcuts();
+}
+
+function buildEditor(editorVM){ 
+    console.log("j")
+    buildPaneFrames(app.paneFramesViewModel(), editorVM);
+    buildPaneLayers(app.paneLayersViewModel(), editorVM);
+    buildPaneToolBar(editorVM);
+
+    
     app.shortcuts.register({
         default:{
             ctrl: true,
@@ -40,7 +46,7 @@ window.onload = async ()=>{
         description: "teste",
         scope: "global",
         callback: ()=>{
-            const surface = editorManagerViewModel.copy();
+            const surface = app.editorManagerViewModel.copy();
             clipboard = surface;
             channel.postMessage({ action: "SET_CLIPBOARD", clipboard: surface});
         }
@@ -55,10 +61,9 @@ window.onload = async ()=>{
         description: "teste",
         scope: "global",
         callback: ()=>{
-            editorManagerViewModel.paste()
+            app.editorManagerViewModel.paste()
         }
     });
 }
-
 function buildShortcuts(){ 
 }

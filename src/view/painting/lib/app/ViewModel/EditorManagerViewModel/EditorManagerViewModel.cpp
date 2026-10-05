@@ -4,6 +4,7 @@
 EditorManagerViewModel::EditorManagerViewModel(){
     _manager = AppContext::instance().getEditorManager();
     _toolManager = AppContext::instance().getToolManager();
+    _manager->registerEvent(this);
 }
 EditorManagerViewModel::~EditorManagerViewModel(){
 }

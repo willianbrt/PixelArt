@@ -2,6 +2,7 @@
 #define EDITORMANAGER_H
 
 #include "../../objects/Editor/Editor.h"
+#include "../../interfaces/IEditorManagerObserver/IEditorManagerObserver.h"
 #include <vector>
 
 enum EDITOR_MANAGER_EVENT_TYPE{
@@ -15,6 +16,7 @@ class EditorManager{
 private:
     std::vector<std::unique_ptr<Editor>> _listEditor;
     Editor* _activeEditor;
+    vector<IEditorManagerObserver*> observers;
 
 public:
     EditorManager();
@@ -25,5 +27,7 @@ public:
 
     size_t getEditorsLength();
     Editor* getEditorByIndex(size_t index);
+
+    void registerEvent(IEditorManagerObserver* observer);
 };
 #endif

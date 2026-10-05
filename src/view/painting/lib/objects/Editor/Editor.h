@@ -49,6 +49,7 @@ private:
     DrawingSession* _drawingSession = nullptr;
 
     std::vector<unique_ptr<Frame>>::iterator getIteratorFrameByID(Guid id);
+    Guid _id;
 
 public:
     Editor(int width, int height);
@@ -85,5 +86,8 @@ public:
     DirtyManager* getDirtyManager();
     DrawingSession* getDrawingSession();
     SymmetryContext* getSymmetryContext();
+
+    void  setID(Guid id);
+    Guid getID();
 };
 #endif

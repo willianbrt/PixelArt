@@ -24,7 +24,8 @@ async function init(){
         canvas,
         resize: module.resize,
         database: _database,
-        editorManagerViewModel: ()=> { return new module.EditorManagerViewModel(); },
+        
+        editorManagerViewModel:  new module.EditorManagerViewModel(),
         paneFramesViewModel: (editor)=> { return new module.PaneFramesViewModel(); },
         paneLayersViewModel: (frame)=> { return new module.PaneLayersViewModel(); },
         paneToolViewModel: (frame)=> { return new module.PaneToolbarViewModel(); },

@@ -171,6 +171,13 @@ Point Editor::getDrawingAreaSize(){
 DirtyManager* Editor::getDirtyManager(){
     return &dirtyManager;
 }
+
+void Editor::setID(Guid id){
+    _id = id;
+}
+Guid Editor::getID(){
+    return _id;
+}
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){

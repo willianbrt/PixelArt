@@ -26,11 +26,6 @@ export async function buildPaneLayers(paneLayersViewModel){
 
     _listLayer = document.getElementById("list-Layers");
 
-    _layers = _layers.filter((e)=> e.element.remove());
-    for(let i = 0; i < _paneLayersViewModel.getNumberLayers(); i++){
-        onAddLayer(_paneLayersViewModel.getLayerByIndex(i), i);
-    }
-    
     let btnAddLayer = document.getElementById("add-layer");
     let btnRemoveLayer = document.getElementById("remove-layer");
     let btnCloneLayer = document.getElementById("duplicate-layer");
@@ -47,6 +42,13 @@ export async function buildPaneLayers(paneLayersViewModel){
     _paneLayersViewModel.registerEvent("REMOVE_LAYER", onRemoveLayer);
     _paneLayersViewModel.registerEvent("MOVE_LAYER_TO", onMoveLayerTo);
     _paneLayersViewModel.registerEvent("CHANGE_ACTIVE_LAYER", onChangeActiveLayer);
+}
+
+function onChangeFrame(){
+    _layers = _layers.filter((e)=> e.element.remove());
+    for(let i = 0; i < _paneLayersViewModel.getNumberLayers(); i++){
+        onAddLayer(_paneLayersViewModel.getLayerByIndex(i), i);
+    }
 }
 
 function onAddLayer(layer, index){
