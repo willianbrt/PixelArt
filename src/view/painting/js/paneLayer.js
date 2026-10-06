@@ -1,7 +1,7 @@
 import { app } from "./app.js"
 
 let _frameVM;
-let _listLayer;
+let _listLayer= document.getElementById("list-Layers");;
 let _layers = [];
 
 let inpOpacity;
@@ -24,7 +24,7 @@ export async function buildPaneLayers(frameVM){
         });
     });
 
-    _listLayer = document.getElementById("list-Layers");
+    onChangeFrame();
 
     let btnAddLayer = document.getElementById("add-layer");
     let btnRemoveLayer = document.getElementById("remove-layer");
@@ -42,6 +42,14 @@ export async function buildPaneLayers(frameVM){
     _frameVM.registerEvent("REMOVE_LAYER", onRemoveLayer);
     _frameVM.registerEvent("MOVE_LAYER_TO", onMoveLayerTo);
     _frameVM.registerEvent("CHANGE_ACTIVE_LAYER", onChangeActiveLayer);
+
+    return {
+        onChangeFrame,
+        onAddLayer,
+        onRemoveLayer,
+        onChangeActiveLayer,
+        onMoveLayerTo
+    }
 }
 
 function onChangeFrame(){

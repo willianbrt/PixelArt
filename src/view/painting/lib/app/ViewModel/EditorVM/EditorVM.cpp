@@ -33,7 +33,6 @@ void EditorVM::registerEvent(string eventType, emscripten::val callback){
 }
 
 void EditorVM::onChangeActiveFrame(Guid id){
-    printf("active\n");
     auto it = observable.find(EDITOR_EVENT_TYPE::CHANGE_ACTIVE_FRAME);
     if (it != observable.end()) {
         it->second(id.toString());
@@ -41,7 +40,6 @@ void EditorVM::onChangeActiveFrame(Guid id){
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void EditorVM::onAddFrame(Frame* frame, size_t index){
-    printf("add\n");
     Editor* _editor = getActiveEditor();
 
     FrameDTO frameDTO;
@@ -59,7 +57,6 @@ void EditorVM::onAddFrame(Frame* frame, size_t index){
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void EditorVM::onRemoveFrame(Guid id){
-    printf("remove\n");
     auto it = observable.find(EDITOR_EVENT_TYPE::REMOVE_FRAME);
     if (it != observable.end()) {
         it->second(id.toString());
@@ -67,7 +64,6 @@ void EditorVM::onRemoveFrame(Guid id){
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void EditorVM::onMoveFrameTo(Guid id, int index){
-    printf("move\n");
     auto it = observable.find(EDITOR_EVENT_TYPE::MOVE_FRAME_TO);
     if (it != observable.end()) {
         it->second(id, index);

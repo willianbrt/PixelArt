@@ -2,16 +2,12 @@ import { app } from "./app.js"
 
 import { buildPaneLayers } from "./paneLayer.js"
 
-let _layerVM;
-let _listFrame;
+let _editorVM;
+let _listFrame = document.getElementById("list-frames");;
 
-export async function buildPaneFrames(layerVM){
-    _layerVM = layerVM;
-    
-    _listFrame = document.getElementById("list-frames");
-    _listFrame.innerHTML = "";
+export async function buildPaneFrames(editorVM){
+    _editorVM = editorVM;
 
-    
     let headerFrame = document.querySelector("#pane-footer .header");
     headerFrame.onclick = function(e){
         if(e.target.classList.contains("header"))
@@ -26,21 +22,42 @@ export async function buildPaneFrames(layerVM){
     let btnFlipXFrame = document.getElementById("flip-x");
     let btnFlipYFrame = document.getElementById("flip-y");
     
-    btnAddFrame.onclick = ()=> _layerVM.createFrame();
-    btnRemoveFrame.onclick = ()=> _layerVM.removeActiveFrame();
-    btnMoveDownFrame.onclick = ()=> _layerVM.moveDownActiveFrame();
-    btnMoveUpFrame.onclick = ()=> _layerVM.moveUpActiveFrame();
-    btnCloneFrame.onclick = ()=> _layerVM.cloneActiveFrame();
+    btnAddFrame.onclick = ()=> _editorVM.createFrame();
+    btnRemoveFrame.onclick = ()=> _editorVM.removeActiveFrame();
+    btnMoveDownFrame.onclick = ()=> _editorVM.moveDownActiveFrame();
+    btnMoveUpFrame.onclick = ()=> _editorVM.moveUpActiveFrame();
+    btnCloneFrame.onclick = ()=> _editorVM.cloneActiveFrame();
 
-    btnFlipXFrame.onclick = ()=> _layerVM.flipXActiveFrame();
-    btnFlipYFrame.onclick = ()=> _layerVM.flipYActiveFrame();
+    btnFlipXFrame.onclick = ()=> _editorVM.flipXActiveFrame();
+    btnFlipYFrame.onclick = ()=> _editorVM.flipYActiveFrame();
     
-    _layerVM.registerEvent("ADD_FRAME", onAddFrame);
-    _layerVM.registerEvent("REMOVE_FRAME", onRemoveFrame);
-    _layerVM.registerEvent("MOVE_FRAME_TO", onMoveFrameTo);
-    _layerVM.registerEvent("CHANGE_ACTIVE_FRAME", onChangeActiveFrame);
+    _editorVM.registerEvent("ADD_FRAME", onAddFrame);
+    _editorVM.registerEvent("REMOVE_FRAME", onRemoveFrame);
+    _editorVM.registerEvent("MOVE_FRAME_TO", onMoveFrameTo);
+    _editorVM.registerEvent("CHANGE_ACTIVE_FRAME", onChangeActiveFrame);
+
+
+
+    onChangeEditor();
+    
+    return {
+        onChangeEditor,
+        onAddFrame,
+        onRemoveFrame,
+        onChangeActiveFrame,
+        onMoveFrameTo
+    }
 }
+function onChangeEditor(){
+    _listFrame.innerHTML = "";
+    for(let i = 0; i < _editorVM.getNumberFrames(); i++){
+        onAddFrame(_editorVM.getFrameByIndex(i), i);
+    }
+}
+
+
 function onAddFrame(frame, index){
+    console.log(index)
     let frameElement = createFrameElement(frame);
     let frames = _listFrame.querySelectorAll("div.frame");
     
@@ -128,7 +145,7 @@ function createFrameElement(frame){
     frameElement.append(canvas);
     
     frameElement.onclick = ()=>{
-        _layerVM.changeActiveFrame(frame.id);
+        _editorVM.changeActiveFrame(frame.id);
     };
 
     return frameElement;

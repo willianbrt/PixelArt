@@ -28,6 +28,18 @@ void EditorManagerViewModel::registerEvent(string eventType, emscripten::val cal
         observable[EDITOR_MANAGER_EVENT_TYPE::ADD_EDITOR] = callback;
         return;
     }
+    if(eventType == "CHANGE_ACTIVE_EDITOR"){
+        observable[EDITOR_MANAGER_EVENT_TYPE::CHANGE_ACTIVE_EDITOR] = callback;
+        return;
+    }
+    if(eventType == "REMOVE_EDITOR"){
+        observable[EDITOR_MANAGER_EVENT_TYPE::REMOVE_EDITOR] = callback;
+        return;
+    }
+    if(eventType == "MOVE_EDITOR_TO"){
+        observable[EDITOR_MANAGER_EVENT_TYPE::MOVE_EDITOR_TO] = callback;
+        return;
+    }
 }
 
 void EditorManagerViewModel::changeActiveEditor(int id){

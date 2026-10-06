@@ -17,11 +17,13 @@ channel.onmessage = (e) => {
         channel.postMessage({ action:"SET_CLIPBOARD", clipboard: clipboard});
     }
 };
+let _editorManagerViewModel;
 window.onload = async ()=>{
     await init();
     
-    app.editorManagerViewModel.registerEvent("ADD_EDITOR", buildEditor);
-    app.editorManagerViewModel.createProject(32, 32); 
+    _editorManagerViewModel = await app.editorManagerViewModel();
+    _editorManagerViewModel.registerEvent("ADD_EDITOR", buildEditor);
+    _editorManagerViewModel.createProject(32, 32); 
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});
 
@@ -29,10 +31,15 @@ window.onload = async ()=>{
     buildShortcuts();
 }
 
-function buildEditor(){ 
-    console.log("j")
-    buildPaneFrames(app.editorVM());
-    buildPaneLayers(app.frameVM());
+async function buildEditor(){ 
+    const editorVM = await app.editorVM();
+
+    const paneFrame = await buildPaneFrames(editorVM);
+    _editorManagerViewModel.registerEvent("CHANGE_ACTIVE_EDITOR", paneFrame.onChangeEditor);
+
+    const paneLayer = await buildPaneLayers(await app.frameVM());
+    editorVM.registerEvent("CHANGE_ACTIVE_FRAME", paneLayer.onChangeFrame);
+
     buildPaneToolBar();
 
     
@@ -46,7 +53,7 @@ function buildEditor(){
         description: "teste",
         scope: "global",
         callback: ()=>{
-            const surface = app.editorManagerViewModel.copy();
+            const surface = _editorManagerViewModel.copy();
             clipboard = surface;
             channel.postMessage({ action: "SET_CLIPBOARD", clipboard: surface});
         }
@@ -61,7 +68,7 @@ function buildEditor(){
         description: "teste",
         scope: "global",
         callback: ()=>{
-            app.editorManagerViewModel.paste()
+            _editorManagerViewModel.paste()
         }
     });
 }
