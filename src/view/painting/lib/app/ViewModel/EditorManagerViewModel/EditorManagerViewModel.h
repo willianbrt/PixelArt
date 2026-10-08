@@ -42,13 +42,13 @@ public:
 
     EditorDTO getEditorByIndex(size_t index);
     size_t getNumberEditors();
+    EditorDTO getActiveEditor();
 
     void changeActiveEditor(int id);
     void createProject(int width, int height);
-    void render();
     void resize(int width, int height);
     
-    void registerEvent(string eventType, emscripten::val callback);
+    void registerEvent(std::string eventType, emscripten::val callback);
     
     SurfaceDTO copy();
     void paste();

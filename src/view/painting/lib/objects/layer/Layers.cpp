@@ -47,6 +47,13 @@ Layer Layer::clone() const {
 void Layer::registerEvent(ILayerObserver* observer){
     observers.push_back(observer);
 }
+void Layer::unregisterEvent(ILayerObserver* observer){
+    observers.erase(
+        std::remove(observers.begin(), observers.end(), observer),
+        observers.end()
+    );
+}
+
 
 
 void Layer::setID(Guid id) { _id = id; }

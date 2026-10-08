@@ -1,14 +1,15 @@
 #include "LayerViewModel.h"
 
 
-LayerViewModel::LayerViewModel(std::string layerID) {
+LayerViewModel::LayerViewModel(std::string editorID, std::string frameID, std::string layerID) {
     _manager = AppContext::instance().getEditorManager();
-    _editor = _manager->getActiveEditor();
-    _frame = _editor->getActiveFrame();
+    _editor = _manager->getEditorById(Guid(editorID));
+    _frame = _editor->getFrameById(Guid(frameID));
     _layer = _frame->getLayerByID(Guid(layerID));
     _layer->registerEvent(this);
 }
 LayerViewModel::~LayerViewModel(){
+    _layer->unregisterEvent(this);
 }
 
 void LayerViewModel::setOpacity(float opacity){
@@ -79,7 +80,7 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<LayerViewModel>("LayerViewModel")
-        .constructor<std::string>()
+        .constructor<std::string, std::string, std::string>()
         .function("registerEvent", &LayerViewModel::registerEvent)
         .function("setName", &LayerViewModel::setName)
         .function("setOpacity", &LayerViewModel::setOpacity)

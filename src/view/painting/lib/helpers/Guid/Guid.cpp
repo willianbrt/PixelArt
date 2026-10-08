@@ -57,6 +57,10 @@ std::string Guid::toString() {
     return ss.str();
 };
 
+bool Guid::operator==(Guid& id){
+    return high == id.high && low == id.low;
+};
+
 using namespace emscripten;
 EMSCRIPTEN_BINDINGS(guid_module){
     class_<Guid>("Guid")

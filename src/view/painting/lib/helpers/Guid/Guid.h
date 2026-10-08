@@ -17,6 +17,7 @@ public:
     Guid(const std::string& str);
     static Guid generateUUID();
     std::string toString();
+    bool operator==(Guid& id);
 };
 
 #endif

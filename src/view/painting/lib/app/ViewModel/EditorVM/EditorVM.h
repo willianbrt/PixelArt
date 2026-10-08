@@ -32,13 +32,14 @@ private:
     Editor* getActiveEditor();
     EditorManager*  _manager;
     Editor* _editor;
-public:
-    EditorVM();
+    public:
+    EditorVM(std::string id);
     ~EditorVM();
-
+    
     FrameDTO getFrameByIndex(size_t index);
     size_t getNumberFrames();
-
+    
+    FrameDTO getActiveFrame();
     void changeActiveFrame(std::string id);
     void createFrame();
     void cloneActiveFrame();
@@ -49,7 +50,7 @@ public:
     void flipXFrame();
     void flipYFrame();
     
-    void registerEvent(string eventType, emscripten::val callback);
+    void registerEvent(std::string eventType, emscripten::val callback);
 };
 
 #endif

@@ -29,7 +29,7 @@ private:
     void onOpacityLayer() override;
     void onRenameLayer() override;
 public:
-    LayerViewModel(std::string layerID);
+    LayerViewModel(std::string editorID, std::string frameID, std::string layerID);
     ~LayerViewModel();
     
     void registerEvent(string eventType, emscripten::val callback);

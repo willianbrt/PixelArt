@@ -22,27 +22,18 @@ window.onload = async ()=>{
     await init();
     
     _editorManagerViewModel = await app.editorManagerViewModel();
+
     _editorManagerViewModel.registerEvent("ADD_EDITOR", buildEditor);
+    _editorManagerViewModel.registerEvent("CHANGE_ACTIVE_EDITOR", buildEditor);
+
     _editorManagerViewModel.createProject(32, 32); 
 
     channel.postMessage({ action: "REQUEST_CLIPBOARD"});
 
     buildPanePalette();
     buildShortcuts();
-}
-
-async function buildEditor(){ 
-    const editorVM = await app.editorVM();
-
-    const paneFrame = await buildPaneFrames(editorVM);
-    _editorManagerViewModel.registerEvent("CHANGE_ACTIVE_EDITOR", paneFrame.onChangeEditor);
-
-    const paneLayer = await buildPaneLayers(await app.frameVM());
-    editorVM.registerEvent("CHANGE_ACTIVE_FRAME", paneLayer.onChangeFrame);
-
     buildPaneToolBar();
 
-    
     app.shortcuts.register({
         default:{
             ctrl: true,
@@ -71,6 +62,10 @@ async function buildEditor(){
             _editorManagerViewModel.paste()
         }
     });
+}
+
+async function buildEditor(){ 
+    _editorManagerViewModel.registerEvent("CHANGE_ACTIVE_EDITOR", buildPaneFrames);
 }
 function buildShortcuts(){ 
 }

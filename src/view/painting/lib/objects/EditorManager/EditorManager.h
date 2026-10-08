@@ -27,7 +27,9 @@ public:
 
     size_t getEditorsLength();
     Editor* getEditorByIndex(size_t index);
+    Editor* getEditorById(Guid id);
 
     void registerEvent(IEditorManagerObserver* observer);
+    void unregisterEvent(IEditorManagerObserver* observer);
 };
 #endif

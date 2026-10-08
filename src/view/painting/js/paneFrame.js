@@ -2,11 +2,14 @@ import { app } from "./app.js"
 
 import { buildPaneLayers } from "./paneLayer.js"
 
+let _editorId;
 let _editorVM;
 let _listFrame = document.getElementById("list-frames");;
 
-export async function buildPaneFrames(editorVM){
-    _editorVM = editorVM;
+export async function buildPaneFrames(editorId){
+    _editorVM?.delete()
+    _editorVM = await app.editorVM(editorId);
+    _editorId = editorId;
 
     let headerFrame = document.querySelector("#pane-footer .header");
     headerFrame.onclick = function(e){
@@ -36,19 +39,7 @@ export async function buildPaneFrames(editorVM){
     _editorVM.registerEvent("MOVE_FRAME_TO", onMoveFrameTo);
     _editorVM.registerEvent("CHANGE_ACTIVE_FRAME", onChangeActiveFrame);
 
-
-
-    onChangeEditor();
-    
-    return {
-        onChangeEditor,
-        onAddFrame,
-        onRemoveFrame,
-        onChangeActiveFrame,
-        onMoveFrameTo
-    }
-}
-function onChangeEditor(){
+    buildPaneLayers(_editorId, _editorVM.getActiveFrame().id);
     _listFrame.innerHTML = "";
     for(let i = 0; i < _editorVM.getNumberFrames(); i++){
         onAddFrame(_editorVM.getFrameByIndex(i), i);
@@ -57,7 +48,6 @@ function onChangeEditor(){
 
 
 function onAddFrame(frame, index){
-    console.log(index)
     let frameElement = createFrameElement(frame);
     let frames = _listFrame.querySelectorAll("div.frame");
     
@@ -71,6 +61,8 @@ function onRemoveFrame(id){
     frameElement?.remove();
 }
 function onChangeActiveFrame(id){
+    buildPaneLayers(_editorId, id);
+
     let frameElement = getFrameById(id);
     
     _listFrame.querySelectorAll("div.frame.active")

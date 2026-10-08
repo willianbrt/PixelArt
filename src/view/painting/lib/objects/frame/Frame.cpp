@@ -22,6 +22,12 @@ Frame::~Frame(){
 void Frame::registerEvent(IFrameObserver* observer){
     observers.push_back(observer);
 }
+void Frame::unregisterEvent(IFrameObserver* observer){
+    observers.erase(
+        std::remove(observers.begin(), observers.end(), observer),
+        observers.end()
+    );
+}
 
 void Frame::resize(int width, int height){
     for(auto& layer : layers){

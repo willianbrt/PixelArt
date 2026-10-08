@@ -41,6 +41,7 @@ public:
     ~Frame();
 
     void registerEvent(IFrameObserver* observer);
+    void unregisterEvent(IFrameObserver* observer);
 
     void preview(IGraphic& graphic);
     void draw(IGraphic& graphic);

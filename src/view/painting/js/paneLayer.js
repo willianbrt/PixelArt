@@ -1,30 +1,38 @@
 import { app } from "./app.js"
 
+let _editorId, _frameId;
 let _frameVM;
 let _listLayer= document.getElementById("list-Layers");;
 let _layers = [];
 
 let inpOpacity;
-export async function buildPaneLayers(frameVM){
-    _frameVM = frameVM;
+export async function buildPaneLayers(editorId, frameId){
+    _frameVM?.delete();
+    _frameVM = await app.frameVM(editorId, frameId);
+    _editorId = editorId;
+    _frameId = frameId;
 
     inpOpacity = document.querySelector("input[name='opacity-layer']");
 
-    ["mousedown", "touchstart"].forEach((eventType)=> function() {
-        inpOpacity.addEventListener(eventType, function() {
-            _frameVM.beginChangeActiveLayerOpacity();
-        });
-    });
-    inpOpacity.addEventListener("input", function() {
-        _frameVM.onChangeActiveLayerOpacity(parseFloat(this.value / 100.0));
-    });
-    ["mouseup", "touchend"].forEach((eventType)=> function() {
-        inpOpacity.addEventListener(eventType, function() {
-            _frameVM.endChangeActiveLayerOpacity();
-        });
+    ["mousedown", "touchstart"].forEach((eventType)=>{
+        inpOpacity.removeEventListener(eventType, beginLayerOpacity);
+        inpOpacity.addEventListener(eventType, beginLayerOpacity);
     });
 
-    onChangeFrame();
+    inpOpacity.removeEventListener("input", changeLayerOpacity);
+    inpOpacity.addEventListener("input", changeLayerOpacity);
+    ["mouseup", "touchend"].forEach((eventType)=> {
+        inpOpacity.removeEventListener(eventType, endLayerOpacity);
+        inpOpacity.addEventListener(eventType, endLayerOpacity);
+    });
+    function beginLayerOpacity(){ _frameVM.beginChangeActiveLayerOpacity(); }
+    function changeLayerOpacity(){ _frameVM.onChangeActiveLayerOpacity(parseFloat(this.value / 100.0)); }
+    function endLayerOpacity(){ _frameVM.endChangeActiveLayerOpacity(); }
+
+    _layers = _layers.filter((e)=> e.element.remove());
+    for(let i = 0; i < _frameVM.getNumberLayers(); i++){
+        onAddLayer(_frameVM.getLayerByIndex(i), i);
+    }
 
     let btnAddLayer = document.getElementById("add-layer");
     let btnRemoveLayer = document.getElementById("remove-layer");
@@ -42,21 +50,6 @@ export async function buildPaneLayers(frameVM){
     _frameVM.registerEvent("REMOVE_LAYER", onRemoveLayer);
     _frameVM.registerEvent("MOVE_LAYER_TO", onMoveLayerTo);
     _frameVM.registerEvent("CHANGE_ACTIVE_LAYER", onChangeActiveLayer);
-
-    return {
-        onChangeFrame,
-        onAddLayer,
-        onRemoveLayer,
-        onChangeActiveLayer,
-        onMoveLayerTo
-    }
-}
-
-function onChangeFrame(){
-    _layers = _layers.filter((e)=> e.element.remove());
-    for(let i = 0; i < _frameVM.getNumberLayers(); i++){
-        onAddLayer(_frameVM.getLayerByIndex(i), i);
-    }
 }
 
 function onAddLayer(layer, index){
@@ -106,7 +99,7 @@ function getLayerElementById(id){
 function createLayerElement(layer){
     let _layer = layer;
     
-    let layerViewModel = app.layerViewModel(_layer.id);
+    let layerViewModel = app.layerViewModel(_editorId, _frameId, _layer.id);
     layerViewModel.registerEvent("OPACITY_LAYER", setOpacityLayer);
     layerViewModel.registerEvent("IS_VISIBLE_LAYER", setVisibilityLayer);
     layerViewModel.registerEvent("IS_LOCK_LAYER", setLockLayer);

@@ -56,6 +56,7 @@ public:
     ~Editor();
 
     void registerEvent(IEditorObserver* observer);
+    void unregisterEvent(IEditorObserver* observer);
     
     Preview* preview();
     
@@ -89,5 +90,7 @@ public:
 
     void  setID(Guid id);
     Guid getID();
+    
+    Frame* getFrameById(Guid id);
 };
 #endif

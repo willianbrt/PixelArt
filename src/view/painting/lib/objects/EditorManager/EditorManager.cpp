@@ -38,6 +38,20 @@ size_t EditorManager::getEditorsLength(){
 Editor* EditorManager::getEditorByIndex(size_t index){
     return _listEditor[index].get();
 }
+Editor* EditorManager::getEditorById(Guid id){
+    for (int i = 0; i < _listEditor.size(); i++) {
+        if(_listEditor[i]->getID() == id){
+            return _listEditor[i].get();
+        }
+    }
+    return nullptr;
+}
 void EditorManager::registerEvent(IEditorManagerObserver* observer){
     observers.push_back(observer);
+}
+void EditorManager::unregisterEvent(IEditorManagerObserver* observer){
+    observers.erase(
+        std::remove(observers.begin(), observers.end(), observer),
+        observers.end()
+    );
 }

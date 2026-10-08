@@ -7,12 +7,25 @@ EditorManagerViewModel::EditorManagerViewModel(){
     _manager->registerEvent(this);
 }
 EditorManagerViewModel::~EditorManagerViewModel(){
+    _manager->unregisterEvent(this);
 }
 
 EditorManager* EditorManagerViewModel::getEditorManager(){
     return  AppContext::instance().getEditorManager();
 }
 
+EditorDTO EditorManagerViewModel::getActiveEditor(){
+    Editor* editor = _manager->getActiveEditor();
+    Frame* frame = editor->getActiveFrame();
+
+    EditorDTO editorDTO;
+    editorDTO.id = editor->getID().toString();
+    editorDTO.activeFrameId = frame->getID().toString();
+    editorDTO.width = editor->getWidth();
+    editorDTO.height = editor->getHeight();
+
+    return editorDTO;
+}
 EditorDTO EditorManagerViewModel::getEditorByIndex(size_t index){
     Editor* _activeEditor = _manager->getActiveEditor();
     EditorDTO editorDTO;
@@ -23,7 +36,7 @@ size_t EditorManagerViewModel::getNumberEditors(){
     return _manager->getEditorsLength();
 }
 
-void EditorManagerViewModel::registerEvent(string eventType, emscripten::val callback){
+void EditorManagerViewModel::registerEvent(std::string eventType, emscripten::val callback){
     if(eventType == "ADD_EDITOR"){
         observable[EDITOR_MANAGER_EVENT_TYPE::ADD_EDITOR] = callback;
         return;
@@ -54,12 +67,6 @@ void EditorManagerViewModel::createProject(int width, int height){
     canvas->zoom(canvas->getFitScale(viewport, sketch),{0,0}, viewport, sketch);
     canvas->pan(canvas->getFitPosition(viewport, sketch), viewport, sketch);
 }
-void EditorManagerViewModel::render(){
-    // _manager->getActiveEditor()->render();
-}
-// void EditorManagerViewModel::resizeWindow(int width, int height){
-//     _manager->getActiveEditor()->resize(width, height);
-// }
 void EditorManagerViewModel::resize(int width, int height){
     _manager->getActiveEditor()->resize(width, height);
     
@@ -121,11 +128,11 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<EditorManagerViewModel>("EditorManagerViewModel")
         .constructor<>()
         .function("getNumberEditors", &EditorManagerViewModel::getNumberEditors)
+        .function("getActiveEditor", &EditorManagerViewModel::getActiveEditor)
         .function("getEditorByIndex", &EditorManagerViewModel::getEditorByIndex)
         .function("registerEvent", &EditorManagerViewModel::registerEvent)
         .function("changeActiveEditor", &EditorManagerViewModel::changeActiveEditor)
         .function("createProject", &EditorManagerViewModel::createProject)
-        .function("render", &EditorManagerViewModel::render)
         .function("resize", &EditorManagerViewModel::resize)
         .function("copy", &EditorManagerViewModel::copy)
         .function("paste", &EditorManagerViewModel::paste)

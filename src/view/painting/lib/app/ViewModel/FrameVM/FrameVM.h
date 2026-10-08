@@ -32,18 +32,18 @@ private:
 
     vector<LayerViewModel> layerViewModel;
     
-    Frame* getActiveFrame();
     EditorManager*  _manager;
     Editor* _editor;
     Frame* _frame;
     float _initialOpacity;
 
 public:
-    FrameVM();
+    FrameVM(std::string editorId, std::string id);
     ~FrameVM();
     
-    void registerEvent(string eventType, emscripten::val callback);
+    void registerEvent(std::string eventType, emscripten::val callback);
     
+    LayerDTO getActiveLayer();
     LayerDTO getLayerByIndex(size_t index);
     size_t getNumberLayers();
     void changeActiveLayer(std::string id);

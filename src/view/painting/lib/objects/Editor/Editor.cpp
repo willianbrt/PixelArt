@@ -17,6 +17,12 @@ Editor::~Editor(){
 void Editor::registerEvent(IEditorObserver* observer){
     observers.push_back(observer);
 }
+void Editor::unregisterEvent(IEditorObserver* observer){
+    observers.erase(
+        std::remove(observers.begin(), observers.end(), observer),
+        observers.end()
+    );
+}
 
 Preview* Editor::preview(){ return _preview; }
 DrawingSession* Editor::getDrawingSession(){ return _drawingSession; }
@@ -178,6 +184,16 @@ void Editor::setID(Guid id){
 Guid Editor::getID(){
     return _id;
 }
+Frame* Editor::getFrameById(Guid id){
+    for (int i = 0; i < frames.size(); i++) {
+        if(frames[i]->getID() == id){
+            return frames[i].get();
+        }
+    }
+    return nullptr;
+}
+
+
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){

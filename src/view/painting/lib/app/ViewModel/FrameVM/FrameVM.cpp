@@ -1,22 +1,17 @@
 #include "FrameVM.h"
 
 
-FrameVM::FrameVM(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-   _frame = _editor->getActiveFrame();
+FrameVM::FrameVM(std::string editorId, std::string id){
+    _manager = AppContext::instance().getEditorManager();
+    _editor = _manager->getEditorById(Guid(editorId));
+    _frame = _editor->getFrameById(Guid(id));
 
     _frame->registerEvent(this);
 }
 FrameVM::~FrameVM(){
+    _frame->unregisterEvent(this);
 }
-Frame* FrameVM::getActiveFrame(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-
-   return _editor->getActiveFrame();
-}
-void FrameVM::registerEvent(string eventType, emscripten::val callback){
+void FrameVM::registerEvent(std::string eventType, emscripten::val callback){
     if(eventType == "ADD_LAYER"){
         observable[FRAME_EVENT_TYPE::ADD_LAYER] = callback;
         return;
@@ -35,6 +30,22 @@ void FrameVM::registerEvent(string eventType, emscripten::val callback){
     }
 }
 
+LayerDTO FrameVM::getActiveLayer(){
+    Layer* layer = _frame->getActiveLayer();
+
+    LayerDTO layerDTO;
+    layerDTO.id = layer->getID().toString();
+    layerDTO.name = layer->getName();
+    layerDTO.opacity = layer->getOpacity();
+    layerDTO.isLock = layer->isLock();
+    layerDTO.isVisible = layer->isVisible();
+    layerDTO.buffer = emscripten::val(emscripten::typed_memory_view(layer->getWidth()* layer->getHeight()*4, reinterpret_cast<uint8_t*>(layer->getBuffer())));
+    layerDTO.width = layer->getWidth();
+    layerDTO.height = layer->getHeight();
+    layerDTO.isActive = _frame->getActiveLayer() == layer;
+    
+    return layerDTO;
+}
 LayerDTO FrameVM::getLayerByIndex(size_t index){
     Layer* layer = _frame->getLayerByIndex(index);
 
@@ -58,13 +69,9 @@ size_t FrameVM::getNumberLayers(){
 
 
 void FrameVM::changeActiveLayer(std::string id){
-    getActiveFrame()->changeActiveLayer(Guid(id));
+    _frame->changeActiveLayer(Guid(id));
 }
 void FrameVM::createLayer(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
-
     auto layer = std::make_unique<Layer>("Layer 1", _editor->getWidth(), _editor->getHeight());
     size_t activeLayerIndex = _frame->getLayerIndex(_frame->getActiveLayer()->getID()); 
     
@@ -72,37 +79,21 @@ void FrameVM::createLayer(){
     command.execute();
 }
 void FrameVM::removeActiveLayer(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
-
     Layer* layer = _frame->getActiveLayer();
     RemoveLayerCommand command(*_frame, layer->getID());
     command.execute();
 }
 void FrameVM::cloneActiveLayer(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
-
     Layer* layer = _frame->getActiveLayer();
     CloneLayerCommand command(layer->getID(), *_frame);
     command.execute();
 }
 
 void FrameVM::moveLayerTo(std::string id, std::string afterId){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
-
     MoveLayerToCommand command(*_frame, Guid(id), _frame->getLayerIndex(Guid(afterId)));
     command.execute();
 }
 void FrameVM::moveDownActiveLayer(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
-
     Layer* layer = _frame->getActiveLayer();
     size_t index = _frame->getLayerIndex(layer->getID());
     if(index < 0) return;
@@ -111,10 +102,6 @@ void FrameVM::moveDownActiveLayer(){
     command.execute();
 }
 void FrameVM::moveUpActiveLayer(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
-
     Layer* layer = _frame->getActiveLayer();
     size_t index = _frame->getLayerIndex(layer->getID());
 
@@ -129,26 +116,14 @@ void FrameVM::flipYLayer(){
 }
 
 void FrameVM::beginChangeActiveLayerOpacity(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
     Layer* _layer = _frame->getActiveLayer();
     _initialOpacity = _layer->getOpacity();
-    
 }
-
 void FrameVM::onChangeActiveLayerOpacity(float opacity){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
     Layer* _layer = _frame->getActiveLayer();
     _layer->setOpacity(opacity);
 }
-
 void FrameVM::endChangeActiveLayerOpacity(){
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
-    Frame* _frame = _editor->getActiveFrame();
     Layer* _layer = _frame->getActiveLayer();
 
     if(_initialOpacity ==  _layer->getOpacity() || _initialOpacity < 0) return;
@@ -158,7 +133,6 @@ void FrameVM::endChangeActiveLayerOpacity(){
 
     _initialOpacity = -1;
 }
-
 
 void FrameVM::onChangeActiveLayer(Guid id){
     endChangeActiveLayerOpacity();
@@ -190,8 +164,6 @@ void FrameVM::onRemoveLayer(Guid id){
     if (it != observable.end()) {
         it->second(id.toString());
     }
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void FrameVM::onMoveLayerTo(Guid id, int index){
@@ -199,9 +171,6 @@ void FrameVM::onMoveLayerTo(Guid id, int index){
     if (it != observable.end()) {
         it->second(id, index);
     }
-
-    EditorManager*  _manager = AppContext::instance().getEditorManager();
-    Editor* _editor = _manager->getActiveEditor();
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 
@@ -246,8 +215,9 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<FrameVM>("FrameVM")
-        .constructor<>()
+        .constructor<std::string, std::string>()
         .function("getNumberLayers", &FrameVM::getNumberLayers)
+        .function("getActiveLayer", &FrameVM::getActiveLayer)
         .function("getLayerByIndex", &FrameVM::getLayerByIndex)
         .function("registerEvent", &FrameVM::registerEvent)
         .function("changeActiveLayer", &FrameVM::changeActiveLayer)

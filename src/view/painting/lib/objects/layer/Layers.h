@@ -46,6 +46,7 @@ public:
     void draw(IGraphic& graphic) override;
     
     void registerEvent(ILayerObserver* observer);
+    void unregisterEvent(ILayerObserver* observer);
     
     void setID(Guid id);
     Guid getID() const;

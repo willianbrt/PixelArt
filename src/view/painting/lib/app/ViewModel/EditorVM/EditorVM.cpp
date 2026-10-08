@@ -1,19 +1,18 @@
 #include "EditorVM.h"
 
 
-EditorVM::EditorVM(){
+EditorVM::EditorVM(std::string id){
     _manager = AppContext::instance().getEditorManager();
-    _editor = _manager->getActiveEditor();
+    _editor = _manager->getEditorById(Guid(id));
     _editor->registerEvent(this);
 }
+EditorVM::~EditorVM(){
+    _editor->unregisterEvent(this);
+}
 Editor* EditorVM::getActiveEditor(){
-    EditorManager* _manager = AppContext::instance().getEditorManager();
-
     return _manager->getActiveEditor();
 }
-EditorVM::~EditorVM(){
-}
-void EditorVM::registerEvent(string eventType, emscripten::val callback){
+void EditorVM::registerEvent(std::string eventType, emscripten::val callback){
     if(eventType == "ADD_FRAME"){
         observable[EDITOR_EVENT_TYPE::ADD_FRAME] = callback;
         return;
@@ -40,8 +39,6 @@ void EditorVM::onChangeActiveFrame(Guid id){
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 void EditorVM::onAddFrame(Frame* frame, size_t index){
-    Editor* _editor = getActiveEditor();
-
     FrameDTO frameDTO;
     frameDTO.id = frame->getID().toString();
     frameDTO.timeDuration = frame->getFrameDuration();
@@ -71,30 +68,40 @@ void EditorVM::onMoveFrameTo(Guid id, int index){
     _editor->getDirtyManager()->markDirty({{0,0},{_editor->getWidth()-1, _editor->getHeight()-1}});
 }
 
-FrameDTO EditorVM::getFrameByIndex(size_t index){
-    Editor* activeEditor = getActiveEditor();
-    Frame* frame = activeEditor->getFrameByIndex(index);
+FrameDTO EditorVM::getActiveFrame(){
+    Frame* frame = _editor->getActiveFrame();
 
     FrameDTO frameDTO;
     frameDTO.id = frame->getID().toString();
     frameDTO.timeDuration = frame->getFrameDuration();
-    frameDTO.buffer = emscripten::val(emscripten::typed_memory_view(activeEditor->getWidth()* activeEditor->getHeight()*4, reinterpret_cast<uint8_t*>(frame->getBuffer())));
-    frameDTO.width = activeEditor->getWidth();
-    frameDTO.height = activeEditor->getHeight();
-    frameDTO.isActive = activeEditor->getActiveFrame() == frame;
+    frameDTO.buffer = emscripten::val(emscripten::typed_memory_view(_editor->getWidth()* _editor->getHeight()*4, reinterpret_cast<uint8_t*>(frame->getBuffer())));
+    frameDTO.width = _editor->getWidth();
+    frameDTO.height = _editor->getHeight();
+    frameDTO.isActive = true;
+    
+    return frameDTO;
+}
+FrameDTO EditorVM::getFrameByIndex(size_t index){
+    Frame* frame = _editor->getFrameByIndex(index);
+
+    FrameDTO frameDTO;
+    frameDTO.id = frame->getID().toString();
+    frameDTO.timeDuration = frame->getFrameDuration();
+    frameDTO.buffer = emscripten::val(emscripten::typed_memory_view(_editor->getWidth()* _editor->getHeight()*4, reinterpret_cast<uint8_t*>(frame->getBuffer())));
+    frameDTO.width = _editor->getWidth();
+    frameDTO.height = _editor->getHeight();
+    frameDTO.isActive = _editor->getActiveFrame() == frame;
     
     return frameDTO;
 }
 size_t EditorVM::getNumberFrames(){
-    return getActiveEditor()->getFramesLength();
+    return _editor->getFramesLength();
 }
 
 void EditorVM::changeActiveFrame(std::string id){
-    Editor* _editor = getActiveEditor();
     _editor->changeActiveFrame(Guid(id));
 }
 void EditorVM::createFrame(){
-    Editor* _editor = getActiveEditor();
     auto frame = std::make_unique<Frame>();
     auto layer = std::make_unique<Layer>("layer 1", _editor->getWidth(), _editor->getHeight());
     frame.get()->addLayer(std::move(layer), 0);
@@ -105,18 +112,15 @@ void EditorVM::createFrame(){
     command.execute();
 }
 void EditorVM::cloneActiveFrame(){
-    Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
     CloneFrameCommand command(*_editor, frame->getID());
     command.execute();
 }
 void EditorVM::moveFrameTo(std::string id, int index){
-    Editor* _editor = getActiveEditor();
     MoveFrameToCommand command(*_editor, Guid(id), index);
     command.execute();
 }
 void EditorVM::moveDownActiveFrame(){
-    Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
     size_t index = _editor->getFrameIndex(frame->getID());
     if(index < 0) return;
@@ -125,7 +129,6 @@ void EditorVM::moveDownActiveFrame(){
     command.execute();
 }
 void EditorVM::moveUpActiveFrame(){
-    Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
     size_t index = _editor->getFrameIndex(frame->getID());
 
@@ -135,18 +138,15 @@ void EditorVM::moveUpActiveFrame(){
     command.execute();
 }
 void EditorVM::removeActiveFrame(){
-    Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
 
     RemoveFrameCommand command(*_editor, frame->getID());
     command.execute();
 }
 void EditorVM::flipXFrame(){
-    Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
 }
 void EditorVM::flipYFrame(){
-    Editor* _editor = getActiveEditor();
     Frame* frame = _editor->getActiveFrame();
 }
 
@@ -157,9 +157,10 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<EditorVM>("EditorVM")
-        .constructor<>()
+        .constructor<std::string>()
         .function("getNumberFrames", &EditorVM::getNumberFrames)
         .function("getFrameByIndex", &EditorVM::getFrameByIndex)
+        .function("getActiveFrame", &EditorVM::getActiveFrame)
         .function("registerEvent", &EditorVM::registerEvent)
         .function("changeActiveFrame", &EditorVM::changeActiveFrame)
         .function("createFrame", &EditorVM::createFrame)
