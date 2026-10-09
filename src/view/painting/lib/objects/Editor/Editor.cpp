@@ -33,7 +33,6 @@ void Editor::compose(){
     compose(boundingSketch);
 }
 void Editor::compose(Bounding area){
-    printf("compor, %i-%i\n", area.end.x, area.end.y);
     if(area.start.x > _sketch->getWidth() || area.start.y > _sketch->getHeight()) return;
     if(area.start.x < 0 || area.start.y < 0) return;
 
@@ -54,8 +53,9 @@ void Editor::compose(Bounding area){
             // active frame
             colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, 0, drawingLayerIndex));
             if(drawingLayer && drawingLayer->isVisible()){
-                colorHex = GraphicsEngine::blendColors(colorHex, _preview->getPixel(index));
-                GraphicsEngine::setOpacity(colorHex, drawingLayer->getOpacity());
+                unsigned int drawingPixel = _preview->getPixel(index);
+                GraphicsEngine::setOpacity(drawingPixel, drawingLayer->getOpacity());
+                colorHex = GraphicsEngine::blendColors(colorHex, drawingPixel);
             } else {
                 colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, drawingLayerIndex, drawingLayerIndex+1));
             }
