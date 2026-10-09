@@ -131,7 +131,7 @@ async function ChromaticRender(canvas){
         
         gl.uniform1f(thinknessHUELocation, obj.thinknessMarker);
         gl.uniform2f(rectLocation, obj.rect, obj.rect);
-        gl.uniform1f(hueLocation, color.hsl.h/255.0);
+        gl.uniform1f(hueLocation, color.hsl.h/360.0);
         gl.uniform2f(resLocation, canvas.width,canvas.height);
         gl.uniform2f(hueMarkerPositionLocation, hueMarkerPosition.x, hueMarkerPosition.y);
         gl.uniform2f(colorMarkerPositionLocation, colorMarkerPosition.x, colorMarkerPosition.y);
