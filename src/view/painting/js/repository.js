@@ -10,7 +10,6 @@ export function repository(){
                 autoIncrement: true
             });
             s.createIndex('id', 'id');
-            s.createIndex("buffer", "buffer", {unique:true});
         }
 
         if (!db.objectStoreNames.contains("palette")) {

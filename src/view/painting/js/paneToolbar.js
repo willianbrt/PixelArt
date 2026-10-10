@@ -1,29 +1,28 @@
 import { app } from "./app.js"
 import { modal, carousel } from "./elements.js"
 
-// let t = await app.database.table("pattern");
-// t.put(new Uint8Array([200,200,200,200]));
 
 const thickness = document.querySelector("input[name='size']");
 const hardness = document.querySelector("input[name='strength']");
 hardness.value = 100;
+
 // checked
 var pixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
 var mirrorX = document.querySelector("#mirror-x input[type='checkbox']");
 var mirrorY = document.querySelector("#mirror-y input[type='checkbox']");
 var fill = document.querySelector("#fill input[type='checkbox']");
 
+let toolViewModel;
+let brushSettings;
+let drawingSettings;
+let symmetrySettings;
+
 export async function buildPaneToolBar(){
-    const toolViewModel = app.paneToolViewModel();
-    const brushSettings = app.brushSettingsVM();
-    const drawingSettings = app.drawingSettingsVM();
-    const symmetrySettings = app.symmetrySettingsVM();
-        
-    const  buffer = new Uint8Array([100,0,0,0, 255,0,0,0]);
-    const patternPtr = app.malloc(buffer);
-    const size = buffer.byteLength/4;
-    const width = 2;
-    brushSettings.setPattern(patternPtr, size, width);
+    toolViewModel = app.paneToolViewModel();
+    brushSettings = app.brushSettingsVM();
+    drawingSettings = app.drawingSettingsVM();
+    symmetrySettings = app.symmetrySettingsVM();
+    let patternRepository = await PatternRepository();
 
 
     thickness.onchange = (e)=>{ drawingSettings.setSize(parseInt(e.srcElement.value)); }
@@ -31,11 +30,12 @@ export async function buildPaneToolBar(){
     mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
     mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
+
     // symmetrySettings.enabledTilingX(true);
     // symmetrySettings.enabledTilingY(true);
     // thickness.onchange = (e)=>{ drawingSetting   s.setColor(parseInt(e.srcElement.value)); }
     toolViewModel.setPressedTool("brush");
-        
+
     let modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
     let shapePagination = carousel({
         id: "#shape-patterns",
@@ -46,11 +46,10 @@ export async function buildPaneToolBar(){
             return elem;
         },
         search: async (index,limit)=>{
-            let table = await app.database.table("pattern");
-            let data = await table.getAll(index*limit, limit);
-            let size = await table.size();
-
-            return {data, dataLength: size};
+            return {
+                data: await patternRepository.getAll(index*limit, limit),
+                dataLength: await patternRepository.getSize()
+            };
         },
         element: elemPagination
     });
@@ -64,11 +63,10 @@ export async function buildPaneToolBar(){
             return elem;
         },
         search: async (index,limit)=>{
-            let table = await app.database.table("pattern");
-            let data = await table.getAll(index*limit, limit);
-            let size = await table.size();
-
-            return {data, dataLength: size};
+            return {
+                data: await patternRepository.getAll(index*limit, limit),
+                dataLength: await patternRepository.getSize()
+            };
         },
         element: elemPagination
     });
@@ -81,11 +79,10 @@ export async function buildPaneToolBar(){
             return elem;
         },
         search: async (index,limit)=>{
-            let table = await app.database.table("pattern");
-            let data = await table.getAll(index*limit, limit);
-            let size = await table.size();
-
-            return {data, dataLength: size};
+            return {
+                data: await patternRepository.getAll(index*limit, limit),
+                dataLength: await patternRepository.getSize()
+            };
         },
         element: elemPagination
     });
@@ -231,21 +228,10 @@ function createFloatingToolbar() {
     }
 }
 
-function getPattern(jsPattern) {
-    let cppPattern = new module.VectorVectorFloat();
-
-    jsPattern.forEach(row => {
-        let rowVec = new module.VectorFloat();
-        row.forEach(v => rowVec.push_back(v*getWeight()));
-        cppPattern.push_back(rowVec);
-    });
-
-    return cppPattern;
-}
-
-
 function elemPagination(data){
     const pageElementList = this;
+    
+    const patternPtr = app.malloc(data.buffer);
 
     const imgData = new ImageData(new Uint8ClampedArray(data.buffer), data.width,data.height);
     const SIZE_DEST_CANVAS = {x:24, y: 24};
@@ -271,13 +257,50 @@ function elemPagination(data){
 
     let brushPattern = document.createElement("div");
     brushPattern.className = "brush-pattern";
-    // if(activePattern == i)
-    //     brushPattern.classList.add("active");
 
     brushPattern.append(canvasPattern);
     brushPattern.addEventListener("click", function(e){
+        const size = data.buffer.byteLength/4;
+        brushSettings.setPattern(patternPtr, size, data.width);
+
+
         pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
         this.classList.add("active");
     });
     return brushPattern;
+}
+async function PatternRepository(){
+    let table = await app.database.table("pattern");
+
+    let pattern = {
+        put: async function(id, buffer, width, height, is_system){
+            return await table.put({id, buffer, width, height, is_system});
+        },
+        remove: async function(id){
+            const elem = await table.findBy("id", parseInt(id));
+            if(elem.is_system)
+                throw { source: "[PatternFactory]", description: "Object of System."};
+
+            table.delete(elem.id);
+        },
+        get: async function(id){
+            return await table.getById(parseInt(id));
+        },
+        getAll: async (index, limit)=>{ return await table.getAll(index*limit, limit); },
+        getSize: async ()=>{ return await table.size(); }
+    };
+
+    try{
+
+        if(!await table.findBy("id", 1))
+            // pattern.put(1, new Uint8Array([154,0,0,0, 255,0,0,0, 90,0,0,0, 255,0,0,0, 154,0,0,0, 154,0,0,0]), 2, 3, true);
+            pattern.put(1, new Uint8Array([0,255,0,0, 255,0,255,0, 255,0,0,0, 255,0,0,0, 255,0,0,0, 255,0,0,0]), 2, 3, true);
+        
+        // pattern.put(2, new Uint8Array([154,0,0,255, 255,0,0,255, 90,0,0,255, 255,0,0,255, 154,0,0,255, 154,0,0,255]), 2, 3, true);
+
+    } catch(e){
+        console.error(e);
+    }
+
+    return pattern;
 }
