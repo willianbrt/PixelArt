@@ -43,6 +43,9 @@ target_compile_options(${TARGET} PRIVATE
 
 # Flags de link (Emscripten)
 target_link_options(${TARGET} PRIVATE
+    -sEXPORTED_FUNCTIONS=['_main','_malloc','_free']
+    -sEXPORTED_RUNTIME_METHODS=['HEAPU8','HEAPU32']
+
     -O3
     -sENVIRONMENT=web
     -sMODULARIZE=1
@@ -56,6 +59,7 @@ target_link_options(${TARGET} PRIVATE
     -sUSE_GLFW=3
 
     -lembind
+
     # -O3
     # -gsource-map
 

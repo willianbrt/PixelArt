@@ -4,7 +4,6 @@ BrushStrategy::BrushStrategy(BrushContext* brushContext, DrawingContext* drawing
 _brushContext(brushContext),
 _drawingContext(drawingContext)
 {
-    _brushContext->setActivePattern("brush_1");
     _brushContext->transformation.setScale({1.0f, 1.0f});
     _brushContext->transformation.setRad(0  * M_PI / 180);
 }

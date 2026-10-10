@@ -38,7 +38,8 @@ public:
     void setHardness(float hardness);
     void setColor(unsigned int color);
     
-    void setPattern(string shape);
+    void setPattern(uintptr_t ptr, int size, int factor);
+    void setShape(string shape);
     emscripten::val getShape(string shape);
 };
 

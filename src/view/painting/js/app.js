@@ -24,6 +24,11 @@ async function init(){
         canvas,
         resize: module.resize,
         database: _database,
+        malloc: (buffer)=>{
+            const ptr =  module._malloc(buffer.byteLength);
+            module.HEAPU8.set(buffer, ptr);
+            return ptr;
+        },
         
         editorManagerViewModel: ()=> { return new module.EditorManagerViewModel() },
         editorVM: (editorId)=> { return new module.EditorVM(editorId); },

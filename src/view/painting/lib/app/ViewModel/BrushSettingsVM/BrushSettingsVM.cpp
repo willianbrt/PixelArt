@@ -21,16 +21,21 @@ void BrushSettingsVM::setHardness(float hardness){
 void BrushSettingsVM::setColor(unsigned int color){
     _toolSettings->drawingContext.color = color;
 }
-void BrushSettingsVM::setPattern(string pattern){
+void BrushSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
+    std::free(_toolSettings->brushContext.selectedPattern);
+    Pattern* pattern = new Pattern("teste", reinterpret_cast<unsigned int*>(ptr), size, factor);
+    _toolSettings->brushContext.selectedPattern = pattern;
+}
+void BrushSettingsVM::setShape(string pattern){
     if(pattern == "square"){
-        _toolSettings->brushContext.getPattern("dot");
+        _toolSettings->brushContext.setShape("dot");
         return;
     }
     if(pattern == "circle"){
-        _toolSettings->brushContext.getPattern("circle");
+        _toolSettings->brushContext.setShape("circle");
         return;
     }
-    _toolSettings->brushContext.getPattern(pattern);
+    _toolSettings->brushContext.setShape(pattern);
 }
 emscripten::val BrushSettingsVM::getShape(string pattern){
     DrawBuffer draw(_toolSettings->drawingContext.size, _toolSettings->drawingContext.size);
@@ -74,6 +79,7 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setHardness", &BrushSettingsVM::setHardness)
         .function("setColor", &BrushSettingsVM::setColor)
         .function("setPattern", &BrushSettingsVM::setPattern)
+        .function("setShape", &BrushSettingsVM::setShape)
         .function("getShape", &BrushSettingsVM::getShape)
         ;
 };

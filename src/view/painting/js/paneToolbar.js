@@ -1,6 +1,8 @@
 import { app } from "./app.js"
 import { modal, carousel } from "./elements.js"
 
+// let t = await app.database.table("pattern");
+// t.put(new Uint8Array([200,200,200,200]));
 
 const thickness = document.querySelector("input[name='size']");
 const hardness = document.querySelector("input[name='strength']");
@@ -16,11 +18,23 @@ export async function buildPaneToolBar(){
     const brushSettings = app.brushSettingsVM();
     const drawingSettings = app.drawingSettingsVM();
     const symmetrySettings = app.symmetrySettingsVM();
+        
+    const  buffer = new Uint8Array([100,0,0,0, 255,0,0,0]);
+    const patternPtr = app.malloc(buffer);
+    const size = buffer.byteLength/4;
+    const width = 2;
+    brushSettings.setPattern(patternPtr, size, width);
+
+
     thickness.onchange = (e)=>{ drawingSettings.setSize(parseInt(e.srcElement.value)); }
     hardness.onchange = (e)=>{ drawingSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
     mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
     mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
+    // symmetrySettings.enabledTilingX(true);
+    // symmetrySettings.enabledTilingY(true);
+    // thickness.onchange = (e)=>{ drawingSetting   s.setColor(parseInt(e.srcElement.value)); }
+    toolViewModel.setPressedTool("brush");
         
     let modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
     let shapePagination = carousel({
@@ -76,10 +90,6 @@ export async function buildPaneToolBar(){
         element: elemPagination
     });
 
-    // symmetrySettings.enabledTilingX(true);
-    // symmetrySettings.enabledTilingY(true);
-    // thickness.onchange = (e)=>{ drawingSetting   s.setColor(parseInt(e.srcElement.value)); }
-    toolViewModel.setPressedTool("brush");
 
     const btnPencil = document.querySelector(".tool-pencil");
     btnPencil.addEventListener("click", function(e){
