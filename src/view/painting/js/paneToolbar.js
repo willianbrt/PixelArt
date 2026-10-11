@@ -232,8 +232,16 @@ function elemPagination(data){
     const pageElementList = this;
     
     const patternPtr = app.malloc(data.buffer);
+    let buffer = [];
+    for(let i = 0; i < data.buffer.byteLength; i+=4){
+        buffer[i] = data.buffer[i+3];
+        buffer[i+1] = data.buffer[i+1]; 
+        buffer[i+2] = data.buffer[i+2]; 
+        buffer[i+3] = data.buffer[i];
+    }
+    
+    const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
 
-    const imgData = new ImageData(new Uint8ClampedArray(data.buffer), data.width,data.height);
     const SIZE_DEST_CANVAS = {x:24, y: 24};
     let scale = Math.min(SIZE_DEST_CANVAS.x/data.width, SIZE_DEST_CANVAS.y/data.height);
     let resized = {x: data.width*scale, y: data.height*scale}
@@ -293,8 +301,8 @@ async function PatternRepository(){
     try{
 
         if(!await table.findBy("id", 1))
-            // pattern.put(1, new Uint8Array([154,0,0,0, 255,0,0,0, 90,0,0,0, 255,0,0,0, 154,0,0,0, 154,0,0,0]), 2, 3, true);
-            pattern.put(1, new Uint8Array([0,255,0,0, 255,0,255,0, 255,0,0,0, 255,0,0,0, 255,0,0,0, 255,0,0,0]), 2, 3, true);
+            pattern.put(1, new Uint8Array([154,0,0,0, 255,0,0,0, 90,0,0,0, 255,0,0,0, 154,0,0,0, 154,0,0,0]), 2, 3, true);
+            // pattern.put(1, new Uint8ClampedArray([0,255,0,255, 0,0,255,255, 255,0,0,255, 255,255,0,0, 255,0,255,0, 255,0,0,255]), 2, 3, true);
         
         // pattern.put(2, new Uint8Array([154,0,0,255, 255,0,0,255, 90,0,0,255, 255,0,0,255, 154,0,0,255, 154,0,0,255]), 2, 3, true);
 
