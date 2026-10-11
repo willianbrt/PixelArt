@@ -272,9 +272,36 @@ function elemPagination(data){
         brushSettings.setPattern(patternPtr, size, data.width);
 
 
+    const SIZE_ACTIVE_CANVAS = {x:16, y: 16};
+        const transformActiveCanvas = fitContent({x: data.width, y: data.height}, SIZE_ACTIVE_CANVAS); 
+        
+        let activeCanvas = document.querySelector("#btn-modal-brush canvas");
+        let ctxActiveCanvas = activeCanvas.getContext("2d");
+        activeCanvas.width = SIZE_ACTIVE_CANVAS.x;
+        activeCanvas.height = SIZE_ACTIVE_CANVAS.y;
+        ctxActiveCanvas.imageSmoothingEnabled = false;
+        ctxActiveCanvas.drawImage(offPattern, transformActiveCanvas.pan.x, transformActiveCanvas.pan.y, transformActiveCanvas.resized.x,transformActiveCanvas.resized.y);
+        
+    
         pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
         this.classList.add("active");
     });
+
+
+    function fitContent(source, dest){
+        let scale = Math.min(dest.x/source.x, dest.y/source.y);
+        let resized = {x: source.x*scale, y: source.y*scale};
+        let pan = {
+            x: (dest.x - resized.x) / 2,
+            y: (dest.y - resized.y) / 2
+        }
+        return {
+            scale,
+            resized,
+            pan
+        }
+    }
+
     return brushPattern;
 }
 async function PatternRepository(){
@@ -299,12 +326,8 @@ async function PatternRepository(){
     };
 
     try{
-
-        if(!await table.findBy("id", 1))
-            pattern.put(1, new Uint8Array([154,0,0,0, 255,0,0,0, 90,0,0,0, 255,0,0,0, 154,0,0,0, 154,0,0,0]), 2, 3, true);
-            // pattern.put(1, new Uint8ClampedArray([0,255,0,255, 0,0,255,255, 255,0,0,255, 255,255,0,0, 255,0,255,0, 255,0,0,255]), 2, 3, true);
-        
-        // pattern.put(2, new Uint8Array([154,0,0,255, 255,0,0,255, 90,0,0,255, 255,0,0,255, 154,0,0,255, 154,0,0,255]), 2, 3, true);
+        pattern.put(1, new Uint8Array([154,0,0,0, 255,0,0,0, 90,0,0,0, 255,0,0,0, 154,0,0,0, 154,0,0,0]), 2, 3, true);
+        pattern.put(2, new Uint8Array([154,0,255,0, 255,0,255,0, 90,0,255,0, 255,0,255,0, 154,0,255,0, 154,0,255,0]), 2, 3, true);
 
     } catch(e){
         console.error(e);

@@ -14,6 +14,7 @@ public:
     unsigned int* buffer;
     int width;
     int height;
+    Point source;
 
     // Pattern(std::string n, std::vector<unsigned int> b, int w, int h)   
     //     : name(std::move(n)), buffer(std::move(b)), width(w), height(h) {}
@@ -28,11 +29,29 @@ public:
     unsigned int getPixel(int x, int y) override {  return getPixel(x+y*width); }
     unsigned int getPixel(unsigned int index) override { return buffer[index]; }
 };
+
+enum FILL_MODE{
+    FILL = 0,
+    MASK = 1,
+    STAMP = 2
+};
+
+enum ALIGN_MODE{
+    BRUSHING = 0,
+    LOCAL = 1,
+    SOURCE = 2
+};
+
+
 class BrushContext {
 private:
 
 public:
     BrushContext();
+
+    FILL_MODE fillMode = FILL_MODE::FILL;
+    ALIGN_MODE alignMode = ALIGN_MODE::BRUSHING;
+
     Transformation transformation;
     Pattern* selectedPattern;
     unsigned int* getShape(std::string name);

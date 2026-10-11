@@ -25,16 +25,26 @@ private:
     Editor* editor;
     EditorManager* _manager;
     ToolManager* _toolManager;
+    ToolSettings* _toolSettings;
     
     GLint brushSizeLocation;
-    GLint texSizeLocationH;
+    GLint fillModeLocation;
+    GLint alignModeLocation;
+    GLint maskAlignLocation;
+    GLint brushColorLocation;
+    GLint hardnessLocation;
+    GLint editorSizeLocation;
+    GLint texPatternSizeLocationH;
+    GLint texShapeSizeLocationH;
+    
     
     Quad quad;
     Shader shader;
-    Texture texture;
+    Texture texturePattern;
+    Texture textureShape;
 
 public:
-    CursorPass(EditorManager* manager, ToolManager* toolManager, ViewportContext* viewport);
+    CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSettings* toolSettings, ViewportContext* viewport);
     ~CursorPass();
 
     void render();
