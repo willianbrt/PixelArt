@@ -231,7 +231,6 @@ function createFloatingToolbar() {
 function elemPagination(data){
     const pageElementList = this;
     
-    const patternPtr = app.malloc(data.buffer);
     let buffer = [];
     for(let i = 0; i < data.buffer.byteLength; i+=4){
         buffer[i] = data.buffer[i+3];
@@ -268,11 +267,12 @@ function elemPagination(data){
 
     brushPattern.append(canvasPattern);
     brushPattern.addEventListener("click", function(e){
+        const patternPtr = app.malloc(data.buffer);
         const size = data.buffer.byteLength/4;
         brushSettings.setPattern(patternPtr, size, data.width);
 
 
-    const SIZE_ACTIVE_CANVAS = {x:16, y: 16};
+        const SIZE_ACTIVE_CANVAS = {x:16, y: 16};
         const transformActiveCanvas = fitContent({x: data.width, y: data.height}, SIZE_ACTIVE_CANVAS); 
         
         let activeCanvas = document.querySelector("#btn-modal-brush canvas");

@@ -103,13 +103,25 @@ void CursorPass::render(){
     if(cursor->pattern == nullptr)  return;
     if(!cursor->pattern->getBuffer())  return;
 
-    ISurface* pattern = cursor->pattern;
-    textureShape.init(pattern);
-    if(!textureShape.isInitialized()) return;
+    if(_pattern != cursor->pattern){
+        printf("troquei pattern\n");
+        _pattern = cursor->pattern;
+        textureShape.init(_pattern);
+        if(!textureShape.isInitialized()) return;
 
-    ISurface* shape = _toolSettings->brushContext.selectedPattern;
-    texturePattern.init(shape);
-    if(!texturePattern.isInitialized()) return;
+        // Bounding dirty = {{0,0},{_pattern->getWidth()-1, _pattern->getHeight()-1}};
+        // textureShape.upload(dirty);
+    }
+
+    if(_shape != _toolSettings->brushContext.selectedPattern){
+        printf("troquei shape   \n");
+        _shape = _toolSettings->brushContext.selectedPattern;
+        texturePattern.init(_shape);
+        if(!texturePattern.isInitialized()) return;
+
+        // Bounding dirty = {{0,0},{_shape->getWidth()-1, _shape->getHeight()-1}};
+        // texturePattern.upload(dirty);
+    }
 
     shader.use();
     textureShape.active();
@@ -120,8 +132,8 @@ void CursorPass::render(){
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     glUniform2f(editorSizeLocation, _surface->getWidth(), _surface->getHeight());
-    glUniform2f(texShapeSizeLocationH, shape->getWidth(), shape->getHeight());
-    glUniform2f(texPatternSizeLocationH, pattern->getWidth(), pattern->getHeight());
+    glUniform2f(texShapeSizeLocationH, _shape->getWidth(), _shape->getHeight());
+    glUniform2f(texPatternSizeLocationH, _pattern->getWidth(), _pattern->getHeight());
 
     glUniform2f(brushSizeLocation, (float)_toolSettings->drawingContext.size, (float)_toolSettings->drawingContext.size);
     

@@ -26,6 +26,8 @@ private:
     EditorManager* _manager;
     ToolManager* _toolManager;
     ToolSettings* _toolSettings;
+    ISurface* _shape = nullptr;
+    ISurface* _pattern = nullptr;
     
     GLint brushSizeLocation;
     GLint fillModeLocation;

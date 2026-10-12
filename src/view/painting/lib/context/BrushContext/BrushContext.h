@@ -20,7 +20,10 @@ public:
     //     : name(std::move(n)), buffer(std::move(b)), width(w), height(h) {}
 
     Pattern(std::string n, unsigned int* b, int size, int width)   
-        : name(std::move(n)), buffer(b), width(width), height(size/width) { }
+        : name(std::move(n)), buffer(b), width(width), height(size/width) {}
+    ~Pattern(){
+        std::free(buffer);
+    }
     int getWidth() override { return width; }
     int getHeight() override { return height; }
     unsigned int* getBuffer() override { return buffer; }

@@ -22,9 +22,13 @@ void BrushSettingsVM::setColor(unsigned int color){
     _toolSettings->drawingContext.color = color;
 }
 void BrushSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
-    std::free(_toolSettings->brushContext.selectedPattern);
+    printf("%lu\n", ptr);
+
+    Pattern* flagPattern = _toolSettings->brushContext.selectedPattern;
     Pattern* pattern = new Pattern("teste", reinterpret_cast<unsigned int*>(ptr), size, factor);
     _toolSettings->brushContext.selectedPattern = pattern;
+    delete flagPattern;
+
 }
 void BrushSettingsVM::setShape(string pattern){
     if(pattern == "square"){
