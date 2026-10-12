@@ -46,7 +46,7 @@ target_link_options(${TARGET} PRIVATE
     -sEXPORTED_FUNCTIONS=['_main','_malloc','_free']
     -sEXPORTED_RUNTIME_METHODS=['HEAPU8','HEAPU32']
 
-    -O3
+    -Oz
     -sENVIRONMENT=web
     -sMODULARIZE=1
     -sEXPORT_ES6=1
