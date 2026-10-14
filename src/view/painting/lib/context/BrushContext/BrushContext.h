@@ -2,36 +2,14 @@
 #define BRUSHCONTEXT_H
 #include "../../interfaces/IToolContext/IToolContext.h"
 #include "../../interfaces/ISurface/ISurface.h"
+#include "../../interfaces/IBrushTip/IBrushTip.h"
 #include "../../graphics/Transformation/Transformation.h"
 #include <unordered_map>
 #include <vector>
 #include <string>
 
-struct Pattern : public ISurface{
-public:
-    std::string name;
-    // std::vector<unsigned int> buffer;
-    unsigned int* buffer;
-    int width;
-    int height;
-    Point source;
+#include "../../rasterize/LineRasterize/LineRasterize.h"
 
-    // Pattern(std::string n, std::vector<unsigned int> b, int w, int h)   
-    //     : name(std::move(n)), buffer(std::move(b)), width(w), height(h) {}
-
-    Pattern(std::string n, unsigned int* b, int size, int width)   
-        : name(std::move(n)), buffer(b), width(width), height(size/width) {}
-    ~Pattern(){
-        std::free(buffer);
-    }
-    int getWidth() override { return width; }
-    int getHeight() override { return height; }
-    unsigned int* getBuffer() override { return buffer; }
-
-    void putPixel(int x, int y, unsigned int color) override {}
-    unsigned int getPixel(int x, int y) override {  return getPixel(x+y*width); }
-    unsigned int getPixel(unsigned int index) override { return buffer[index]; }
-};
 
 enum FILL_MODE{
     FILL = 0,
@@ -44,21 +22,35 @@ enum ALIGN_MODE{
     LOCAL = 1,
     SOURCE = 2
 };
-
+enum BRUSH_TIP{
+    CUSTOM = 0,
+    SQUARE = 1,
+    CIRCLE = 2,
+    LINE = 3
+};
 
 class BrushContext {
 private:
+    bool isDirty = false;
+    IBrushTip* brushTip;
+    int _size = 1;
 
+    Surface* _shape;
+    Surface* _pattern;
 public:
     BrushContext();
 
     FILL_MODE fillMode = FILL_MODE::FILL;
     ALIGN_MODE alignMode = ALIGN_MODE::BRUSHING;
 
+    unsigned int color = 0x000000FF;
+    float hardness = 1.0f;
+
     Transformation transformation;
-    Pattern* selectedPattern;
-    unsigned int* getShape(std::string name);
-    void setShape(std::string name);
+    void setSize(int size);
+    int getSize();
+    Surface* getShape();
+    void setShape(IBrushTip* tip);
 };
 
 #endif

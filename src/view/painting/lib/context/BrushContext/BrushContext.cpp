@@ -1,9 +1,23 @@
 #include "BrushContext.h"
 
 BrushContext::BrushContext(){}
-unsigned int* BrushContext::getShape(std::string name){
-    return nullptr;
+
+void BrushContext::setSize(int size){
+    _size = size;
+    isDirty = true;
 }
-void BrushContext::setShape(std::string name){
-    // selectedPattern = &getPattern(name);
+
+void BrushContext::setShape(IBrushTip* tip){
+    IBrushTip* _tip = brushTip;
+    brushTip = tip;
+    delete _tip;
+    isDirty = true;
+}
+Surface* BrushContext::getShape()
+{
+    if(isDirty){
+        _shape = brushTip->getMask(_size);
+    }
+
+    return _shape;
 }

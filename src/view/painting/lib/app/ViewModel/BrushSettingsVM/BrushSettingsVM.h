@@ -7,6 +7,10 @@
 #include "../../../objects/ToolManager/ToolManager.h"
 #include "../../../rasterize/CircleRasterize/CircleRasterize.h"
 #include "../../../rasterize/LineRasterize/LineRasterize.h"
+#include "../../../rasterize/LineTip/LineTip.h"
+#include "../../../rasterize/SquareTip/SquareTip.h"
+#include "../../../rasterize/CircleTip/CircleTip.h"
+#include "../../../rasterize/CustomTip/CustomTip.h"
 #include "../../dto/BrushDTO/BrushDTO.h"
 
 class DrawBuffer : public IDraw{
@@ -40,7 +44,7 @@ public:
     void setColor(unsigned int color);
     
     void setPattern(uintptr_t ptr, int size, int factor);
-    void setShape(string shape);
+    void setCustomShape(string shape);
     BrushDTO getBrush();
     BrushDTO getShape(string shape);
 };

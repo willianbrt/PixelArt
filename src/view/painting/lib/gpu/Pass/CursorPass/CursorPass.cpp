@@ -112,8 +112,8 @@ void CursorPass::render(){
         // textureShape.upload(dirty);
     }
 
-    if(_shape != _toolSettings->brushContext.selectedPattern){
-        _shape = _toolSettings->brushContext.selectedPattern;
+    if(_shape != _toolSettings->brushContext.getShape()){
+        _shape = _toolSettings->brushContext.getShape();
         texturePattern.init(_shape);
         if(!texturePattern.isInitialized()) return;
 

@@ -38,8 +38,9 @@ void BrushStrategy::onRelease(){
 }
 
 void BrushStrategy::draw(const Point& pixel){
+    ISurface* shape = _brushContext->getShape();
     StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
-        {_brushContext->selectedPattern->width, _brushContext->selectedPattern->height},
+        {shape->getWidth(), shape->getHeight()},
         _toolRuntimeContext.drawingAreaSize,
         _brushContext->transformation);
 
@@ -47,10 +48,10 @@ void BrushStrategy::draw(const Point& pixel){
         Point it = stamp.next();
         Point src = stamp.getSrcPoint();
 
-        if(src.x < 0 || src.y < 0 || src.x > _brushContext->selectedPattern->width || src.y > _brushContext->selectedPattern->height) continue;
+        if(src.x < 0 || src.y < 0 || src.x >= shape->getWidth() || src.y >= shape->getHeight()) continue;
         
         unsigned int topColor = _drawingContext->color;
-        GraphicsEngine::setOpacity(topColor, (_brushContext->selectedPattern->buffer[src.y* _brushContext->selectedPattern->width + src.x] & 0xFF) / 255.0f);
+        GraphicsEngine::setOpacity(topColor, (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f);
 
         _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, topColor);
     }
@@ -69,7 +70,7 @@ void BrushStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* BrushStrategy::getCursorContext(){
-    _cursorContext.pattern = _brushContext->selectedPattern;
+    _cursorContext.pattern = _brushContext->getShape();
     _cursorContext.scale = _drawingContext->size;
     return &_cursorContext;
 }
