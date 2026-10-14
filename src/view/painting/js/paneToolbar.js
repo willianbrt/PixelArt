@@ -22,22 +22,24 @@ export async function buildPaneToolBar(){
     brushSettings = app.brushSettingsVM();
     drawingSettings = app.drawingSettingsVM();
     symmetrySettings = app.symmetrySettingsVM();
+
     let patternRepository = await PatternRepository();
+    
+    thickness.onchange = async (e)=>{
+        drawingSettings.setSize(parseInt(e.srcElement.value));
 
-
-    thickness.onchange = (e)=>{ drawingSettings.setSize(parseInt(e.srcElement.value)); }
+        brushPreview();
+        // (await shapePagination).update(0);
+    }
     hardness.onchange = (e)=>{ drawingSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
     mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
     mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
 
-    // symmetrySettings.enabledTilingX(true);
-    // symmetrySettings.enabledTilingY(true);
-    // thickness.onchange = (e)=>{ drawingSetting   s.setColor(parseInt(e.srcElement.value)); }
     toolViewModel.setPressedTool("brush");
 
-    let modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
-    let shapePagination = carousel({
+    var modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
+    var shapePagination = carousel({
         id: "#shape-patterns",
         empty: ()=>{
             let elem = document.createElement("span");
@@ -47,14 +49,18 @@ export async function buildPaneToolBar(){
         },
         search: async (index,limit)=>{
             return {
-                data: await patternRepository.getAll(index*limit, limit),
-                dataLength: await patternRepository.getSize()
+                data: [
+                    brushSettings.getShape("square"),
+                    brushSettings.getShape("circle"),
+                    brushSettings.getShape("line")
+                ],
+                dataLength: 3
             };
         },
         element: elemPagination
     });
 
-    let customShapePagination = carousel({
+    var customShapePagination = carousel({
         id: "#custom-patterns",
         empty: ()=>{
             let elem = document.createElement("span");
@@ -70,7 +76,7 @@ export async function buildPaneToolBar(){
         },
         element: elemPagination
     });
-    let maskPagination  = carousel({
+    var maskPagination  = carousel({
         id: "#mask-patterns",
         empty: ()=>{
             let elem = document.createElement("span.text");
@@ -271,7 +277,6 @@ function elemPagination(data){
         const size = data.buffer.byteLength/4;
         brushSettings.setPattern(patternPtr, size, data.width);
 
-
         const SIZE_ACTIVE_CANVAS = {x:16, y: 16};
         const transformActiveCanvas = fitContent({x: data.width, y: data.height}, SIZE_ACTIVE_CANVAS); 
         
@@ -287,23 +292,53 @@ function elemPagination(data){
         this.classList.add("active");
     });
 
-
-    function fitContent(source, dest){
-        let scale = Math.min(dest.x/source.x, dest.y/source.y);
-        let resized = {x: source.x*scale, y: source.y*scale};
-        let pan = {
-            x: (dest.x - resized.x) / 2,
-            y: (dest.y - resized.y) / 2
-        }
-        return {
-            scale,
-            resized,
-            pan
-        }
-    }
-
     return brushPattern;
 }
+ function brushPreview(){
+    const data = brushSettings.getBrush();
+    let buffer = [];
+    for(let i = 0; i < data.buffer.byteLength; i+=4){
+        buffer[i] = data.buffer[i+3];
+        buffer[i+1] = data.buffer[i+1]; 
+        buffer[i+2] = data.buffer[i+2]; 
+        buffer[i+3] = data.buffer[i];
+    }
+    console.log(buffer)
+    const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
+
+
+    let offPattern = document.createElement("canvas");
+    offPattern.width = data.width;
+    offPattern.height = data.height;
+    const offContext = offPattern.getContext("2d");
+    offContext.putImageData(imgData, 0, 0);
+
+
+    const SIZE_ACTIVE_CANVAS = {x:16, y: 16};
+    const transformActiveCanvas = fitContent({x: data.width, y: data.height}, SIZE_ACTIVE_CANVAS); 
+    
+    let activeCanvas = document.querySelector("#btn-modal-brush canvas");
+    let ctxActiveCanvas = activeCanvas.getContext("2d");
+    activeCanvas.width = SIZE_ACTIVE_CANVAS.x;
+    activeCanvas.height = SIZE_ACTIVE_CANVAS.y;
+    ctxActiveCanvas.imageSmoothingEnabled = false;
+    ctxActiveCanvas.drawImage(offPattern, transformActiveCanvas.pan.x, transformActiveCanvas.pan.y, transformActiveCanvas.resized.x,transformActiveCanvas.resized.y);
+    
+}
+function fitContent(source, dest){
+    let scale = Math.min(dest.x/source.x, dest.y/source.y);
+    let resized = {x: source.x*scale, y: source.y*scale};
+    let pan = {
+        x: (dest.x - resized.x) / 2,
+        y: (dest.y - resized.y) / 2
+    }
+    return {
+        scale,
+        resized,
+        pan
+    }
+}
+
 async function PatternRepository(){
     let table = await app.database.table("pattern");
 

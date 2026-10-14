@@ -22,8 +22,6 @@ void BrushSettingsVM::setColor(unsigned int color){
     _toolSettings->drawingContext.color = color;
 }
 void BrushSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
-    printf("%lu\n", ptr);
-
     Pattern* flagPattern = _toolSettings->brushContext.selectedPattern;
     Pattern* pattern = new Pattern("teste", reinterpret_cast<unsigned int*>(ptr), size, factor);
     _toolSettings->brushContext.selectedPattern = pattern;
@@ -32,7 +30,7 @@ void BrushSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
 }
 void BrushSettingsVM::setShape(string pattern){
     if(pattern == "square"){
-        _toolSettings->brushContext.setShape("dot");
+        _toolSettings->brushContext.setShape("square");
         return;
     }
     if(pattern == "circle"){
@@ -41,14 +39,27 @@ void BrushSettingsVM::setShape(string pattern){
     }
     _toolSettings->brushContext.setShape(pattern);
 }
-emscripten::val BrushSettingsVM::getShape(string pattern){
+BrushDTO BrushSettingsVM::getBrush(){
+    emscripten::val data = emscripten::val(emscripten::typed_memory_view(
+        _toolSettings->brushContext.selectedPattern->getWidth()* _toolSettings->brushContext.selectedPattern->getHeight()*4, 
+        reinterpret_cast<uint8_t*>( _toolSettings->brushContext.selectedPattern->getBuffer()))).call<emscripten::val>("slice");
+    
+    BrushDTO brushDTO;
+    brushDTO.buffer = data;
+    brushDTO.width = _toolSettings->brushContext.selectedPattern->getWidth();
+    brushDTO.height = _toolSettings->brushContext.selectedPattern->getHeight();
+    
+    
+    return brushDTO;
+}
+BrushDTO BrushSettingsVM::getShape(string pattern){
     DrawBuffer draw(_toolSettings->drawingContext.size, _toolSettings->drawingContext.size);
     Surface* surface = draw.getSurface();
     
     if(pattern == "circle"){
         CircleRasterize circle(
             {_toolSettings->drawingContext.size-1, _toolSettings->drawingContext.size-1},
-            {(_toolSettings->drawingContext.size>>1),(_toolSettings->drawingContext.size>>1)}
+            {((_toolSettings->drawingContext.size-1)>>1),((_toolSettings->drawingContext.size-1)>>1)}
         );
         bool isFilled = true;
         circle.filled(isFilled);
@@ -56,7 +67,6 @@ emscripten::val BrushSettingsVM::getShape(string pattern){
     }
     if(pattern == "square"){
         std::fill(surface->getBuffer(), surface->getBuffer()+surface->getLength(), 0xFF);
-        // std::memset(surface->getBuffer(), 0xFF, surface->getLength()*sizeof(unsigned int));
     }
     if(pattern == "line"){
         LineRasterize line(
@@ -68,8 +78,17 @@ emscripten::val BrushSettingsVM::getShape(string pattern){
             surface->putPixel(p.x,p.y,0xFF);
         }
     }
+    emscripten::val data = emscripten::val(emscripten::typed_memory_view(surface->getWidth()* surface->getHeight()*4, reinterpret_cast<uint8_t*>(surface->getBuffer()))).call<emscripten::val>("slice");
+    delete surface;
 
-    return emscripten::val(emscripten::typed_memory_view(surface->getWidth()* surface->getHeight()*4, reinterpret_cast<uint8_t*>(surface->getBuffer())));
+    BrushDTO brushDTO;
+    brushDTO.buffer = data;
+    brushDTO.width = _toolSettings->drawingContext.size;
+    brushDTO.height = _toolSettings->drawingContext.size;
+    brushDTO.id = Guid::generateUUID().toString();
+    
+    
+    return brushDTO;
 }
 
 #include <emscripten/bind.h>
@@ -85,5 +104,6 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setPattern", &BrushSettingsVM::setPattern)
         .function("setShape", &BrushSettingsVM::setShape)
         .function("getShape", &BrushSettingsVM::getShape)
+        .function("getBrush", &BrushSettingsVM::getBrush)
         ;
 };

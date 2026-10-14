@@ -7,6 +7,7 @@
 #include "../../../objects/ToolManager/ToolManager.h"
 #include "../../../rasterize/CircleRasterize/CircleRasterize.h"
 #include "../../../rasterize/LineRasterize/LineRasterize.h"
+#include "../../dto/BrushDTO/BrushDTO.h"
 
 class DrawBuffer : public IDraw{
 private:
@@ -40,7 +41,8 @@ public:
     
     void setPattern(uintptr_t ptr, int size, int factor);
     void setShape(string shape);
-    emscripten::val getShape(string shape);
+    BrushDTO getBrush();
+    BrushDTO getShape(string shape);
 };
 
 #endif

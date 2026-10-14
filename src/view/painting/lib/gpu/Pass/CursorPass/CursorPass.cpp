@@ -104,7 +104,6 @@ void CursorPass::render(){
     if(!cursor->pattern->getBuffer())  return;
 
     if(_pattern != cursor->pattern){
-        printf("troquei pattern\n");
         _pattern = cursor->pattern;
         textureShape.init(_pattern);
         if(!textureShape.isInitialized()) return;
@@ -114,7 +113,6 @@ void CursorPass::render(){
     }
 
     if(_shape != _toolSettings->brushContext.selectedPattern){
-        printf("troquei shape   \n");
         _shape = _toolSettings->brushContext.selectedPattern;
         texturePattern.init(_shape);
         if(!texturePattern.isInitialized()) return;
@@ -137,14 +135,10 @@ void CursorPass::render(){
 
     glUniform2f(brushSizeLocation, (float)_toolSettings->drawingContext.size, (float)_toolSettings->drawingContext.size);
     
-    // CanvasSettings* canvasSettings = editor->getCanvasSettings();
-    // Point maskAlign =  canvasSettings->cursorToCanvas(_viewport->cursorX, _viewport->cursorY);
-    // glUniform2f(maskAlignLocation, (float)maskAlign.x-(pattern->getWidth()>>1), (float)maskAlign.y-(pattern->getHeight()>>1));
-
     Point maskAlign =  {0,0};
     glUniform2f(maskAlignLocation, (float)maskAlign.x, (float)maskAlign.y);
 
-    _toolSettings->brushContext.fillMode = FILL_MODE::STAMP;
+    _toolSettings->brushContext.fillMode = FILL_MODE::FILL;
     _toolSettings->brushContext.alignMode = ALIGN_MODE::BRUSHING;
     glUniform1i(fillModeLocation,  (int)_toolSettings->brushContext.fillMode);
     glUniform1i(alignModeLocation, (int)_toolSettings->brushContext.alignMode);
