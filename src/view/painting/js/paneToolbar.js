@@ -37,6 +37,7 @@ export async function buildPaneToolBar(){
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
 
     toolViewModel.setPressedTool("brush");
+    brushPreview();
 
     var modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
     var shapePagination = pagination({
@@ -60,7 +61,9 @@ export async function buildPaneToolBar(){
 
             brushPattern.append(brushView);
             brushPattern.addEventListener("click", function(e){
-                brushSettings.setShape(data.brushTip)
+                brushSettings.setShape(data.brushTip);
+                brushPreview();
+
                 pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
                 this.classList.add("active");
             });
@@ -286,18 +289,8 @@ function elemPagination(data){
         const patternPtr = app.malloc(data.buffer);
         const size = data.buffer.byteLength/4;
         brushSettings.setPattern(patternPtr, size, data.width);
+        brushPreview();
 
-        const SIZE_ACTIVE_CANVAS = {x:16, y: 16};
-        const transformActiveCanvas = fitContent({x: data.width, y: data.height}, SIZE_ACTIVE_CANVAS); 
-        
-        let activeCanvas = document.querySelector("#btn-modal-brush canvas");
-        let ctxActiveCanvas = activeCanvas.getContext("2d");
-        activeCanvas.width = SIZE_ACTIVE_CANVAS.x;
-        activeCanvas.height = SIZE_ACTIVE_CANVAS.y;
-        ctxActiveCanvas.imageSmoothingEnabled = false;
-        ctxActiveCanvas.drawImage(offPattern, transformActiveCanvas.pan.x, transformActiveCanvas.pan.y, transformActiveCanvas.resized.x,transformActiveCanvas.resized.y);
-        
-    
         pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
         this.classList.add("active");
     });
