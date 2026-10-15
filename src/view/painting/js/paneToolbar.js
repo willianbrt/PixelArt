@@ -1,5 +1,5 @@
 import { app } from "./app.js"
-import { modal, carousel } from "./elements.js"
+import { modal, pagination } from "./elements.js"
 
 
 const thickness = document.querySelector("input[name='size']");
@@ -27,9 +27,9 @@ export async function buildPaneToolBar(){
     
     thickness.onchange = async (e)=>{
         drawingSettings.setSize(parseInt(e.srcElement.value));
+        brushSettings.setSize(parseInt(e.srcElement.value));
 
         brushPreview();
-        // (await shapePagination).update(0);
     }
     hardness.onchange = (e)=>{ drawingSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
     mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
@@ -39,28 +39,37 @@ export async function buildPaneToolBar(){
     toolViewModel.setPressedTool("brush");
 
     var modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
-    var shapePagination = carousel({
+    var shapePagination = pagination({
         id: "#shape-patterns",
-        empty: ()=>{
-            let elem = document.createElement("span");
-            elem.className = "text";
-            elem.innerText = "Nenhuma pincel encontrado.";
-            return elem;
+        data: {
+            data: [
+                {brushTip: "square", icon: "brush_tip_square.png"},
+                {brushTip: "circle", icon: "brush_tip_circle.png"},
+                {brushTip: "line", icon: "brush_tip_line.png"}
+            ],
+            dataLength: 3,
         },
-        search: async (index,limit)=>{
-            return {
-                data: [
-                    brushSettings.getShape("square"),
-                    brushSettings.getShape("circle"),
-                    brushSettings.getShape("line")
-                ],
-                dataLength: 3
-            };
-        },
-        element: elemPagination
+        element: function(data) {
+            const pageElementList = this;
+            let brushPattern = document.createElement("div");
+            brushPattern.className = "brush-pattern";
+
+            let brushView = document.createElement("img");
+            brushView.className = "material-symbols-outlined";
+            brushView.src = "./../../resource/img/" + data.icon;
+
+            brushPattern.append(brushView);
+            brushPattern.addEventListener("click", function(e){
+                brushSettings.setShape(data.brushTip)
+                pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
+                this.classList.add("active");
+            });
+
+            return brushPattern;
+        }
     });
 
-    var customShapePagination = carousel({
+    var customShapePagination = pagination({
         id: "#custom-patterns",
         empty: ()=>{
             let elem = document.createElement("span");
@@ -76,7 +85,7 @@ export async function buildPaneToolBar(){
         },
         element: elemPagination
     });
-    var maskPagination  = carousel({
+    var maskPagination  = pagination({
         id: "#mask-patterns",
         empty: ()=>{
             let elem = document.createElement("span.text");
@@ -234,6 +243,7 @@ function createFloatingToolbar() {
     }
 }
 
+
 function elemPagination(data){
     const pageElementList = this;
     
@@ -303,7 +313,6 @@ function elemPagination(data){
         buffer[i+2] = data.buffer[i+2]; 
         buffer[i+3] = data.buffer[i];
     }
-    console.log(buffer)
     const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
 
 

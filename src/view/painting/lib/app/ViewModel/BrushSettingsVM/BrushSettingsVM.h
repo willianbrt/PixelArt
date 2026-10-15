@@ -13,23 +13,6 @@
 #include "../../../rasterize/CustomTip/CustomTip.h"
 #include "../../dto/BrushDTO/BrushDTO.h"
 
-class DrawBuffer : public IDraw{
-private:
-    Surface* surface;
-public:
-    DrawBuffer(int width, int height){
-        surface = new Surface(width, height);
-    }
-    ~DrawBuffer(){
-        free(surface);
-    }
-    void plot(const int& x, const int& y) override{
-        surface->putPixel(x,y,0xFF);
-    }
-    Surface* getSurface(){
-        return surface;
-    }
-};
 class BrushSettingsVM  {
 private:
     ToolManager* _toolManager;
@@ -44,9 +27,8 @@ public:
     void setColor(unsigned int color);
     
     void setPattern(uintptr_t ptr, int size, int factor);
-    void setCustomShape(string shape);
+    void setShape(string shape);
     BrushDTO getBrush();
-    BrushDTO getShape(string shape);
 };
 
 #endif

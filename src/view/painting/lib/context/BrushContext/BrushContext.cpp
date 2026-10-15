@@ -17,6 +17,7 @@ Surface* BrushContext::getShape()
 {
     if(isDirty){
         _shape = brushTip->getMask(_size);
+        isDirty = false;
     }
 
     return _shape;

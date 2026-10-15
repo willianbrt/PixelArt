@@ -71,10 +71,9 @@ let selectModeBrush = document.querySelector("#mode-brush");
 selectModeBrush.onchange = (e)=>{ mode[e.srcElement.value]() };
 mode[selectModeBrush.value]();
 
-export async function carousel(options){
-    let { id, empty, _index=0, limit=5, offset, search, element } = options;
-    let data, start, end, numberPages;
-    changeIndex(_index);
+export async function pagination(options){
+    let { id, data, empty, _index=0, limit=5, offset, search, element } = options;
+    let start, end, numberPages;
 
     let carouselElem = document.querySelector(id);
 
@@ -90,7 +89,7 @@ export async function carousel(options){
     btnPrevious.className = "material-icons";
     btnPrevious.innerText = "arrow_left";
     btnPrevious.addEventListener("click", previous);
-
+    
     let controlPageList = document.createElement("div");
     controlPageList.className = "carousel-list-index";
     
@@ -100,6 +99,8 @@ export async function carousel(options){
     control.append(controlPageList);
     control.append(btnNext);
     
+    changeIndex(_index);
+
     function next(e){
         if(_index >= numberPages-1)  return; 
         changeIndex(_index+1);
@@ -125,7 +126,8 @@ export async function carousel(options){
     }
 
     async function changeIndex(index){
-        data = await search(index, limit);
+        if(!!search)
+            data = await search(index, limit);
             
         numberPages = Math.ceil(data.dataLength/limit);
 

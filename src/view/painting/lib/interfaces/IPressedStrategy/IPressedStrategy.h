@@ -18,6 +18,8 @@ public:
 
 class IDraw{
 public:
+    IDraw() = default;
+    virtual ~IDraw() = default;
     virtual void plot(const int& x, const int& y) = 0;
 };
 

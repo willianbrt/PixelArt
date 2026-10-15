@@ -4,7 +4,10 @@
 #include "../../interfaces/IBrushTip/IBrushTip.h"
 #include "../CircleRasterize/CircleRasterize.h"
 
-class CircleTip : public IBrushTip {
+class CircleTip : public IBrushTip, public IDraw {
+private:
+    Surface* surface;
+    void plot(const int& x, const int& y) override;
 public:
     CircleTip();
     ~CircleTip();
