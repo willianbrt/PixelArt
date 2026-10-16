@@ -380,9 +380,9 @@
                                 <div class="form-group col g-8">
                                     <div class="input-group">
                                         <span class="input-label">Mask:</span>
-                                        <select>
-                                            <option>Align to Local</option>
-                                            <option>Align to Source</option>
+                                        <select id="align-mode">
+                                            <option value="local">Align to Local</option>
+                                            <option value="source">Align to Source</option>
                                         </select>
                                     </div>
                                 </div>
@@ -462,6 +462,7 @@
         let nav = tab.querySelector(".tab-nav");
         let navItems = nav.querySelectorAll(".tab-nav-item");
         navItems.forEach((navItem)=>{
+            console.log(navItem)
             navItem.onclick = ()=>{
                 nav.querySelector(".tab-nav-item.active")?.classList.remove("active");
                 tab.querySelector(".tab-items .tab-select.active")?.classList.remove("active");
@@ -472,35 +473,6 @@
             }
         });
 
-        let tabFill = document.querySelector("#tab-fill");
-        let mode = {
-            "solid": ()=>{
-                let lastActivePane = tabFill.querySelector(".tab-select.active");
-                lastActivePane?.classList.remove("active");
-                
-                let activePane = tabFill.querySelector("#pane-solid");
-                activePane.classList.add("active");
-            },
-            "stamp": ()=>{
-                let lastActivePane = tabFill.querySelector(".tab-select.active");
-                lastActivePane?.classList.remove("active");
-                
-                let activePane = tabFill.querySelector("#pane-stamp");
-                activePane.classList.add("active");
-            },
-            "pattern": ()=>{
-                let lastActivePane = tabFill.querySelector(".tab-select.active");
-                lastActivePane?.classList.remove("active");
-
-                let activePane = tabFill.querySelector("#pane-pattern");
-                activePane.classList.add("active");
-            },
-        };
-
-        let panePattern = document.querySelector("#pattern");
-        let selectModeBrush = document.querySelector("#mode-brush");
-        selectModeBrush.onchange = (e)=>{ mode[e.srcElement.value]() };
-        mode[selectModeBrush.value]();
     </script>
 </body>
 </html>

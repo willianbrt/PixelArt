@@ -128,6 +128,51 @@ export async function buildPaneToolBar(){
     });
 
 
+
+
+
+    let tabFill = document.querySelector("#tab-fill");
+    let mode = {
+        "solid": (e)=>{
+            brushSettings.setFillMode("solid");
+
+            let lastActivePane = tabFill.querySelector(".tab-select.active");
+            lastActivePane?.classList.remove("active");
+            
+            let activePane = tabFill.querySelector("#pane-solid");
+            activePane.classList.add("active");
+        },
+        "stamp": ()=>{
+            brushSettings.setFillMode("stamp");
+
+            let lastActivePane = tabFill.querySelector(".tab-select.active");
+            lastActivePane?.classList.remove("active");
+            
+            let activePane = tabFill.querySelector("#pane-stamp");
+            activePane.classList.add("active");
+        },
+        "pattern": ()=>{
+            brushSettings.setFillMode("mask");
+
+            let lastActivePane = tabFill.querySelector(".tab-select.active");
+            lastActivePane?.classList.remove("active");
+
+            let activePane = tabFill.querySelector("#pane-pattern");
+            activePane.classList.add("active");
+        },
+    };
+
+    let selectModeBrush = document.querySelector("#mode-brush");
+    selectModeBrush.onchange = (e)=>{ mode[e.srcElement.value]() };
+    mode[selectModeBrush.value]();
+
+
+    let selectAlignMode = document.querySelector("#align-mode");
+    selectAlignMode.onchange = (e)=>{ 
+        brushSettings.setAlignMode(e.srcElement.value);
+    };
+    
+
     const btnPencil = document.querySelector(".tool-pencil");
     btnPencil.addEventListener("click", function(e){
         toolViewModel.setPressedTool("brush");
