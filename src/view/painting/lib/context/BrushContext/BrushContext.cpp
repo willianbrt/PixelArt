@@ -4,21 +4,37 @@ BrushContext::BrushContext(){}
 
 void BrushContext::setSize(int size){
     _size = size;
-    isDirty = true;
+    isDirtyTip = true;
 }
 
 void BrushContext::setShape(IBrushTip* tip){
     IBrushTip* _tip = brushTip;
     brushTip = tip;
     delete _tip;
-    isDirty = true;
+    isDirtyTip = true;
 }
 Surface* BrushContext::getShape()
 {
-    if(isDirty){
+    if(isDirtyTip){
         _shape = brushTip->getMask(_size);
-        isDirty = false;
+        isDirtyTip = false;
     }
 
     return _shape;
+}
+
+void BrushContext::setPattern(IBrushTip* tip){
+    IBrushTip* _tip = brushPattern;
+    brushPattern = tip;
+    delete _tip;
+    isDirtyPattern = true;
+}
+Surface* BrushContext::getPattern()
+{
+    if(isDirtyPattern){
+        _pattern = brushPattern->getMask(_size);
+        isDirtyPattern = false;
+    }
+
+    return _pattern;
 }

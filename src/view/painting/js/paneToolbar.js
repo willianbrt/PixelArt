@@ -86,7 +86,18 @@ export async function buildPaneToolBar(){
                 dataLength: await patternRepository.getSize()
             };
         },
-        element: elemPagination
+        element: function(data){
+            const brush = elemPagination("custom-patterns", {
+                data,
+                onchange: ()=>{
+                    const patternPtr = app.malloc(data.buffer);
+                    const size = data.buffer.byteLength/4;
+                    brushSettings.setCustomShape(patternPtr, size, data.width);
+                    brushPreview();
+                }
+            });
+            return brush;
+        }
     });
     var maskPagination  = pagination({
         id: "#mask-patterns",
@@ -102,7 +113,18 @@ export async function buildPaneToolBar(){
                 dataLength: await patternRepository.getSize()
             };
         },
-        element: elemPagination
+        element: function (data){
+            const brush = elemPagination("mask-patterns", {
+                data,
+                onchange: ()=>{
+                    const patternPtr = app.malloc(data.buffer);
+                    const size = data.buffer.byteLength/4;
+                    brushSettings.setPattern(patternPtr, size, data.width);
+                    brushPreview();
+                }
+            });
+            return brush;
+        }
     });
 
 
@@ -247,8 +269,10 @@ function createFloatingToolbar() {
 }
 
 
-function elemPagination(data){
-    const pageElementList = this;
+function elemPagination(parent, options){
+    const { data, canvasWidth = 24, canvasHeight = 24, onchange } = options;
+
+    const transform = fitContent({x: data.width, y: data.height}, {x: canvasWidth, y: canvasWidth});
     
     let buffer = [];
     for(let i = 0; i < data.buffer.byteLength; i+=4){
@@ -260,14 +284,6 @@ function elemPagination(data){
     
     const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
 
-    const SIZE_DEST_CANVAS = {x:24, y: 24};
-    let scale = Math.min(SIZE_DEST_CANVAS.x/data.width, SIZE_DEST_CANVAS.y/data.height);
-    let resized = {x: data.width*scale, y: data.height*scale}
-    let pan = {
-        x: (SIZE_DEST_CANVAS.x - resized.x) / 2,
-        y: (SIZE_DEST_CANVAS.y - resized.y) / 2
-    };
-
     let offPattern = document.createElement("canvas");
     offPattern.width = data.width;
     offPattern.height = data.height;
@@ -275,28 +291,29 @@ function elemPagination(data){
     offContext.putImageData(imgData, 0, 0);
 
     let canvasPattern = document.createElement("canvas");
-    canvasPattern.width = SIZE_DEST_CANVAS.x;
-    canvasPattern.height = SIZE_DEST_CANVAS.y;
+    canvasPattern.width = canvasWidth;
+    canvasPattern.height = canvasHeight;
     const context = canvasPattern.getContext("2d");
     context.imageSmoothingEnabled = false;
-    context.drawImage(offPattern, pan.x, pan.y, resized.x,resized.y);
+    context.drawImage(offPattern, transform.pan.x, transform.pan.y, transform.resized.x, transform.resized.y);
 
     let brushPattern = document.createElement("div");
     brushPattern.className = "brush-pattern";
 
     brushPattern.append(canvasPattern);
-    brushPattern.addEventListener("click", function(e){
-        const patternPtr = app.malloc(data.buffer);
-        const size = data.buffer.byteLength/4;
-        brushSettings.setPattern(patternPtr, size, data.width);
-        brushPreview();
-
+    brushPattern.addEventListener("click", function(){
+        onchange(data);
+        
+        const pageElementList = document.getElementById(parent);
         pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
         this.classList.add("active");
     });
 
     return brushPattern;
 }
+
+
+
  function brushPreview(){
     const data = brushSettings.getBrush();
     let buffer = [];

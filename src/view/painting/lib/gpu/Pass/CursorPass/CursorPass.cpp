@@ -99,26 +99,20 @@ void CursorPass::render(){
     if(!_surface) return;
     
     CursorContext* cursor = _toolManager->getCursorContext();
-    if(cursor == nullptr)  return;
-    if(cursor->pattern == nullptr)  return;
-    if(!cursor->pattern->getBuffer())  return;
 
-    if(_pattern != cursor->pattern){
-        _pattern = cursor->pattern;
+    ISurface* pattern = _toolSettings->brushContext.getPattern();
+    ISurface* shape = _toolSettings->brushContext.getShape();
+
+    if(_pattern != pattern){
+        _pattern = pattern;
         textureShape.init(_pattern);
         if(!textureShape.isInitialized()) return;
-
-        // Bounding dirty = {{0,0},{_pattern->getWidth()-1, _pattern->getHeight()-1}};
-        // textureShape.upload(dirty);
     }
 
-    if(_shape != _toolSettings->brushContext.getShape()){
-        _shape = _toolSettings->brushContext.getShape();
+    if(_shape != shape){
+        _shape = shape;
         texturePattern.init(_shape);
         if(!texturePattern.isInitialized()) return;
-
-        // Bounding dirty = {{0,0},{_shape->getWidth()-1, _shape->getHeight()-1}};
-        // texturePattern.upload(dirty);
     }
 
     shader.use();
@@ -130,8 +124,8 @@ void CursorPass::render(){
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     glUniform2f(editorSizeLocation, _surface->getWidth(), _surface->getHeight());
-    glUniform2f(texShapeSizeLocationH, _shape->getWidth(), _shape->getHeight());
-    glUniform2f(texPatternSizeLocationH, _pattern->getWidth(), _pattern->getHeight());
+    glUniform2f(texShapeSizeLocationH, _shape == nullptr ? 0 : _shape->getWidth(), _shape == nullptr ? 0 :_shape->getHeight());
+    glUniform2f(texPatternSizeLocationH, _pattern == nullptr ? 0 : _pattern->getWidth(), _pattern == nullptr ? 0 :_pattern->getHeight());
 
     glUniform2f(brushSizeLocation, (float)_toolSettings->drawingContext.size, (float)_toolSettings->drawingContext.size);
     

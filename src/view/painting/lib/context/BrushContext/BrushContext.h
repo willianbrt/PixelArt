@@ -31,12 +31,14 @@ enum BRUSH_TIP{
 
 class BrushContext {
 private:
-    bool isDirty = false;
+    bool isDirtyTip = false;
+    bool isDirtyPattern = false;
     IBrushTip* brushTip;
+    IBrushTip* brushPattern;
     int _size = 1;
 
-    Surface* _shape;
-    Surface* _pattern;
+    Surface* _shape = nullptr;
+    Surface* _pattern = nullptr;
 public:
     BrushContext();
 
@@ -51,6 +53,8 @@ public:
     int getSize();
     Surface* getShape();
     void setShape(IBrushTip* tip);
+    Surface* getPattern();
+    void setPattern(IBrushTip* tip);
 };
 
 #endif

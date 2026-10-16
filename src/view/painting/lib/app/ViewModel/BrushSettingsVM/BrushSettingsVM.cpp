@@ -25,6 +25,11 @@ void BrushSettingsVM::setColor(unsigned int color){
 }
 void BrushSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
     int w = factor, h = size/factor;
+    _toolSettings->brushContext.setPattern(new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
+
+}
+void BrushSettingsVM::setShape(uintptr_t ptr, int size, int factor){
+    int w = factor, h = size/factor;
     _toolSettings->brushContext.setShape(new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
 
 }
@@ -59,6 +64,8 @@ BrushDTO BrushSettingsVM::getBrush(){
     
     return brushDTO;
 }
+
+
 #include <emscripten/bind.h>
 
 using namespace emscripten;
@@ -70,7 +77,8 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setHardness", &BrushSettingsVM::setHardness)
         .function("setColor", &BrushSettingsVM::setColor)
         .function("setPattern", &BrushSettingsVM::setPattern)
-        .function("setShape", &BrushSettingsVM::setShape)
+        .function("setShape", select_overload<void(string)>(&BrushSettingsVM::setShape))
+        .function("setCustomShape", select_overload<void(uintptr_t, int, int)>(&BrushSettingsVM::setShape))
         .function("getBrush", &BrushSettingsVM::getBrush)
         ;
 };

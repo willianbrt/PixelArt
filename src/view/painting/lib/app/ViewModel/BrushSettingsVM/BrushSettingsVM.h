@@ -27,6 +27,7 @@ public:
     void setColor(unsigned int color);
     
     void setPattern(uintptr_t ptr, int size, int factor);
+    void setShape(uintptr_t ptr, int size, int factor);
     void setShape(string shape);
     BrushDTO getBrush();
 };
