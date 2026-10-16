@@ -360,33 +360,31 @@
                     </div>
                 </div>
             
-                <div class="col g-8">
-                    <div class="tab">
-                        <div class="input-group a-right">
-                            <h5>${Fill}</h5>
-                            <select class="select-ghost" id="mode-brush">
-                                <option value="solid">Solid Color</option>
-                                <option value="stamp">Stamp</option>
-                                <option value="pattern">Pattern</option>
-                            </select>
+                <div class="col g-4">
+                    <div class="input-group a-right">
+                        <h5>${Fill}</h5>
+                        <select id="mode-brush">
+                            <option value="solid">Solid Color</option>
+                            <option value="stamp">Stamp</option>
+                            <option value="pattern">Pattern</option>
+                        </select>
+                    </div>
+
+                    <div class="tab" id="tab-fill">
+                        <div class="tab-select" id="pane-solid"></div>
+                        <div class="tab-select" id="pane-stamp"></div>
+                        <div class="tab-select" id="pane-pattern">
+                            <div id="mask-patterns"></div>
                         </div>
+                    </div>
 
-                        <div class="tab" id="tab-fill">
-                            <div class="tab-select" id="pane-solid"></div>
-                            <div class="tab-select" id="pane-stamp"></div>
-                            <div class="tab-select" id="pane-pattern">
-                                <div id="mask-patterns"></div>
-
-                                <div class="form-group col g-8">
-                                    <div class="input-group">
-                                        <span class="input-label">Mask:</span>
-                                        <select id="align-mode">
-                                            <option value="local">Align to Local</option>
-                                            <option value="source">Align to Source</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="form-group col g-8">
+                        <div class="input-group">
+                            <span class="input-label">Mask:</span>
+                            <select id="align-mode">
+                                <option value="local">Align to Local</option>
+                                <option value="source">Align to Source</option>
+                            </select>
                         </div>
                     </div>
                 </div>

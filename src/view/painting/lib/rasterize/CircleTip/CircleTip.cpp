@@ -13,7 +13,6 @@ Surface* CircleTip::getMask(int& size){
     circle.filled(isFilled);
     circle.draw(*this);
     
-    printf("circle: %u\n", size);
     return surface;
 }
 

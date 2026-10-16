@@ -43,29 +43,32 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
             if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;
             
 
-            vec2 patternUV;
-            if(alignMode == 0){
-                patternUV = hoverUV;
-            } else if(alignMode == 1) {
-                patternUV = fract((pixel- (cursorLocation - floor(texShapeSize*0.5))) / texPatternSize);
-            } else {
-                patternUV = fract((pixel-maskAlign) / texPatternSize);
+            float shapeMask = texture(texShape, hoverUV).r*hardness;
+
+            vec3 c;
+            if(fillMode == 0){ // SOLID COLOR
+                c = vec3(color.r,color.g,color.b);
+                fragColor = vec4(c, shapeMask);
+            } else if(fillMode == 1) { // MASK
+                vec2 pc;
+                if(alignMode == 0){ // BRUSHING
+                    pc = fract(((pixel-cursorLocation) + floor(texPatternSize*0.5)) / texPatternSize);
+                } else if(alignMode == 1){ // LOCAL
+                    pc = fract(((pixel-cursorLocation) + floor(texPatternSize*0.5)) / texPatternSize);
+                } else if(alignMode == 2){ // SOURCE
+                    pc = fract((pixel-maskAlign) / texPatternSize);
+                }
+
+                float patternMask = texture(texPattern, pc).r; // stamp
+
+                c = vec3(color.r,color.g,color.b);
+                fragColor = vec4(c, shapeMask*patternMask);
+                // fragColor = vec4(c, shapeMask);
+            } else if(fillMode == 2) { // stamp
+                c = texture(texShape, hoverUV).agb;
+                fragColor = vec4(c, shapeMask);
             }
 
-            if(fillMode == 0){
-                fragColor = vec4(color.r,color.g,color.b,texture(texShape, patternUV).r*hardness); // SOLID COLOR SHAPE
-            } else if(fillMode == 1) {
-                fragColor = vec4(color.r,color.g,color.b,texture(texPattern, patternUV).r*hardness);  // SOLID COLOR PATTERN
-            } else {
-                // fragColor = mix(vec4(0.0), texture(texShape, patternUV), hardness); // COLOR PATTERN
-                fragColor = vec4(texture(texPattern, patternUV).a,texture(texPattern, patternUV).g,texture(texPattern, patternUV).b,texture(texPattern, patternUV).r*hardness);
-            }
-
-
-            // // vec2 patternUV = fract(pixel / texPatternSize);
-            
-            // vec2 patternUV = fract((pixel-maskAlign) / texPatternSize);
-            // fragColor = vec4(color.r,color.g,color.b,texture(texShape, patternUV).r*hardness);
         })";
     
     
@@ -79,7 +82,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
     texturePattern = Texture(2, &shader, "texPattern");
     texPatternSizeLocationH = glGetUniformLocation(shader.id(),"texPatternSize");
     
-    textureShape = Texture(2, &shader, "texShape");
+    textureShape = Texture(3, &shader, "texShape");
     texShapeSizeLocationH = glGetUniformLocation(shader.id(),"texShapeSize");
 
 
@@ -105,13 +108,13 @@ void CursorPass::render(){
 
     if(_pattern != pattern){
         _pattern = pattern;
-        textureShape.init(_pattern);
+        texturePattern.init(_pattern);
         if(!textureShape.isInitialized()) return;
     }
 
     if(_shape != shape){
         _shape = shape;
-        texturePattern.init(_shape);
+        textureShape.init(_shape);
         if(!texturePattern.isInitialized()) return;
     }
 
@@ -139,6 +142,7 @@ void CursorPass::render(){
     float b = (_toolSettings->drawingContext.color >> 8 & 0xFF) / 255.0f; 
     float g = (_toolSettings->drawingContext.color >> 16 & 0xFF) / 255.0f;
     float r = (_toolSettings->drawingContext.color >> 24 & 0xFF) / 255.0f;
+
     glUniform4f(brushColorLocation, r,g,b,a);
     glUniform1f(hardnessLocation, _toolSettings->drawingContext.hardness);
 
