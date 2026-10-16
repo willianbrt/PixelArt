@@ -38,3 +38,19 @@ Surface* BrushContext::getPattern()
 
     return _pattern;
 }
+
+void BrushContext::setFillMode(FILL_MODE fillMode){
+    _fillMode = fillMode;
+}
+FILL_MODE BrushContext::getFillMode()
+{
+    return _fillMode;
+}
+
+void BrushContext::setAlignMode(ALIGN_MODE alignMode){
+    _alignMode = alignMode;
+}
+ALIGN_MODE BrushContext::getAlignMode()
+{
+    return _alignMode;
+}

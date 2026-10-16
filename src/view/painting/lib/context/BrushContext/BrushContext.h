@@ -39,11 +39,11 @@ private:
 
     Surface* _shape = nullptr;
     Surface* _pattern = nullptr;
+    FILL_MODE _fillMode = FILL_MODE::FILL;
+    ALIGN_MODE _alignMode = ALIGN_MODE::BRUSHING;
 public:
     BrushContext();
 
-    FILL_MODE fillMode = FILL_MODE::FILL;
-    ALIGN_MODE alignMode = ALIGN_MODE::BRUSHING;
 
     unsigned int color = 0x000000FF;
     float hardness = 1.0f;
@@ -55,6 +55,10 @@ public:
     void setShape(IBrushTip* tip);
     Surface* getPattern();
     void setPattern(IBrushTip* tip);
+    void setFillMode(FILL_MODE fillMode);
+    FILL_MODE getFillMode();
+    void setAlignMode(ALIGN_MODE alignMode);
+    ALIGN_MODE getAlignMode();
 };
 
 #endif

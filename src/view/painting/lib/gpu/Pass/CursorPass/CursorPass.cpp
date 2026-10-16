@@ -132,10 +132,8 @@ void CursorPass::render(){
     Point maskAlign =  {0,0};
     glUniform2f(maskAlignLocation, (float)maskAlign.x, (float)maskAlign.y);
 
-    _toolSettings->brushContext.fillMode = FILL_MODE::FILL;
-    _toolSettings->brushContext.alignMode = ALIGN_MODE::BRUSHING;
-    glUniform1i(fillModeLocation,  (int)_toolSettings->brushContext.fillMode);
-    glUniform1i(alignModeLocation, (int)_toolSettings->brushContext.alignMode);
+    glUniform1i(fillModeLocation,  (int)_toolSettings->brushContext.getFillMode());
+    glUniform1i(alignModeLocation, (int)_toolSettings->brushContext.getAlignMode());
 
     float a = (_toolSettings->drawingContext.color & 0xFF) / 255.0f;      
     float b = (_toolSettings->drawingContext.color >> 8 & 0xFF) / 255.0f; 

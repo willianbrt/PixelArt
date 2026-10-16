@@ -25,6 +25,8 @@ public:
     void setSize(int size);
     void setHardness(float hardness);
     void setColor(unsigned int color);
+    void setAlignMode(string alignMode);
+    void setFillMode(string fillMode);
     
     void setPattern(uintptr_t ptr, int size, int factor);
     void setShape(uintptr_t ptr, int size, int factor);

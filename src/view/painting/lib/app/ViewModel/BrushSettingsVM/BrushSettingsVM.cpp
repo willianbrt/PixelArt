@@ -23,6 +23,35 @@ void BrushSettingsVM::setHardness(float hardness){
 void BrushSettingsVM::setColor(unsigned int color){
     _toolSettings->drawingContext.color = color;        
 }
+void BrushSettingsVM::setAlignMode(string alignMode){
+    ALIGN_MODE align;
+    if(alignMode == "brushing"){
+        align = ALIGN_MODE::BRUSHING;
+    }
+    if(alignMode == "local"){
+        align = ALIGN_MODE::LOCAL;
+    }
+    if(alignMode == "source"){
+        align = ALIGN_MODE::SOURCE;
+    }
+
+    _toolSettings->brushContext.setAlignMode(align); 
+}
+
+void BrushSettingsVM::setFillMode(string fillMode){
+    FILL_MODE fill;
+    if(fillMode == "fill"){
+        fill = FILL_MODE::FILL;
+    }
+    if(fillMode == "stamp"){
+        fill = FILL_MODE::STAMP;
+    }
+    if(fillMode == "mask"){
+        fill = FILL_MODE::MASK;
+    }
+
+    _toolSettings->brushContext.setFillMode(fill); 
+}
 void BrushSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
     int w = factor, h = size/factor;
     _toolSettings->brushContext.setPattern(new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
@@ -76,6 +105,8 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setSize", &BrushSettingsVM::setSize)
         .function("setHardness", &BrushSettingsVM::setHardness)
         .function("setColor", &BrushSettingsVM::setColor)
+        .function("setAlignMode", &BrushSettingsVM::setAlignMode)
+        .function("setFillMode", &BrushSettingsVM::setFillMode)
         .function("setPattern", &BrushSettingsVM::setPattern)
         .function("setShape", select_overload<void(string)>(&BrushSettingsVM::setShape))
         .function("setCustomShape", select_overload<void(uintptr_t, int, int)>(&BrushSettingsVM::setShape))
