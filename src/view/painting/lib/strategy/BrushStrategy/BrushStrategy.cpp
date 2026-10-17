@@ -17,21 +17,27 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
 
     draw(to);
 
+    _stabilized = {static_cast<float>(to.x), static_cast<float>(to.y)};
     _from = to;
 }
 void BrushStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
-    if (to == _from) return;
+    
+    float sx = _stabilized.x + (to.x - _stabilized.x) * (1.0f - _brushContext->getStabilizer());
+    float sy = _stabilized.y + (to.y - _stabilized.y) * (1.0f - _brushContext->getStabilizer());
 
-    LineRasterize line(_from, to);
+    _stabilized = {sx, sy};
+
+    Point drawPoint = {static_cast<int>(sx), static_cast<int>(sy)};
+    if (drawPoint == _from) {return;}
+
+    LineRasterize line(_from,  drawPoint);
     while(line.hasNext()){
         Point p = line.next();
-        draw(p);
-
-        // _toolRuntimeContext.drawingSession->blendMirroredPixel(p.x, p.y, _drawingContext->color);
+        draw(p);    
     }
 
-    _from = to;
+    _from = drawPoint;
 }
 void BrushStrategy::onRelease(){
     done();
@@ -50,7 +56,7 @@ void BrushStrategy::draw(const Point& pixel){
 
         if(src.x < 0 || src.y < 0 || src.x >= shape->getWidth() || src.y >= shape->getHeight()) continue;
         
-        unsigned int topColor = _drawingContext->color;
+        unsigned int topColor = _brushContext->getColor();
         GraphicsEngine::setOpacity(topColor, (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f);
 
         _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, topColor);
@@ -70,7 +76,5 @@ void BrushStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* BrushStrategy::getCursorContext(){
-    _cursorContext.pattern = _brushContext->getShape();
-    _cursorContext.scale = _drawingContext->size;
     return &_cursorContext;
 }
