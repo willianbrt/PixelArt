@@ -36,6 +36,10 @@ private:
     IBrushTip* brushTip;
     IBrushTip* brushPattern;
     int _size = 1;
+    unsigned int _color = 0x000000FF;
+    float _hardness = 1.0f;
+    float _stabilizer;
+    float _spacing;
 
     Surface* _shape = nullptr;
     Surface* _pattern = nullptr;
@@ -44,13 +48,19 @@ private:
 public:
     BrushContext();
 
-
-    unsigned int color = 0x000000FF;
-    float hardness = 1.0f;
-
     Transformation transformation;
     void setSize(int size);
+    void setHardness(float hardness);
+    void setColor(unsigned int color);
+    void setSpacing(float spacing);
+    void setStabilizer(float stabilizer);
+
     int getSize();
+    float getHardness();
+    unsigned int getColor();
+    float getSpacing();
+    float getStabilizer();
+
     Surface* getShape();
     void setShape(IBrushTip* tip);
     Surface* getPattern();

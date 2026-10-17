@@ -130,7 +130,7 @@ void CursorPass::render(){
     glUniform2f(texShapeSizeLocationH, _shape == nullptr ? 0 : _shape->getWidth(), _shape == nullptr ? 0 :_shape->getHeight());
     glUniform2f(texPatternSizeLocationH, _pattern == nullptr ? 0 : _pattern->getWidth(), _pattern == nullptr ? 0 :_pattern->getHeight());
 
-    glUniform2f(brushSizeLocation, (float)_toolSettings->drawingContext.size, (float)_toolSettings->drawingContext.size);
+    glUniform2f(brushSizeLocation, (float)_toolSettings->brushContext.getSize(), (float)_toolSettings->brushContext.getSize());
     
     Point maskAlign =  {0,0};
     glUniform2f(maskAlignLocation, (float)maskAlign.x, (float)maskAlign.y);
@@ -138,13 +138,14 @@ void CursorPass::render(){
     glUniform1i(fillModeLocation,  (int)_toolSettings->brushContext.getFillMode());
     glUniform1i(alignModeLocation, (int)_toolSettings->brushContext.getAlignMode());
 
-    float a = (_toolSettings->drawingContext.color & 0xFF) / 255.0f;      
-    float b = (_toolSettings->drawingContext.color >> 8 & 0xFF) / 255.0f; 
-    float g = (_toolSettings->drawingContext.color >> 16 & 0xFF) / 255.0f;
-    float r = (_toolSettings->drawingContext.color >> 24 & 0xFF) / 255.0f;
+    unsigned int color = _toolSettings->brushContext.getColor();
+    float a = (color & 0xFF) / 255.0f;      
+    float b = (color >> 8 & 0xFF) / 255.0f; 
+    float g = (color >> 16 & 0xFF) / 255.0f;
+    float r = (color >> 24 & 0xFF) / 255.0f;
 
     glUniform4f(brushColorLocation, r,g,b,a);
-    glUniform1f(hardnessLocation, _toolSettings->drawingContext.hardness);
+    glUniform1f(hardnessLocation, _toolSettings->brushContext.getHardness());
 
     quad.draw();
 }

@@ -17,12 +17,34 @@ void BrushSettingsVM::setSize(int size){
 void BrushSettingsVM::setHardness(float hardness){
     if(hardness < 0.0f || hardness > 1.0f) return;
 
-    _toolSettings->drawingContext.hardness = hardness;
-    _toolSettings->drawingContext.color = (_toolSettings->drawingContext.color & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f);
+    _toolSettings->brushContext.setHardness(hardness);
+    _toolSettings->brushContext.setColor((_toolSettings->brushContext.getColor() & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f));
 }
 void BrushSettingsVM::setColor(unsigned int color){
-    _toolSettings->drawingContext.color = color;        
+    _toolSettings->brushContext.setColor(color);
 }
+void BrushSettingsVM::setSpacing(float spacing){
+    if(spacing < 0.0f || spacing > 1.0f) return;
+    _toolSettings->brushContext.setSpacing(spacing);  
+}
+void BrushSettingsVM::setStabilizer(float stabilizer){
+    if(stabilizer < 0.0f || stabilizer > 1.0f) return;
+    _toolSettings->brushContext.setStabilizer(stabilizer);       
+}
+
+
+int BrushSettingsVM::getSize(){
+    return _toolSettings->brushContext.getSize();
+}
+float BrushSettingsVM::getHardness(){
+    return _toolSettings->brushContext.getHardness();
+}
+unsigned int BrushSettingsVM::getColor(){
+    return _toolSettings->brushContext.getColor();
+}
+float BrushSettingsVM::getSpacing() {return _toolSettings->brushContext.getSpacing(); }
+float BrushSettingsVM::getStabilizer(){ return _toolSettings->brushContext.getStabilizer(); }
+
 void BrushSettingsVM::setAlignMode(string alignMode){
     ALIGN_MODE align;
     if(alignMode == "brushing"){
@@ -104,7 +126,14 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .constructor<>()
         .function("setSize", &BrushSettingsVM::setSize)
         .function("setHardness", &BrushSettingsVM::setHardness)
-        .function("setColor", &BrushSettingsVM::setColor)
+        .function("setColor", &BrushSettingsVM::setColor)        
+        .function("getColor", &BrushSettingsVM::getColor)
+        .function("getHardness", &BrushSettingsVM::getHardness)
+        .function("getSize", &BrushSettingsVM::getSize)
+        .function("setSpacing", &BrushSettingsVM::setSpacing)
+        .function("getSpacing", &BrushSettingsVM::getSpacing)
+        .function("setStabilizer", &BrushSettingsVM::setStabilizer)
+        .function("getStabilizer", &BrushSettingsVM::getStabilizer)
         .function("setAlignMode", &BrushSettingsVM::setAlignMode)
         .function("setFillMode", &BrushSettingsVM::setFillMode)
         .function("setPattern", &BrushSettingsVM::setPattern)

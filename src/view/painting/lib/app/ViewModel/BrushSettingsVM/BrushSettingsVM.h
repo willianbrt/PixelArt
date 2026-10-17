@@ -25,6 +25,15 @@ public:
     void setSize(int size);
     void setHardness(float hardness);
     void setColor(unsigned int color);
+    void setStabilizer(float stabilizer);
+    void setSpacing(float spacing);
+
+    int getSize();
+    float getHardness();
+    unsigned int getColor();
+    float getSpacing();
+    float getStabilizer();
+    
     void setAlignMode(string alignMode);
     void setFillMode(string fillMode);
     
