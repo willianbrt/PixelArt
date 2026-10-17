@@ -3,8 +3,9 @@ import { modal, pagination } from "./elements.js"
 
 
 const thickness = document.querySelector("input[name='size']");
-const hardness = document.querySelector("input[name='strength']");
-hardness.value = 100;
+const hardness = document.querySelector("input[name='hardness']");
+const spacing = document.querySelector("input[name='spacing']");
+const stabilizer = document.querySelector("input[name='stabilizer']");
 
 // checked
 var pixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
@@ -26,15 +27,21 @@ export async function buildPaneToolBar(){
     let patternRepository = await PatternRepository();
     
     thickness.onchange = async (e)=>{
-        drawingSettings.setSize(parseInt(e.srcElement.value));
         brushSettings.setSize(parseInt(e.srcElement.value));
 
         brushPreview();
     }
-    hardness.onchange = (e)=>{ drawingSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
+    hardness.onchange = (e)=>{ brushSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
+    spacing.onchange = (e)=>{ brushSettings.setSpacing(parseInt(e.srcElement.value)); }
+    stabilizer.onchange = (e)=>{ brushSettings.setStabilizer(parseFloat(e.srcElement.value) / 100.0); }
     mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
     mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
+
+
+    hardness.value = brushSettings.getHardness()*100;
+    spacing.value = brushSettings.getSpacing();
+    stabilizer.value = brushSettings.getStabilizer()*100;
 
     toolViewModel.setPressedTool("brush");
     brushPreview();
