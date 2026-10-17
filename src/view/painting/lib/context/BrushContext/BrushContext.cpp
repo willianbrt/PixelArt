@@ -8,13 +8,13 @@ void BrushContext::setSize(int size){
 }
 void BrushContext::setColor(unsigned int color){ _color = color; }
 void BrushContext::setHardness(float hardness){ _hardness = hardness; }
-void BrushContext::setSpacing(float spacing){ _spacing = spacing; }
+void BrushContext::setSpacing(int spacing){ _spacing = spacing; }
 void BrushContext::setStabilizer(float stabilizer){ _stabilizer = stabilizer; }
 
 int BrushContext::getSize() {return _size; }
 float BrushContext::getHardness(){ return _hardness; }
 unsigned int BrushContext::getColor(){ return _color; }
-float BrushContext::getSpacing() {return _spacing; }
+int BrushContext::getSpacing() {return _spacing; }
 float BrushContext::getStabilizer(){ return _stabilizer; }
 
 void BrushContext::setShape(IBrushTip* tip){

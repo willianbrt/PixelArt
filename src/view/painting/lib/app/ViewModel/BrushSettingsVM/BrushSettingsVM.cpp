@@ -23,8 +23,8 @@ void BrushSettingsVM::setHardness(float hardness){
 void BrushSettingsVM::setColor(unsigned int color){
     _toolSettings->brushContext.setColor(color);
 }
-void BrushSettingsVM::setSpacing(float spacing){
-    if(spacing < 0.0f || spacing > 1.0f) return;
+void BrushSettingsVM::setSpacing(int spacing){
+    if(spacing < 0) return;
     _toolSettings->brushContext.setSpacing(spacing);  
 }
 void BrushSettingsVM::setStabilizer(float stabilizer){
@@ -42,7 +42,7 @@ float BrushSettingsVM::getHardness(){
 unsigned int BrushSettingsVM::getColor(){
     return _toolSettings->brushContext.getColor();
 }
-float BrushSettingsVM::getSpacing() {return _toolSettings->brushContext.getSpacing(); }
+int BrushSettingsVM::getSpacing() {return _toolSettings->brushContext.getSpacing(); }
 float BrushSettingsVM::getStabilizer(){ return _toolSettings->brushContext.getStabilizer(); }
 
 void BrushSettingsVM::setAlignMode(string alignMode){

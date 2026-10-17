@@ -26,12 +26,12 @@ public:
     void setHardness(float hardness);
     void setColor(unsigned int color);
     void setStabilizer(float stabilizer);
-    void setSpacing(float spacing);
+    void setSpacing(int spacing);
 
     int getSize();
     float getHardness();
     unsigned int getColor();
-    float getSpacing();
+    int getSpacing();
     float getStabilizer();
     
     void setAlignMode(string alignMode);

@@ -38,8 +38,8 @@ private:
     int _size = 1;
     unsigned int _color = 0x000000FF;
     float _hardness = 1.0f;
-    float _stabilizer;
-    float _spacing;
+    float _stabilizer = 0.0f;
+    int _spacing = 0;
 
     Surface* _shape = nullptr;
     Surface* _pattern = nullptr;
@@ -52,13 +52,13 @@ public:
     void setSize(int size);
     void setHardness(float hardness);
     void setColor(unsigned int color);
-    void setSpacing(float spacing);
+    void setSpacing(int spacing);
     void setStabilizer(float stabilizer);
 
     int getSize();
     float getHardness();
     unsigned int getColor();
-    float getSpacing();
+    int getSpacing();
     float getStabilizer();
 
     Surface* getShape();
