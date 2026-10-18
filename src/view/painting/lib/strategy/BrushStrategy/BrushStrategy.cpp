@@ -15,22 +15,13 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
 
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
 
-    color = _toolRuntimeContext.drawingSession->getPixel(to.x, to.y);
+    cornerColor = _toolRuntimeContext.drawingSession->getPixel(to.x, to.y);
     draw(to);
 
     _stabilized = {static_cast<float>(to.x), static_cast<float>(to.y)};
+    _dirX = false, _dirY = false;
+    _change = false;
     _from = to;
-
-    // x+=32; y+=0;
-    // onTracking(x, y);
-    // x+=0; y+=32;
-    // onTracking(x, y);
-    // x+=32; y+=32;
-    // onTracking(x, y);
-    // x+=32; y+=0;
-    // onTracking(x, y);
-    // x+=32; y+=32;
-    // onTracking(x, y);
 }
 void BrushStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
@@ -44,56 +35,31 @@ void BrushStrategy::onTracking(int x, int y){
     if (drawPoint == _from) {return;}
 
 
-    // bool dirX, dirY;
-    // dirX = (_from.x == drawPoint.x), dirY = (_from.y == drawPoint.y);
-    // if(dirX && _dirY){
-    //     _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, 0x00);
-    //     printf("v->h\n");
-    // }
-    // else if(_dirX && dirY) {
-    //     _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, 0x00);
-    // }
-
     LineRasterize line(_from,  drawPoint);
     Point p;
     while(line.hasNext()){
         p = line.next();
         if (p == _from) {continue;}
         
-            
-        int dx = p.x - _from.x;
-        int dy = p.y - _from.y;
-
-        Direction dir;
-
-        if (dx == 0 && dy == 0) {
-            dir = NONE;          // Parado
-        }
-        else if (dy == 0) {
-            dir = HORIZONTAL;
-        }
-        else if (dx == 0) {
-            dir = VERTICAL;
-        }
-        else {
-            dir = DIAGONAL;
-        }
-        if(dir == Direction::HORIZONTAL && _dir == Direction::VERTICAL && !_change){
-            printf("v->h\n");
+       
+        bool dirX, dirY;
+        dirX = (_from.x == p.x), dirY = (_from.y == p.y);
+        if(dirX && _dirY && !_change){
             _change = true;
-             _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, color);
-        } else if(dir == Direction::VERTICAL && _dir == Direction::HORIZONTAL  && !_change) {
-            printf("h->v\n");
+            _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, cornerColor);
+        }
+        else if(_dirX && dirY && ! _change) {
             _change = true;
-             _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, color);
+            _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, cornerColor);
         } else{
             _change = false;
         }
 
-        color = _toolRuntimeContext.drawingSession->getPixel(p.x, p.y);
+        cornerColor = _toolRuntimeContext.drawingSession->getPixel(p.x, p.y);
         draw(p);
         
-        _dir = dir;
+        _dirX = dirX;
+        _dirY = dirY;
         _from = p;
     }
 }
