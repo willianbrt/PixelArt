@@ -24,7 +24,7 @@ public:
 
     void setSize(int size);
     void setHardness(float hardness);
-    void setColor(unsigned int color);
+    void setColor(int r, int g, int b);
     void setStabilizer(float stabilizer);
     void setSpacing(int spacing);
 

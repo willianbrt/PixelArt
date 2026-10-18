@@ -44,9 +44,9 @@ let btnRemovePalette = document.querySelector("#trash-palette");
 btnRemovePalette.onclick = removePalette;
     
 let paletteRepository, modalChromatic;
-let drawingSettings;
+let brushSettings;
 export async function buildPanePalette(){
-    drawingSettings = app.drawingSettingsVM();
+    brushSettings = app.brushSettingsVM();
 
     [paletteRepository, modalChromatic] = await Promise.all([
         PaletteRepository(),
@@ -107,7 +107,7 @@ function addColorElement(color){
     spanColor.dataset.color = color.hex;
     listColors.append(spanColor);
     
-    if(drawingSettings.getColor() ==  color.littleEndian){
+    if(brushSettings.getColor() ==  color.littleEndian){
         swapActiveColor(color);
     }
     spanColor.addEventListener("click", function(){
@@ -126,12 +126,12 @@ function addColorElement(color){
     }
 }
 function swapActiveColor(color){
-    const currentColor = factoryColor.buildByDecimal(drawingSettings.getColor());
+    const currentColor = factoryColor.buildByDecimal(brushSettings.getColor());
     changePrimaryColor(color);
     changeSecondaryColor(currentColor);
 }
 function changePrimaryColor(color){
-    drawingSettings.setColor(color.rgb.r, color.rgb.g, color.rgb.b);
+    brushSettings.setColor(color.rgb.r, color.rgb.g, color.rgb.b);
     
     let newColor = document.querySelector("#new-color");
     workPrimaryColor.style.background = color.hex;
@@ -141,7 +141,7 @@ function changePrimaryColor(color){
     document.querySelector(`.color[data-color="${color.hex}"]`)?.classList.toggle("active",true);
 }
 function changeSecondaryColor(color){
-    if(drawingSettings.getColor() == color.littleEndian){ return; }
+    if(brushSettings.getColor() == color.littleEndian){ return; }
 
     secondaryColor = color;
 
@@ -182,7 +182,7 @@ async function removePalette(){
 
 async function createColor(){
     try{
-        const color = factoryColor.buildByDecimal(drawingSettings.getColor());
+        const color = factoryColor.buildByDecimal(brushSettings.getColor());
         
         const activePalette = await paletteRepository.getPalette(parseInt(selectPalette.value));
         if(activePalette.colors.find((c)=> c[0] == color.rgb.r && c[1] == color.rgb.g && c[2] == color.rgb.b)){

@@ -20,8 +20,8 @@ void BrushSettingsVM::setHardness(float hardness){
     _toolSettings->brushContext.setHardness(hardness);
     _toolSettings->brushContext.setColor((_toolSettings->brushContext.getColor() & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f));
 }
-void BrushSettingsVM::setColor(unsigned int color){
-    _toolSettings->brushContext.setColor(color);
+void BrushSettingsVM::setColor(int r, int g, int b){
+    _toolSettings->brushContext.setColor(r << 24 | g << 16 | b << 8 | static_cast<int>(_toolSettings->brushContext.getHardness() * 255.0f));
 }
 void BrushSettingsVM::setSpacing(int spacing){
     if(spacing < 0) return;
