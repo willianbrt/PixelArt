@@ -31,7 +31,9 @@ void BrushSettingsVM::setStabilizer(float stabilizer){
     if(stabilizer < 0.0f || stabilizer > 1.0f) return;
     _toolSettings->brushContext.setStabilizer(stabilizer);       
 }
-
+void BrushSettingsVM::setPixelPerfect(bool isEnabled){
+    _toolSettings->brushContext.setPixelPerfect(isEnabled);       
+}
 
 int BrushSettingsVM::getSize(){
     return _toolSettings->brushContext.getSize();
@@ -44,6 +46,8 @@ unsigned int BrushSettingsVM::getColor(){
 }
 int BrushSettingsVM::getSpacing() {return _toolSettings->brushContext.getSpacing(); }
 float BrushSettingsVM::getStabilizer(){ return _toolSettings->brushContext.getStabilizer(); }
+bool BrushSettingsVM::getPixelPerfect(){ return _toolSettings->brushContext.getPixelPerfect(); }
+
 
 void BrushSettingsVM::setAlignMode(string alignMode){
     ALIGN_MODE align;
@@ -125,6 +129,8 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<BrushSettingsVM>("BrushSettingsVM")
         .constructor<>()
         .function("setSize", &BrushSettingsVM::setSize)
+        .function("getPixelPerfect", &BrushSettingsVM::getPixelPerfect)
+        .function("setPixelPerfect", &BrushSettingsVM::setPixelPerfect)
         .function("setHardness", &BrushSettingsVM::setHardness)
         .function("setColor", &BrushSettingsVM::setColor)        
         .function("getColor", &BrushSettingsVM::getColor)

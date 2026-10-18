@@ -10,12 +10,14 @@ void BrushContext::setColor(unsigned int color){ _color = color; }
 void BrushContext::setHardness(float hardness){ _hardness = hardness; }
 void BrushContext::setSpacing(int spacing){ _spacing = spacing; }
 void BrushContext::setStabilizer(float stabilizer){ _stabilizer = stabilizer; }
+void BrushContext::setPixelPerfect(bool isEnabled){ _pixelPerfect = isEnabled; }
 
 int BrushContext::getSize() {return _size; }
 float BrushContext::getHardness(){ return _hardness; }
 unsigned int BrushContext::getColor(){ return _color; }
 int BrushContext::getSpacing() {return _spacing; }
 float BrushContext::getStabilizer(){ return _stabilizer; }
+bool BrushContext::getPixelPerfect(){ return _pixelPerfect; }
 
 void BrushContext::setShape(IBrushTip* tip){
     IBrushTip* _tip = brushTip;

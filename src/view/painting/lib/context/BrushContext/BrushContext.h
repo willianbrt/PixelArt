@@ -40,6 +40,7 @@ private:
     float _hardness = 1.0f;
     float _stabilizer = 0.0f;
     int _spacing = 0;
+    bool _pixelPerfect = false;
 
     Surface* _shape = nullptr;
     Surface* _pattern = nullptr;
@@ -54,12 +55,14 @@ public:
     void setColor(unsigned int color);
     void setSpacing(int spacing);
     void setStabilizer(float stabilizer);
+    void setPixelPerfect(bool isEnabled);
 
     int getSize();
     float getHardness();
     unsigned int getColor();
     int getSpacing();
     float getStabilizer();
+    bool getPixelPerfect();
 
     Surface* getShape();
     void setShape(IBrushTip* tip);

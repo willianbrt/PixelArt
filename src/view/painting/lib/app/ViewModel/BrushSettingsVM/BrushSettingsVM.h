@@ -27,12 +27,14 @@ public:
     void setColor(int r, int g, int b);
     void setStabilizer(float stabilizer);
     void setSpacing(int spacing);
+    void setPixelPerfect(bool isEnable);
 
     int getSize();
     float getHardness();
     unsigned int getColor();
     int getSpacing();
     float getStabilizer();
+    bool getPixelPerfect();
     
     void setAlignMode(string alignMode);
     void setFillMode(string fillMode);

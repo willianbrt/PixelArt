@@ -31,6 +31,7 @@ export async function buildPaneToolBar(){
 
         brushPreview();
     }
+    pixelPerfect.onchange = (e)=>{ brushSettings.setPixelPerfect(!brushSettings.getPixelPerfect()); }
     hardness.onchange = (e)=>{ brushSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
     spacing.onchange = (e)=>{ brushSettings.setSpacing(parseInt(e.srcElement.value)); }
     stabilizer.onchange = (e)=>{ brushSettings.setStabilizer(parseFloat(e.srcElement.value) / 100.0); }
@@ -38,7 +39,7 @@ export async function buildPaneToolBar(){
     mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
     fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
 
-
+    pixelPerfect.checked = brushSettings.getPixelPerfect(); 
     hardness.value = brushSettings.getHardness()*100;
     spacing.value = brushSettings.getSpacing();
     stabilizer.value = brushSettings.getStabilizer()*100;

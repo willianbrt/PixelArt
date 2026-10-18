@@ -41,25 +41,26 @@ void BrushStrategy::onTracking(int x, int y){
         p = line.next();
         if (p == _from) {continue;}
         
-       
-        bool dirX, dirY;
-        dirX = (_from.x == p.x), dirY = (_from.y == p.y);
-        if(dirX && _dirY && !_change){
-            _change = true;
-            _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, cornerColor);
-        }
-        else if(_dirX && dirY && ! _change) {
-            _change = true;
-            _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, cornerColor);
-        } else{
-            _change = false;
-        }
+       if(_brushContext->getPixelPerfect()){
+            bool dirX, dirY;
+            dirX = (_from.x == p.x), dirY = (_from.y == p.y);
+            if(dirX && _dirY && !_change){
+                _change = true;
+                _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, cornerColor);
+            }
+            else if(_dirX && dirY && ! _change) {
+                _change = true;
+                _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, cornerColor);
+            } else{
+                _change = false;
+            }
 
-        cornerColor = _toolRuntimeContext.drawingSession->getPixel(p.x, p.y);
+            cornerColor = _toolRuntimeContext.drawingSession->getPixel(p.x, p.y);
+            _dirX = dirX;
+            _dirY = dirY;
+        }
         draw(p);
         
-        _dirX = dirX;
-        _dirY = dirY;
         _from = p;
     }
 }
