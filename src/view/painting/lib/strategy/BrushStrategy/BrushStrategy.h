@@ -13,7 +13,12 @@
 #include "../../objects/DrawingSession/DrawingSession.h"
 #include "../../rasterize/LineRasterize/LineRasterize.h"
 #include "../../rasterize/StampRasterize/StampRasterize.h"
-
+enum Direction {
+    NONE,
+    HORIZONTAL,
+    VERTICAL,
+    DIAGONAL
+};
 class BrushStrategy : public IPressedStrategy {
 private:
     Point _from;
@@ -21,6 +26,11 @@ private:
     DrawingContext* _drawingContext = nullptr;
     BrushContext* _brushContext = nullptr;
     CursorContext _cursorContext;
+
+    Direction _dir = NONE;
+    bool _dirX, _dirY;
+    bool _change;
+    unsigned int  color;
     
     ToolRuntimeContext _toolRuntimeContext;
 

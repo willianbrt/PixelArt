@@ -25,5 +25,6 @@ class DrawingSession {
     void putMirroredPixel(int x, int y, unsigned int color);
     void blendPixel(int x, int y, unsigned int color);
     void putPixel(int x, int y, unsigned int color);
+    unsigned int getPixel(int x, int y);
 };
 #endif

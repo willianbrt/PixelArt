@@ -15,10 +15,22 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
 
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
 
+    color = _toolRuntimeContext.drawingSession->getPixel(to.x, to.y);
     draw(to);
 
     _stabilized = {static_cast<float>(to.x), static_cast<float>(to.y)};
     _from = to;
+
+    // x+=32; y+=0;
+    // onTracking(x, y);
+    // x+=0; y+=32;
+    // onTracking(x, y);
+    // x+=32; y+=32;
+    // onTracking(x, y);
+    // x+=32; y+=0;
+    // onTracking(x, y);
+    // x+=32; y+=32;
+    // onTracking(x, y);
 }
 void BrushStrategy::onTracking(int x, int y){
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
@@ -31,13 +43,59 @@ void BrushStrategy::onTracking(int x, int y){
     Point drawPoint = {static_cast<int>(sx), static_cast<int>(sy)};
     if (drawPoint == _from) {return;}
 
-    LineRasterize line(_from,  drawPoint);
-    while(line.hasNext()){
-        Point p = line.next();
-        draw(p);    
-    }
 
-    _from = drawPoint;
+    // bool dirX, dirY;
+    // dirX = (_from.x == drawPoint.x), dirY = (_from.y == drawPoint.y);
+    // if(dirX && _dirY){
+    //     _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, 0x00);
+    //     printf("v->h\n");
+    // }
+    // else if(_dirX && dirY) {
+    //     _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, 0x00);
+    // }
+
+    LineRasterize line(_from,  drawPoint);
+    Point p;
+    while(line.hasNext()){
+        p = line.next();
+        if (p == _from) {continue;}
+        
+            
+        int dx = p.x - _from.x;
+        int dy = p.y - _from.y;
+
+        Direction dir;
+
+        if (dx == 0 && dy == 0) {
+            dir = NONE;          // Parado
+        }
+        else if (dy == 0) {
+            dir = HORIZONTAL;
+        }
+        else if (dx == 0) {
+            dir = VERTICAL;
+        }
+        else {
+            dir = DIAGONAL;
+        }
+        if(dir == Direction::HORIZONTAL && _dir == Direction::VERTICAL && !_change){
+            printf("v->h\n");
+            _change = true;
+             _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, color);
+        } else if(dir == Direction::VERTICAL && _dir == Direction::HORIZONTAL  && !_change) {
+            printf("h->v\n");
+            _change = true;
+             _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, color);
+        } else{
+            _change = false;
+        }
+
+        color = _toolRuntimeContext.drawingSession->getPixel(p.x, p.y);
+        draw(p);
+        
+        _dir = dir;
+        _from = p;
+    }
 }
 void BrushStrategy::onRelease(){
     done();

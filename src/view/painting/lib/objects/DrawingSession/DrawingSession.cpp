@@ -97,3 +97,6 @@ void DrawingSession::clear(){
     _preview->clear();
     _dirtyManager->markDirty(dirty);
 }
+unsigned int  DrawingSession::getPixel(int x, int y){
+    return _preview->getPixel(x,y);
+}
