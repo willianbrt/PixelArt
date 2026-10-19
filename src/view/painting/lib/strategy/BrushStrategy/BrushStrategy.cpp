@@ -15,12 +15,12 @@ void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntim
 
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
 
-    cornerColor = _toolRuntimeContext.drawingSession->getPixel(to.x, to.y);
     draw(to);
 
     _stabilized = {static_cast<float>(to.x), static_cast<float>(to.y)};
     _dirX = false, _dirY = false;
     _change = false;
+    _accSpacing = 0;
     _from = to;
 }
 void BrushStrategy::onTracking(int x, int y){
@@ -36,31 +36,37 @@ void BrushStrategy::onTracking(int x, int y){
 
 
     LineRasterize line(_from,  drawPoint);
-    Point p;
     while(line.hasNext()){
-        p = line.next();
+        Point p = line.next();
         if (p == _from) {continue;}
+
+        bool dirX, dirY;
+        dirX = (_from.x == p.x), dirY = (_from.y == p.y);
         
-       if(_brushContext->getPixelPerfect()){
-            bool dirX, dirY;
-            dirX = (_from.x == p.x), dirY = (_from.y == p.y);
-            if(dirX && _dirY && !_change){
-                _change = true;
-                _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, cornerColor);
-            }
-            else if(_dirX && dirY && ! _change) {
-                _change = true;
-                _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, cornerColor);
-            } else{
-                _change = false;
+        if (_accSpacing >= _brushContext->getSpacing()) {
+            if(_brushContext->getPixelPerfect()){
+                if(dirX && _dirY && !_change){
+                    _change = true;
+                    _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, _previousColor);
+                }
+                else if(_dirX && dirY && ! _change) {
+                    _change = true;
+                    _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, _previousColor);
+                } else{
+                    _change = false;
+                }
             }
 
-            cornerColor = _toolRuntimeContext.drawingSession->getPixel(p.x, p.y);
-            _dirX = dirX;
-            _dirY = dirY;
+            draw(p);
+            _accSpacing = 0;
+        } else {
+            if(dirX xor dirY)
+                _accSpacing+=2;
+            else 
+                _accSpacing++;
         }
-        draw(p);
-        
+        _dirX = dirX;
+        _dirY = dirY;
         _from = p;
     }
 }
@@ -69,6 +75,7 @@ void BrushStrategy::onRelease(){
 }
 
 void BrushStrategy::draw(const Point& pixel){
+    _previousColor = _toolRuntimeContext.drawingSession->getPixel(pixel.x, pixel.y);
     ISurface* shape = _brushContext->getShape();
     StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
         {shape->getWidth(), shape->getHeight()},

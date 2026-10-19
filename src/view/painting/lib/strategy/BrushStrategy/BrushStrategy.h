@@ -24,7 +24,8 @@ private:
 
     bool _dirX, _dirY;
     bool _change;
-    unsigned int  cornerColor;
+    unsigned int _previousColor;
+    int _accSpacing;
     
     ToolRuntimeContext _toolRuntimeContext;
 
