@@ -16,7 +16,7 @@
 
 class BrushStrategy : public IPressedStrategy {
 private:
-    Point _from;
+    Point _startPoint, _from;
     PointF _stabilized;
     DrawingContext* _drawingContext = nullptr;
     BrushContext* _brushContext = nullptr;
