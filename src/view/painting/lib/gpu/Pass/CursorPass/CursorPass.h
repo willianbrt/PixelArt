@@ -32,7 +32,6 @@ private:
     GLint brushSizeLocation;
     GLint fillModeLocation;
     GLint alignModeLocation;
-    GLint maskAlignLocation;
     GLint brushColorLocation;
     GLint hardnessLocation;
     GLint editorSizeLocation;

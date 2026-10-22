@@ -111,7 +111,8 @@ void BrushStrategy::draw(const Point& pixel){
                 GraphicsEngine::clampedTilePoint((it.x - origem.x) % pattern->getWidth(), pattern->getWidth()),
                 GraphicsEngine::clampedTilePoint((it.y - origem.y) % pattern->getHeight(), pattern->getHeight())
             };
-            mask = (pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f;
+            float maskShape = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
+            mask = ((pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f)*maskShape;
             color = _brushContext->getColor();
         } else if(_brushContext->getFillMode() == FILL_MODE::FILL){
             mask = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;

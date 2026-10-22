@@ -31,7 +31,6 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
         uniform float hardness;
         uniform int alignMode;
         uniform int fillMode;
-        uniform vec2 maskAlign;
         
         out vec4 fragColor;
         void main(){
@@ -56,14 +55,13 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
                 } else if(alignMode == 1){ // LOCAL
                     pc = fract(((pixel-cursorLocation) + floor(texPatternSize*0.5)) / texPatternSize);
                 } else if(alignMode == 2){ // SOURCE
-                    pc = fract((pixel-maskAlign) / texPatternSize);
+                    pc = fract(pixel / texPatternSize);
                 }
 
                 float patternMask = texture(texPattern, pc).r; // stamp
 
                 c = vec3(color.r,color.g,color.b);
                 fragColor = vec4(c, shapeMask*patternMask);
-                // fragColor = vec4(c, shapeMask);
             } else if(fillMode == 2) { // stamp
                 c = texture(texShape, hoverUV).agb;
                 fragColor = vec4(c, shapeMask);
@@ -91,7 +89,6 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
     hardnessLocation = glGetUniformLocation(shader.id(),"hardness");
     fillModeLocation = glGetUniformLocation(shader.id(),"fillMode");
     alignModeLocation = glGetUniformLocation(shader.id(),"alignMode");
-    maskAlignLocation = glGetUniformLocation(shader.id(),"maskAlign");
 }
 CursorPass::~CursorPass(){}
 
@@ -132,9 +129,6 @@ void CursorPass::render(){
 
     glUniform2f(brushSizeLocation, (float)_toolSettings->brushContext.getSize(), (float)_toolSettings->brushContext.getSize());
     
-    Point maskAlign =  {0,0};
-    glUniform2f(maskAlignLocation, (float)maskAlign.x, (float)maskAlign.y);
-
     glUniform1i(fillModeLocation,  (int)_toolSettings->brushContext.getFillMode());
     glUniform1i(alignModeLocation, (int)_toolSettings->brushContext.getAlignMode());
 
