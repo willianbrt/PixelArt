@@ -69,7 +69,7 @@ export async function buildPaneToolBar(){
 
             brushPattern.append(brushView);
             brushPattern.addEventListener("click", function(e){
-                brushSettings.setShape(data.brushTip);
+                brushSettings.setShape(data.brushTip, 0xFF00FFFF);
                 brushPreview();
 
                 pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
@@ -190,7 +190,6 @@ export async function buildPaneToolBar(){
     btnBrush.addEventListener("click", function(e){
         toolViewModel.setPressedTool("brush");
         changeSelectTool.call(this);
-        console.log(brushSettings.getShape("line"))
     });
     const btnEraser = document.querySelector(".tool-eraser");
     btnEraser.addEventListener("click", function(e){
@@ -330,9 +329,9 @@ function elemPagination(parent, options){
     let buffer = [];
     for(let i = 0; i < data.buffer.byteLength; i+=4){
         buffer[i] = data.buffer[i+3];
-        buffer[i+1] = data.buffer[i+1]; 
-        buffer[i+2] = data.buffer[i+2]; 
-        buffer[i+3] = data.buffer[i];
+        buffer[i+1] = data.buffer[i]; 
+        buffer[i+2] = data.buffer[i+1]; 
+        buffer[i+3] = data.buffer[i+2];
     }
     
     const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
@@ -434,7 +433,7 @@ async function PatternRepository(){
 
     try{
         pattern.put(1, new Uint8Array([154,0,0,0, 255,0,0,0, 90,0,0,0, 255,0,0,0, 154,0,0,0, 154,0,0,0]), 2, 3, true);
-        pattern.put(2, new Uint8Array([154,0,255,0, 255,0,255,0, 90,0,255,0, 255,0,255,0, 154,0,255,0, 154,0,255,0]), 2, 3, true);
+        pattern.put(2, new Uint8Array([154,0,255,33, 255,0,255,35, 90,0,255,10, 255,0,255,10, 154,0,255,10, 154,0,255,10]), 2, 3, true);
 
     } catch(e){
         console.error(e);

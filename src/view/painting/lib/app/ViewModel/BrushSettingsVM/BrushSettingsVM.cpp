@@ -85,6 +85,7 @@ void BrushSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
 }
 void BrushSettingsVM::setShape(uintptr_t ptr, int size, int factor){
     int w = factor, h = size/factor;
+    
     _toolSettings->brushContext.setShape(new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
 
 }

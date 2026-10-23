@@ -121,12 +121,11 @@ void BrushStrategy::draw(const Point& pixel){
             color = shape->getPixel(src.x, src.y);
             mask = (color & 0xFF) / 255.0f;
         }
-
         
         GraphicsEngine::setOpacity(color, mask);
         _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color);
 
-        // _toolRuntimeContext.drawingSession->putMirroredPixel(it.x, it.y, topColor);
+        // _toolRuntimeContext.drawingSession->putMirroredPixel(it.x, it.y, color);
     }
 }
 bool BrushStrategy::isInitialized(){
