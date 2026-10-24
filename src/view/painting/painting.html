@@ -87,7 +87,7 @@
                         <div id="tool-options">
                             <div class="input-group">
                                 <div class="brush-pattern-preview" id="btn-modal-brush">
-                                    <canvas width="32" height="32"></canvas>
+                                    <canvas width="16" height="16"></canvas>
                                 </div>
                             </div>
 
@@ -318,6 +318,9 @@
     </section>
 
     <div class="modal hidden" id="modal-brush">
+        <div class="modal-header">
+            <h3>${Brush Tip}</h3>
+        </div>
         <div class="modal-content row g-16">
             <div class="col g-8">
                 <div class="brush-pattern-preview">
@@ -351,7 +354,6 @@
             
             <div class="col g-16">
                 <div class="col g-4">
-                    <h3>${Brush Tip}</h3>
                     <div class="tab">
                         <div class="tab-nav">
                             <div class="tab-nav-item active" data-page-id="shape-patterns">Shape</div>

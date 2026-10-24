@@ -173,7 +173,7 @@ body{
     grid-area: footer;
 }
 .pane, .content{
-    background: var(--panel-outline-color);
+    background: var(--primary-color);
     gap: 4px;
     overflow-y: auto;
 }
@@ -213,13 +213,13 @@ body{
     cursor: pointer;
 }
 .pane .tab.active{
-    background-color: var(--panel-outline-color);
+    background-color: var(--primary-color);
 }
 .pane .tab:not(.active):hover{
-    background-color: var(--panel-outline-color);
+    background-color: var(--primary-color);
 }
 .pane .header{
-    background-color: var(--panel-outline-color);
+    background-color: var(--primary-color);
     padding:8px 16px;
     text-align: center;
     display: flex;
@@ -513,7 +513,7 @@ div.frame{
     cursor: pointer;
 }
 div.frame.active{
-    outline: solid 4px var(--panel-outline-color);
+    outline: solid 4px var(--primary-color);
 }
 div.frame.active canvas{
     margin: 3px;
@@ -523,7 +523,7 @@ div.frame::before{
     counter-increment: my-sec-counter;
     font-family: "Jersey 10";
     font-size: 10px;
-    color: var(--panel-outline-color);
+    color: var(--primary-color);
     display: block;
     position: absolute;
     left: 10px;
@@ -531,7 +531,7 @@ div.frame::before{
 }
 div.frame.active::before{
     color: var(--light-text-color);
-    background-color: var(--panel-outline-color);
+    background-color: var(--primary-color);
     padding: 8px 12px;
     position: absolute;
     left: -4px;
@@ -589,6 +589,10 @@ div.frame.active::before{
     left: 50%;
     transform: translate(-50%, -50%);
     border: 1px solid #000;
+}
+.modal-header{
+    padding: 8px 16px;
+    background-color: var(--primary-color);
 }
 .modal.hidden{
     display: none;

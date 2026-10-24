@@ -370,10 +370,10 @@ function elemPagination(parent, options){
     const data = brushSettings.getBrush();
     let buffer = [];
     for(let i = 0; i < data.buffer.byteLength; i+=4){
-        buffer[i] = data.buffer[i+3];
-        buffer[i+1] = data.buffer[i+1]; 
-        buffer[i+2] = data.buffer[i+2]; 
-        buffer[i+3] = data.buffer[i];
+        buffer[i]   = data.buffer[i+3];
+        buffer[i+1] = data.buffer[i]; 
+        buffer[i+2] = data.buffer[i+1]; 
+        buffer[i+3] = data.buffer[i+2];
     }
     const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
 
@@ -384,17 +384,14 @@ function elemPagination(parent, options){
     const offContext = offPattern.getContext("2d");
     offContext.putImageData(imgData, 0, 0);
 
-
-    const SIZE_ACTIVE_CANVAS = {x:16, y: 16};
-    const transformActiveCanvas = fitContent({x: data.width, y: data.height}, SIZE_ACTIVE_CANVAS); 
     
-    let activeCanvas = document.querySelector("#btn-modal-brush canvas");
-    let ctxActiveCanvas = activeCanvas.getContext("2d");
-    activeCanvas.width = SIZE_ACTIVE_CANVAS.x;
-    activeCanvas.height = SIZE_ACTIVE_CANVAS.y;
-    ctxActiveCanvas.imageSmoothingEnabled = false;
-    ctxActiveCanvas.drawImage(offPattern, transformActiveCanvas.pan.x, transformActiveCanvas.pan.y, transformActiveCanvas.resized.x,transformActiveCanvas.resized.y);
-    
+    let listPreviewCanvas = document.querySelectorAll(".brush-pattern-preview canvas");
+    listPreviewCanvas.forEach((previewCanvas)=>{
+        const transformActiveCanvas = fitContent({x: data.width, y: data.height}, {x: previewCanvas.width, y: previewCanvas.height }); 
+        let ctxActiveCanvas = previewCanvas.getContext("2d");        
+        ctxActiveCanvas.imageSmoothingEnabled = false;
+        ctxActiveCanvas.drawImage(offPattern, transformActiveCanvas.pan.x, transformActiveCanvas.pan.y, transformActiveCanvas.resized.x,transformActiveCanvas.resized.y);
+    });
 }
 function fitContent(source, dest){
     let scale = Math.min(dest.x/source.x, dest.y/source.y);
