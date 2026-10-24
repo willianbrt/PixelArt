@@ -17,14 +17,6 @@ h1, h2, h3, h4, h5, h6{
     color: var(--light-text-color);
     margin: 0;
 }
-h4{
-    font-size: 18px;
-    line-height: 18px;
-}
-h5{
-    font-size: 16px;
-    line-height: 16px;
-}
 .text{
     font-family: "Jersey 10", sans-serif;
     font-weight: 400;
@@ -290,6 +282,14 @@ body{
     pointer-events: none;
     padding: 0 8px;
 }
+#opacity-label{
+    font-family: "Jersey 10", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: var(--light-text-color);
+    margin: 0;
+    font-size: 16px;
+}
 
 
 input[type="range"].slider {
@@ -392,7 +392,7 @@ input[type="range"].slider::-webkit-slider-runnable-track{
 .btn-ghost-action:hover{
     background-color: var(--hover-color);
 }
-.btn-choice, .tab-nav-item{
+.btn-choice{
     font-family: 'Jersey 10';
     background: transparent;
     color: var(--light-text-color);
@@ -410,7 +410,7 @@ input[type="range"].slider::-webkit-slider-runnable-track{
     box-shadow: 0px 0px 10px 1px #0000004d inset;
     text-wrap-mode: nowrap;
 }
-.btn-choice:has(input[type="checkbox"]:checked), .tab-nav-item.active {
+.btn-choice:has(input[type="checkbox"]:checked) {
     outline: #301439 2px solid;
     background: #bbaac0;
     color: #301439;
@@ -734,21 +734,21 @@ span.line{
     background-color: #ffffff55;
     margin: 8px auto;
 }
-.brush-pattern{
+.brush-pattern-preview{
+    margin: 0 auto;
+}
+.brush-pattern, .brush-pattern-preview{
     color: #000;
     background-color: #ffffff21;
-    border-radius: 8px;
-    width: 32px;
-    height: 32px;
+    border-radius: 4px;
+    padding: 4px;
+
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
 }
-.brush-pattern span{
-    font-size: 24px;
-}
-.brush-pattern.active{
+.brush-pattern.active, .brush-pattern-preview{
     box-shadow: inset var(--emphasis-color) 0px 0px 0px 2px;
 }
 .list-pattern{
@@ -795,11 +795,49 @@ span.line{
 #next-page,#previous-page{
     cursor: pointer;
 }
+
+
+
+
+.tab{
+    display: flex;
+    gap:8px;
+    flex-direction: column;
+}
+.tab-nav{
+    display:flex;
+    color: var(--primary-color);
+    box-shadow: inset 0px 0px 0px 2px var(--primary-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.tab-nav-item{
+    display:flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+
+    
+    font-family: 'Jersey 10';
+    background: transparent;
+    color: var(--light-text-color);
+    font-size: 16px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-wrap-mode: nowrap;
+}
+.tab-nav-item.active{
+    background: var(--primary-color);
+    color: var(--light-text-color);
+}
+
 .tab-select{
     display: none;
 }
 .tab-select.active{
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }

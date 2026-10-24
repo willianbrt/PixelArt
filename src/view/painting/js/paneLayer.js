@@ -114,8 +114,8 @@ function createLayerElement(layer){
     let nameLayer = document.createElement("div");
     nameLayer.className = "text";
     nameLayer.className = "name-layer";
-    let h5 = document.createElement("h5");
-    h5.innerText = _layer.name;
+    let h4 = document.createElement("h4");
+    h4.innerText = _layer.name;
 
     let editing = false;
     let dbl = false;
@@ -140,7 +140,7 @@ function createLayerElement(layer){
         inpNameLayer.value = layer.name;
         inpNameLayer.type = "text";
 
-        nameLayer.replaceChild(inpNameLayer, h5);
+        nameLayer.replaceChild(inpNameLayer, h4);
         inpNameLayer.focus();
         
         inpNameLayer.addEventListener("keydown", function(e){
@@ -150,11 +150,11 @@ function createLayerElement(layer){
         });
         inpNameLayer.addEventListener("blur", ()=> {
             layerViewModel.setName(inpNameLayer.value);
-            nameLayer.replaceChild(h5, inpNameLayer);
+            nameLayer.replaceChild(h4, inpNameLayer);
             editing = false;
         });
     };
-    nameLayer.append(h5);
+    nameLayer.append(h4);
 
     let btnHideLayer = document.createElement("button");
     let iconHideLayer = document.createElement("i");
@@ -265,7 +265,7 @@ function createLayerElement(layer){
     }
     function setNameLayer(name){
         _layer.name = name;
-        h5.innerText = _layer.name;
+        h4.innerText = _layer.name;
     }
     function setIsActive(isActive){
         _layer.isActive = isActive;
@@ -277,7 +277,7 @@ function createLayerElement(layer){
         if(!_layer.isActive) return;
 
         inpOpacity.value = _layer.opacity * 100.0;
-        document.querySelector("#opacity-label h5").innerText = "Transparência " + inpOpacity.value + "%";
+        document.querySelector("#opacity-label").innerText = "Transparência " + inpOpacity.value + "%";
     }
     return Object.freeze({
         element: layerElement,
