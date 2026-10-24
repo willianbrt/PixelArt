@@ -328,10 +328,11 @@ function elemPagination(parent, options){
     
     let buffer = [];
     for(let i = 0; i < data.buffer.byteLength; i+=4){
-        buffer[i] = data.buffer[i+3];
-        buffer[i+1] = data.buffer[i]; 
-        buffer[i+2] = data.buffer[i+1]; 
-        buffer[i+3] = data.buffer[i+2];
+
+        buffer[i]   = data.buffer[i+1];
+        buffer[i+1] = data.buffer[i+2]; 
+        buffer[i+2] = data.buffer[i+3];
+        buffer[i+3] = data.buffer[i];
     }
     
     const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
@@ -347,6 +348,7 @@ function elemPagination(parent, options){
     canvasPattern.height = canvasHeight;
     const context = canvasPattern.getContext("2d");
     context.imageSmoothingEnabled = false;
+    context.clearRect(0,0, canvasPattern.width, canvasPattern.height);
     context.drawImage(offPattern, transform.pan.x, transform.pan.y, transform.resized.x, transform.resized.y);
 
     let brushPattern = document.createElement("div");
@@ -366,14 +368,27 @@ function elemPagination(parent, options){
 
 
 
- function brushPreview(){
+ function brushPreview(){    
     const data = brushSettings.getBrush();
+    const color = brushSettings.getColor();
+    const a = (color & 0xFF) ;
+    const b = (color>>8 & 0xFF)
+    const g = (color>>16 & 0xFF);
+    const r = (color>>24 & 0xFF);
+
+
     let buffer = [];
     for(let i = 0; i < data.buffer.byteLength; i+=4){
-        buffer[i]   = data.buffer[i+3];
-        buffer[i+1] = data.buffer[i]; 
-        buffer[i+2] = data.buffer[i+1]; 
-        buffer[i+3] = data.buffer[i+2];
+        buffer[i]   = r ;
+        buffer[i+1] = g ;
+        buffer[i+2] = b ;
+        buffer[i+3] = (data.buffer[i]*a)/255;
+
+
+        buffer[i]   = data.buffer[i+1];
+        buffer[i+1] = data.buffer[i+2]; 
+        buffer[i+2] = data.buffer[i+3];
+        buffer[i+3] = data.buffer[i];
     }
     const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
 
@@ -390,6 +405,8 @@ function elemPagination(parent, options){
         const transformActiveCanvas = fitContent({x: data.width, y: data.height}, {x: previewCanvas.width, y: previewCanvas.height }); 
         let ctxActiveCanvas = previewCanvas.getContext("2d");        
         ctxActiveCanvas.imageSmoothingEnabled = false;
+            
+        ctxActiveCanvas.clearRect(0,0, previewCanvas.width, previewCanvas.height);
         ctxActiveCanvas.drawImage(offPattern, transformActiveCanvas.pan.x, transformActiveCanvas.pan.y, transformActiveCanvas.resized.x,transformActiveCanvas.resized.y);
     });
 }

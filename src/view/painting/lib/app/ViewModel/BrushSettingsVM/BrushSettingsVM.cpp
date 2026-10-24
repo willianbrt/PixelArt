@@ -107,7 +107,9 @@ void BrushSettingsVM::setShape(string pattern){
 BrushDTO BrushSettingsVM::getBrush(){
     ISurface* shape = _toolSettings->brushContext.getShape();
     emscripten::val data = emscripten::val(emscripten::typed_memory_view(shape->getWidth()* shape->getHeight()*4, reinterpret_cast<uint8_t*>( shape->getBuffer())));
-        // .call<emscripten::val>("slice");
+    
+    
+    // .call<emscripten::val>("slice");
     // emscripten::val data = emscripten::val(emscripten::typed_memory_view(
     //     _toolSettings->brushContext.selectedPattern->getWidth()* _toolSettings->brushContext.selectedPattern->getHeight()*4, 
     //     reinterpret_cast<uint8_t*>( _toolSettings->brushContext.selectedPattern->getBuffer()))).call<emscripten::val>("slice");
