@@ -3,14 +3,24 @@
 
 #include <emscripten/val.h>
 #include <emscripten/bind.h>
+#include "../SurfaceDTO/SurfaceDTO.h"
 
 class BrushDTO {
 private:
     
 public:
     std::string id;
-    emscripten::val buffer;
-    int width;
-    int height;
+    SurfaceDTO pattern;
+    SurfaceDTO shape;
+    int fillMode;
+    int alignMode;
+    int r, g, b;
+    unsigned int color;
+    float hardness;
+    float smoothness;
+    int spacing;
+    int size;
+    float stabilizer;
+    bool pixelPerfect;
 };
 #endif

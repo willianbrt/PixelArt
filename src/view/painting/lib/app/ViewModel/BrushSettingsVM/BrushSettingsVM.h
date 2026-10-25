@@ -5,6 +5,7 @@
 #include <emscripten/val.h>
 #include "../../AppContext/AppContext.h"
 #include "../../../objects/ToolManager/ToolManager.h"
+#include "../../../rasterize/StampRasterize/StampRasterize.h"
 #include "../../../rasterize/CircleRasterize/CircleRasterize.h"
 #include "../../../rasterize/LineRasterize/LineRasterize.h"
 #include "../../../rasterize/LineTip/LineTip.h"

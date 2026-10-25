@@ -468,7 +468,6 @@
         let nav = tab.querySelector(".tab-nav");
         let navItems = nav.querySelectorAll(".tab-nav-item");
         navItems.forEach((navItem)=>{
-            console.log(navItem)
             navItem.onclick = ()=>{
                 nav.querySelector(".tab-nav-item.active")?.classList.remove("active");
                 tab.querySelector(".tab-items .tab-select.active")?.classList.remove("active");

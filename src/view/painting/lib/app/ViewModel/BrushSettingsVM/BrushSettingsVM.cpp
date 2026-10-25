@@ -105,19 +105,75 @@ void BrushSettingsVM::setShape(string pattern){
     _toolSettings->brushContext.setShape(brushTip);
 }
 BrushDTO BrushSettingsVM::getBrush(){
+    ISurface* pattern = _toolSettings->brushContext.getPattern();
     ISurface* shape = _toolSettings->brushContext.getShape();
-    emscripten::val data = emscripten::val(emscripten::typed_memory_view(shape->getWidth()* shape->getHeight()*4, reinterpret_cast<uint8_t*>( shape->getBuffer())));
+
+    // PointF center = {shape->getWidth()*0.5f, shape->getHeight()*0.5f};
+    // float w = shape->getWidth();
+    // float h = shape->getHeight();
+
+    // ISurface* brush = new Surface((int)w, (int)h);
     
+    // StampRasterize stamp(center,
+    //     {shape->getWidth(), shape->getHeight()},
+    //     {brush->getWidth(), brush->getHeight()},
+    //     _toolSettings->brushContext.transformation);
+
+    // while(stamp.hasNext()){
+    //     Point it = stamp.next();
+    //     Point src = stamp.getSrcPoint();
+
+    //     if(src.x < 0 || src.y < 0 || src.x >= shape->getWidth() || src.y >= shape->getHeight()) continue;
+            
+        
+    //     unsigned int color;
+    //     float mask;
+    //     if(_toolSettings->brushContext.getFillMode() == FILL_MODE::MASK){
+    //         Point srcPattern = {
+    //             GraphicsEngine::clampedTilePoint(it.x % pattern->getWidth(), pattern->getWidth()),
+    //             GraphicsEngine::clampedTilePoint(it.y % pattern->getHeight(), pattern->getHeight())
+    //         };
+    //         float maskShape = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
+    //         mask = ((pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f)*maskShape;
+    //         color = _toolSettings->brushContext.getColor();
+    //     } else if(_toolSettings->brushContext.getFillMode() == FILL_MODE::FILL){
+    //         mask = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
+    //         color = _toolSettings->brushContext.getColor();
+    //     } else if(_toolSettings->brushContext.getFillMode() == FILL_MODE::STAMP){
+    //         color = shape->getPixel(src.x, src.y);
+    //         mask = (color & 0xFF) / 255.0f;
+    //     }
+        
+    //     GraphicsEngine::setOpacity(color, mask);
+    //     brush->putPixel(it.x, it.y, color);
+    // }
     
-    // .call<emscripten::val>("slice");
-    // emscripten::val data = emscripten::val(emscripten::typed_memory_view(
-    //     _toolSettings->brushContext.selectedPattern->getWidth()* _toolSettings->brushContext.selectedPattern->getHeight()*4, 
-    //     reinterpret_cast<uint8_t*>( _toolSettings->brushContext.selectedPattern->getBuffer()))).call<emscripten::val>("slice");
-    
+
+
+    SurfaceDTO shapeDTO;
+    if(shape->getBuffer() != nullptr){
+        shapeDTO.buffer = emscripten::val(emscripten::typed_memory_view(shape->getWidth()* shape->getHeight()*4, reinterpret_cast<uint8_t*>(shape->getBuffer())));
+        shapeDTO.width = shape->getWidth();
+        shapeDTO.height = shape->getHeight();
+    }
+    SurfaceDTO patternDTO;
+    if(pattern != nullptr){
+        patternDTO.buffer = emscripten::val(emscripten::typed_memory_view(pattern->getWidth()* pattern->getHeight()*4, reinterpret_cast<uint8_t*>(pattern->getBuffer())));
+        patternDTO.width = pattern->getWidth();
+        patternDTO.height = pattern->getHeight();
+    }
+
     BrushDTO brushDTO;
-    brushDTO.buffer = data;
-    brushDTO.width = shape->getWidth();
-    brushDTO.height = shape->getHeight();
+    brushDTO.pattern = patternDTO;
+    brushDTO.shape = shapeDTO;
+    brushDTO.color =  _toolSettings->brushContext.getColor();
+    brushDTO.fillMode = (int)_toolSettings->brushContext.getFillMode();
+    brushDTO.hardness = _toolSettings->brushContext.getHardness()*100;
+    brushDTO.spacing = _toolSettings->brushContext.getSpacing();
+    brushDTO.size = _toolSettings->brushContext.getSize();
+    brushDTO.alignMode = (int)_toolSettings->brushContext.getAlignMode();
+    brushDTO.stabilizer = _toolSettings->brushContext.getStabilizer()*100;
+    brushDTO.pixelPerfect = _toolSettings->brushContext.getPixelPerfect();
     
     
     return brushDTO;

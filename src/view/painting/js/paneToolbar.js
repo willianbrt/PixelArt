@@ -28,24 +28,37 @@ export async function buildPaneToolBar(){
     
     thickness.onchange = async (e)=>{
         brushSettings.setSize(parseInt(e.srcElement.value));
-
-        brushPreview();
+        onUpdateBrush();
     }
-    pixelPerfect.onchange = (e)=>{ brushSettings.setPixelPerfect(!brushSettings.getPixelPerfect()); }
-    hardness.onchange = (e)=>{ brushSettings.setHardness(parseFloat(e.srcElement.value) / 100.0); }
-    spacing.onchange = (e)=>{ brushSettings.setSpacing(parseInt(e.srcElement.value)); }
-    stabilizer.onchange = (e)=>{ brushSettings.setStabilizer(parseFloat(e.srcElement.value) / 100.0); }
-    mirrorX.onchange = (e)=>{ symmetrySettings.setMirrorX(e.srcElement.checked); }
-    mirrorY.onchange = (e)=>{ symmetrySettings.setMirrorY(e.srcElement.checked); }
-    fill.onchange = (e)=>{ console.log(e.srcElement.checked); }
-
-    pixelPerfect.checked = brushSettings.getPixelPerfect(); 
-    hardness.value = brushSettings.getHardness()*100;
-    spacing.value = brushSettings.getSpacing();
-    stabilizer.value = brushSettings.getStabilizer()*100;
+    pixelPerfect.onchange = (e)=>{
+        brushSettings.setPixelPerfect(!brushSettings.getPixelPerfect());
+        onUpdateBrush();
+    }
+    hardness.onchange = (e)=>{
+        brushSettings.setHardness(parseFloat(e.srcElement.value) / 100.0);
+        onUpdateBrush();
+    }
+    spacing.onchange = (e)=>{
+        brushSettings.setSpacing(parseInt(e.srcElement.value));
+        onUpdateBrush();
+    }
+    stabilizer.onchange = (e)=>{
+        brushSettings.setStabilizer(parseFloat(e.srcElement.value) / 100.0);
+        onUpdateBrush();
+    }
+    mirrorX.onchange = (e)=>{
+        symmetrySettings.setMirrorX(e.srcElement.checked);
+        onUpdateBrush();
+    }
+    mirrorY.onchange = (e)=>{
+        symmetrySettings.setMirrorY(e.srcElement.checked);
+        onUpdateBrush();
+    }
+    fill.onchange = (e)=>{
+    }
 
     toolViewModel.setPressedTool("brush");
-    brushPreview();
+    onUpdateBrush();
 
     var modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
     var shapePagination = pagination({
@@ -70,7 +83,7 @@ export async function buildPaneToolBar(){
             brushPattern.append(brushView);
             brushPattern.addEventListener("click", function(e){
                 brushSettings.setShape(data.brushTip, 0xFF00FFFF);
-                brushPreview();
+                onUpdateBrush();
 
                 pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
                 this.classList.add("active");
@@ -101,7 +114,7 @@ export async function buildPaneToolBar(){
                     const patternPtr = app.malloc(data.buffer);
                     const size = data.buffer.byteLength/4;
                     brushSettings.setCustomShape(patternPtr, size, data.width);
-                    brushPreview();
+                    onUpdateBrush();
                 }
             });
             return brush;
@@ -128,7 +141,7 @@ export async function buildPaneToolBar(){
                     const patternPtr = app.malloc(data.buffer);
                     const size = data.buffer.byteLength/4;
                     brushSettings.setPattern(patternPtr, size, data.width);
-                    brushPreview();
+                    onUpdateBrush();
                 }
             });
             return brush;
@@ -367,48 +380,190 @@ function elemPagination(parent, options){
 }
 
 
+function brushPreviewRender(canvas){
+    const gl = canvas.getContext("webgl2");
 
- function brushPreview(){    
-    const data = brushSettings.getBrush();
-    const color = brushSettings.getColor();
-    const a = (color & 0xFF) ;
-    const b = (color>>8 & 0xFF)
-    const g = (color>>16 & 0xFF);
-    const r = (color>>24 & 0xFF);
+    const vs = `#version 300 es
+    in vec2 pos;
+    out vec2 uv;
 
+    void main() {
+        uv = pos * 0.5 + 0.5;
+        uv = vec2(uv.x, 1.0 - uv.y);
+        gl_Position = vec4(pos, 0.0, 1.0);
+    }`;
+    const fs = `#version 300 es
+        precision highp float;
+        uniform sampler2D texPattern;
+        uniform sampler2D texShape;
+        in vec2 uv;
+        in vec2 pixel;
+        
+        uniform vec2 resolution;
+        uniform vec2 texPatternSize;
+        uniform vec2 texShapeSize;
+        uniform vec2 brushSize;
+        uniform vec4 color;
+        uniform float hardness;
+        uniform int fillMode;
+        
+        out vec4 fragColor;
+        void main(){
+            float size = min(resolution.x/texShapeSize.x, resolution.y/texShapeSize.y);
+            vec2 origem = (resolution- texShapeSize*size)*0.5;
+            vec2 shapeUV = (uv * resolution - origem) / (texShapeSize * size);
+            if(shapeUV.x < 0.0 || shapeUV.x >= 1.0 || shapeUV.y < 0.0 || shapeUV.y >= 1.0) {
+                discard;
+            }
 
-    let buffer = [];
-    for(let i = 0; i < data.buffer.byteLength; i+=4){
-        buffer[i]   = r ;
-        buffer[i+1] = g ;
-        buffer[i+2] = b ;
-        buffer[i+3] = (data.buffer[i]*a)/255;
+            float shapeMask = texture(texShape, shapeUV).r*hardness;
 
+            vec3 c;
+            if(fillMode == 0){
+                c = vec3(color.r,color.g,color.b);
+                fragColor = vec4(c, shapeMask);
+            }
+            else if(fillMode == 1) {
+            
+                vec2 origemPattern = (resolution- texPatternSize*size)*0.5;
+                vec2 patternUV = fract((uv * resolution - origem)/ (texPatternSize*size));
 
-        buffer[i]   = data.buffer[i+1];
-        buffer[i+1] = data.buffer[i+2]; 
-        buffer[i+2] = data.buffer[i+3];
-        buffer[i+3] = data.buffer[i];
+                float patternMask = texture(texPattern, patternUV).r;
+
+                // c = vec3(color.r,color.g,color.b);
+                // c = texture(texPattern, patternUV).agb;
+                c = vec3(texture(texPattern, patternUV).b,0.0,0.0);
+                fragColor = vec4(c, shapeMask*patternMask);
+            }
+            else if(fillMode == 2) {
+                c = texture(texShape, shapeUV).agb;
+                fragColor = vec4(c, shapeMask);
+            }
+        }`;
+
+    function shader(type, src){
+        let s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return s;
     }
-    const imgData = new ImageData(new Uint8ClampedArray(buffer), data.width,data.height);
+    
+    function texture(id, name){
+        const tex = gl.createTexture();
+        const location = gl.getUniformLocation(prog, name);
 
+        return {
+            update: (surface)=>{
+                if(!surface.buffer) return;
 
-    let offPattern = document.createElement("canvas");
-    offPattern.width = data.width;
-    offPattern.height = data.height;
-    const offContext = offPattern.getContext("2d");
-    offContext.putImageData(imgData, 0, 0);
+                gl.activeTexture(gl.TEXTURE0 + id);
+                gl.bindTexture(gl.TEXTURE_2D, tex);
+
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+            
+                gl.texImage2D(
+                    gl.TEXTURE_2D,
+                    0,
+                    gl.RGBA,
+                    surface.width,
+                    surface.height,
+                    0,
+                    gl.RGBA,
+                    gl.UNSIGNED_BYTE,
+                    surface.buffer
+                );
+            },
+            bind: () => {
+                gl.activeTexture(gl.TEXTURE0 + id);
+                gl.bindTexture(gl.TEXTURE_2D, tex);
+
+                gl.uniform1i(location, id);
+            }
+        }
+    }
+    
+    let prog = gl.createProgram();
+    gl.attachShader(prog, shader(gl.VERTEX_SHADER, vs));
+    gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+    
+    
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1,-1,  1,-1,  -1,1,
+        -1,1,   1,-1,   1,1
+    ]), gl.STATIC_DRAW);
+
 
     
-    let listPreviewCanvas = document.querySelectorAll(".brush-pattern-preview canvas");
-    listPreviewCanvas.forEach((previewCanvas)=>{
-        const transformActiveCanvas = fitContent({x: data.width, y: data.height}, {x: previewCanvas.width, y: previewCanvas.height }); 
-        let ctxActiveCanvas = previewCanvas.getContext("2d");        
-        ctxActiveCanvas.imageSmoothingEnabled = false;
-            
-        ctxActiveCanvas.clearRect(0,0, previewCanvas.width, previewCanvas.height);
-        ctxActiveCanvas.drawImage(offPattern, transformActiveCanvas.pan.x, transformActiveCanvas.pan.y, transformActiveCanvas.resized.x,transformActiveCanvas.resized.y);
-    });
+    const loc = gl.getAttribLocation(prog, "pos");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    
+    gl.viewport(0,0,canvas.width,canvas.height);
+
+    const texShape = texture(0, "texShape");
+    const texPattern = texture(1, "texPattern");
+    
+    const resLocation = gl.getUniformLocation(prog,"resolution");
+    const colorLocation = gl.getUniformLocation(prog,"color");
+    const hardnessLocation = gl.getUniformLocation(prog,"hardness");
+    const fillModeLocation = gl.getUniformLocation(prog,"fillMode");
+    const texPatternSizeLocation = gl.getUniformLocation(prog,"texPatternSize");
+    const texShapeSizeLocation = gl.getUniformLocation(prog,"texShapeSize");
+
+    function draw(obj){
+        console.log(obj.fillMode)
+        gl.uniform2f(resLocation, canvas.width,canvas.height);
+        gl.uniform2f(texPatternSizeLocation, obj.pattern.width,obj.pattern.height);
+        gl.uniform2f(texShapeSizeLocation, obj.shape.width,obj.shape.height);
+        gl.uniform1f(hardnessLocation, obj.hardness/100.0);
+        gl.uniform1i(fillModeLocation, obj.fillMode);
+
+        const a = (obj.color & 0xFF) ;
+        const b = (obj.color>>8 & 0xFF)
+        const g = (obj.color>>16 & 0xFF);
+        const r = (obj.color>>24 & 0xFF);
+        gl.uniform4f(colorLocation, r,g,b,a);
+
+        texShape.bind();
+        texShape.update(obj.shape);
+        texPattern.bind();
+        texPattern.update(obj.pattern);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+    return {draw};
+}
+
+
+
+var renderPreview = [];
+let listPreviewCanvas = document.querySelectorAll(".brush-pattern-preview canvas");
+listPreviewCanvas.forEach((previewCanvas)=>{
+    renderPreview.push(brushPreviewRender(previewCanvas));
+});
+
+function onUpdateBrush(){
+    const brush = brushSettings.getBrush();
+
+    pixelPerfect.checked = brush.pixelPerfect; 
+    hardness.value = brush.hardness;
+    spacing.value = brush.spacing;
+    stabilizer.value = brush.stabilizer;
+    thickness.value = brush.size;
+    console.log(renderPreview)
+    
+    renderPreview.forEach((render)=>{ render.draw(brush); });
 }
 function fitContent(source, dest){
     let scale = Math.min(dest.x/source.x, dest.y/source.y);

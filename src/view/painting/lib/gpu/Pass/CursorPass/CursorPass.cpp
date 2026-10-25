@@ -63,7 +63,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
                 c = vec3(color.r,color.g,color.b);
                 fragColor = vec4(c, shapeMask*patternMask);
             } else if(fillMode == 2) { // stamp
-                c = texture(texShape, hoverUV).gba;
+                c = texture(texShape, hoverUV).agb;
                 fragColor = vec4(c, shapeMask);
             }
 

@@ -5,8 +5,16 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     value_object<BrushDTO>("BrushDTO")
         .field("id", &BrushDTO::id)
-        .field("buffer", &BrushDTO::buffer)
-        .field("width", &BrushDTO::width)
-        .field("height", &BrushDTO::height)
+        .field("pattern", &BrushDTO::pattern)
+        .field("shape", &BrushDTO::shape)
+        .field("color", &BrushDTO::color)
+        .field("hardness", &BrushDTO::hardness)
+        .field("smoothness", &BrushDTO::smoothness)
+        .field("spacing", &BrushDTO::spacing)
+        .field("fillMode", &BrushDTO::fillMode)
+        .field("size", &BrushDTO::size)
+        .field("alignMode", &BrushDTO::alignMode)
+        .field("stabilizer", &BrushDTO::stabilizer)
+        .field("pixelPerfect", &BrushDTO::pixelPerfect)
         ;
 }
