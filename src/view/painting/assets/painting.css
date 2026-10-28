@@ -4,6 +4,57 @@
 *{
     user-select: none;
 }
+
+.checkbox input[type="checkbox"]{
+    visibility: hidden;
+    height: 0;
+    width: 0;
+    margin: 0;
+    padding: 0;
+    display: none;
+}
+.checkbox label{
+    width: 22px;
+    height: 12px;
+    display: block;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    background-color: #896a95;
+    box-shadow: inset #000 0 0 1px 0;
+}
+.checkbox label::after {
+    content:"";
+    border-radius: 50%;
+    position: absolute;
+    background-color: var(--emphasis-color);
+    width: 8px;
+    height: 8px;
+    display: block;
+    top:calc(50% - 4px);
+    right:calc(100% - 10px);
+    transition: right 0.3s;
+}
+
+.checkbox input[type="checkbox"]:checked + label{
+    /* border: 1px solid var(--emphasis-color); */
+}
+.checkbox input[type="checkbox"]:checked + label::after{
+    background-color: var(--emphasis-color);
+    right: 2px;
+}
+#mask-patterns{
+    opacity: 0.3;
+}
+#pane-pattern:has(#enable-pattern:checked) #mask-patterns {
+    opacity: 1.0;
+}
+
+
+
+
+
+
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none !important;
@@ -58,6 +109,7 @@ i, .material-symbols-outlined{
 select{
     border: none;
     outline: none;
+    max-width: 112px;
     height: 100%;
     color: var(--light-text-color);
     background-color: transparent;
@@ -625,6 +677,9 @@ input{
     gap:4px;
     align-items: center;
 }
+.input-group.col{
+    align-items: normal;
+}
 div#picker-control {
     padding: 4px 8px;
 }
@@ -844,4 +899,10 @@ span.line{
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+
+.header-section{
+    border-bottom: 1px solid var(--light-text-color);
+    /* background-color: var(--primary-color); */
 }

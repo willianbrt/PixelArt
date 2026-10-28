@@ -149,43 +149,23 @@ export async function buildPaneToolBar(){
     });
 
 
-
-
-
-    let tabFill = document.querySelector("#tab-fill");
     let mode = {
         "solid": (e)=>{
             brushSettings.setFillMode("solid");
-
-            let lastActivePane = tabFill.querySelector(".tab-select.active");
-            lastActivePane?.classList.remove("active");
-            
-            let activePane = tabFill.querySelector("#pane-solid");
-            activePane.classList.add("active");
+            onUpdateBrush();
         },
         "stamp": ()=>{
             brushSettings.setFillMode("stamp");
-
-            let lastActivePane = tabFill.querySelector(".tab-select.active");
-            lastActivePane?.classList.remove("active");
-            
-            let activePane = tabFill.querySelector("#pane-stamp");
-            activePane.classList.add("active");
+            onUpdateBrush();
         },
-        "pattern": ()=>{
-            brushSettings.setFillMode("mask");
-
-            let lastActivePane = tabFill.querySelector(".tab-select.active");
-            lastActivePane?.classList.remove("active");
-
-            let activePane = tabFill.querySelector("#pane-pattern");
-            activePane.classList.add("active");
+        "preserve-opacity": ()=>{
+            brushSettings.setFillMode("preserve-opacity");
+            onUpdateBrush();
         },
     };
 
     let selectModeBrush = document.querySelector("#mode-brush");
     selectModeBrush.onchange = (e)=>{ mode[e.srcElement.value]() };
-    mode[selectModeBrush.value]();
 
 
     let selectAlignMode = document.querySelector("#align-mode");
@@ -561,7 +541,6 @@ function onUpdateBrush(){
     spacing.value = brush.spacing;
     stabilizer.value = brush.stabilizer;
     thickness.value = brush.size;
-    console.log(renderPreview)
     
     renderPreview.forEach((render)=>{ render.draw(brush); });
 }

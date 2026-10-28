@@ -327,86 +327,154 @@
                     <canvas width="128" height="128"></canvas>
                 </div>
                 
-                <div class="form-group col g-8">
-                    <div class="col">
-                        <span class="input-label">Tamanho:</span>
-                        <div class="input-group">
-                            <input type="range">
-                            <span class="input-label">10px</span>
+                <section class="col g-8">
+                    <div class="header-section">
+                        <h4>Simple Settings</h4>
+                    </div>
+                    <div class="form-group col g-4">
+                        <div class="col">
+                            <span class="input-label">Tamanho:</span>
+                            <div class="input-group">
+                                <input type="range">
+                                <span class="input-label">10px</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <span class="input-label">Espaçamento:</span>
+                            <div class="input-group">
+                                <input type="range">
+                                <span class="input-label">10px</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <span class="input-label">Suavizar:</span>
+                            <div class="input-group">
+                                <input type="range">
+                                <span class="input-label">10px</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <span class="input-label">Espaçamento:</span>
-                        <div class="input-group">
-                            <input type="range">
-                            <span class="input-label">10px</span>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <span class="input-label">Suavizar:</span>
-                        <div class="input-group">
-                            <input type="range">
-                            <span class="input-label">10px</span>
-                        </div>
-                    </div>
-                </div>
+                </section>
             </div>
             
             <div class="col g-16">
-                <div class="col g-4">
+                <section class="col g-4">
+                    <div class="header-section">
+                        <h4>Shape</h4>
+                    </div>
                     <div class="tab">
                         <div class="tab-nav">
-                            <div class="tab-nav-item active" data-page-id="shape-patterns">Shape</div>
-                            <div class="tab-nav-item" data-page-id="custom-patterns">Custom</div>
+                            <div class="tab-nav-item active" data-page-id="tab-shape-patterns">Geometric</div>
+                            <div class="tab-nav-item" data-page-id="tab-custom-patterns">Custom</div>
                         </div>
                         
                         <div class="tab-items">
-                            <div class="tab-select active" id="shape-patterns"></div>
+                            <div class="tab-select active" id="tab-shape-patterns">
+                                <div id="shape-patterns"></div>
+                            </div>
 
-                            <div class="tab-select" id="custom-patterns"></div>
+                            <div class="tab-select" id="tab-custom-patterns">
+                                <div id="custom-patterns"></div>
+                                <!-- <div class="row g-4">
+                                    <button class="btn-choice" style="flex: 1;"><span class="material-symbols-outlined">delete</span>Remover</button>
+                                    <button class="btn-choice" style="flex: 1;"><span class="material-symbols-outlined">delete</span>Remover</button>
+                                </div> -->
+
+
+                                            
+                                <!-- <div class="tab">
+                                    <div class="tab-nav">
+                                        <div class="tab-nav-item active" data-page-id="tab-brush-shape">Shape</div>
+                                        <div class="tab-nav-item" data-page-id="tab-brush-patterns">Shape And Mask</div>
+                                    </div>
+                                    
+                                    <div class="tab-items">
+                                        <div class="tab-select active" id="tab-brush-shape">
+                                            <div class="input-group al-end">
+                                                <span class="input-label">${Fill}</span>
+                                                <select id="mode-brush">
+                                                    <option value="solid">Solid Color</option>
+                                                    <option value="stamp">Stamp</option>
+                                                    <option value="preserve-opacity">Preserve Opacity</option>
+                                                    <option value="pattern">Pattern</option> 
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="tab-select" id="tab-brush-patterns">
+                                        </div>
+                                    </div>
+                                </div> -->
+
+                                <div class="input-group  al-end">
+                                    <div class="checkbox">
+                                        <input type="checkbox" id="solid-color"/>
+                                        <label for="solid-color"></label>
+                                    </div>
+                                    <label class="input-label" for="solid-color">Solid Color</label>
+                                </div>
+                                
+                                <div class="input-group al-end">
+                                    <span class="input-label">${Fill}</span>
+                                    <select id="mode-brush">
+                                        <option value="solid">Solid Color</option>
+                                        <option value="stamp">Stamp</option>
+                                        <option value="pattern">Shape And Pattern</option> 
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            
-                <div class="col g-4">
-                    <div class="input-group a-right">
-                        <span class="input-label">${Fill}</span>
-                        <select id="mode-brush">
-                            <option value="solid">Solid Color</option>
-                            <option value="stamp">Stamp</option>
-                            <option value="pattern">Pattern</option>
+                </section>
+                
+                <section class="col g-4" id="pane-pattern">
+                    <div class="header-section">
+                        <div class="input-group">
+                            <div class="checkbox">
+                                <input type="checkbox" id="enable-pattern"/>
+                                <label for="enable-pattern"></label>
+                            </div>
+                            <label class="input-label" for="enable-pattern">
+                                <h4>Pattern</h4>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="mask-patterns">
+                        <!-- <div class="brush-pattern" style="width: 24px;height: 24px;"><span class="material-symbols-outlined">block</span></div> -->
+                    </div>
+                    <div class="input-group al-end">
+                        <span class="input-label">${Pattern}</span>
+                        <select id="align-mode">
+                            <option value="local">Align to Local</option>
+                            <option value="source">Align to Source</option>
+                            <option value="source">Align to Canvas</option>
                         </select>
                     </div>
-
-                    <div class="tab" id="tab-fill">
-                        <div class="tab-select" id="pane-solid"></div>
-                        <div class="tab-select" id="pane-stamp"></div>
-                        <div class="tab-select" id="pane-pattern">
-                            <div id="mask-patterns"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-group col g-8">
-                        <div class="input-group">
-                            <span class="input-label">${Mask}</span>
-                            <select id="align-mode">
-                                <option value="local">Align to Local</option>
-                                <option value="source">Align to Source</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                </section>
                 
-                <div class="col g-4">
+                <section class="col g-4" id="advanced-brush">
+                    <div class="header-section">
+                        <h4>Advanced</h4>
+                    </div>
+
+
                     <div class="input-group">
-                        <input type="checkbox" id="p-perfect">
+                        <div class="checkbox">
+                            <input type="checkbox" id="p-perfect"/>
+                            <label for="p-perfect"></label>
+                        </div>
                         <label class="input-label" for="p-perfect">Pixel Perfect</label>
                     </div>
+
                     <div class="input-group">
-                        <input type="checkbox" id="b-snap">
+                        <div class="checkbox">
+                            <input type="checkbox" id="b-snap"/>
+                            <label for="b-snap"></label>
+                        </div>
                         <label class="input-label" for="b-snap">Snap to Grid</label>
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     </div>
@@ -464,20 +532,21 @@
     
    
     <script type="module">
-        let tab = document.querySelector(".tab");
-        let nav = tab.querySelector(".tab-nav");
-        let navItems = nav.querySelectorAll(".tab-nav-item");
-        navItems.forEach((navItem)=>{
-            navItem.onclick = ()=>{
-                nav.querySelector(".tab-nav-item.active")?.classList.remove("active");
-                tab.querySelector(".tab-items .tab-select.active")?.classList.remove("active");
-
-                navItem.classList.add("active");
-                let tabPane = document.getElementById(navItem.dataset.pageId);
-                tabPane?.classList.add("active");
-            }
+        let tab = document.querySelectorAll(".tab");
+        tab.forEach((e)=>{
+            let nav = e.querySelector(".tab-nav");
+            let navItems = nav.querySelectorAll(".tab-nav-item");
+            navItems.forEach((navItem)=>{
+                navItem.onclick = ()=>{
+                    nav.querySelector(".tab-nav-item.active")?.classList.remove("active");
+                    e.querySelector(".tab-items .tab-select.active")?.classList.remove("active");
+    
+                    navItem.classList.add("active");
+                    let tabPane = document.getElementById(navItem.dataset.pageId);
+                    tabPane?.classList.add("active");
+                }
+            });
         });
-
     </script>
 </body>
 </html>

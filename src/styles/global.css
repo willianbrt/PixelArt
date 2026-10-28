@@ -178,6 +178,9 @@ button.btn-premium {
 .row.a-center, .col.a-center{
     justify-content: end;
 }
+.al-end{
+    margin: 0 0 0 auto;
+}
 .mb-4{
     margin-bottom: 4px;
 }
@@ -213,8 +216,8 @@ h4{
     line-height: 18px;
 }
 h5{
-    font-size: 14px;
-    line-height: 14px;
+    font-size: 16px;
+    line-height: 16px;
 }
 h6{
     font-size: 10px;

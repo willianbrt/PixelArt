@@ -41,35 +41,6 @@ export function modal(options){
         }
     });
 
-    let tabFill = document.querySelector("#tab-fill");
-    let mode = {
-        "solid": ()=>{
-            let lastActivePane = tabFill.querySelector(".tab-select.active");
-            lastActivePane?.classList.remove("active");
-            
-            let activePane = tabFill.querySelector("#pane-solid");
-            activePane.classList.add("active");
-        },
-        "stamp": ()=>{
-            let lastActivePane = tabFill.querySelector(".tab-select.active");
-            lastActivePane?.classList.remove("active");
-            
-            let activePane = tabFill.querySelector("#pane-stamp");
-            activePane.classList.add("active");
-        },
-        "pattern": ()=>{
-            let lastActivePane = tabFill.querySelector(".tab-select.active");
-            lastActivePane?.classList.remove("active");
-
-            let activePane = tabFill.querySelector("#pane-pattern");
-            activePane.classList.add("active");
-        },
-    };
-
-let panePattern = document.querySelector("#pattern");
-let selectModeBrush = document.querySelector("#mode-brush");
-selectModeBrush.onchange = (e)=>{ mode[e.srcElement.value]() };
-mode[selectModeBrush.value]();
 
 export async function pagination(options){
     let { id, data, empty, _index=0, limit=5, offset, search, element } = options;
