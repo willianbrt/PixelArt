@@ -16,5 +16,6 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .field("alignMode", &BrushDTO::alignMode)
         .field("stabilizer", &BrushDTO::stabilizer)
         .field("pixelPerfect", &BrushDTO::pixelPerfect)
+        .field("isPatternEnable", &BrushDTO::isPatternEnable)
         ;
 }

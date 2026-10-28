@@ -43,6 +43,8 @@ public:
     void setPattern(uintptr_t ptr, int size, int factor);
     void setShape(uintptr_t ptr, int size, int factor);
     void setShape(string shape);
+        
+    void enablePattern(bool enable);
     BrushDTO getBrush();
 };
 

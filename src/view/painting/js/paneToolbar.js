@@ -12,6 +12,7 @@ var pixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']
 var mirrorX = document.querySelector("#mirror-x input[type='checkbox']");
 var mirrorY = document.querySelector("#mirror-y input[type='checkbox']");
 var fill = document.querySelector("#fill input[type='checkbox']");
+var enablePattern = document.querySelector("#enable-pattern ");
 
 let toolViewModel;
 let brushSettings;
@@ -44,6 +45,10 @@ export async function buildPaneToolBar(){
     }
     stabilizer.onchange = (e)=>{
         brushSettings.setStabilizer(parseFloat(e.srcElement.value) / 100.0);
+        onUpdateBrush();
+    }
+    enablePattern.onchange = (e)=>{
+        brushSettings.enablePattern(e.srcElement.checked);
         onUpdateBrush();
     }
     mirrorX.onchange = (e)=>{

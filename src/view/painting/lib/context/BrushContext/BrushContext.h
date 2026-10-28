@@ -41,6 +41,7 @@ private:
     float _stabilizer = 0.0f;
     int _spacing = 0;
     bool _pixelPerfect = false;
+    bool _enablePattern = false;
 
     Surface* _shape = nullptr;
     Surface* _pattern = nullptr;
@@ -72,6 +73,8 @@ public:
     FILL_MODE getFillMode();
     void setAlignMode(ALIGN_MODE alignMode);
     ALIGN_MODE getAlignMode();
+    bool isPatternEnable();
+    void enablePattern(bool enable);
 };
 
 #endif

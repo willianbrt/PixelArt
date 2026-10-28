@@ -104,6 +104,10 @@ void BrushSettingsVM::setShape(string pattern){
 
     _toolSettings->brushContext.setShape(brushTip);
 }
+
+void BrushSettingsVM::enablePattern(bool enable){
+    _toolSettings->brushContext.enablePattern(enable);
+}
 BrushDTO BrushSettingsVM::getBrush(){
     ISurface* pattern = _toolSettings->brushContext.getPattern();
     ISurface* shape = _toolSettings->brushContext.getShape();
@@ -174,6 +178,7 @@ BrushDTO BrushSettingsVM::getBrush(){
     brushDTO.alignMode = (int)_toolSettings->brushContext.getAlignMode();
     brushDTO.stabilizer = _toolSettings->brushContext.getStabilizer()*100;
     brushDTO.pixelPerfect = _toolSettings->brushContext.getPixelPerfect();
+    brushDTO.isPatternEnable = _toolSettings->brushContext.isPatternEnable();
     
     
     return brushDTO;
@@ -205,5 +210,6 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setShape", select_overload<void(string)>(&BrushSettingsVM::setShape))
         .function("setCustomShape", select_overload<void(uintptr_t, int, int)>(&BrushSettingsVM::setShape))
         .function("getBrush", &BrushSettingsVM::getBrush)
+        .function("enablePattern", &BrushSettingsVM::enablePattern)
         ;
 };

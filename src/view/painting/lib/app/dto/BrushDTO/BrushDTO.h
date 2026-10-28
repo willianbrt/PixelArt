@@ -22,5 +22,6 @@ public:
     int size;
     float stabilizer;
     bool pixelPerfect;
+    bool isPatternEnable;
 };
 #endif

@@ -66,3 +66,11 @@ ALIGN_MODE BrushContext::getAlignMode()
 {
     return _alignMode;
 }
+
+bool BrushContext::isPatternEnable(){
+    return _enablePattern;
+
+}
+void BrushContext::enablePattern(bool enable){
+    _enablePattern = enable;
+}

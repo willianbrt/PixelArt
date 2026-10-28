@@ -31,6 +31,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
         uniform float hardness;
         uniform int alignMode;
         uniform int fillMode;
+        uniform bool isPatternEnable;
         
         out vec4 fragColor;
         void main(){
@@ -89,6 +90,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
     hardnessLocation = glGetUniformLocation(shader.id(),"hardness");
     fillModeLocation = glGetUniformLocation(shader.id(),"fillMode");
     alignModeLocation = glGetUniformLocation(shader.id(),"alignMode");
+    isPatternEnableLocation = glGetUniformLocation(shader.id(),"isPatternEnable");
 }
 CursorPass::~CursorPass(){}
 
@@ -140,6 +142,7 @@ void CursorPass::render(){
 
     glUniform4f(brushColorLocation, r,g,b,a);
     glUniform1f(hardnessLocation, _toolSettings->brushContext.getHardness());
+    glUniform1f(isPatternEnableLocation, _toolSettings->brushContext.isPatternEnable());
 
     quad.draw();
 }
