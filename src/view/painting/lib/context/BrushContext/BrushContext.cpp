@@ -35,6 +35,10 @@ Surface* BrushContext::getShape()
     return _shape;
 }
 
+TYPE_BRUSH_TIP BrushContext::getTypeBrushTip()
+{
+    return brushTip->getType();
+}
 void BrushContext::setPattern(IBrushTip* tip){
     IBrushTip* _tip = brushPattern;
     brushPattern = tip;

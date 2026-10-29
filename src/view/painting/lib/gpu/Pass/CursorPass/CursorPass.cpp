@@ -32,8 +32,20 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
         uniform int alignMode;
         uniform int fillMode;
         uniform bool isPatternEnable;
+        uniform int typeBrushTip;
         
         out vec4 fragColor;
+
+
+        vec4 getPatternPixel(sampler2D tex, vec2 texSize){
+            if(alignMode == 0 || alignMode == 1){ // BRUSHING  // LOCAL
+                return texture(tex, fract(((pixel-cursorLocation) + floor(texSize*0.5)) / texSize));
+            } else if(alignMode == 2){ // SOURCE
+                return texture(tex, fract(pixel / texSize));
+            }
+            return texture(tex, fract(pixel / texSize));
+        }
+
         void main(){
             vec2 transformedUV = pixel / editorSize;
             if(transformedUV.x < 0.0 || transformedUV.x > repeat.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y) discard;
@@ -45,28 +57,30 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
 
             float shapeMask = texture(texShape, hoverUV).r*hardness;
 
-            vec3 c;
-            if(fillMode == 0){ // SOLID COLOR
-                c = vec3(color.r,color.g,color.b);
-                fragColor = vec4(c, shapeMask);
-            } else if(fillMode == 1) { // MASK
-                vec2 pc;
-                if(alignMode == 0){ // BRUSHING
-                    pc = fract(((pixel-cursorLocation) + floor(texPatternSize*0.5)) / texPatternSize);
-                } else if(alignMode == 1){ // LOCAL
-                    pc = fract(((pixel-cursorLocation) + floor(texPatternSize*0.5)) / texPatternSize);
-                } else if(alignMode == 2){ // SOURCE
-                    pc = fract(pixel / texPatternSize);
+
+            bool isSolidColor = fillMode == 0;
+            // isSolidColor = !(fillMode == 2);
+
+            vec3 c = color.rgb;
+            float patternMask = 1.0;
+            if(isPatternEnable) {
+                vec4 patternPixel;
+                if(texPatternSize.x > 0.0 && texPatternSize.y > 0.0 ){
+                    patternPixel = getPatternPixel(texPattern, texPatternSize);
+                } else {
+                    patternPixel = getPatternPixel(texShape, texShapeSize);
                 }
+                patternMask = patternPixel.r;
 
-                float patternMask = texture(texPattern, pc).r; // stamp
-
-                c = vec3(color.r,color.g,color.b);
-                fragColor = vec4(c, shapeMask*patternMask);
-            } else if(fillMode == 2) { // stamp
-                c = texture(texShape, hoverUV).agb;
-                fragColor = vec4(c, shapeMask);
+                if(!isSolidColor) {
+                    c = patternPixel.agb;
+                }
+            } else{
+                if(!isSolidColor && typeBrushTip != 0){
+                    c = texture(texShape, hoverUV).agb;
+                }
             }
+            fragColor = vec4(c, shapeMask*patternMask);
 
         })";
     
@@ -91,6 +105,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
     fillModeLocation = glGetUniformLocation(shader.id(),"fillMode");
     alignModeLocation = glGetUniformLocation(shader.id(),"alignMode");
     isPatternEnableLocation = glGetUniformLocation(shader.id(),"isPatternEnable");
+    typeBrushTipLocation = glGetUniformLocation(shader.id(),"typeBrushTip");
 }
 CursorPass::~CursorPass(){}
 
@@ -143,6 +158,7 @@ void CursorPass::render(){
     glUniform4f(brushColorLocation, r,g,b,a);
     glUniform1f(hardnessLocation, _toolSettings->brushContext.getHardness());
     glUniform1f(isPatternEnableLocation, _toolSettings->brushContext.isPatternEnable());
+    glUniform1i(typeBrushTipLocation, (int)_toolSettings->brushContext.getTypeBrushTip());
 
     quad.draw();
 }

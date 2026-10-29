@@ -22,12 +22,6 @@ enum ALIGN_MODE{
     LOCAL = 1,
     SOURCE = 2
 };
-enum BRUSH_TIP{
-    CUSTOM = 0,
-    SQUARE = 1,
-    CIRCLE = 2,
-    LINE = 3
-};
 
 class BrushContext {
 private:
@@ -66,6 +60,7 @@ public:
     bool getPixelPerfect();
 
     Surface* getShape();
+    TYPE_BRUSH_TIP getTypeBrushTip();
     void setShape(IBrushTip* tip);
     Surface* getPattern();
     void setPattern(IBrushTip* tip);

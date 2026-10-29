@@ -2,6 +2,12 @@
 
 LineTip::LineTip(){}
 LineTip::~LineTip(){}
+
+TYPE_BRUSH_TIP LineTip::getType() {
+    return TYPE_BRUSH_TIP::GEOMTRIC;
+}
+
+
 Surface* LineTip::getMask(int& size){
     surface = new Surface(size,size);
     LineRasterize line(

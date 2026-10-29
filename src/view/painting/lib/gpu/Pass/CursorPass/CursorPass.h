@@ -35,6 +35,7 @@ private:
     GLint brushColorLocation;
     GLint hardnessLocation;
     GLint isPatternEnableLocation;
+    GLint typeBrushTipLocation;
     GLint editorSizeLocation;
     GLint texPatternSizeLocationH;
     GLint texShapeSizeLocationH;

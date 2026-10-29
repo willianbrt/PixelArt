@@ -11,6 +11,7 @@ private:
 public:
     CircleTip();
     ~CircleTip();
+    TYPE_BRUSH_TIP getType() override;
     Surface* getMask(int& size) override;
 };
 #endif

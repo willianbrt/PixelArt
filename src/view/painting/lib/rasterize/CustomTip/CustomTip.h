@@ -11,6 +11,7 @@ private:
 public:
     CustomTip(unsigned int* buffer, int width, int height);
     ~CustomTip();
+    TYPE_BRUSH_TIP getType() override;
     Surface* getMask(int& size) override;
 };
 #endif

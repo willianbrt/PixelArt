@@ -3,6 +3,10 @@
 CircleTip::CircleTip(){}
 CircleTip::~CircleTip(){}
 
+TYPE_BRUSH_TIP CircleTip::getType() {
+    return TYPE_BRUSH_TIP::GEOMTRIC;
+}
+
 Surface* CircleTip::getMask(int& size){
     surface = new Surface(size,size);
     CircleRasterize circle(
