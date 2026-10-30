@@ -108,50 +108,12 @@ void BrushSettingsVM::setShape(string pattern){
 void BrushSettingsVM::enablePattern(bool enable){
     _toolSettings->brushContext.enablePattern(enable);
 }
+void BrushSettingsVM::isSolidColor(bool enable){
+    _toolSettings->brushContext.setIsSolidColor(enable);
+}
 BrushDTO BrushSettingsVM::getBrush(){
     ISurface* pattern = _toolSettings->brushContext.getPattern();
     ISurface* shape = _toolSettings->brushContext.getShape();
-
-    // PointF center = {shape->getWidth()*0.5f, shape->getHeight()*0.5f};
-    // float w = shape->getWidth();
-    // float h = shape->getHeight();
-
-    // ISurface* brush = new Surface((int)w, (int)h);
-    
-    // StampRasterize stamp(center,
-    //     {shape->getWidth(), shape->getHeight()},
-    //     {brush->getWidth(), brush->getHeight()},
-    //     _toolSettings->brushContext.transformation);
-
-    // while(stamp.hasNext()){
-    //     Point it = stamp.next();
-    //     Point src = stamp.getSrcPoint();
-
-    //     if(src.x < 0 || src.y < 0 || src.x >= shape->getWidth() || src.y >= shape->getHeight()) continue;
-            
-        
-    //     unsigned int color;
-    //     float mask;
-    //     if(_toolSettings->brushContext.getFillMode() == FILL_MODE::MASK){
-    //         Point srcPattern = {
-    //             GraphicsEngine::clampedTilePoint(it.x % pattern->getWidth(), pattern->getWidth()),
-    //             GraphicsEngine::clampedTilePoint(it.y % pattern->getHeight(), pattern->getHeight())
-    //         };
-    //         float maskShape = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
-    //         mask = ((pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f)*maskShape;
-    //         color = _toolSettings->brushContext.getColor();
-    //     } else if(_toolSettings->brushContext.getFillMode() == FILL_MODE::FILL){
-    //         mask = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
-    //         color = _toolSettings->brushContext.getColor();
-    //     } else if(_toolSettings->brushContext.getFillMode() == FILL_MODE::STAMP){
-    //         color = shape->getPixel(src.x, src.y);
-    //         mask = (color & 0xFF) / 255.0f;
-    //     }
-        
-    //     GraphicsEngine::setOpacity(color, mask);
-    //     brush->putPixel(it.x, it.y, color);
-    // }
-    
 
 
     SurfaceDTO shapeDTO;
@@ -179,6 +141,8 @@ BrushDTO BrushSettingsVM::getBrush(){
     brushDTO.stabilizer = _toolSettings->brushContext.getStabilizer()*100;
     brushDTO.pixelPerfect = _toolSettings->brushContext.getPixelPerfect();
     brushDTO.isPatternEnable = _toolSettings->brushContext.isPatternEnable();
+    brushDTO.isSolidColor = _toolSettings->brushContext.isSolidColor();
+    brushDTO.typeBrushTip = _toolSettings->brushContext.getTypeBrushTip();
     
     
     return brushDTO;
@@ -211,5 +175,6 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setCustomShape", select_overload<void(uintptr_t, int, int)>(&BrushSettingsVM::setShape))
         .function("getBrush", &BrushSettingsVM::getBrush)
         .function("enablePattern", &BrushSettingsVM::enablePattern)
+        .function("isSolidColor", &BrushSettingsVM::isSolidColor)
         ;
 };

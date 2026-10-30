@@ -23,5 +23,7 @@ public:
     float stabilizer;
     bool pixelPerfect;
     bool isPatternEnable;
+    bool isSolidColor;
+    int typeBrushTip;
 };
 #endif

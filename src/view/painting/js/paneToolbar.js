@@ -13,6 +13,7 @@ var mirrorX = document.querySelector("#mirror-x input[type='checkbox']");
 var mirrorY = document.querySelector("#mirror-y input[type='checkbox']");
 var fill = document.querySelector("#fill input[type='checkbox']");
 var enablePattern = document.querySelector("#enable-pattern ");
+var solidColor = document.querySelector("#solid-color");
 
 let toolViewModel;
 let brushSettings;
@@ -49,6 +50,10 @@ export async function buildPaneToolBar(){
     }
     enablePattern.onchange = (e)=>{
         brushSettings.enablePattern(e.srcElement.checked);
+        onUpdateBrush();
+    }
+    solidColor.onchange = (e)=>{
+        brushSettings.isSolidColor(e.srcElement.checked);
         onUpdateBrush();
     }
     mirrorX.onchange = (e)=>{
@@ -390,9 +395,26 @@ function brushPreviewRender(canvas){
         uniform vec2 brushSize;
         uniform vec4 color;
         uniform float hardness;
+        uniform int alignMode;
         uniform int fillMode;
+        uniform int typeBrushTip;
+        uniform bool isPatternEnable;
+        uniform bool isSolidColor;
         
         out vec4 fragColor;
+        
+        vec4 getPatternPixel(sampler2D tex, vec2 texSize, float size){
+            if(alignMode == 0 || alignMode == 1){ // BRUSHING  // LOCAL
+                vec2 origemPattern = (resolution- texSize*size)*0.5;
+                vec2 patternUV = fract((uv * resolution - origemPattern)/ (texSize*size));
+
+                return texture(tex, patternUV);
+            } else if(alignMode == 2){ // SOURCE
+                return texture(tex, fract(uv / texSize));
+            }
+            return texture(tex, fract(uv / texSize));
+        }
+
         void main(){
             float size = min(resolution.x/texShapeSize.x, resolution.y/texShapeSize.y);
             vec2 origem = (resolution- texShapeSize*size)*0.5;
@@ -402,28 +424,27 @@ function brushPreviewRender(canvas){
             }
 
             float shapeMask = texture(texShape, shapeUV).r*hardness;
-
-            vec3 c;
-            if(fillMode == 0){
-                c = vec3(color.r,color.g,color.b);
-                fragColor = vec4(c, shapeMask);
-            }
-            else if(fillMode == 1) {
             
-                vec2 origemPattern = (resolution- texPatternSize*size)*0.5;
-                vec2 patternUV = fract((uv * resolution - origem)/ (texPatternSize*size));
+            vec3 c = color.rgb;
+            float patternMask = 1.0;
+            if(isPatternEnable) {
+                vec4 patternPixel;
+                if(texPatternSize.x > 0.0 && texPatternSize.y > 0.0 ){
+                    patternPixel = getPatternPixel(texPattern, texPatternSize, size);
+                } else {
+                    patternPixel = getPatternPixel(texShape, texShapeSize, size);
+                }
+                patternMask = patternPixel.r;
 
-                float patternMask = texture(texPattern, patternUV).r;
-
-                // c = vec3(color.r,color.g,color.b);
-                // c = texture(texPattern, patternUV).agb;
-                c = vec3(texture(texPattern, patternUV).b,0.0,0.0);
-                fragColor = vec4(c, shapeMask*patternMask);
+                if(!isSolidColor) {
+                    c = patternPixel.agb;
+                }
+            } else{
+                if(!isSolidColor && typeBrushTip != 0){
+                    c = texture(texShape, shapeUV).agb;
+                }
             }
-            else if(fillMode == 2) {
-                c = texture(texShape, shapeUV).agb;
-                fragColor = vec4(c, shapeMask);
-            }
+            fragColor = vec4(c, shapeMask*patternMask);
         }`;
 
     function shader(type, src){
@@ -503,29 +524,42 @@ function brushPreviewRender(canvas){
     const colorLocation = gl.getUniformLocation(prog,"color");
     const hardnessLocation = gl.getUniformLocation(prog,"hardness");
     const fillModeLocation = gl.getUniformLocation(prog,"fillMode");
+    const alignModeLocation = gl.getUniformLocation(prog,"alignMode");
+    const isSolidColorLocation = gl.getUniformLocation(prog,"isSolidColor");
+    const isPatternEnableLocation = gl.getUniformLocation(prog,"isPatternEnable");
     const texPatternSizeLocation = gl.getUniformLocation(prog,"texPatternSize");
     const texShapeSizeLocation = gl.getUniformLocation(prog,"texShapeSize");
+    const typeBrushTipLocation = gl.getUniformLocation(prog,"typeBrushTip");
 
     function draw(obj){
-        console.log(obj.fillMode)
+        texShape.bind();
+        texShape.update(obj.shape);
+
+        texPattern.bind();
+        texPattern.update(obj.pattern);
+
         gl.uniform2f(resLocation, canvas.width,canvas.height);
         gl.uniform2f(texPatternSizeLocation, obj.pattern.width,obj.pattern.height);
         gl.uniform2f(texShapeSizeLocation, obj.shape.width,obj.shape.height);
         gl.uniform1f(hardnessLocation, obj.hardness/100.0);
         gl.uniform1i(fillModeLocation, obj.fillMode);
+        gl.uniform1i(alignModeLocation, obj.alignMode);
+        gl.uniform1f(isSolidColorLocation, obj.isSolidColor);
+        gl.uniform1f(isPatternEnableLocation, obj.isPatternEnable);
+        gl.uniform1i(typeBrushTipLocation, obj.typeBrushTip);
 
         const a = (obj.color & 0xFF) ;
         const b = (obj.color>>8 & 0xFF)
         const g = (obj.color>>16 & 0xFF);
         const r = (obj.color>>24 & 0xFF);
         gl.uniform4f(colorLocation, r,g,b,a);
+            
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
-        texShape.bind();
-        texShape.update(obj.shape);
-        texPattern.bind();
-        texPattern.update(obj.pattern);
+        gl.viewport(0, 0, canvas.width, canvas.height);
 
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.drawArrays(gl.TRIANGLES, 0, 8);
     }
     return {draw};
 }

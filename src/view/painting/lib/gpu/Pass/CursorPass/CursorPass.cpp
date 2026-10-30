@@ -30,7 +30,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
         uniform vec4 color;
         uniform float hardness;
         uniform int alignMode;
-        uniform int fillMode;
+        uniform bool isSolidColor;
         uniform bool isPatternEnable;
         uniform int typeBrushTip;
         
@@ -56,10 +56,6 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
             
 
             float shapeMask = texture(texShape, hoverUV).r*hardness;
-
-
-            bool isSolidColor = fillMode == 0;
-            // isSolidColor = !(fillMode == 2);
 
             vec3 c = color.rgb;
             float patternMask = 1.0;
@@ -102,7 +98,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
     brushSizeLocation = glGetUniformLocation(shader.id(),"brushSize");
     brushColorLocation = glGetUniformLocation(shader.id(),"color");
     hardnessLocation = glGetUniformLocation(shader.id(),"hardness");
-    fillModeLocation = glGetUniformLocation(shader.id(),"fillMode");
+    isSolidColorLocation = glGetUniformLocation(shader.id(),"isSolidColor");
     alignModeLocation = glGetUniformLocation(shader.id(),"alignMode");
     isPatternEnableLocation = glGetUniformLocation(shader.id(),"isPatternEnable");
     typeBrushTipLocation = glGetUniformLocation(shader.id(),"typeBrushTip");
@@ -146,7 +142,7 @@ void CursorPass::render(){
 
     glUniform2f(brushSizeLocation, (float)_toolSettings->brushContext.getSize(), (float)_toolSettings->brushContext.getSize());
     
-    glUniform1i(fillModeLocation,  (int)_toolSettings->brushContext.getFillMode());
+    glUniform1f(isSolidColorLocation, _toolSettings->brushContext.isSolidColor());
     glUniform1i(alignModeLocation, (int)_toolSettings->brushContext.getAlignMode());
 
     unsigned int color = _toolSettings->brushContext.getColor();

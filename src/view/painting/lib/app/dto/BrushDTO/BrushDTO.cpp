@@ -17,5 +17,7 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .field("stabilizer", &BrushDTO::stabilizer)
         .field("pixelPerfect", &BrushDTO::pixelPerfect)
         .field("isPatternEnable", &BrushDTO::isPatternEnable)
+        .field("isSolidColor", &BrushDTO::isSolidColor)
+        .field("typeBrushTip", &BrushDTO::typeBrushTip)
         ;
 }

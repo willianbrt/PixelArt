@@ -36,6 +36,7 @@ private:
     int _spacing = 0;
     bool _pixelPerfect = false;
     bool _enablePattern = false;
+    bool _isSolidColor = false;
 
     Surface* _shape = nullptr;
     Surface* _pattern = nullptr;
@@ -70,6 +71,8 @@ public:
     ALIGN_MODE getAlignMode();
     bool isPatternEnable();
     void enablePattern(bool enable);
+    void setIsSolidColor(bool enable);
+    bool isSolidColor();
 };
 
 #endif

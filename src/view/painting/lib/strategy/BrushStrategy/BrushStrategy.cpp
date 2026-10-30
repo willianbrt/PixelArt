@@ -76,15 +76,14 @@ void BrushStrategy::onRelease(){
 
 void BrushStrategy::draw(const Point& pixel){
     _previousColor = _toolRuntimeContext.drawingSession->getPixel(pixel.x, pixel.y);
-    ISurface* pattern = _brushContext->getPattern();
+    ISurface* pattern = (_brushContext->isPatternEnable() && _brushContext->getPattern() == nullptr) ? _brushContext->getShape() : _brushContext->getPattern();
     ISurface* shape = _brushContext->getShape();
     StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
         {shape->getWidth(), shape->getHeight()},
         _toolRuntimeContext.drawingAreaSize,
         _brushContext->transformation);
 
-    Point origem;
-    
+    Point origem = { 0, 0 };
     if(_brushContext->getAlignMode() == ALIGN_MODE::LOCAL){
         origem = {
             _startPoint.x - (pattern->getWidth() >> 1),
@@ -102,30 +101,23 @@ void BrushStrategy::draw(const Point& pixel){
         Point src = stamp.getSrcPoint();
 
         if(src.x < 0 || src.y < 0 || src.x >= shape->getWidth() || src.y >= shape->getHeight()) continue;
-            
-        
+
         unsigned int color;
-        float mask;
-        if(_brushContext->getFillMode() == FILL_MODE::MASK){
+        float mask = 1.0f;
+        if(_brushContext->isPatternEnable()){
             Point srcPattern = {
                 GraphicsEngine::clampedTilePoint((it.x - origem.x) % pattern->getWidth(), pattern->getWidth()),
                 GraphicsEngine::clampedTilePoint((it.y - origem.y) % pattern->getHeight(), pattern->getHeight())
             };
-            float maskShape = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
-            mask = ((pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f)*maskShape;
-            color = _brushContext->getColor();
-        } else if(_brushContext->getFillMode() == FILL_MODE::FILL){
-            mask = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
-            color = _brushContext->getColor();
-        } else if(_brushContext->getFillMode() == FILL_MODE::STAMP){
-            color = shape->getPixel(src.x, src.y);
-            mask = (color & 0xFF) / 255.0f;
+            mask = (pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f;
+            color = (_brushContext->isSolidColor()) ? _brushContext->getColor() : pattern->getPixel(srcPattern.x, srcPattern.y);
+        } else {
+            color = _brushContext->isSolidColor() || _brushContext->getTypeBrushTip() == TYPE_BRUSH_TIP::GEOMTRIC ?
+            _brushContext->getColor() : shape->getPixel(src.x, src.y);
         }
-        
-        GraphicsEngine::setOpacity(color, mask);
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color);
 
-        // _toolRuntimeContext.drawingSession->putMirroredPixel(it.x, it.y, color);
+        GraphicsEngine::setOpacity(color, ((shape->getPixel(src.x, src.y) & 0xFF) / 255.0f) * mask);
+        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color);
     }
 }
 bool BrushStrategy::isInitialized(){

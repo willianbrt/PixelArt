@@ -29,6 +29,7 @@ public:
     void setStabilizer(float stabilizer);
     void setSpacing(int spacing);
     void setPixelPerfect(bool isEnable);
+    void isSolidColor(bool isEnable);
 
     int getSize();
     float getHardness();

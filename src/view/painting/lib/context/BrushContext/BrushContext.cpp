@@ -78,3 +78,9 @@ bool BrushContext::isPatternEnable(){
 void BrushContext::enablePattern(bool enable){
     _enablePattern = enable;
 }
+void BrushContext::setIsSolidColor(bool enable){
+    _isSolidColor = enable;
+}
+bool BrushContext::isSolidColor(){
+    return _isSolidColor;
+}

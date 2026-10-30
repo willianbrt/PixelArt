@@ -30,7 +30,7 @@ private:
     ISurface* _pattern = nullptr;
     
     GLint brushSizeLocation;
-    GLint fillModeLocation;
+    GLint isSolidColorLocation;
     GLint alignModeLocation;
     GLint brushColorLocation;
     GLint hardnessLocation;
