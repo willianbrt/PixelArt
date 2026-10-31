@@ -281,7 +281,7 @@ body{
 #pane-tool .footer{
     align-self: center;
 }
-#tool-options {
+.tool-options {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -463,10 +463,12 @@ input[type="range"].slider::-webkit-slider-runnable-track{
     text-wrap-mode: nowrap;
 }
 .btn-choice:has(input[type="checkbox"]:checked) {
-    outline: #301439 2px solid;
-    background: #bbaac0;
-    color: #301439;
+    outline: var(--primary-color) 2px solid;
+    background: #896A95;
     box-shadow: none;
+}
+.btn-choice:has(input[type="checkbox"]:checked) *{
+    color:  var(--primary-color) !important;
 }
 .btn-choice input[type="checkbox"]{
     display: none;
@@ -792,9 +794,6 @@ span.line{
     width: 90%;
     background-color: #ffffff55;
     margin: 8px auto;
-}
-.brush-pattern-preview{
-    margin: 0 auto;
 }
 .brush-pattern, .brush-pattern-preview{
     color: #000;

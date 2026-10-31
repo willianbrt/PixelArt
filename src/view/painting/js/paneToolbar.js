@@ -2,23 +2,132 @@ import { app } from "./app.js"
 import { modal, pagination } from "./elements.js"
 
 
-const thickness = document.querySelector("input[name='size']");
-const hardness = document.querySelector("input[name='hardness']");
-const spacing = document.querySelector("input[name='spacing']");
-const stabilizer = document.querySelector("input[name='stabilizer']");
-
-// checked
-var pixelPerfect = document.querySelector("#pixel-perfect input[type='checkbox']");
-var mirrorX = document.querySelector("#mirror-x input[type='checkbox']");
-var mirrorY = document.querySelector("#mirror-y input[type='checkbox']");
-var fill = document.querySelector("#fill input[type='checkbox']");
-var enablePattern = document.querySelector("#enable-pattern ");
-var solidColor = document.querySelector("#solid-color");
-
 let toolViewModel;
 let brushSettings;
 let drawingSettings;
 let symmetrySettings;
+
+const toolbar = {
+    "drawing": [
+        {
+            name:"enable-pattern",
+            value: false,
+            label:"Pattern",
+            type:"checkbox",
+            icon: "texture",
+            action: function(value){
+                brushSettings.enablePattern(value);
+                onUpdateBrush();
+            }
+        },
+        {
+            name:"solid-color",
+            value: false,
+            label:"Solid Color",
+            type:"checkbox",
+            icon: "format_color_fill",
+            action: function(value){
+                brushSettings.isSolidColor(value);
+                onUpdateBrush();
+            }
+        },
+        {
+            name:"size",
+            value:"",
+            label:"Thinkeness",
+            type:"number",
+            unit:"px",
+            min: 1, max:64,
+            action: function(value){
+                brushSettings.setSize(parseInt(value));
+                onUpdateBrush();
+            }
+        },
+    ],
+    "tracking":[
+        {
+            name:"pixel-perfect",
+            value: false,
+            label:"Pixel Perfect",
+            type:"checkbox",
+            icon:"line_curve",
+            action: function(value){
+                brushSettings.setPixelPerfect(value);
+                onUpdateBrush();
+            }
+        },
+        {
+            name:"hardness",
+            value:"",
+            label:"Hardness",
+            type:"number",
+            min: 0, max:100,
+            unit:"%",
+            action: function(value){
+                brushSettings.setHardness(parseFloat(value) / 100.0);
+                onUpdateBrush();
+            }
+        },
+        {
+            name:"spacing",
+            value:"",
+            label:"Spacing",
+            type:"number",
+            unit:"%",
+            min: 0, max:100,
+            action: function(value){
+                brushSettings.setSpacing(parseInt(value));
+                onUpdateBrush();
+            }
+        },
+        {
+            name:"stabilizer",
+            value:"",
+            label:"Stabilizer",
+            type:"number",
+            unit:"%",
+            min: 0, max:100,
+            action: function(value){
+                brushSettings.setStabilizer(parseFloat(value) / 100.0);
+                onUpdateBrush();
+            }
+        },
+    ],
+    "shape": [
+        {
+            name:"fill",
+            value:"",
+            label:"Fill",
+            type:"checkbox",
+            icon:"colors",
+            action: function(value){
+            }
+        },
+    ],
+    "symmetry": [
+        {
+            name:"mirror-x",
+            value: false,
+            label:"Mirror X",
+            type:"checkbox",
+            icon:"flip",
+            action: function(value){
+                symmetrySettings.setMirrorX(value);
+            }
+        },
+        {
+            name:"mirror-y",
+            value: false,
+            label:"Mirror Y",
+            type:"checkbox",
+            icon:"flip",
+            action: function(value){
+                symmetrySettings.setMirrorY(value);
+            }
+        },
+    ],
+
+};
 
 export async function buildPaneToolBar(){
     toolViewModel = app.paneToolViewModel();
@@ -28,48 +137,6 @@ export async function buildPaneToolBar(){
 
     let patternRepository = await PatternRepository();
     
-    thickness.onchange = async (e)=>{
-        brushSettings.setSize(parseInt(e.srcElement.value));
-        onUpdateBrush();
-    }
-    pixelPerfect.onchange = (e)=>{
-        brushSettings.setPixelPerfect(!brushSettings.getPixelPerfect());
-        onUpdateBrush();
-    }
-    hardness.onchange = (e)=>{
-        brushSettings.setHardness(parseFloat(e.srcElement.value) / 100.0);
-        onUpdateBrush();
-    }
-    spacing.onchange = (e)=>{
-        brushSettings.setSpacing(parseInt(e.srcElement.value));
-        onUpdateBrush();
-    }
-    stabilizer.onchange = (e)=>{
-        brushSettings.setStabilizer(parseFloat(e.srcElement.value) / 100.0);
-        onUpdateBrush();
-    }
-    enablePattern.onchange = (e)=>{
-        brushSettings.enablePattern(e.srcElement.checked);
-        onUpdateBrush();
-    }
-    solidColor.onchange = (e)=>{
-        brushSettings.isSolidColor(e.srcElement.checked);
-        onUpdateBrush();
-    }
-    mirrorX.onchange = (e)=>{
-        symmetrySettings.setMirrorX(e.srcElement.checked);
-        onUpdateBrush();
-    }
-    mirrorY.onchange = (e)=>{
-        symmetrySettings.setMirrorY(e.srcElement.checked);
-        onUpdateBrush();
-    }
-    fill.onchange = (e)=>{
-    }
-
-    toolViewModel.setPressedTool("brush");
-    onUpdateBrush();
-
     var modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
     var shapePagination = pagination({
         id: "#shape-patterns",
@@ -159,71 +226,59 @@ export async function buildPaneToolBar(){
     });
 
 
-    let mode = {
-        "solid": (e)=>{
-            brushSettings.setFillMode("solid");
-            onUpdateBrush();
-        },
-        "stamp": ()=>{
-            brushSettings.setFillMode("stamp");
-            onUpdateBrush();
-        },
-        "preserve-opacity": ()=>{
-            brushSettings.setFillMode("preserve-opacity");
-            onUpdateBrush();
-        },
-    };
-
-    let selectModeBrush = document.querySelector("#mode-brush");
-    selectModeBrush.onchange = (e)=>{ mode[e.srcElement.value]() };
-
-
     let selectAlignMode = document.querySelector("#align-mode");
     selectAlignMode.onchange = (e)=>{ 
         brushSettings.setAlignMode(e.srcElement.value);
     };
-    
 
     const btnPencil = document.querySelector(".tool-pencil");
     btnPencil.addEventListener("click", function(e){
+        createToolOption(toolbar.drawing, toolbar.tracking, toolbar.symmetry);
         toolViewModel.setPressedTool("brush");
         changeSelectTool.call(this);
     });
     const btnBrush = document.querySelector(".tool-brush");
     btnBrush.addEventListener("click", function(e){
+        createToolOption(toolbar.drawing, toolbar.tracking, toolbar.symmetry);
         toolViewModel.setPressedTool("brush");
         changeSelectTool.call(this);
     });
     const btnEraser = document.querySelector(".tool-eraser");
     btnEraser.addEventListener("click", function(e){
+        createToolOption(toolbar.drawing, toolbar.tracking, toolbar.symmetry);
         toolViewModel.setPressedTool("eraser");
         changeSelectTool.call(this);
     });
     const btnDropper = document.querySelector(".tool-dropper");
     btnDropper.addEventListener("click", function(e){
-        handlerEvents.setRightButtonMousePressedEvent(dropperStrategy());
+        createToolOption();
+        handlerEvents.setPressedTool("dropper");
         changeSelectTool.call(this);
     });
 
     const btnLine = document.querySelector(".tool-line");
     btnLine.addEventListener("click", function(e){
+        createToolOption(toolbar.drawing, toolbar.shape, toolbar.symmetry);
         toolViewModel.setPressedTool("line");
         changeSelectTool.call(this);
     });
     const btnSquare = document.querySelector(".tool-square");
     btnSquare.addEventListener("click", function(e){
+        createToolOption(toolbar.drawing, toolbar.shape, toolbar.symmetry);
         toolViewModel.setPressedTool("square");
         changeSelectTool.call(this);
     });
 
     const btnCircle = document.querySelector(".tool-circle");
     btnCircle.addEventListener("click", function(e){
+        createToolOption(toolbar.drawing, toolbar.shape, toolbar.symmetry);
         toolViewModel.setPressedTool("circle");
         changeSelectTool.call(this);
     });
 
     const btnBucket = document.querySelector(".tool-bucket");
     btnBucket.addEventListener("click", function(e){
+        createToolOption(toolbar.drawing, toolbar.shape, toolbar.symmetry);
         toolViewModel.setPressedTool("bucket");
         changeSelectTool.call(this);
     });
@@ -244,6 +299,9 @@ export async function buildPaneToolBar(){
     btnRedo.addEventListener("click", function(e){
         history.redo();
     });
+
+
+    btnPencil.click();
 }
 
 function changeSelectTool(){
@@ -320,6 +378,68 @@ function createFloatingToolbar() {
         btn.append(label);
 
         content.appendChild(btn);
+    }
+}
+function createToolOption(...toolOptions) {
+    const contentToolOptions = document.querySelector("#tool-options");
+    contentToolOptions.innerHTML = "";
+    
+    let toolbar = document.createElement("div");
+    toolbar.className = "tool-options";
+    
+    toolOptions.forEach((settings)=>{
+        settings.forEach(addTool);
+    });
+    
+    contentToolOptions.appendChild(toolbar);
+    
+    function addTool({ id, name, icon, label, action, type, min, max, value, unit }) {
+        let inputGroup = document.createElement("div");
+        inputGroup.className = "input-group";
+        
+        let inputLabel = document.createElement("span");
+        inputLabel.className = "input-label";
+        inputLabel.innerText = label;
+        
+        const input = document.createElement("input");
+        input.type = type;
+        input.id = name;
+        input.name = name;
+        input.onchange = (e)=>{            
+            action((input.type=="checkbox") ? input.checked : input.value);
+        };
+
+        if(type == "number" || type == "range"){
+            input.min = min;
+            input.max = max;
+                
+            let labelUnit = document.createElement("span");
+            labelUnit.className = "input-label";
+            labelUnit.innerText = unit;
+            
+            inputGroup.appendChild(inputLabel);
+            inputGroup.appendChild(input);
+            inputGroup.appendChild(labelUnit);
+        }
+        
+        if(type == "checkbox"){
+            let elemIcon = document.createElement("span");
+            elemIcon.className = "material-symbols-outlined";
+            elemIcon.innerText = icon;
+
+            let labelCheckbox = document.createElement("label");
+            labelCheckbox.className = "btn-choice";
+            labelCheckbox.for = name;
+
+
+            labelCheckbox.appendChild(elemIcon);
+            labelCheckbox.appendChild(input);
+            labelCheckbox.appendChild(inputLabel);
+            inputGroup.appendChild(labelCheckbox);
+        }
+
+
+        toolbar.append(inputGroup);
     }
 }
 
@@ -574,6 +694,13 @@ listPreviewCanvas.forEach((previewCanvas)=>{
 
 function onUpdateBrush(){
     const brush = brushSettings.getBrush();
+
+    const thickness = document.querySelector("input[name='size']");
+    const hardness = document.querySelector("input[name='hardness']");
+    const spacing = document.querySelector("input[name='spacing']");
+    const stabilizer = document.querySelector("input[name='stabilizer']");
+    const pixelPerfect = document.querySelector("input[name='pixel-perfect']");
+    
 
     pixelPerfect.checked = brush.pixelPerfect; 
     hardness.value = brush.hardness;
