@@ -7,6 +7,18 @@ SymmetrySettingsVM::SymmetrySettingsVM(){
 }
 SymmetrySettingsVM::~SymmetrySettingsVM(){
 }
+bool SymmetrySettingsVM::getMirrorX(){
+    return AppContext::instance().getEditorManager()->getActiveEditor()->getSymmetryContext()->isMirrorX;
+}
+bool SymmetrySettingsVM::getMirrorY(){
+    return AppContext::instance().getEditorManager()->getActiveEditor()->getSymmetryContext()->isMirrorY;
+}
+bool SymmetrySettingsVM::isTilingX(){
+    return AppContext::instance().getEditorManager()->getActiveEditor()->getCanvasSettings()->tilingContext.isTilingX;
+}
+bool SymmetrySettingsVM::isTilingY(){
+    return AppContext::instance().getEditorManager()->getActiveEditor()->getCanvasSettings()->tilingContext.isTilingY;
+}
 void SymmetrySettingsVM::setMirrorX(bool active){
     AppContext::instance().getEditorManager()->getActiveEditor()->getSymmetryContext()->isMirrorX = active;
 }
@@ -27,6 +39,11 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<SymmetrySettingsVM>("SymmetrySettingsVM")
         .constructor<>()
+        .function("getMirrorX", &SymmetrySettingsVM::getMirrorX)
+        .function("getMirrorY", &SymmetrySettingsVM::getMirrorY)
+        .function("isTilingX", &SymmetrySettingsVM::isTilingX)
+        .function("isTilingY", &SymmetrySettingsVM::isTilingY)
+
         .function("setMirrorX", &SymmetrySettingsVM::setMirrorX)
         .function("setMirrorY", &SymmetrySettingsVM::setMirrorY)
         .function("enabledTilingX", &SymmetrySettingsVM::enabledTilingX)

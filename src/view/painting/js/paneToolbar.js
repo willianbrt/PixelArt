@@ -12,27 +12,27 @@ const toolbar = {
     "drawing": [
         {
             name:"enable-pattern",
-            value: false,
+            value: ()=>{ return brushSettings.isPatternEnable(); },
             label:"Pattern",
             type:"checkbox",
             icon: "texture",
             action: function(value){
-                brushSettings.enablePattern(value);
+                brushSettings.setEnablePattern(value);
             }
         },
         {
             name:"solid-color",
-            value: false,
+            value: ()=>{ return brushSettings.isSolidColor(); },
             label:"Solid Color",
             type:"checkbox",
             icon: "format_color_fill",
             action: function(value){
-                brushSettings.isSolidColor(value);
+                brushSettings.setSolidColor(value);
             }
         },
         {
             name:"size",
-            value:"",
+            value: ()=>{ return },
             label:"Thinkeness",
             type:"number",
             unit:"px",
@@ -43,7 +43,7 @@ const toolbar = {
         },
         {
             name:"hardness",
-            value:"",
+            value: ()=>{ return brushSettings.getHardness(); },
             label:"Hardness",
             type:"number",
             min: 0, max:100,
@@ -56,7 +56,7 @@ const toolbar = {
     "tracking":[
         {
             name:"pixel-perfect",
-            value: false,
+            value: ()=>{ return brushSettings.getPixelPerfect(); },
             label:"Pixel Perfect",
             type:"checkbox",
             icon:"line_curve",
@@ -66,7 +66,7 @@ const toolbar = {
         },
         {
             name:"spacing",
-            value:"",
+            value: ()=>{ return brushSettings.getSpacing(); },
             label:"Spacing",
             type:"number",
             unit:"%",
@@ -77,7 +77,7 @@ const toolbar = {
         },
         {
             name:"stabilizer",
-            value:"",
+            value: ()=>{ return brushSettings.getStabilizer(); },
             label:"Stabilizer",
             type:"number",
             unit:"%",
@@ -90,7 +90,7 @@ const toolbar = {
     "shape": [
         {
             name:"fill",
-            value:"",
+            value: ()=>{ return  false },
             label:"Fill",
             type:"checkbox",
             icon:"colors",
@@ -101,7 +101,7 @@ const toolbar = {
     "symmetry": [
         {
             name:"mirror-x",
-            value: false,
+            value: ()=>{ return symmetrySettings.getMirrorX(); },
             label:"Mirror X",
             type:"checkbox",
             icon:"flip",
@@ -111,12 +111,32 @@ const toolbar = {
         },
         {
             name:"mirror-y",
-            value: false,
+            value: ()=>{ return symmetrySettings.getMirrorY(); },
             label:"Mirror Y",
             type:"checkbox",
             icon:"flip",
             action: function(value){
                 symmetrySettings.setMirrorY(value);
+            }
+        },
+        {
+            name:"tiling-x",
+            value: ()=>{ return symmetrySettings.isTilingX(); },
+            label:"Tiling X",
+            type:"checkbox",
+            icon:"add_column_right",
+            action: function(value){
+                symmetrySettings.enabledTilingX(value);
+            }
+        },
+        {
+            name:"tiling-y",
+            value: ()=>{ return symmetrySettings.isTilingY(); },
+            label:"Tiling Y",
+            type:"checkbox",
+            icon:"add_row_below",
+            action: function(value){
+                symmetrySettings.enabledTilingY(value);
             }
         },
     ],
@@ -403,6 +423,7 @@ function createToolOption(toolOptions) {
         input.type = type;
         input.id = name;
         input.name = name;
+        input.value = value();
         input.onchange = (e)=>{            
             action((input.type=="checkbox") ? input.checked : input.value);
         };

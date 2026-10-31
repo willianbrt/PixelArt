@@ -14,6 +14,11 @@ public:
     SymmetrySettingsVM();
     ~SymmetrySettingsVM();
 
+    bool getMirrorX();
+    bool getMirrorY();
+    bool isTilingX();
+    bool isTilingY();
+
     void setMirrorX(bool active);
     void setMirrorY(bool active);
     void enabledTilingX(bool enabled);

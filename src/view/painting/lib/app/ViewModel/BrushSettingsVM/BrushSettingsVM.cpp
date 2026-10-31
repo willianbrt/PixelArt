@@ -16,6 +16,8 @@ unsigned int BrushSettingsVM::getColor(){ return _toolSettings->brushContext.get
 int BrushSettingsVM::getSpacing() {return _toolSettings->brushContext.getSpacing(); }
 float BrushSettingsVM::getStabilizer(){ return _toolSettings->brushContext.getStabilizer(); }
 bool BrushSettingsVM::getPixelPerfect(){ return _toolSettings->brushContext.getPixelPerfect(); }
+bool BrushSettingsVM::isPatternEnable(){ return _toolSettings->brushContext.isPatternEnable(); }
+bool BrushSettingsVM::isSolidColor(){ return _toolSettings->brushContext.isSolidColor(); }
 
 void BrushSettingsVM::setSize(int size){
     if(size < 1 || size > 16) return;
@@ -112,11 +114,11 @@ void BrushSettingsVM::setShape(string pattern){
     notify("brush");
 }
 
-void BrushSettingsVM::enablePattern(bool enable){
+void BrushSettingsVM::setEnablePattern(bool enable){
     _toolSettings->brushContext.enablePattern(enable);
     notify("brush");
 }
-void BrushSettingsVM::isSolidColor(bool enable){
+void BrushSettingsVM::setSolidColor(bool enable){
     _toolSettings->brushContext.setIsSolidColor(enable);
     notify("brush");
 }
@@ -188,8 +190,10 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("setShape", select_overload<void(string)>(&BrushSettingsVM::setShape))
         .function("setCustomShape", select_overload<void(uintptr_t, int, int)>(&BrushSettingsVM::setShape))
         .function("getBrush", &BrushSettingsVM::getBrush)
-        .function("enablePattern", &BrushSettingsVM::enablePattern)
+        .function("setEnablePattern", &BrushSettingsVM::setEnablePattern)
+        .function("setSolidColor", &BrushSettingsVM::setSolidColor)
         .function("isSolidColor", &BrushSettingsVM::isSolidColor)
+        .function("isPatternEnable", &BrushSettingsVM::isPatternEnable)
         .function("registerEvent", &BrushSettingsVM::registerEvent)
         ;
 };

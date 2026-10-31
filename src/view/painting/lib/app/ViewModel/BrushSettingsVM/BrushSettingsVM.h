@@ -34,7 +34,7 @@ public:
     void setStabilizer(float stabilizer);
     void setSpacing(int spacing);
     void setPixelPerfect(bool isEnable);
-    void isSolidColor(bool isEnable);
+    void setSolidColor(bool isEnable);
 
     int getSize();
     float getHardness();
@@ -42,7 +42,9 @@ public:
     int getSpacing();
     float getStabilizer();
     bool getPixelPerfect();
-    
+    bool isPatternEnable();
+    bool isSolidColor();
+
     void setAlignMode(string alignMode);
     void setFillMode(string fillMode);
     
@@ -50,7 +52,7 @@ public:
     void setShape(uintptr_t ptr, int size, int factor);
     void setShape(string shape);
         
-    void enablePattern(bool enable);
+    void setEnablePattern(bool enable);
     BrushDTO getBrush();
     void registerEvent(std::string eventType, emscripten::val action) override;
 };
