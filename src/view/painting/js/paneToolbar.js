@@ -6,6 +6,7 @@ let toolViewModel;
 let brushSettings;
 let drawingSettings;
 let symmetrySettings;
+let history;
 
 const toolbar = {
     "drawing": [
@@ -43,6 +44,18 @@ const toolbar = {
                 onUpdateBrush();
             }
         },
+        {
+            name:"hardness",
+            value:"",
+            label:"Hardness",
+            type:"number",
+            min: 0, max:100,
+            unit:"%",
+            action: function(value){
+                brushSettings.setHardness(parseFloat(value) / 100.0);
+                onUpdateBrush();
+            }
+        }
     ],
     "tracking":[
         {
@@ -53,18 +66,6 @@ const toolbar = {
             icon:"line_curve",
             action: function(value){
                 brushSettings.setPixelPerfect(value);
-                onUpdateBrush();
-            }
-        },
-        {
-            name:"hardness",
-            value:"",
-            label:"Hardness",
-            type:"number",
-            min: 0, max:100,
-            unit:"%",
-            action: function(value){
-                brushSettings.setHardness(parseFloat(value) / 100.0);
                 onUpdateBrush();
             }
         },
@@ -129,12 +130,94 @@ const toolbar = {
 
 };
 
+const toolList = {
+    "brush":{
+        icon: "../../../src/resource/img/pencil.png",
+        toolbar:["drawing", "tracking", "symmetry"],
+        onchange: ()=>{}
+    },
+    "eraser":{
+        icon: "../../../src/resource/img/eraser.png",
+        toolbar:["drawing", "tracking", "symmetry"],
+        onchange: ()=>{}
+    },
+    "dropper":{
+        icon: "../../../src/resource/img/dropper.png",
+        toolbar:["dropper"],
+        onchange: ()=>{}
+    },
+    "bucket":{
+        icon: "../../../src/resource/img/bucket.png",
+        toolbar:["drawing", "tracking", "symmetry"],
+        onchange: ()=>{}
+    },
+    "line":{
+        icon: "../../../src/resource/img/line.png",
+        toolbar:["drawing", "symmetry"],
+        onchange: ()=>{}
+    },
+    "square":{
+        icon: "../../../src/resource/img/square.png",
+        toolbar:["drawing", "shape", "symmetry"],
+        onchange: ()=>{}
+    },
+    "circle":{
+        icon: "../../../src/resource/img/circle.png",
+        toolbar:["drawing", "shape", "symmetry"],
+        onchange: ()=>{}
+    },
+    "select":{
+        icon: "../../../src/resource/img/select.png",
+        toolbar:["symmetry"],
+        onchange: ()=>{
+            createFloatingToolbar();
+        }
+    }
+};
 export async function buildPaneToolBar(){
     toolViewModel = app.paneToolViewModel();
     brushSettings = app.brushSettingsVM();
     drawingSettings = app.drawingSettingsVM();
     symmetrySettings = app.symmetrySettingsVM();
 
+    buildModalBrush();
+
+    const paneTool = document.querySelector("#pane-tool");
+    const toolbarList = paneTool.querySelectorAll(".tool");
+    toolbarList.forEach((e)=>{
+        const onChangeTool = ()=>{
+            const tool = toolList[e.dataset.tool];
+
+            createToolOption(tool.toolbar);
+
+            toolViewModel.setPressedTool(e.dataset.tool);
+
+            paneTool.querySelector(".tool.active")?.classList.toggle("active", false);
+            e.classList.toggle("active", true);
+
+            tool.onchange();
+        };
+
+        e.onclick = onChangeTool;
+
+        if(toolViewModel.getTool() == e.dataset.tool){
+            e.classList.toggle("active", true);
+            onChangeTool();
+        }
+    });
+
+    const btnUndo = document.querySelector("#undo");
+    btnUndo.addEventListener("click", function(e){
+        history.undo();
+    });
+
+    const btnRedo = document.querySelector("#redo");
+    btnRedo.addEventListener("click", function(e){
+        history.redo();
+    });
+}
+
+async function buildModalBrush(){
     let patternRepository = await PatternRepository();
     
     var modalBrush = modal({modalId: "modal-brush", triggerId: "btn-modal-brush"});
@@ -230,84 +313,8 @@ export async function buildPaneToolBar(){
     selectAlignMode.onchange = (e)=>{ 
         brushSettings.setAlignMode(e.srcElement.value);
     };
-
-    const btnPencil = document.querySelector(".tool-pencil");
-    btnPencil.addEventListener("click", function(e){
-        createToolOption(toolbar.drawing, toolbar.tracking, toolbar.symmetry);
-        toolViewModel.setPressedTool("brush");
-        changeSelectTool.call(this);
-    });
-    const btnBrush = document.querySelector(".tool-brush");
-    btnBrush.addEventListener("click", function(e){
-        createToolOption(toolbar.drawing, toolbar.tracking, toolbar.symmetry);
-        toolViewModel.setPressedTool("brush");
-        changeSelectTool.call(this);
-    });
-    const btnEraser = document.querySelector(".tool-eraser");
-    btnEraser.addEventListener("click", function(e){
-        createToolOption(toolbar.drawing, toolbar.tracking, toolbar.symmetry);
-        toolViewModel.setPressedTool("eraser");
-        changeSelectTool.call(this);
-    });
-    const btnDropper = document.querySelector(".tool-dropper");
-    btnDropper.addEventListener("click", function(e){
-        createToolOption();
-        handlerEvents.setPressedTool("dropper");
-        changeSelectTool.call(this);
-    });
-
-    const btnLine = document.querySelector(".tool-line");
-    btnLine.addEventListener("click", function(e){
-        createToolOption(toolbar.drawing, toolbar.shape, toolbar.symmetry);
-        toolViewModel.setPressedTool("line");
-        changeSelectTool.call(this);
-    });
-    const btnSquare = document.querySelector(".tool-square");
-    btnSquare.addEventListener("click", function(e){
-        createToolOption(toolbar.drawing, toolbar.shape, toolbar.symmetry);
-        toolViewModel.setPressedTool("square");
-        changeSelectTool.call(this);
-    });
-
-    const btnCircle = document.querySelector(".tool-circle");
-    btnCircle.addEventListener("click", function(e){
-        createToolOption(toolbar.drawing, toolbar.shape, toolbar.symmetry);
-        toolViewModel.setPressedTool("circle");
-        changeSelectTool.call(this);
-    });
-
-    const btnBucket = document.querySelector(".tool-bucket");
-    btnBucket.addEventListener("click", function(e){
-        createToolOption(toolbar.drawing, toolbar.shape, toolbar.symmetry);
-        toolViewModel.setPressedTool("bucket");
-        changeSelectTool.call(this);
-    });
-
-    const btnSelect = document.querySelector(".tool-select");
-    btnSelect.addEventListener("click", function(e){
-        toolViewModel.setPressedTool("select");
-        changeSelectTool.call(this);
-        createFloatingToolbar();
-    });
-
-    const btnUndo = document.querySelector("#undo");
-    btnUndo.addEventListener("click", function(e){
-        history.undo();
-    });
-
-    const btnRedo = document.querySelector("#redo");
-    btnRedo.addEventListener("click", function(e){
-        history.redo();
-    });
-
-
-    btnPencil.click();
 }
 
-function changeSelectTool(){
-    document.querySelector(".tool.active")?.classList.toggle("active", false);
-    this.classList.toggle("active", true);
-}
 
 function createFloatingToolbar() {
     document.querySelector(".floating-toolbar")?.remove();
@@ -380,18 +387,17 @@ function createFloatingToolbar() {
         content.appendChild(btn);
     }
 }
-function createToolOption(...toolOptions) {
+function createToolOption(toolOptions) {
     const contentToolOptions = document.querySelector("#tool-options");
     contentToolOptions.innerHTML = "";
     
-    let toolbar = document.createElement("div");
-    toolbar.className = "tool-options";
-    
+    let toolbarElem = document.createElement("div");
+    toolbarElem.className = "tool-options";
     toolOptions.forEach((settings)=>{
-        settings.forEach(addTool);
+        toolbar[settings].forEach(addTool);
     });
     
-    contentToolOptions.appendChild(toolbar);
+    contentToolOptions.appendChild(toolbarElem);
     
     function addTool({ id, name, icon, label, action, type, min, max, value, unit }) {
         let inputGroup = document.createElement("div");
@@ -439,7 +445,7 @@ function createToolOption(...toolOptions) {
         }
 
 
-        toolbar.append(inputGroup);
+        toolbarElem.append(inputGroup);
     }
 }
 

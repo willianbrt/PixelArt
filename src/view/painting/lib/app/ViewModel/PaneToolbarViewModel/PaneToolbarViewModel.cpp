@@ -7,10 +7,12 @@ PaneToolbarViewModel::PaneToolbarViewModel(){
 
    _toolManager->setToolScroll(new ZoomStrategy());
    _toolManager->setOtherToolPressed(new PanStrategy());
+   setPressedTool("brush");
 }
 PaneToolbarViewModel::~PaneToolbarViewModel(){
 }
 void PaneToolbarViewModel::setPressedTool(std::string tool){
+    _tool = tool;
     if(tool == "brush"){
         _toolManager->setRightToolPressed(new BrushStrategy(&_toolSettings->brushContext, &_toolSettings->drawingContext));
         return;
@@ -40,6 +42,10 @@ void PaneToolbarViewModel::setPressedTool(std::string tool){
         return;
     }
 }
+
+std::string PaneToolbarViewModel::getTool(){
+    return _tool;
+}
 #include <emscripten/bind.h>
 
 using namespace emscripten;
@@ -48,5 +54,6 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
     class_<PaneToolbarViewModel>("PaneToolbarViewModel")
         .constructor<>()
         .function("setPressedTool", &PaneToolbarViewModel::setPressedTool)
+        .function("getTool", &PaneToolbarViewModel::getTool)
         ;
 };

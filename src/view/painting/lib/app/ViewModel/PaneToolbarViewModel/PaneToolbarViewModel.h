@@ -25,13 +25,14 @@ class PaneToolbarViewModel  {
 private:
     ToolManager* _toolManager;
     ToolSettings* _toolSettings;
+    string _tool;
 
 public:
     PaneToolbarViewModel();
     ~PaneToolbarViewModel();
     
     void setPressedTool(std::string tool);
-    
+    std::string getTool();
 };
 
 #endif
