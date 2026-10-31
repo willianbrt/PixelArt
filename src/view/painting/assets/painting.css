@@ -5,6 +5,53 @@
     user-select: none;
 }
 
+h1, h2, h3, h4, h5, h6{
+    font-family: "Jersey 10", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: var(--light-text-color);
+    margin: 0;
+}
+.text{
+    font-family: "Jersey 10", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: var(--light-text-color);
+    margin: 0;
+}
+
+i, .material-symbols-outlined{
+    font-size: 10px;
+}
+
+.input-group{
+    display: flex;
+    gap:4px;
+    align-items: center;
+    flex: 1;
+}
+.input-group.col{
+    align-items: normal;
+}
+.input-label{
+    font-family: "Jersey 10";
+    color: var(--light-text-color);
+    font-size: 16px;
+    display: block;
+    align-content: center;
+}
+
+input{
+    background-color: #896A95;
+    border: none;
+    outline: none;
+    font-family: "Jersey 10";
+    color: var(--light-text-color);
+    font-size: 16px;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
 .checkbox input[type="checkbox"]{
     visibility: hidden;
     height: 0;
@@ -61,20 +108,6 @@ input[type=number]::-webkit-outer-spin-button {
     appearance: none !important;
     -moz-appearance: none !important;
 }
-h1, h2, h3, h4, h5, h6{
-    font-family: "Jersey 10", sans-serif;
-    font-weight: 400;
-    font-style: normal;
-    color: var(--light-text-color);
-    margin: 0;
-}
-.text{
-    font-family: "Jersey 10", sans-serif;
-    font-weight: 400;
-    font-style: normal;
-    color: var(--light-text-color);
-    margin: 0;
-}
 
 input[type="range"]{
     -webkit-appearance : none;
@@ -103,9 +136,8 @@ input[type="range"]::-webkit-slider-thumb{
     border-radius: 50%;
     margin-top: -4px;
 }
-i, .material-symbols-outlined{
-    font-size: 10px;
-}
+
+
 select{
     border: none;
     outline: none;
@@ -133,6 +165,10 @@ select option:hover{
 select.select-ghost{
     background: transparent;
 }
+
+
+
+
 
 body{
     display: flex;
@@ -636,57 +672,30 @@ div.frame.active::before{
     left:8px;
     z-index:0;
 }
-.modal{
-    position: absolute;
-    background-color: var(--background-color);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border: 1px solid #000;
+
+div#color-control {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
 }
-.modal-header{
-    padding: 8px 16px;
-    background-color: var(--primary-color);
-}
-.modal.hidden{
-    display: none;
-}
-.modal-content{
-    padding: 16px 20px;
-}
-.modal-color{
+#color-control .color-form{
+    display: flex; 
+    flex-direction: row;
+    gap: 4px;
     flex: 1;
-    height: 16px;
-    width: 50%;
 }
-input{
-    background-color: #896A95;
-    border: none;
-    outline: none;
-    font-family: "Jersey 10";
-    color: var(--light-text-color);
-    font-size: 16px;
-    border-radius: 4px;
-    padding: 4px 8px;
-    width: calc(100% - 16px);
+#color-control input{
+    width: 100%;
+    box-sizing: border-box;
 }
-#inp-hex.input-group{
+#color-form .input-group{
     text-align: center;
     align-items: center;
-}
-.input-group{
-    display: flex;
-    gap:4px;
-    align-items: center;
-}
-.input-group.col{
-    align-items: normal;
 }
 div#picker-control {
     padding: 4px 8px;
 }
 #picker-control .input-group{
-    width: 100%;
     flex-direction: column-reverse;
 }
 select[name="color-pattern"]{
@@ -694,30 +703,15 @@ select[name="color-pattern"]{
     padding-right: 0;
 }
 .color-form.hidden {
-    display: none;
-}
-.input-label{
-    font-family: "Jersey 10";
-    color: var(--light-text-color);
-    font-size: 16px;
-    display: block;
-    align-content: center;
+    display: none !important;
 }
 .color-form .input-label{
     color: #896A95;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
 }
-#modal-color-picker{
-    transform: translate(0%, 0%);
-    z-index: 10;
-    right: auto;
-    left: auto;
-    bottom: auto;
-    top: auto;
-    margin-right: 10px;
-}
-#add-color{
-    align-self: baseline;
-}
+
 .floating-toolbar {
     background: #795289;
     position: absolute;
@@ -904,4 +898,31 @@ span.line{
 .header-section{
     border-bottom: 1px solid var(--light-text-color);
     /* background-color: var(--primary-color); */
+}
+
+
+
+/*-------- MODAL -------*/
+.modal{
+    position: absolute;
+    background-color: var(--background-color);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid #000;
+}
+.modal-header{
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+}
+.modal.hidden{
+    display: none;
+}
+.modal-content{
+    padding: 16px 20px;
+}
+.modal-color{
+    flex: 1;
+    height: 16px;
+    width: 50%;
 }

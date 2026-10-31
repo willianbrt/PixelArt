@@ -136,33 +136,33 @@
                             </select>
                         </div>
 
-                        <div class="row g-4">   
-                            <div class="row g-4 color-form" id="inp-hex">
+                        <div class="" id="color-control">   
+                            <div class="color-form" id="inp-hex">
                                 <div class="input-group" id="inp-hex">
                                     <span class="input-label">Hexadecimal</span>
                                     <input name="hex" type="text"/>
                                 </div>
                             </div>
 
-                            <div class="row g-4 color-form hidden" id="inp-rgb">
+                            <div class="color-form hidden" id="inp-rgb">
                                 <div class="input-group">
                                     <span class="input-label">R</span>
-                                    <input name="r" type="number"/>
+                                    <input name="r" type="number"  max="255" min="0"/>
                                 </div>
                                 <div class="input-group">
                                     <span class="input-label">G</span>
-                                    <input name="g" type="number"/>
+                                    <input name="g" type="number"  max="255" min="0"/>
                                 </div>
                                 <div class="input-group">
                                     <span class="input-label">B</span>
-                                    <input name="b" type="number"/>
+                                    <input name="b" type="number"  max="255" min="0"/>
                                 </div>
                             </div>
                             
-                            <div class="row g-4 color-form  hidden" id="inp-hsl">
+                            <div class="color-form hidden" id="inp-hsl">
                                 <div class="input-group">
                                     <span class="input-label">H</span>
-                                    <input name="h" type="number" />
+                                    <input name="h" type="number"  max="360" min="0"/>
                                 </div>
                                 <div class="input-group">
                                     <span class="input-label">S</span>
@@ -174,6 +174,7 @@
                                 </div>
                             </div>
 
+                            
                             <button class="btn-primary" id="add-color"><span class="material-symbols-outlined">add</span></button>
                         </div>
                     </div>
