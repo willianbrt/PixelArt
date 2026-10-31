@@ -9,44 +9,46 @@ BrushSettingsVM::BrushSettingsVM(){
 }
 BrushSettingsVM::~BrushSettingsVM(){
 }
+
+int BrushSettingsVM::getSize(){ return _toolSettings->brushContext.getSize(); }
+float BrushSettingsVM::getHardness(){ return _toolSettings->brushContext.getHardness(); }
+unsigned int BrushSettingsVM::getColor(){ return _toolSettings->brushContext.getColor(); }
+int BrushSettingsVM::getSpacing() {return _toolSettings->brushContext.getSpacing(); }
+float BrushSettingsVM::getStabilizer(){ return _toolSettings->brushContext.getStabilizer(); }
+bool BrushSettingsVM::getPixelPerfect(){ return _toolSettings->brushContext.getPixelPerfect(); }
+
 void BrushSettingsVM::setSize(int size){
     if(size < 1 || size > 16) return;
 
     _toolSettings->brushContext.setSize(size);
+    notify("brush");
 }
 void BrushSettingsVM::setHardness(float hardness){
     if(hardness < 0.0f || hardness > 1.0f) return;
 
     _toolSettings->brushContext.setHardness(hardness);
     _toolSettings->brushContext.setColor((_toolSettings->brushContext.getColor() & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f));
+    notify("brush");
 }
 void BrushSettingsVM::setColor(int r, int g, int b){
     _toolSettings->brushContext.setColor(r << 24 | g << 16 | b << 8 | static_cast<int>(_toolSettings->brushContext.getHardness() * 255.0f));
+    notify("brush");
 }
 void BrushSettingsVM::setSpacing(int spacing){
     if(spacing < 0) return;
     _toolSettings->brushContext.setSpacing(spacing);  
+    notify("brush");
 }
 void BrushSettingsVM::setStabilizer(float stabilizer){
     if(stabilizer < 0.0f || stabilizer > 1.0f) return;
-    _toolSettings->brushContext.setStabilizer(stabilizer);       
+    _toolSettings->brushContext.setStabilizer(stabilizer);  
+    notify("brush");     
 }
 void BrushSettingsVM::setPixelPerfect(bool isEnabled){
-    _toolSettings->brushContext.setPixelPerfect(isEnabled);       
+    _toolSettings->brushContext.setPixelPerfect(isEnabled);  
+    notify("brush");     
 }
 
-int BrushSettingsVM::getSize(){
-    return _toolSettings->brushContext.getSize();
-}
-float BrushSettingsVM::getHardness(){
-    return _toolSettings->brushContext.getHardness();
-}
-unsigned int BrushSettingsVM::getColor(){
-    return _toolSettings->brushContext.getColor();
-}
-int BrushSettingsVM::getSpacing() {return _toolSettings->brushContext.getSpacing(); }
-float BrushSettingsVM::getStabilizer(){ return _toolSettings->brushContext.getStabilizer(); }
-bool BrushSettingsVM::getPixelPerfect(){ return _toolSettings->brushContext.getPixelPerfect(); }
 
 
 void BrushSettingsVM::setAlignMode(string alignMode){
@@ -62,6 +64,7 @@ void BrushSettingsVM::setAlignMode(string alignMode){
     }
 
     _toolSettings->brushContext.setAlignMode(align); 
+    notify("brush");
 }
 
 void BrushSettingsVM::setFillMode(string fillMode){
@@ -77,17 +80,19 @@ void BrushSettingsVM::setFillMode(string fillMode){
     }
 
     _toolSettings->brushContext.setFillMode(fill); 
+    notify("brush");
 }
 void BrushSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
     int w = factor, h = size/factor;
     _toolSettings->brushContext.setPattern(new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
 
+    notify("brush");
 }
 void BrushSettingsVM::setShape(uintptr_t ptr, int size, int factor){
     int w = factor, h = size/factor;
     
     _toolSettings->brushContext.setShape(new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
-
+    notify("brush");
 }
 void BrushSettingsVM::setShape(string pattern){
     IBrushTip* brushTip = new SquareTip();
@@ -103,13 +108,17 @@ void BrushSettingsVM::setShape(string pattern){
 
 
     _toolSettings->brushContext.setShape(brushTip);
+
+    notify("brush");
 }
 
 void BrushSettingsVM::enablePattern(bool enable){
     _toolSettings->brushContext.enablePattern(enable);
+    notify("brush");
 }
 void BrushSettingsVM::isSolidColor(bool enable){
     _toolSettings->brushContext.setIsSolidColor(enable);
+    notify("brush");
 }
 BrushDTO BrushSettingsVM::getBrush(){
     ISurface* pattern = _toolSettings->brushContext.getPattern();
@@ -147,7 +156,12 @@ BrushDTO BrushSettingsVM::getBrush(){
     
     return brushDTO;
 }
-
+void BrushSettingsVM::registerEvent(std::string eventType, emscripten::val action){
+    observable.registerEvent(eventType, action);
+}
+void BrushSettingsVM::notify(std::string eventType){
+    observable.notify(eventType);
+}
 
 #include <emscripten/bind.h>
 
@@ -176,5 +190,6 @@ EMSCRIPTEN_BINDINGS(pixel_editor_module){
         .function("getBrush", &BrushSettingsVM::getBrush)
         .function("enablePattern", &BrushSettingsVM::enablePattern)
         .function("isSolidColor", &BrushSettingsVM::isSolidColor)
+        .function("registerEvent", &BrushSettingsVM::registerEvent)
         ;
 };

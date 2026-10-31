@@ -12,12 +12,17 @@
 #include "../../../rasterize/SquareTip/SquareTip.h"
 #include "../../../rasterize/CircleTip/CircleTip.h"
 #include "../../../rasterize/CustomTip/CustomTip.h"
+#include "../../../interfaces/IToolObserver/IToolObserver.h"
 #include "../../dto/BrushDTO/BrushDTO.h"
+#include "../ObserverViewModel/ObserverViewModel.h"
 
-class BrushSettingsVM  {
+class BrushSettingsVM : public IToolObserver<BrushDTO>  {
 private:
     ToolManager* _toolManager;
     ToolSettings* _toolSettings;
+    ObserverViewModel observable;
+
+    void notify(std::string eventType) override;
 
 public:
     BrushSettingsVM();
@@ -47,6 +52,7 @@ public:
         
     void enablePattern(bool enable);
     BrushDTO getBrush();
+    void registerEvent(std::string eventType, emscripten::val action) override;
 };
 
 #endif

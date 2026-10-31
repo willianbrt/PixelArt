@@ -18,7 +18,6 @@ const toolbar = {
             icon: "texture",
             action: function(value){
                 brushSettings.enablePattern(value);
-                onUpdateBrush();
             }
         },
         {
@@ -29,7 +28,6 @@ const toolbar = {
             icon: "format_color_fill",
             action: function(value){
                 brushSettings.isSolidColor(value);
-                onUpdateBrush();
             }
         },
         {
@@ -41,7 +39,6 @@ const toolbar = {
             min: 1, max:64,
             action: function(value){
                 brushSettings.setSize(parseInt(value));
-                onUpdateBrush();
             }
         },
         {
@@ -53,7 +50,6 @@ const toolbar = {
             unit:"%",
             action: function(value){
                 brushSettings.setHardness(parseFloat(value) / 100.0);
-                onUpdateBrush();
             }
         }
     ],
@@ -66,7 +62,6 @@ const toolbar = {
             icon:"line_curve",
             action: function(value){
                 brushSettings.setPixelPerfect(value);
-                onUpdateBrush();
             }
         },
         {
@@ -78,7 +73,6 @@ const toolbar = {
             min: 0, max:100,
             action: function(value){
                 brushSettings.setSpacing(parseInt(value));
-                onUpdateBrush();
             }
         },
         {
@@ -90,7 +84,6 @@ const toolbar = {
             min: 0, max:100,
             action: function(value){
                 brushSettings.setStabilizer(parseFloat(value) / 100.0);
-                onUpdateBrush();
             }
         },
     ],
@@ -180,6 +173,8 @@ export async function buildPaneToolBar(){
     drawingSettings = app.drawingSettingsVM();
     symmetrySettings = app.symmetrySettingsVM();
 
+    brushSettings.registerEvent("brush", onUpdateBrush);
+
     buildModalBrush();
 
     const paneTool = document.querySelector("#pane-tool");
@@ -205,7 +200,7 @@ export async function buildPaneToolBar(){
             onChangeTool();
         }
     });
-
+    
     const btnUndo = document.querySelector("#undo");
     btnUndo.addEventListener("click", function(e){
         history.undo();
@@ -243,7 +238,6 @@ async function buildModalBrush(){
             brushPattern.append(brushView);
             brushPattern.addEventListener("click", function(e){
                 brushSettings.setShape(data.brushTip, 0xFF00FFFF);
-                onUpdateBrush();
 
                 pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
                 this.classList.add("active");
@@ -274,7 +268,6 @@ async function buildModalBrush(){
                     const patternPtr = app.malloc(data.buffer);
                     const size = data.buffer.byteLength/4;
                     brushSettings.setCustomShape(patternPtr, size, data.width);
-                    onUpdateBrush();
                 }
             });
             return brush;
@@ -301,7 +294,6 @@ async function buildModalBrush(){
                     const patternPtr = app.malloc(data.buffer);
                     const size = data.buffer.byteLength/4;
                     brushSettings.setPattern(patternPtr, size, data.width);
-                    onUpdateBrush();
                 }
             });
             return brush;
