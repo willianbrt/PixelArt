@@ -116,7 +116,7 @@ void BrushStrategy::draw(const Point& pixel){
             _brushContext->getColor() : shape->getPixel(src.x, src.y);
         }
 
-        GraphicsEngine::setOpacity(color, ((shape->getPixel(src.x, src.y) & 0xFF) / 255.0f) * mask);
+        GraphicsEngine::setOpacity(color, ((shape->getPixel(src.x, src.y) & 0xFF) / 255.0f) * mask * _brushContext->getHardness());
         _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color);
     }
 }
