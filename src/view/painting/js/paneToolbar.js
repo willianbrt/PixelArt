@@ -2,88 +2,84 @@ import { app } from "./app.js"
 import { modal, pagination } from "./elements.js"
 
 
-let toolViewModel;
-let brushSettings;
-let drawingSettings;
-let symmetrySettings;
 let history;
 
 const toolbar = {
     "drawing": [
         {
             name:"enable-pattern",
-            value: ()=>{ return brushSettings.isPatternEnable(); },
+            value: ()=>{ return app.brushSettingsVM.isPatternEnable(); },
             label:"Pattern",
             type:"checkbox",
             icon: "texture",
             action: function(value){
-                brushSettings.setEnablePattern(value);
+                app.brushSettingsVM.setEnablePattern(value);
             }
         },
         {
             name:"solid-color",
-            value: ()=>{ return brushSettings.isSolidColor(); },
+            value: ()=>{ return app.brushSettingsVM.isSolidColor(); },
             label:"Solid Color",
             type:"checkbox",
             icon: "format_color_fill",
             action: function(value){
-                brushSettings.setSolidColor(value);
+                app.brushSettingsVM.setSolidColor(value);
             }
         },
         {
             name:"size",
-            value: ()=>{ return },
+            value: ()=>{ return app.brushSettingsVM.getSize(); },
             label:"Thinkeness",
             type:"number",
             unit:"px",
             min: 1, max:64,
             action: function(value){
-                brushSettings.setSize(parseInt(value));
+                app.brushSettingsVM.setSize(parseInt(value));
             }
         },
         {
             name:"hardness",
-            value: ()=>{ return brushSettings.getHardness(); },
+            value: ()=>{ return app.brushSettingsVM.getHardness()*100.0; },
             label:"Hardness",
             type:"number",
             min: 0, max:100,
             unit:"%",
             action: function(value){
-                brushSettings.setHardness(parseFloat(value) / 100.0);
+                app.brushSettingsVM.setHardness(parseFloat(value) / 100.0);
             }
         }
     ],
     "tracking":[
         {
             name:"pixel-perfect",
-            value: ()=>{ return brushSettings.getPixelPerfect(); },
+            value: ()=>{ return app.brushSettingsVM.getPixelPerfect(); },
             label:"Pixel Perfect",
             type:"checkbox",
             icon:"line_curve",
             action: function(value){
-                brushSettings.setPixelPerfect(value);
+                app.brushSettingsVM.setPixelPerfect(value);
             }
         },
         {
             name:"spacing",
-            value: ()=>{ return brushSettings.getSpacing(); },
+            value: ()=>{ return app.brushSettingsVM.getSpacing(); },
             label:"Spacing",
             type:"number",
-            unit:"%",
+            unit:"px",
             min: 0, max:100,
             action: function(value){
-                brushSettings.setSpacing(parseInt(value));
+                app.brushSettingsVM.setSpacing(parseInt(value));
             }
         },
         {
             name:"stabilizer",
-            value: ()=>{ return brushSettings.getStabilizer(); },
+            value: ()=>{ return app.brushSettingsVM.getStabilizer(); },
             label:"Stabilizer",
             type:"number",
             unit:"%",
             min: 0, max:100,
             action: function(value){
-                brushSettings.setStabilizer(parseFloat(value) / 100.0);
+                app.brushSettingsVM.setStabilizer(parseFloat(value) / 100.0);
             }
         },
     ],
@@ -101,42 +97,42 @@ const toolbar = {
     "symmetry": [
         {
             name:"mirror-x",
-            value: ()=>{ return symmetrySettings.getMirrorX(); },
+            value: ()=>{ return app.symmetrySettingsVM.getMirrorX(); },
             label:"Mirror X",
             type:"checkbox",
             icon:"flip",
             action: function(value){
-                symmetrySettings.setMirrorX(value);
+                app.symmetrySettingsVM.setMirrorX(value);
             }
         },
         {
             name:"mirror-y",
-            value: ()=>{ return symmetrySettings.getMirrorY(); },
+            value: ()=>{ return app.symmetrySettingsVM.getMirrorY(); },
             label:"Mirror Y",
             type:"checkbox",
             icon:"flip",
             action: function(value){
-                symmetrySettings.setMirrorY(value);
+                app.symmetrySettingsVM.setMirrorY(value);
             }
         },
         {
             name:"tiling-x",
-            value: ()=>{ return symmetrySettings.isTilingX(); },
+            value: ()=>{ return app.symmetrySettingsVM.isTilingX(); },
             label:"Tiling X",
             type:"checkbox",
             icon:"add_column_right",
             action: function(value){
-                symmetrySettings.enabledTilingX(value);
+                app.symmetrySettingsVM.enabledTilingX(value);
             }
         },
         {
             name:"tiling-y",
-            value: ()=>{ return symmetrySettings.isTilingY(); },
+            value: ()=>{ return app.symmetrySettingsVM.isTilingY(); },
             label:"Tiling Y",
             type:"checkbox",
             icon:"add_row_below",
             action: function(value){
-                symmetrySettings.enabledTilingY(value);
+                app.symmetrySettingsVM.enabledTilingY(value);
             }
         },
     ],
@@ -147,7 +143,9 @@ const toolList = {
     "brush":{
         icon: "../../../src/resource/img/pencil.png",
         toolbar:["drawing", "tracking", "symmetry"],
-        onchange: ()=>{}
+        onchange: ()=>{
+            onUpdateBrush();
+        }
     },
     "eraser":{
         icon: "../../../src/resource/img/eraser.png",
@@ -188,38 +186,12 @@ const toolList = {
     }
 };
 export async function buildPaneToolBar(){
-    toolViewModel = app.paneToolViewModel();
-    brushSettings = app.brushSettingsVM();
-    drawingSettings = app.drawingSettingsVM();
-    symmetrySettings = app.symmetrySettingsVM();
-
-    brushSettings.registerEvent("brush", onUpdateBrush);
+    app.brushSettingsVM.registerEvent("brush", onUpdateBrush);
 
     buildModalBrush();
+    buildToolbar();
 
-    const paneTool = document.querySelector("#pane-tool");
-    const toolbarList = paneTool.querySelectorAll(".tool");
-    toolbarList.forEach((e)=>{
-        const onChangeTool = ()=>{
-            const tool = toolList[e.dataset.tool];
-
-            createToolOption(tool.toolbar);
-
-            toolViewModel.setPressedTool(e.dataset.tool);
-
-            paneTool.querySelector(".tool.active")?.classList.toggle("active", false);
-            e.classList.toggle("active", true);
-
-            tool.onchange();
-        };
-
-        e.onclick = onChangeTool;
-
-        if(toolViewModel.getTool() == e.dataset.tool){
-            e.classList.toggle("active", true);
-            onChangeTool();
-        }
-    });
+    onUpdateBrush();
     
     const btnUndo = document.querySelector("#undo");
     btnUndo.addEventListener("click", function(e){
@@ -229,6 +201,32 @@ export async function buildPaneToolBar(){
     const btnRedo = document.querySelector("#redo");
     btnRedo.addEventListener("click", function(e){
         history.redo();
+    });
+}
+
+async function buildToolbar(){
+    const paneTool = document.querySelector("#pane-tool");
+    const toolbarList = paneTool.querySelectorAll(".tool");
+    toolbarList.forEach((e)=>{
+        const onChangeTool = ()=>{
+            const tool = toolList[e.dataset.tool];
+
+            createToolOption(tool.toolbar);
+
+            app.paneToolViewModel.setPressedTool(e.dataset.tool);
+
+            paneTool.querySelector(".tool.active")?.classList.toggle("active", false);
+            e.classList.toggle("active", true);
+
+            tool.onchange();
+        };
+
+        e.onclick = onChangeTool;
+
+        if(app.paneToolViewModel.getTool() == e.dataset.tool){
+            e.classList.toggle("active", true);
+            onChangeTool();
+        }
     });
 }
 
@@ -257,7 +255,7 @@ async function buildModalBrush(){
 
             brushPattern.append(brushView);
             brushPattern.addEventListener("click", function(e){
-                brushSettings.setShape(data.brushTip, 0xFF00FFFF);
+                app.brushSettingsVM.setShape(data.brushTip, 0xFF00FFFF);
 
                 pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
                 this.classList.add("active");
@@ -287,7 +285,7 @@ async function buildModalBrush(){
                 onchange: ()=>{
                     const patternPtr = app.malloc(data.buffer);
                     const size = data.buffer.byteLength/4;
-                    brushSettings.setCustomShape(patternPtr, size, data.width);
+                    app.brushSettingsVM.setCustomShape(patternPtr, size, data.width);
                 }
             });
             return brush;
@@ -313,7 +311,7 @@ async function buildModalBrush(){
                 onchange: ()=>{
                     const patternPtr = app.malloc(data.buffer);
                     const size = data.buffer.byteLength/4;
-                    brushSettings.setPattern(patternPtr, size, data.width);
+                    app.brushSettingsVM.setPattern(patternPtr, size, data.width);
                 }
             });
             return brush;
@@ -323,7 +321,7 @@ async function buildModalBrush(){
 
     let selectAlignMode = document.querySelector("#align-mode");
     selectAlignMode.onchange = (e)=>{ 
-        brushSettings.setAlignMode(e.srcElement.value);
+        app.brushSettingsVM.setAlignMode(e.srcElement.value);
     };
 }
 
@@ -423,12 +421,15 @@ function createToolOption(toolOptions) {
         input.type = type;
         input.id = name;
         input.name = name;
-        input.value = value();
-        input.onchange = (e)=>{            
+        input.onchange = (e)=>{
             action((input.type=="checkbox") ? input.checked : input.value);
+        };
+        input.input = (e)=>{
+            action(input.value);
         };
 
         if(type == "number" || type == "range"){
+            input.value = value();
             input.min = min;
             input.max = max;
                 
@@ -442,6 +443,8 @@ function createToolOption(toolOptions) {
         }
         
         if(type == "checkbox"){
+            input.checked = value();
+
             let elemIcon = document.createElement("span");
             elemIcon.className = "material-symbols-outlined";
             elemIcon.innerText = icon;
@@ -573,14 +576,14 @@ function brushPreviewRender(canvas){
                 } else {
                     patternPixel = getPatternPixel(texShape, texShapeSize, size);
                 }
+                
                 patternMask = patternPixel.r;
-
                 if(!isSolidColor) {
-                    c = patternPixel.agb;
+                    c = patternPixel.abg;
                 }
             } else{
                 if(!isSolidColor && typeBrushTip != 0){
-                    c = texture(texShape, shapeUV).agb;
+                    c = texture(texShape, shapeUV).abg;
                 }
             }
             fragColor = vec4(c, shapeMask*patternMask);
@@ -687,10 +690,10 @@ function brushPreviewRender(canvas){
         gl.uniform1f(isPatternEnableLocation, obj.isPatternEnable);
         gl.uniform1i(typeBrushTipLocation, obj.typeBrushTip);
 
-        const a = (obj.color & 0xFF) ;
-        const b = (obj.color>>8 & 0xFF)
-        const g = (obj.color>>16 & 0xFF);
-        const r = (obj.color>>24 & 0xFF);
+        const a = (obj.color & 0xFF) / 255.0;
+        const b = (obj.color>>8 & 0xFF) / 255.0;
+        const g = (obj.color>>16 & 0xFF) / 255.0;
+        const r = (obj.color>>24 & 0xFF) / 255.0;
         gl.uniform4f(colorLocation, r,g,b,a);
             
         gl.clearColor(0, 0, 0, 0);
@@ -702,9 +705,6 @@ function brushPreviewRender(canvas){
     }
     return {draw};
 }
-
-
-
 var renderPreview = [];
 let listPreviewCanvas = document.querySelectorAll(".brush-pattern-preview canvas");
 listPreviewCanvas.forEach((previewCanvas)=>{
@@ -712,21 +712,8 @@ listPreviewCanvas.forEach((previewCanvas)=>{
 });
 
 function onUpdateBrush(){
-    const brush = brushSettings.getBrush();
+    const brush = app.brushSettingsVM.getBrush();
 
-    const thickness = document.querySelector("input[name='size']");
-    const hardness = document.querySelector("input[name='hardness']");
-    const spacing = document.querySelector("input[name='spacing']");
-    const stabilizer = document.querySelector("input[name='stabilizer']");
-    const pixelPerfect = document.querySelector("input[name='pixel-perfect']");
-    
-
-    pixelPerfect.checked = brush.pixelPerfect; 
-    hardness.value = brush.hardness;
-    spacing.value = brush.spacing;
-    stabilizer.value = brush.stabilizer;
-    thickness.value = brush.size;
-    
     renderPreview.forEach((render)=>{ render.draw(brush); });
 }
 function fitContent(source, dest){

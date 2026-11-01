@@ -33,11 +33,11 @@ async function init(){
         editorManagerViewModel: ()=> { return new module.EditorManagerViewModel() },
         editorVM: (editorId)=> { return new module.EditorVM(editorId); },
         frameVM: (editorId, frameId)=> { return new module.FrameVM(editorId, frameId); },
-        paneToolViewModel: (frame)=> { return new module.PaneToolbarViewModel(); },
         layerViewModel: (editorId, frameId, layerID)=> { return new module.LayerViewModel(editorId, frameId, layerID); },
-        drawingSettingsVM: (layerID)=> { return new module.DrawingSettingsVM(); },
-        brushSettingsVM: (layerID)=> { return new module.BrushSettingsVM(); },
-        symmetrySettingsVM: (layerID)=> { return new module.SymmetrySettingsVM(); },
+        paneToolViewModel: new module.PaneToolbarViewModel(),
+        drawingSettingsVM:  new module.DrawingSettingsVM(),
+        brushSettingsVM: new module.BrushSettingsVM(),
+        symmetrySettingsVM:  new module.SymmetrySettingsVM(),
         shortcuts: _shortcuts
     });
 

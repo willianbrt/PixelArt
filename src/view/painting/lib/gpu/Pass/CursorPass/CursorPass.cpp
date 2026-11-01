@@ -69,11 +69,11 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
                 patternMask = patternPixel.r;
 
                 if(!isSolidColor) {
-                    c = patternPixel.agb;
+                    c = patternPixel.abg;
                 }
             } else{
                 if(!isSolidColor && typeBrushTip != 0){
-                    c = texture(texShape, hoverUV).agb;
+                    c = texture(texShape, hoverUV).abg;
                 }
             }
             fragColor = vec4(c, shapeMask*patternMask);
