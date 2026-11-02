@@ -29,11 +29,11 @@ void BrushSettingsVM::setHardness(float hardness){
     if(hardness < 0.0f || hardness > 1.0f) return;
 
     _toolSettings->brushContext.setHardness(hardness);
-    _toolSettings->brushContext.setColor((_toolSettings->brushContext.getColor() & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f));
+    // _toolSettings->brushContext.setColor((_toolSettings->brushContext.getColor() & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f));
     notify("brush");
 }
 void BrushSettingsVM::setColor(int r, int g, int b){
-    _toolSettings->brushContext.setColor(r << 24 | g << 16 | b << 8 | static_cast<int>(_toolSettings->brushContext.getHardness() * 255.0f));
+    _toolSettings->brushContext.setColor(r << 24 | g << 16 | b << 8 |  255);
     notify("brush");
 }
 void BrushSettingsVM::setSpacing(int spacing){

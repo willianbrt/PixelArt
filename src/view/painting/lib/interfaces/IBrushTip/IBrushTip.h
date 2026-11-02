@@ -5,6 +5,7 @@
 
 
 enum TYPE_BRUSH_TIP{
+    NONE = -1,
     GEOMTRIC = 0,
     IMAGE = 1,
 };

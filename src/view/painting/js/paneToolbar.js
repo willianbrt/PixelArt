@@ -574,10 +574,12 @@ function brushPreviewRender(canvas){
                 if(texPatternSize.x > 0.0 && texPatternSize.y > 0.0 ){
                     patternPixel = getPatternPixel(texPattern, texPatternSize, size);
                 } else {
+                    shapeMask = 1.0;
                     patternPixel = getPatternPixel(texShape, texShapeSize, size);
                 }
-                
+
                 patternMask = patternPixel.r;
+                
                 if(!isSolidColor) {
                     c = patternPixel.abg;
                 }

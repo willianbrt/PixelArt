@@ -12,6 +12,7 @@
 #include "../../../rasterize/SquareTip/SquareTip.h"
 #include "../../../rasterize/CircleTip/CircleTip.h"
 #include "../../../rasterize/CustomTip/CustomTip.h"
+#include "../../../rasterize/NoneTip/NoneTip.h"
 #include "../../../interfaces/IToolObserver/IToolObserver.h"
 #include "../../dto/BrushDTO/BrushDTO.h"
 #include "../ObserverViewModel/ObserverViewModel.h"

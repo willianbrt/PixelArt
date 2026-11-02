@@ -4,6 +4,7 @@
 #include "../../interfaces/ISurface/ISurface.h"
 #include "../../interfaces/IBrushTip/IBrushTip.h"
 #include "../../graphics/Transformation/Transformation.h"
+#include "../../rasterize/NoneTip/NoneTip.h"
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -27,8 +28,8 @@ class BrushContext {
 private:
     bool isDirtyTip = false;
     bool isDirtyPattern = false;
-    IBrushTip* brushTip;
-    IBrushTip* brushPattern;
+    IBrushTip* brushTip  = nullptr;
+    IBrushTip* brushPattern = nullptr;
     int _size = 1;
     unsigned int _color = 0x000000FF;
     float _hardness = 1.0f;
@@ -36,7 +37,7 @@ private:
     int _spacing = 0;
     bool _pixelPerfect = false;
     bool _enablePattern = false;
-    bool _isSolidColor = false;
+    bool _isSolidColor = true;
 
     Surface* _shape = nullptr;
     Surface* _pattern = nullptr;

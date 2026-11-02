@@ -76,13 +76,10 @@ void BrushStrategy::onRelease(){
 
 void BrushStrategy::draw(const Point& pixel){
     _previousColor = _toolRuntimeContext.drawingSession->getPixel(pixel.x, pixel.y);
-    ISurface* pattern = (_brushContext->isPatternEnable() && _brushContext->getPattern() == nullptr) ? _brushContext->getShape() : _brushContext->getPattern();
+    
     ISurface* shape = _brushContext->getShape();
-    StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
-        {shape->getWidth(), shape->getHeight()},
-        _toolRuntimeContext.drawingAreaSize,
-        _brushContext->transformation);
-
+    ISurface* pattern = _brushContext->getPattern() == nullptr ? shape : _brushContext->getPattern();
+    
     Point origem = { 0, 0 };
     if(_brushContext->getAlignMode() == ALIGN_MODE::LOCAL){
         origem = {
@@ -94,7 +91,11 @@ void BrushStrategy::draw(const Point& pixel){
     } else if(_brushContext->getAlignMode() == ALIGN_MODE::BRUSHING){
         origem = { 0, 0 };
     }
-
+    
+    StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
+        {shape->getWidth(), shape->getHeight()},
+        _toolRuntimeContext.drawingAreaSize,
+        _brushContext->transformation);
 
     while(stamp.hasNext()){
         Point it = stamp.next();
@@ -103,20 +104,34 @@ void BrushStrategy::draw(const Point& pixel){
         if(src.x < 0 || src.y < 0 || src.x >= shape->getWidth() || src.y >= shape->getHeight()) continue;
 
         unsigned int color;
+        
+        float shapeMask = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
         float mask = 1.0f;
-        if(_brushContext->isPatternEnable()){
+
+
+        if((_brushContext->getTypeBrushTip() == TYPE_BRUSH_TIP::GEOMTRIC && _brushContext->getPattern() == nullptr))
+            color = _brushContext->getColor();
+        else if(_brushContext->isPatternEnable()){
             Point srcPattern = {
                 GraphicsEngine::clampedTilePoint((it.x - origem.x) % pattern->getWidth(), pattern->getWidth()),
                 GraphicsEngine::clampedTilePoint((it.y - origem.y) % pattern->getHeight(), pattern->getHeight())
             };
+            color = _brushContext->isSolidColor() ?
+                    _brushContext->getColor() :
+                    pattern->getPixel(srcPattern.x, srcPattern.y);
+
             mask = (pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f;
-            color = (_brushContext->isSolidColor()) ? _brushContext->getColor() : pattern->getPixel(srcPattern.x, srcPattern.y);
+
+            if(_brushContext->getPattern() == nullptr) shapeMask = 1.0f;
         } else {
-            color = _brushContext->isSolidColor() || _brushContext->getTypeBrushTip() == TYPE_BRUSH_TIP::GEOMTRIC ?
-            _brushContext->getColor() : shape->getPixel(src.x, src.y);
+            color = _brushContext->isSolidColor()  ? 
+                    _brushContext->getColor() : 
+                    shape->getPixel(src.x, src.y);
         }
 
-        GraphicsEngine::setOpacity(color, ((shape->getPixel(src.x, src.y) & 0xFF) / 255.0f) * mask * _brushContext->getHardness());
+
+        color = (color & 0xFFFFFF00) | static_cast<int>(shapeMask * mask * _brushContext->getHardness() * 255.0f);
+
         _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color);
     }
 }

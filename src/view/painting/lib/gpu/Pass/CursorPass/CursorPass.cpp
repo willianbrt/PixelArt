@@ -55,7 +55,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
             if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;
             
 
-            float shapeMask = texture(texShape, hoverUV).r*hardness;
+            float shapeMask = texture(texShape, hoverUV).r;
 
             vec3 c = color.rgb;
             float patternMask = 1.0;
@@ -64,6 +64,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
                 if(texPatternSize.x > 0.0 && texPatternSize.y > 0.0 ){
                     patternPixel = getPatternPixel(texPattern, texPatternSize);
                 } else {
+                    shapeMask = 1.0;
                     patternPixel = getPatternPixel(texShape, texShapeSize);
                 }
                 patternMask = patternPixel.r;
@@ -76,7 +77,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
                     c = texture(texShape, hoverUV).abg;
                 }
             }
-            fragColor = vec4(c, shapeMask*patternMask);
+            fragColor = vec4(c, shapeMask*patternMask*hardness);
 
         })";
     
