@@ -28,10 +28,11 @@ void EraserStrategy::onRelease(){
 }
 
 void EraserStrategy::draw(const Point& pixel){
+    unsigned int hardness = static_cast<unsigned int>((1.0 - _drawingContext->hardness)*255.0f);
     LineRasterize line(_from, pixel);
     while(line.hasNext()){
         Point p = line.next();
-        _toolRuntimeContext.drawingSession->putMirroredPixel(p.x, p.y, 0X0);
+        _toolRuntimeContext.drawingSession->putPixel(p.x, p.y, hardness, &WriteMode::eraser);
     }
 }
 bool EraserStrategy::isInitialized(){

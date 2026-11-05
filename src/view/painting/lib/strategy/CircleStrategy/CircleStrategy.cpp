@@ -45,7 +45,7 @@ void CircleStrategy::draw(){
     circle.draw(*this);
 }
 void CircleStrategy::plot(const int& x, const int& y){
-    _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, _drawingContext->color);
+    _toolRuntimeContext.drawingSession->putPixel(x, y, _drawingContext->color, &WriteMode::normal);
 }
 
 bool CircleStrategy::isInitialized(){

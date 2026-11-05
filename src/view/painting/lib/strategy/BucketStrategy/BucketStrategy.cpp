@@ -30,7 +30,7 @@ void BucketStrategy::draw(const Point& pixel){
     _current.x = GraphicsEngine::clampedTilePoint(pixel.x, _toolRuntimeContext.drawingAreaSize.y);
     _current.y = GraphicsEngine::clampedTilePoint(pixel.y, _toolRuntimeContext.drawingAreaSize.x);
 
-    const unsigned int startColorHEX = _toolRuntimeContext.preview->getPixel(_current.x, _current.y);
+    const unsigned int startColorHEX = _toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y);
 
     if(startColorHEX == _drawingContext->color)
         return;
@@ -47,9 +47,9 @@ void BucketStrategy::draw(const Point& pixel){
         _current.x = GraphicsEngine::clampedTilePoint(point.x, _toolRuntimeContext.drawingAreaSize.y);
         _current.y = GraphicsEngine::clampedTilePoint(point.y, _toolRuntimeContext.drawingAreaSize.x);
         
-        if(_toolRuntimeContext.preview->getPixel(_current.x, _current.y) != startColorHEX) continue;
+        if(_toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y) != startColorHEX) continue;
 
-        _toolRuntimeContext.drawingSession->putMirroredPixel(_current.x, _current.y, _drawingContext->color);
+        _toolRuntimeContext.drawingSession->putPixel(_current.x, _current.y, _drawingContext->color, &WriteMode::normal);
 
         queue.push_back(Point(point.x+1, point.y));
         queue.push_back(Point(point.x-1, point.y));

@@ -41,6 +41,10 @@ public:
     void putPixel(int x, int y, unsigned int color) override;
     unsigned int getPixel(int x, int y) override;
     unsigned int getPixel(unsigned int index) override;
+
+    
+    unsigned int getOriginalPixel(int x, int y);
+
     int getWidth() override;
     int getHeight() override;
     unsigned int* getBuffer() override;

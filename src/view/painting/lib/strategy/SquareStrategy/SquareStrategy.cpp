@@ -45,7 +45,7 @@ void SquareStrategy::draw(){
     square.draw(*this);
 }
 void SquareStrategy::plot(const int& x, const int& y){
-    _toolRuntimeContext.drawingSession->blendMirroredPixel(x, y, _drawingContext->color);
+    _toolRuntimeContext.drawingSession->putPixel(x, y, _drawingContext->color, &WriteMode::normal);
 }
 
 bool SquareStrategy::isInitialized(){

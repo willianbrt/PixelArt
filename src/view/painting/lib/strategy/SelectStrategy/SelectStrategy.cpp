@@ -90,7 +90,7 @@ void SelectStrategy::onRelease(){
 void SelectStrategy::clear(){
     for (int y = _selectContext->srcArea.start.y; y <= _selectContext->srcArea.end.y; ++y) {
         for (int x = _selectContext->srcArea.start.x; x <= _selectContext->srcArea.end.x; ++x) {
-            _toolRuntimeContext.drawingSession->putPixel(x, y, 0x0);
+            _toolRuntimeContext.drawingSession->putPixel(x, y, 0x0, &WriteMode::eraser);
         }
     }
 }
@@ -116,7 +116,7 @@ void SelectStrategy::draw(){
         
         if((color & 0xFF) == 0) { continue; }
         
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color);
+        _toolRuntimeContext.drawingSession->putPixel(it.x, it.y, color, &WriteMode::normal);
             
     }
 }

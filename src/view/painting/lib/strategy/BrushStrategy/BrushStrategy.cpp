@@ -47,11 +47,11 @@ void BrushStrategy::onTracking(int x, int y){
             if(_brushContext->getPixelPerfect()){
                 if(dirX && _dirY && !_change){
                     _change = true;
-                    _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, _previousColor);
+                    _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, _previousColor, &WriteMode::normal);
                 }
                 else if(_dirX && dirY && ! _change) {
                     _change = true;
-                    _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, _previousColor);
+                    _toolRuntimeContext.drawingSession->putPixel(_from.x, _from.y, _previousColor, &WriteMode::normal);
                 } else{
                     _change = false;
                 }
@@ -75,7 +75,7 @@ void BrushStrategy::onRelease(){
 }
 
 void BrushStrategy::draw(const Point& pixel){
-    _previousColor = _toolRuntimeContext.drawingSession->getPixel(pixel.x, pixel.y);
+    _previousColor = _toolRuntimeContext.drawingSession->getModifiedPixel(pixel.x, pixel.y);
     
     ISurface* shape = _brushContext->getShape();
     ISurface* pattern = _brushContext->getPattern() == nullptr ? shape : _brushContext->getPattern();
@@ -102,13 +102,12 @@ void BrushStrategy::draw(const Point& pixel){
         Point src = stamp.getSrcPoint();
 
         if(src.x < 0 || src.y < 0 || src.x >= shape->getWidth() || src.y >= shape->getHeight()) continue;
-
-        unsigned int color;
         
-        float shapeMask = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
         float mask = 1.0f;
-
-
+        float shapeMask = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
+        if(shapeMask == 0.0f) continue;
+        
+        unsigned int color;
         if((_brushContext->getTypeBrushTip() == TYPE_BRUSH_TIP::GEOMTRIC && _brushContext->getPattern() == nullptr))
             color = _brushContext->getColor();
         else if(_brushContext->isPatternEnable()){
@@ -132,7 +131,7 @@ void BrushStrategy::draw(const Point& pixel){
 
         color = (color & 0xFFFFFF00) | static_cast<int>(shapeMask * mask * _brushContext->getHardness() * 255.0f);
 
-        _toolRuntimeContext.drawingSession->blendMirroredPixel(it.x, it.y, color);
+        _toolRuntimeContext.drawingSession->putPixel(it.x, it.y, color, &WriteMode::normal);
     }
 }
 bool BrushStrategy::isInitialized(){

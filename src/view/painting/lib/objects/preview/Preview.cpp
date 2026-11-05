@@ -13,6 +13,10 @@ Preview::~Preview() {
 unsigned int Preview::getPixel(int x, int y) {
     return getPixel(x + _layer->getWidth()*y);
 }
+
+unsigned int Preview::getOriginalPixel(int x, int y){
+    return _layer->getPixel(x + _layer->getWidth()*y);
+}
 unsigned int Preview::getPixel(unsigned int index) {
     if(isDirty(index)) return _newColor[index];
     

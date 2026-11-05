@@ -13,7 +13,6 @@ void SelectionComposer::draw(SelectContext* selection,  ToolRuntimeContext& tool
     float halfW = (selection->srcArea.getWidth()) * 0.5f;
     float halfH = (selection->srcArea.getHeight()) * 0.5f;
         
-    printf("expected: (%u,%u) - (%u, %u)\n", destBounding.start.x, destBounding.start.y, destBounding .end.x, destBounding .end.y);
     return;
     for (int dy = destBounding.start.y; dy < destBounding.end.y; dy++){
         for (int dx = destBounding.start.x; dx < destBounding.end.x; dx++) {
@@ -33,7 +32,7 @@ void SelectionComposer::draw(SelectContext* selection,  ToolRuntimeContext& tool
                 GraphicsEngine::clampedTilePoint(dx, toolRuntimeContext.layer->getWidth()),
                 GraphicsEngine::clampedTilePoint(dy, toolRuntimeContext.layer->getHeight())
             };
-            toolRuntimeContext.drawingSession->putMirroredPixel(clampedPoint.x, clampedPoint.y, color);
+            toolRuntimeContext.drawingSession->putPixel(clampedPoint.x, clampedPoint.y, color, &WriteMode::normal);
         }
     }
 }
@@ -47,7 +46,7 @@ void SelectionComposer::clear(Bounding flagBounding, SelectContext* selection,  
 
             if((p.x >= selection->srcArea.start.x && p.x < selection->srcArea.end.x) &&
                 (p.y >= selection->srcArea.start.y && p.y < selection->srcArea.end.y)){
-                toolRuntimeContext.drawingSession->putPixel(p.x, p.y, 0x0);
+                toolRuntimeContext.drawingSession->putPixel(p.x, p.y, 0x0, &WriteMode::eraser);
                 continue;
             }
         }

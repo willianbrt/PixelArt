@@ -49,7 +49,7 @@ void LineStrategy::draw(){
                 if(px >= start.x && px <= end.x &&
                 py >= start.y && py <= end.y) continue;
 
-                _toolRuntimeContext.drawingSession->blendMirroredPixel(px, py, _drawingContext->color);
+                _toolRuntimeContext.drawingSession->putPixel(px, py, _drawingContext->color, &WriteMode::normal);
             }
         }
         
