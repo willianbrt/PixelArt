@@ -6,8 +6,10 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
     _toolSettings = toolSettings;
     _viewport = viewport;
     
-    const char* fs =R"(#version 300 es
+    const char* fs =
+        R"(#version 300 es
         precision highp float;
+
         uniform sampler2D texPattern;
         uniform sampler2D texShape;
         in vec2 uv;
@@ -47,36 +49,38 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
         }
 
         void main(){
-            vec2 transformedUV = pixel / editorSize;
-            if(transformedUV.x < 0.0 || transformedUV.x > repeat.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y) discard;
+            vec2 pixelCoord = floor(pixel);
+            vec2 transformedUV = pixelCoord / editorSize;
+            if(transformedUV.x < 0.0 || transformedUV.x >= repeat.x || transformedUV.y < 0.0 || transformedUV.y >= repeat.y) discard;
 
-            vec2 pixelShape = (pixel-cursorLocation) + floor(texShapeSize*0.5);
+            vec2 pixelShape = pixelCoord - (cursorLocation - floor(texShapeSize * 0.5));
             vec2 hoverUV = pixelShape / texShapeSize;
             if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;
             
 
             float shapeMask = texture(texShape, hoverUV).r;
+            
 
             vec3 c = color.rgb;
             float patternMask = 1.0;
-            if(isPatternEnable) {
-                vec4 patternPixel;
-                if(texPatternSize.x > 0.0 && texPatternSize.y > 0.0 ){
-                    patternPixel = getPatternPixel(texPattern, texPatternSize);
-                } else {
-                    shapeMask = 1.0;
-                    patternPixel = getPatternPixel(texShape, texShapeSize);
-                }
-                patternMask = patternPixel.r;
+            // if(isPatternEnable) {
+            //     vec4 patternPixel;
+            //     if(texPatternSize.x > 0.0 && texPatternSize.y > 0.0 ){
+            //         patternPixel = getPatternPixel(texPattern, texPatternSize);
+            //     } else {
+            //         shapeMask = 1.0;
+            //         patternPixel = getPatternPixel(texShape, texShapeSize);
+            //     }
+            //     patternMask = patternPixel.r;
 
-                if(!isSolidColor) {
-                    c = patternPixel.abg;
-                }
-            } else{
-                if(!isSolidColor && typeBrushTip != 0){
-                    c = texture(texShape, hoverUV).abg;
-                }
-            }
+            //     if(!isSolidColor) {
+            //         c = patternPixel.abg;
+            //     }
+            // } else{
+            //     if(!isSolidColor && typeBrushTip != 0){
+            //         c = texture(texShape, hoverUV).abg;
+            //     }
+            // }
             fragColor = vec4(c, shapeMask*patternMask*hardness);
 
         })";

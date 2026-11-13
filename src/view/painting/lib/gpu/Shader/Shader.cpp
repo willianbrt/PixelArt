@@ -1,6 +1,7 @@
 #include "./Shader.h"
 
-const char* Shader::vertex_data = R"(#version 300 es
+const char* Shader::vertex_data =
+    R"(#version 300 es
     precision highp float;
     in vec2 position;
 
@@ -19,9 +20,9 @@ const char* Shader::vertex_data = R"(#version 300 es
 
     void main(){
         uv = position * 0.5 + 0.5;
-        uv = vec2(uv.x, 1.0 - uv.y) * resolution;
+        uv = vec2(uv.x, 1.0 - uv.y);
         
-        pixel = (uv - pan) / (zoom /repeat);
+        pixel = (uv*resolution - pan) / zoom;
 
         gl_Position = vec4(position,0.0,1.0);
     }
@@ -30,7 +31,6 @@ GLuint Shader::v = 0;
 Shader::Shader(){
     if(!glIsShader(v)){
         v = compile(GL_VERTEX_SHADER, vertex_data);
-        printf("\n");
     }
 }
 Shader::~Shader(){}

@@ -104,32 +104,34 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
 
         void main(){
            if(!enabled) discard;
-           vec2 transformedUV = pixel / texSize;
-           if(transformedUV.x < 0.0 || transformedUV.x > repeat.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y) discard;
-           transformedUV = fract(transformedUV);
 
-           vec2 lineSize = repeat/(zoom*selectSize);
+            vec2 pixelCoord = floor(pixel);
+            vec2 transformedUV = pixelCoord / texSize;
+            if(transformedUV.x < 0.0 || transformedUV.x >= repeat.x || transformedUV.y < 0.0 || transformedUV.y >= repeat.y) discard;
+            transformedUV = fract(transformedUV);
 
-           float mask = hasEdge(transformedUV);
-           fragColor = mix(vec4(0.0), vec4(0.32,0.21,0.36,0.5), mask);
+            vec2 lineSize = 1.0/resolution;
 
-           vec2 px = vec2(lineSize.x, 0.0);
-           vec2 py = vec2(0.0, lineSize.y);
+            float mask = hasEdge(transformedUV);
+            fragColor = mix(vec4(0.0), vec4(0.32,0.21,0.36,0.5), mask);
 
-           float left  = hasEdge(transformedUV - px);
-           float down  = hasEdge(transformedUV - py);
+            vec2 px = vec2(lineSize.x, 0.0);
+            vec2 py = vec2(0.0, lineSize.y);
 
-           float edge =  abs(mask - down) + abs(mask - left);
-           edge = clamp(edge, 0.0, 1.0);
+            float left  = hasEdge(transformedUV - px);
+            float down  = hasEdge(transformedUV - py);
 
-           float coord = uv.x + uv.y;
-           float speed = 1.0;
-           float pattern = step(0.5, fract(coord / zoom.x + time * speed));
-           vec3 antsColor = mix(vec3(1.0), vec3(0.0), pattern);
+            float edge =  abs(mask - down) + abs(mask - left);
+            edge = clamp(edge, 0.0, 1.0);
 
-           fragColor = mix(fragColor, vec4(antsColor, edge), edge);
+            float coord = uv.x + uv.y;
+            float speed = 1.0;
+            float pattern = step(0.5, fract(coord / zoom.x + time * speed));
+            vec3 antsColor = mix(vec3(1.0), vec3(0.0), pattern);
 
-           computeCorner();
+            fragColor = mix(fragColor, vec4(antsColor, edge), edge);
+
+            computeCorner();
         })";
     
 

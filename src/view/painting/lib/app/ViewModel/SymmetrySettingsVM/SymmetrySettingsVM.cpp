@@ -26,10 +26,30 @@ void SymmetrySettingsVM::setMirrorY(bool active){
     AppContext::instance().getEditorManager()->getActiveEditor()->getSymmetryContext()->isMirrorY = active;
 }
 void SymmetrySettingsVM::enabledTilingX(bool enabled){
-    AppContext::instance().getEditorManager()->getActiveEditor()->getCanvasSettings()->tilingContext.isTilingX = enabled;
+    ViewportContext* viewport = AppContext::instance().getViewport();
+    Editor* editor = AppContext::instance().getEditorManager()->getActiveEditor();
+    Surface* surface = editor->getSurface();
+    CanvasSettings* canvas = editor->getCanvasSettings();
+
+    canvas->tilingContext.isTilingX = enabled;
+
+    float scale = canvas->getFitScale(viewport, surface);
+
+    canvas->zoom(scale, {0,0}, viewport, surface);
+    canvas->pan(canvas->getFitPosition(viewport, surface), viewport, surface);
 }
 void SymmetrySettingsVM::enabledTilingY(bool enabled){
-    AppContext::instance().getEditorManager()->getActiveEditor()->getCanvasSettings()->tilingContext.isTilingY = enabled;
+    ViewportContext* viewport = AppContext::instance().getViewport();
+    Editor* editor = AppContext::instance().getEditorManager()->getActiveEditor();
+    Surface* surface = editor->getSurface();
+    CanvasSettings* canvas = editor->getCanvasSettings();
+
+    canvas->tilingContext.isTilingY = enabled;
+
+    float scale = canvas->getFitScale(viewport, surface);
+
+    canvas->zoom(scale, {0,0}, viewport,surface);
+    canvas->pan(canvas->getFitPosition(viewport, surface), viewport, surface);
 }
 
 #include <emscripten/bind.h>

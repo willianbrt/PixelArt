@@ -6,8 +6,8 @@ CanvasSettings::CanvasSettings(){
 
 Point CanvasSettings::cursorToCanvas(int x, int y){
     Point p;
-    p.x = (int)std::floor((x - canvasTransform.pan.x) / (canvasTransform.scale / (tilingContext.isTilingX ? TilingContext::N_TILE_X : 1)));
-    p.y = (int)std::floor((y - canvasTransform.pan.y) / (canvasTransform.scale / (tilingContext.isTilingY ? TilingContext::N_TILE_Y : 1)));
+    p.x = (int)std::floor((x - canvasTransform.pan.x) / (canvasTransform.scale));
+    p.y = (int)std::floor((y - canvasTransform.pan.y) / (canvasTransform.scale));
     return p;
 }
 
@@ -17,8 +17,8 @@ Point CanvasSettings::canvasToWorld(int x, int y){
 }
 PointF CanvasSettings::canvasToWorld(float x, float y){
     PointF p;
-    p.x = canvasTransform.pan.x + x * (canvasTransform.scale / (tilingContext.isTilingX ? TilingContext::N_TILE_X : 1));
-    p.y = canvasTransform.pan.y + y * (canvasTransform.scale / (tilingContext.isTilingY ? TilingContext::N_TILE_Y : 1));
+    p.x = canvasTransform.pan.x + x * (canvasTransform.scale );
+    p.y = canvasTransform.pan.y + y * (canvasTransform.scale );
     return p;
 }
 
@@ -27,8 +27,12 @@ void CanvasSettings::zoom(float scale, Point pivot, ViewportContext* viewport, S
     if(scale < 1) return;
 
     int x, y;
-    int width = surface->getWidth()*scale;
-    int height = surface->getHeight()*scale;
+
+    int repeatX = tilingContext.isTilingX ? TilingContext::N_TILE_X : 1;
+    int repeatY = tilingContext.isTilingY ? TilingContext::N_TILE_Y : 1;
+
+    int width = surface->getWidth()*scale*repeatX;
+    int height = surface->getHeight()*scale*repeatY;
 
     if(width <= viewport->width){
         x = (viewport->width - width) * 0.5;
@@ -55,8 +59,11 @@ void CanvasSettings::zoom(float scale, Point pivot, ViewportContext* viewport, S
 void CanvasSettings::pan(Point p, ViewportContext* viewport, Surface* surface){
     Point initialPosition = getFitPosition(viewport, surface);
 
-    int currentWidth = surface->getWidth()*canvasTransform.scale;
-    int currentHeight= surface->getHeight()*canvasTransform.scale;
+    int repeatX = tilingContext.isTilingX ? TilingContext::N_TILE_X : 1;
+    int repeatY = tilingContext.isTilingY ? TilingContext::N_TILE_Y : 1;
+
+    int currentWidth = std::floor(surface->getWidth()*canvasTransform.scale * repeatX);
+    int currentHeight= std::floor(surface->getHeight()*canvasTransform.scale * repeatY);
 
     int minLeftOffset, minTopOffset;
     int maxLeftOffset , maxTopOffset;
@@ -82,12 +89,18 @@ void CanvasSettings::pan(Point p, ViewportContext* viewport, Surface* surface){
 }
 Point CanvasSettings::getFitPosition(ViewportContext* viewport, Surface* surface){
     Point p = {0,0};
-    int minScale = std::floor(getFitScale(viewport, surface));
+    float minScale = getFitScale(viewport, surface);
 
-    p.x = std::floor((viewport->width - (surface->getWidth()*minScale)) / 2);
-    p.y = std::floor((viewport->height - (surface->getHeight()*minScale)) / 2);
+    int repeatX = tilingContext.isTilingX ? TilingContext::N_TILE_X : 1;
+    int repeatY = tilingContext.isTilingY ? TilingContext::N_TILE_Y : 1;
+
+    p.x = std::floor((viewport->width -  std::floor((surface->getWidth()*repeatX*minScale))) / 2);
+    p.y = std::floor((viewport->height - std::floor((surface->getHeight()*repeatY*minScale))) / 2);
     return p;
 }
 float CanvasSettings::getFitScale(ViewportContext* viewport, Surface* surface){
-    return std::min(viewport->width /  surface->getWidth(), viewport->height / surface->getHeight());
+    int repeatX = tilingContext.isTilingX ? TilingContext::N_TILE_X : 1;
+    int repeatY = tilingContext.isTilingY ? TilingContext::N_TILE_Y : 1;
+
+    return std::min(viewport->width /  (surface->getWidth()*repeatX), viewport->height / (surface->getHeight()*repeatY));
 }

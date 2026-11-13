@@ -34,32 +34,49 @@ SketchPass::SketchPass(EditorManager* manager, ViewportContext* viewport) {
 
         void main()
         {
-            vec2 thickness = repeat / (zoom * texSize);
-
-            vec2 transformedUV = pixel / texSize;
-            if(transformedUV.x < 0.0 || transformedUV.x > repeat.x+thickness.x || transformedUV.y < 0.0 || transformedUV.y > repeat.y+thickness.y) discard;
-            transformedUV = fract(transformedUV);
+            vec2 pixelCoord = floor(pixel);
+            vec2 transformedUV = fract(pixelCoord / texSize);
+            vec2 thickness = 1.0 / zoom;
 
             vec4 color = vec4(0.0);
+
             vec4 textureColor = texture(tex, transformedUV).abgr;
-            if(floor(pixel / texSize) != (repeat-1.0)/2.0){
-                textureColor = mix(color, textureColor, 0.9);
+            if(floor(pixelCoord / texSize) != (repeat-1.0)/2.0){
+                textureColor = vec4(textureColor.rgb, textureColor.a * 0.5);
             }
 
             vec2 divisions = min(gridDivisions, texSize);
-            vec2 cellSize = texSize / divisions;
-            vec2 cellCoord = floor(pixel / cellSize);
+            vec2 cellCoord = floor(pixelCoord / divisions);
 
-            float checker = mod(floor(cellCoord.x) + floor(cellCoord.y), 2.0);
+            float checker = mod(cellCoord.x + cellCoord.y, 2.0);
             vec4 background = mix(lightColor, darkColor, checker);
             color = mix(background, textureColor, textureColor.a);
 
-            vec2 gridPos = mod(transformedUV, cellSize / texSize);
+
+            vec2 gridPos = mod(transformedUV, divisions / texSize);
             float grid = clamp(step(gridPos.x, thickness.x) + step(gridPos.y, thickness.y), 0.0, 1.0);
             color = mix(color, vec4(0.0, 0.0, 0.0, 1.0), grid);
+
+            // float outline = clamp(step(transformedUV.x, thickness.x) + step(transformedUV.y, thickness.y), 0.0, 1.0);
+            // float outline = clamp(step(uv.x, thickness.x) + step(uv.y, thickness.y), 0.0, 1.0);
+            // float outline = max(
+            //     max(step(uv.x, thickness.x),
+            //         step(1.0 - thickness.x, uv.x)),
+            //     max(step(uv.y, thickness.y),
+            //         step(1.0 - thickness.y, uv.y))
+            // );
             
-            float outline = clamp(step(transformedUV.x, thickness.x) + step(transformedUV.y, thickness.y), 0.0, 1.0);
-            fragColor = mix(color, vec4(0.87,0.411,0.0,1.0), outline);
+            vec2 maxBounds = repeat * texSize;
+
+            bool isntCanvas = pixel.x < 0.0 || pixel.y < 0.0 || pixel.x >= maxBounds.x || pixel.y >= maxBounds.y;
+            bool isBorderOutside = pixel.x < -thickness.x || pixel.y < -thickness.y || pixel.x >= maxBounds.x + thickness.x || pixel.y >= maxBounds.y + thickness.y;
+            
+            if(isBorderOutside) discard;
+
+            bool border = !isBorderOutside && isntCanvas;
+            
+            fragColor = border ? vec4(0.87, 0.411, 0.0, 1.0) : color;
+
         })";
 
     quad.create();
@@ -127,7 +144,8 @@ void SketchPass::render(){
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO.id());
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
 
-    glUniform2f(gridDivisionsLocation, canvasSettings->gridContext.divisionsX, canvasSettings->gridContext.divisionsY);
+    // glUniform2f(gridDivisionsLocation, canvasSettings->gridContext.divisionsX, canvasSettings->gridContext.divisionsY);
+    glUniform2f(gridDivisionsLocation, 5, 5);
     
     glUniform2f(texSizeLocation, _surface->getWidth(), _surface->getHeight());
     glUniform4f(lightColorLocation, 1,1,1,1);
