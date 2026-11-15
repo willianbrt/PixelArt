@@ -22,6 +22,8 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
             vec2 pan;
             vec2 zoom;
             vec2 repeat;
+            vec2 gridDivisions;
+            vec2 gridPan;
             float time;
         };
         
@@ -53,9 +55,9 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
             vec2 transformedUV = pixelCoord / editorSize;
             if(transformedUV.x < 0.0 || transformedUV.x >= repeat.x || transformedUV.y < 0.0 || transformedUV.y >= repeat.y) discard;
 
-            vec2 pixelShape = pixelCoord - (cursorLocation - floor(texShapeSize * 0.5));
+            vec2 pixelShape = pixel - (cursorLocation - floor(texShapeSize * 0.5));
             vec2 hoverUV = pixelShape / texShapeSize;
-            if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;
+            // if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;
             
 
             float shapeMask = texture(texShape, hoverUV).r;
@@ -63,26 +65,44 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
 
             vec3 c = color.rgb;
             float patternMask = 1.0;
-            // if(isPatternEnable) {
-            //     vec4 patternPixel;
-            //     if(texPatternSize.x > 0.0 && texPatternSize.y > 0.0 ){
-            //         patternPixel = getPatternPixel(texPattern, texPatternSize);
-            //     } else {
-            //         shapeMask = 1.0;
-            //         patternPixel = getPatternPixel(texShape, texShapeSize);
-            //     }
-            //     patternMask = patternPixel.r;
+            if(isPatternEnable) {
+                vec4 patternPixel;
+                if(texPatternSize.x > 0.0 && texPatternSize.y > 0.0 ){
+                    patternPixel = getPatternPixel(texPattern, texPatternSize);
+                } else {
+                    shapeMask = 1.0;
+                    patternPixel = getPatternPixel(texShape, texShapeSize);
+                }
+                patternMask = patternPixel.r;
 
-            //     if(!isSolidColor) {
-            //         c = patternPixel.abg;
-            //     }
-            // } else{
-            //     if(!isSolidColor && typeBrushTip != 0){
-            //         c = texture(texShape, hoverUV).abg;
-            //     }
-            // }
-            fragColor = vec4(c, shapeMask*patternMask*hardness);
+                if(!isSolidColor) {
+                    c = patternPixel.abg;
+                }
+            } else{
+                if(!isSolidColor && typeBrushTip != 0){
+                    c = texture(texShape, hoverUV).abg;
+                }
+            }
+            if(hoverUV.x >= 0.0 && hoverUV.x < 1.0 && hoverUV.y >= 0.0 && hoverUV.y < 1.0)
+                fragColor = vec4(c, shapeMask*patternMask*hardness);
 
+
+                
+            vec2 maxBounds = repeat * editorSize;
+            bool isntCanvas = pixel.x < 0.0 || pixel.y < 0.0 || pixel.x >= maxBounds.x || pixel.y >= maxBounds.y;
+            
+            vec2 thicknessTile = vec2(1.0);
+            vec2 gridPos = mod(uv* resolution-pan , editorSize*zoom);
+            
+            float outlineX = step(gridPos.x, thicknessTile.x);
+            float outlineY = step(gridPos.y, thicknessTile.y);
+
+            float tileGrid = max(
+            outlineX * float(pixelCoord.x > 0.0) * float(pixelCoord.x < maxBounds.x),
+            outlineY * float(pixelCoord.y > 0.0) * float(pixelCoord.y < maxBounds.y)
+            );
+
+            fragColor = mix(fragColor, vec4(0.87, 0.411, 0.0, 1.0), tileGrid);
         })";
     
     

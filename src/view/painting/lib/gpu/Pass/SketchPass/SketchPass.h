@@ -28,7 +28,6 @@ private:
     GLuint program;
     GLint pos;
     GLint texSizeLocation;
-    GLint gridDivisionsLocation;
     GLint lightColorLocation;
     GLint darkColorLocation;
     

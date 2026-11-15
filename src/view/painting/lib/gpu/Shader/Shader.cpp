@@ -15,6 +15,8 @@ const char* Shader::vertex_data =
         vec2 pan;
         vec2 zoom;
         vec2 repeat;
+        vec2 gridDivisions;
+        vec2 gridPan;
         float time;
     };
 

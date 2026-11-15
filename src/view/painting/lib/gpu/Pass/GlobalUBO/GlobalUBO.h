@@ -10,6 +10,8 @@ struct GlobalData {
     float pan[2];
     float zoom[2];
     float repeat[2];
+    float gridDivisions[2];
+    float gridPan[2];
     float time;
     
     float padding[3]; // alinhamento std140
