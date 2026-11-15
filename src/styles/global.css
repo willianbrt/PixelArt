@@ -152,6 +152,9 @@ button.btn-premium {
 .col.center{
    align-items: center; 
 }
+.al-center{
+   align-items: center; 
+}
 
 .row.g-4{
    column-gap: 4px; 
