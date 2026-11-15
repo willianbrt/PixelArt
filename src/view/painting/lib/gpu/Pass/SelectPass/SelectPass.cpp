@@ -45,8 +45,10 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
         void drawCornerResize(vec2 pixel, float size, float thickness){
            pixel = pixel - size * 0.5;
 
-           float inner = step(pixel.x, uv.x) * step(pixel.y, uv.y) * step(uv.x, pixel.x + size) * step(uv.y, pixel.y + size);
-           float outer = step(pixel.x + thickness, uv.x) * step(pixel.y + thickness, uv.y) * step(uv.x, pixel.x + size - thickness) * step(uv.y, pixel.y + size - thickness);
+           vec2 screenPixel = uv*resolution;
+
+           float inner = step(pixel.x, screenPixel.x) * step(pixel.y, screenPixel.y) * step(screenPixel.x, pixel.x + size) * step(screenPixel.y, pixel.y + size);
+           float outer = step(pixel.x + thickness, screenPixel.x) * step(pixel.y + thickness, screenPixel.y) * step(screenPixel.x, pixel.x + size - thickness) * step(screenPixel.y, pixel.y + size - thickness);
            float border =  inner - outer;
 
            float hover = step(pixel.x, cursor.x) * step(pixel.y, cursor.y) * step(cursor.x, pixel.x + size) * step(cursor.y, pixel.y + size);
@@ -77,7 +79,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
             float hover = step(dot(dh,dh), ro2);
 
             for(int i = 0; i < 4; i++){
-                vec2 d = (uv + offsets[i]) - pixel;
+                vec2 d = (uv*resolution + offsets[i]) - pixel;
                 sum += step(dot(d,d), r2);
                 sumOuter += step(dot(d,d), ro2);
             }
@@ -108,11 +110,12 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
            if(!enabled) discard;
 
             vec2 pixelCoord = floor(pixel);
-            vec2 transformedUV = pixelCoord / texSize;
+            vec2 transformedUV = pixel / texSize;
             if(transformedUV.x < 0.0 || transformedUV.x >= repeat.x || transformedUV.y < 0.0 || transformedUV.y >= repeat.y) discard;
             transformedUV = fract(transformedUV);
+            vec2 lineSize = 1.0/(zoom*selectSize);
 
-            vec2 lineSize = 1.0/resolution;
+            // vec2 lineSize = 1.0/resolution;
 
             float mask = hasEdge(transformedUV);
             fragColor = mix(vec4(0.0), vec4(0.32,0.21,0.36,0.5), mask);
@@ -126,7 +129,8 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
             float edge =  abs(mask - down) + abs(mask - left);
             edge = clamp(edge, 0.0, 1.0);
 
-            float coord = uv.x + uv.y;
+            vec2 screenPixel = uv*resolution;
+            float coord = (screenPixel.x + screenPixel.y);
             float speed = 1.0;
             float pattern = step(0.5, fract(coord / zoom.x + time * speed));
             vec3 antsColor = mix(vec3(1.0), vec3(0.0), pattern);
