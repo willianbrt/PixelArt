@@ -28,6 +28,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
         uniform vec2 selectSize;
         uniform vec2 resizeHandle[4];
         uniform vec2 rotateHandle[4];
+        uniform vec2 selectPan;
 
         out vec4 fragColor;
 
@@ -111,17 +112,22 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
 
             vec2 pixelCoord = floor(pixel);
             vec2 transformedUV = pixel / texSize;
-            if(transformedUV.x < 0.0 || transformedUV.x >= repeat.x || transformedUV.y < 0.0 || transformedUV.y >= repeat.y) discard;
+            vec2 tUV = (pixel-(selectPan)) / selectSize;
+            
+           
             transformedUV = fract(transformedUV);
-            vec2 lineSize = 1.0/(zoom*selectSize);
+            
+            float thinkness = 1.0;
+            vec2 thinknessTex = thinkness/(texSize*zoom);
+            vec2 thinknessSelect = thinkness/(selectSize*zoom);
 
-            // vec2 lineSize = 1.0/resolution;
+            float outSelect = float(tUV.x < 0.0 || tUV.x >= 1.0+thinknessSelect.x || tUV.y < 0.0 || tUV.y >= 1.0+thinknessSelect.y);
 
             float mask = hasEdge(transformedUV);
-            fragColor = mix(vec4(0.0), vec4(0.32,0.21,0.36,0.5), mask);
+            fragColor = mix(vec4(0.0), vec4(0.32,0.21,0.36,0.5), mask * (1.0-outSelect));
 
-            vec2 px = vec2(lineSize.x, 0.0);
-            vec2 py = vec2(0.0, lineSize.y);
+            vec2 px = vec2(thinknessTex.x, 0.0);
+            vec2 py = vec2(0.0, thinknessTex.y);
 
             float left  = hasEdge(transformedUV - px);
             float down  = hasEdge(transformedUV - py);
@@ -135,7 +141,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
             float pattern = step(0.5, fract(coord / zoom.x + time * speed));
             vec3 antsColor = mix(vec3(1.0), vec3(0.0), pattern);
 
-            fragColor = mix(fragColor, vec4(antsColor, edge), edge);
+            fragColor = mix(fragColor, vec4(antsColor, edge), edge * (1.0-outSelect));
 
             computeCorner();
         })";
@@ -190,8 +196,12 @@ void SelectPass::render(){
     CanvasSettings* canvasSettings = editor->getCanvasSettings();
     glUniform2fv(resizeHandleLocation, 4, select->getAllHandle(canvasSettings).data());
     glUniform2fv(rotateHandleLocation, 4, select->getAllRotateHandle(canvasSettings).data());
-    glUniform2f(selectSizeLocation, editor->getWidth(), editor->getHeight());
-    
+    Bounding b = select->selectionBox.getBounding();
+    glUniform2f(selectSizeLocation, b.getWidth()-1, b.getHeight()-1);
+    glUniform2f(glGetUniformLocation(shader.id(), "selectPan"),
+    std::min<float>( select->selectionBox.corners[0].x, std::min<float>(select->selectionBox.corners[1].x, std::min<float>(select->selectionBox.corners[2].x, select->selectionBox.corners[3].x))), 
+    std::min<float>( select->selectionBox.corners[0].y, std::min<float>(select->selectionBox.corners[1].y, std::min<float>(select->selectionBox.corners[2].y, select->selectionBox.corners[3].y))));
+
     std::array<float, 8> r = select->getAllHandle(canvasSettings);
     glUniform2f(texSizeLocation, editor->getWidth(), editor->getHeight());
     glUniform1i(enabledLocation, select->enabled);

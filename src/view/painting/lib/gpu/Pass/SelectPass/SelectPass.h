@@ -3,6 +3,7 @@
 
 #include <GLES3/gl3.h>
 #include <GLFW/glfw3.h>
+#include <algorithm>
 
 #include "../../../interfaces/IRenderPass/IRenderPass.h"
 
