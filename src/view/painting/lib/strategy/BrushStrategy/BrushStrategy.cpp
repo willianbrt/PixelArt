@@ -77,25 +77,25 @@ void BrushStrategy::onRelease(){
 void BrushStrategy::draw(const Point& pixel){
     _previousColor = _toolRuntimeContext.drawingSession->getModifiedPixel(pixel.x, pixel.y);
     
-    ISurface* shape = _brushContext->getShape();
-    ISurface* pattern = _brushContext->getPattern() == nullptr ? shape : _brushContext->getPattern();
+    ISurface* shape = _drawingContext->getShape();
+    ISurface* pattern = _drawingContext->getPattern() == nullptr ? shape : _drawingContext->getPattern();
     
     Point origem = { 0, 0 };
-    if(_brushContext->getAlignMode() == ALIGN_MODE::LOCAL){
+    if(_drawingContext->getAlignMode() == ALIGN_MODE::LOCAL){
         origem = {
             _startPoint.x - (pattern->getWidth() >> 1),
             _startPoint.y - (pattern->getHeight() >> 1)
         };
-    } else if(_brushContext->getAlignMode() == ALIGN_MODE::SOURCE){
+    } else if(_drawingContext->getAlignMode() == ALIGN_MODE::SOURCE){
         origem = { 0, 0 };
-    } else if(_brushContext->getAlignMode() == ALIGN_MODE::BRUSHING){
+    } else if(_drawingContext->getAlignMode() == ALIGN_MODE::BRUSHING){
         origem = { 0, 0 };
     }
     
     StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
         {shape->getWidth(), shape->getHeight()},
         _toolRuntimeContext.drawingAreaSize,
-        _brushContext->transformation);
+        _drawingContext->transformation);
 
     while(stamp.hasNext()){
         Point it = stamp.next();
@@ -108,28 +108,28 @@ void BrushStrategy::draw(const Point& pixel){
         if(shapeMask == 0.0f) continue;
         
         unsigned int color;
-        if((_brushContext->getTypeBrushTip() == TYPE_BRUSH_TIP::GEOMTRIC && _brushContext->getPattern() == nullptr))
-            color = _brushContext->getColor();
-        else if(_brushContext->isPatternEnable()){
+        if((_drawingContext->getTypeBrushTip() == TYPE_BRUSH_TIP::GEOMTRIC && _drawingContext->getPattern() == nullptr))
+            color = _drawingContext->getColor();
+        else if(_drawingContext->isPatternEnable()){
             Point srcPattern = {
                 GraphicsEngine::clampedTilePoint((it.x - origem.x) % pattern->getWidth(), pattern->getWidth()),
                 GraphicsEngine::clampedTilePoint((it.y - origem.y) % pattern->getHeight(), pattern->getHeight())
             };
-            color = _brushContext->isSolidColor() ?
-                    _brushContext->getColor() :
+            color = _drawingContext->isSolidColor() ?
+                    _drawingContext->getColor() :
                     pattern->getPixel(srcPattern.x, srcPattern.y);
 
             mask = (pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f;
 
-            if(_brushContext->getPattern() == nullptr) shapeMask = 1.0f;
+            if(_drawingContext->getPattern() == nullptr) shapeMask = 1.0f;
         } else {
-            color = _brushContext->isSolidColor()  ? 
-                    _brushContext->getColor() : 
+            color = _drawingContext->isSolidColor()  ? 
+                    _drawingContext->getColor() : 
                     shape->getPixel(src.x, src.y);
         }
 
 
-        color = (color & 0xFFFFFF00) | static_cast<int>(shapeMask * mask * _brushContext->getHardness() * 255.0f);
+        color = (color & 0xFFFFFF00) | static_cast<int>(shapeMask * mask * _drawingContext->getHardness() * 255.0f);
 
         _toolRuntimeContext.drawingSession->putPixel(it.x, it.y, color, &WriteMode::normal);
     }

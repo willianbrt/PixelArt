@@ -34,18 +34,19 @@ void SquareStrategy::draw(){
         (pivotPoint.y + _to.y) >> 1
     };
     
+    int thinkeness = _drawingContext->getSize();
     const Point diameter = { 
-        std::max(std::abs(_to.x - pivotPoint.x), _drawingContext->size-1), 
-        std::max(std::abs(_to.y - pivotPoint.y), _drawingContext->size-1)
+        std::max(std::abs(_to.x - pivotPoint.x), thinkeness-1), 
+        std::max(std::abs(_to.y - pivotPoint.y), thinkeness-1)
     };
     
     SquareRasterize square(diameter, center);
     square.filled(_squareContext->isFilled);
-    square.thinkenss(_drawingContext->size);
+    square.thinkenss(thinkeness);
     square.draw(*this);
 }
 void SquareStrategy::plot(const int& x, const int& y){
-    _toolRuntimeContext.drawingSession->putPixel(x, y, _drawingContext->color, &WriteMode::normal);
+    _toolRuntimeContext.drawingSession->putPixel(x, y, _drawingContext->getColor(), &WriteMode::normal);
 }
 
 bool SquareStrategy::isInitialized(){
@@ -62,6 +63,6 @@ void SquareStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* SquareStrategy::getCursorContext(){
-    _cursorContext.scale = _drawingContext->size;
+    _cursorContext.scale = _drawingContext->getSize();
     return &_cursorContext;
 }

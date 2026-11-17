@@ -32,7 +32,7 @@ void BucketStrategy::draw(const Point& pixel){
 
     const unsigned int startColorHEX = _toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y);
 
-    if(startColorHEX == _drawingContext->color)
+    if(startColorHEX == _drawingContext->getColor())
         return;
 
     vector<Point> queue;
@@ -49,7 +49,7 @@ void BucketStrategy::draw(const Point& pixel){
         
         if(_toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y) != startColorHEX) continue;
 
-        _toolRuntimeContext.drawingSession->putPixel(_current.x, _current.y, _drawingContext->color, &WriteMode::normal);
+        _toolRuntimeContext.drawingSession->putPixel(_current.x, _current.y, _drawingContext->getColor(), &WriteMode::normal);
 
         queue.push_back(Point(point.x+1, point.y));
         queue.push_back(Point(point.x-1, point.y));
@@ -72,6 +72,6 @@ void BucketStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* BucketStrategy::getCursorContext(){
-    _cursorContext.scale = _drawingContext->size;
+    _cursorContext.scale = _drawingContext->getSize();
     return &_cursorContext;
 }

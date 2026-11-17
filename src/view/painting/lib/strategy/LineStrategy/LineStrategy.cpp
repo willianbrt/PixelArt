@@ -27,6 +27,8 @@ void LineStrategy::onRelease(){
 
 void LineStrategy::draw(){
     _toolRuntimeContext.drawingSession->clear();
+    int thinkness = _drawingContext->getSize();
+    int color = _drawingContext->getColor();
 
     LineRasterize line(_pivot, _to);
     Point start = {
@@ -40,16 +42,16 @@ void LineStrategy::draw(){
     while(line.hasNext()){
         Point p = line.next();
 
-        int half = (_drawingContext->size >> 1);
-        for(int x = 0; x < _drawingContext->size; x++){
+        int half = (thinkness >> 1);
+        for(int x = 0; x < thinkness; x++){
             int px = p.x - half + x;
-            for(int y = 0; y < _drawingContext->size; y++){
+            for(int y = 0; y < thinkness; y++){
                 int py = p.y - half + y;
 
                 if(px >= start.x && px <= end.x &&
                 py >= start.y && py <= end.y) continue;
 
-                _toolRuntimeContext.drawingSession->putPixel(px, py, _drawingContext->color, &WriteMode::normal);
+                _toolRuntimeContext.drawingSession->putPixel(px, py, color, &WriteMode::normal);
             }
         }
         
@@ -58,8 +60,8 @@ void LineStrategy::draw(){
             p.y-half
         };
         end = {
-            start.x+(_drawingContext->size)-1,
-            start.y+(_drawingContext->size)-1
+            start.x+(thinkness)-1,
+            start.y+(thinkness)-1
         };
     }
 }
@@ -77,6 +79,6 @@ void LineStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* LineStrategy::getCursorContext(){
-    _cursorContext.scale = _drawingContext->size;
+    _cursorContext.scale = _drawingContext->getSize();
     return &_cursorContext;
 }

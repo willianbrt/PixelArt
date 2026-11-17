@@ -140,7 +140,7 @@ SelectPass::SelectPass(EditorManager* manager, ViewportContext* viewport){
             float speed = 1.0;
             float pattern = step(0.5, fract(coord / zoom.x + time * speed));
             vec3 antsColor = mix(vec3(1.0), vec3(0.0), pattern);
-
+ 
             fragColor = mix(fragColor, vec4(antsColor, edge), edge * (1.0-outSelect));
 
             computeCorner();

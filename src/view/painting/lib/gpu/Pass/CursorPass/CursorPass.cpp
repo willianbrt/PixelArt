@@ -138,8 +138,8 @@ void CursorPass::render(){
     
     CursorContext* cursor = _toolManager->getCursorContext();
 
-    ISurface* pattern = _toolSettings->brushContext.getPattern();
-    ISurface* shape = _toolSettings->brushContext.getShape();
+    ISurface* pattern = _toolSettings->drawingContext.getPattern();
+    ISurface* shape = _toolSettings->drawingContext.getShape();
 
     if(_pattern != pattern){
         _pattern = pattern;
@@ -165,21 +165,21 @@ void CursorPass::render(){
     glUniform2f(texShapeSizeLocationH, _shape == nullptr ? 0 : _shape->getWidth(), _shape == nullptr ? 0 :_shape->getHeight());
     glUniform2f(texPatternSizeLocationH, _pattern == nullptr ? 0 : _pattern->getWidth(), _pattern == nullptr ? 0 :_pattern->getHeight());
 
-    glUniform2f(brushSizeLocation, (float)_toolSettings->brushContext.getSize(), (float)_toolSettings->brushContext.getSize());
+    glUniform2f(brushSizeLocation, (float)_toolSettings->drawingContext.getSize(), (float)_toolSettings->drawingContext.getSize());
     
-    glUniform1f(isSolidColorLocation, _toolSettings->brushContext.isSolidColor());
-    glUniform1i(alignModeLocation, (int)_toolSettings->brushContext.getAlignMode());
+    glUniform1f(isSolidColorLocation, _toolSettings->drawingContext.isSolidColor());
+    glUniform1i(alignModeLocation, (int)_toolSettings->drawingContext.getAlignMode());
 
-    unsigned int color = _toolSettings->brushContext.getColor();
+    unsigned int color = _toolSettings->drawingContext.getColor();
     float a = (color & 0xFF) / 255.0f;      
     float b = (color >> 8 & 0xFF) / 255.0f; 
     float g = (color >> 16 & 0xFF) / 255.0f;
     float r = (color >> 24 & 0xFF) / 255.0f;
 
     glUniform4f(brushColorLocation, r,g,b,a);
-    glUniform1f(hardnessLocation, _toolSettings->brushContext.getHardness());
-    glUniform1f(isPatternEnableLocation, _toolSettings->brushContext.isPatternEnable());
-    glUniform1i(typeBrushTipLocation, (int)_toolSettings->brushContext.getTypeBrushTip());
+    glUniform1f(hardnessLocation, _toolSettings->drawingContext.getHardness());
+    glUniform1f(isPatternEnableLocation, _toolSettings->drawingContext.isPatternEnable());
+    glUniform1i(typeBrushTipLocation, (int)_toolSettings->drawingContext.getTypeBrushTip());
 
     quad.draw();
 }

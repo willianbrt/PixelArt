@@ -105,7 +105,7 @@ function addColorElement(color){
     spanColor.dataset.color = color.hex;
     listColors.append(spanColor);
     
-    if(app.brushSettingsVM.getColor() ==  color.littleEndian){
+    if(app.drawingSettingsVM.getColor() ==  color.littleEndian){
         swapActiveColor(color);
     }
     spanColor.addEventListener("click", function(){
@@ -124,12 +124,12 @@ function addColorElement(color){
     }
 }
 function swapActiveColor(color){
-    const currentColor = factoryColor.buildByDecimal(app.brushSettingsVM.getColor());
+    const currentColor = factoryColor.buildByDecimal(app.drawingSettingsVM.getColor());
     changePrimaryColor(color);
     changeSecondaryColor(currentColor);
 }
 function changePrimaryColor(color){
-    app.brushSettingsVM.setColor(color.rgb.r, color.rgb.g, color.rgb.b);
+    app.drawingSettingsVM.setColor(color.rgb.r, color.rgb.g, color.rgb.b);
     
     let newColor = document.querySelector("#new-color");
     workPrimaryColor.style.background = color.hex;
@@ -139,7 +139,7 @@ function changePrimaryColor(color){
     document.querySelector(`.color[data-color="${color.hex}"]`)?.classList.toggle("active",true);
 }
 function changeSecondaryColor(color){
-    if(app.brushSettingsVM.getColor() == color.littleEndian){ return; }
+    if(app.drawingSettingsVM.getColor() == color.littleEndian){ return; }
 
     secondaryColor = color;
 
@@ -180,7 +180,7 @@ async function removePalette(){
 
 async function createColor(){
     try{
-        const color = factoryColor.buildByDecimal(app.brushSettingsVM.getColor());
+        const color = factoryColor.buildByDecimal(app.drawingSettingsVM.getColor());
         
         const activePalette = await paletteRepository.getPalette(parseInt(selectPalette.value));
         if(activePalette.colors.find((c)=> c[0] == color.rgb.r && c[1] == color.rgb.g && c[2] == color.rgb.b)){

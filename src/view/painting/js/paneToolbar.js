@@ -8,44 +8,44 @@ const toolbar = {
     "drawing": [
         {
             name:"enable-pattern",
-            value: ()=>{ return app.brushSettingsVM.isPatternEnable(); },
+            value: ()=>{ return app.drawingSettingsVM.isPatternEnable(); },
             label:"Pattern",
             type:"checkbox",
             icon: "texture",
             action: function(value){
-                app.brushSettingsVM.setEnablePattern(value);
+                app.drawingSettingsVM.setEnablePattern(value);
             }
         },
         {
             name:"solid-color",
-            value: ()=>{ return app.brushSettingsVM.isSolidColor(); },
+            value: ()=>{ return app.drawingSettingsVM.isSolidColor(); },
             label:"Solid Color",
             type:"checkbox",
             icon: "format_color_fill",
             action: function(value){
-                app.brushSettingsVM.setSolidColor(value);
+                app.drawingSettingsVM.setSolidColor(value);
             }
         },
         {
             name:"size",
-            value: ()=>{ return app.brushSettingsVM.getSize(); },
+            value: ()=>{ return app.drawingSettingsVM.getSize(); },
             label:"Thinkeness",
             type:"number",
             unit:"px",
             min: 1, max:64,
             action: function(value){
-                app.brushSettingsVM.setSize(parseInt(value));
+                app.drawingSettingsVM.setSize(parseInt(value));
             }
         },
         {
             name:"hardness",
-            value: ()=>{ return app.brushSettingsVM.getHardness()*100.0; },
+            value: ()=>{ return app.drawingSettingsVM.getHardness()*100.0; },
             label:"Hardness",
             type:"number",
             min: 0, max:100,
             unit:"%",
             action: function(value){
-                app.brushSettingsVM.setHardness(parseFloat(value) / 100.0);
+                app.drawingSettingsVM.setHardness(parseFloat(value) / 100.0);
             }
         }
     ],
@@ -186,7 +186,7 @@ const toolList = {
     }
 };
 export async function buildPaneToolBar(){
-    app.brushSettingsVM.registerEvent("brush", onUpdateBrush);
+    app.drawingSettingsVM.registerEvent("brush", onUpdateBrush);
 
     buildModalBrush();
     buildToolbar();
@@ -255,7 +255,7 @@ async function buildModalBrush(){
 
             brushPattern.append(brushView);
             brushPattern.addEventListener("click", function(e){
-                app.brushSettingsVM.setShape(data.brushTip, 0xFF00FFFF);
+                app.drawingSettingsVM.setShape(data.brushTip, 0xFF00FFFF);
 
                 pageElementList.querySelector('.brush-pattern.active')?.classList.remove('active');
                 this.classList.add("active");
@@ -285,7 +285,7 @@ async function buildModalBrush(){
                 onchange: ()=>{
                     const patternPtr = app.malloc(data.buffer);
                     const size = data.buffer.byteLength/4;
-                    app.brushSettingsVM.setCustomShape(patternPtr, size, data.width);
+                    app.drawingSettingsVM.setCustomShape(patternPtr, size, data.width);
                 }
             });
             return brush;
@@ -311,7 +311,7 @@ async function buildModalBrush(){
                 onchange: ()=>{
                     const patternPtr = app.malloc(data.buffer);
                     const size = data.buffer.byteLength/4;
-                    app.brushSettingsVM.setPattern(patternPtr, size, data.width);
+                    app.drawingSettingsVM.setPattern(patternPtr, size, data.width);
                 }
             });
             return brush;
@@ -321,7 +321,7 @@ async function buildModalBrush(){
 
     let selectAlignMode = document.querySelector("#align-mode");
     selectAlignMode.onchange = (e)=>{ 
-        app.brushSettingsVM.setAlignMode(e.srcElement.value);
+        app.drawingSettingsVM.setAlignMode(e.srcElement.value);
     };
 }
 
@@ -714,7 +714,7 @@ listPreviewCanvas.forEach((previewCanvas)=>{
 });
 
 function onUpdateBrush(){
-    const brush = app.brushSettingsVM.getBrush();
+    const brush = app.drawingSettingsVM.getBrush();
 
     renderPreview.forEach((render)=>{ render.draw(brush); });
 }

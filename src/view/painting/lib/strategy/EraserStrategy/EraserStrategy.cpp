@@ -28,7 +28,7 @@ void EraserStrategy::onRelease(){
 }
 
 void EraserStrategy::draw(const Point& pixel){
-    unsigned int hardness = static_cast<unsigned int>((1.0 - _drawingContext->hardness)*255.0f);
+    unsigned int hardness = static_cast<unsigned int>((1.0 - _drawingContext->getHardness())*255.0f);
     LineRasterize line(_from, pixel);
     while(line.hasNext()){
         Point p = line.next();
@@ -49,6 +49,6 @@ void EraserStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* EraserStrategy::getCursorContext(){
-    _cursorContext.scale = _drawingContext->size;
+    _cursorContext.scale = _drawingContext->getSize();
     return &_cursorContext;
 }
