@@ -83,7 +83,9 @@ void DrawingSession::symmetry(int& x, int& y, unsigned int& color, IPixelWriter*
 
 Eraser::Eraser(){}
 void Eraser::plot(Preview* drawing, int& x, int& y, unsigned int& color){
-    drawing->putPixel(x, y, color & 0xFF);
+    unsigned int drawingColor = drawing->getPixel(x, y);
+    unsigned int alpha = static_cast<int>((drawingColor & 0xFF) * (color & 0xFF)/255.0f);
+    drawing->putPixel(x, y, (drawingColor & 0xFFFFFF00) | alpha);
 };
 Mask::Mask() {}
 void Mask::plot(Preview* drawing, int& x, int& y, unsigned int& color){
