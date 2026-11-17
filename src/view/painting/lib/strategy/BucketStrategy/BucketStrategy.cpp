@@ -27,8 +27,8 @@ void BucketStrategy::draw(const Point& pixel){
         return;
     
     Point _current;
-    _current.x = GraphicsEngine::clampedTilePoint(pixel.x, _toolRuntimeContext.drawingAreaSize.y);
-    _current.y = GraphicsEngine::clampedTilePoint(pixel.y, _toolRuntimeContext.drawingAreaSize.x);
+    _current.x = GraphicsEngine::clampedTilePoint(pixel.x, _toolRuntimeContext.editor->getWidth());
+    _current.y = GraphicsEngine::clampedTilePoint(pixel.y, _toolRuntimeContext.editor->getHeight());
 
     const unsigned int startColorHEX = _toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y);
 
@@ -37,19 +37,19 @@ void BucketStrategy::draw(const Point& pixel){
 
     vector<Point> queue;
     queue.push_back(pixel);
-    
     while(queue.size() != 0) {
         Point point = queue.back();
         queue.pop_back();
-        
+
         if(point.x >= _toolRuntimeContext.drawingAreaSize.x || point.y >= _toolRuntimeContext.drawingAreaSize.y || point.x < 0 || point.y < 0) continue;
-
-        _current.x = GraphicsEngine::clampedTilePoint(point.x, _toolRuntimeContext.drawingAreaSize.y);
-        _current.y = GraphicsEngine::clampedTilePoint(point.y, _toolRuntimeContext.drawingAreaSize.x);
         
-        if(_toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y) != startColorHEX) continue;
+        Point clamped; 
+        clamped.x = GraphicsEngine::clampedTilePoint(point.x, _toolRuntimeContext.editor->getWidth());
+        clamped.y = GraphicsEngine::clampedTilePoint(point.y, _toolRuntimeContext.editor->getHeight());
+        
+        if(_toolRuntimeContext.drawingSession->getModifiedPixel(clamped.x, clamped.y) != startColorHEX) continue;
 
-        _toolRuntimeContext.drawingSession->putPixel(_current.x, _current.y, _drawingContext->getColor(), &WriteMode::normal);
+        _toolRuntimeContext.drawingSession->putPixel(clamped.x, clamped.y, _drawingContext->getColor(), &WriteMode::normal);
 
         queue.push_back(Point(point.x+1, point.y));
         queue.push_back(Point(point.x-1, point.y));
