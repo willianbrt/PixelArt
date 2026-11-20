@@ -28,7 +28,7 @@ void EraserStrategy::onRelease(){
 }
 
 void EraserStrategy::draw(const Point& pixel){
-    float hardness = (1.0f - _drawingContext->getHardness());
+    float hardness = ( _drawingContext->getHardness());
     
     LineRasterize line(_from, pixel);
     while(line.hasNext()){
@@ -39,7 +39,7 @@ void EraserStrategy::draw(const Point& pixel){
         StampRasterize stamp({(float)tracking.x + 0.5f, (float)tracking.y + 0.5f},
             {shape->getWidth(), shape->getHeight()},
             _toolRuntimeContext.drawingAreaSize,
-            _drawingContext->transformation);
+            *_drawingContext->getTransformation());
 
         while(stamp.hasNext()){
             Point it = stamp.next();
@@ -50,7 +50,7 @@ void EraserStrategy::draw(const Point& pixel){
             int shapeMask = (shape->getPixel(src.x, src.y) & 0xFF);
             if(shapeMask == 0) continue;
 
-            _toolRuntimeContext.drawingSession->putPixel(it.x, it.y, static_cast<int>(shapeMask*hardness), &WriteMode::eraser);
+            _toolRuntimeContext.drawingSession->putPixel(it.x, it.y, static_cast<int>((1.0f - shapeMask)*hardness), &WriteMode::eraser);
         }
     }
 }

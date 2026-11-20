@@ -3,10 +3,7 @@
 BrushStrategy::BrushStrategy(BrushContext* brushContext, DrawingContext* drawingContext) :
 _brushContext(brushContext),
 _drawingContext(drawingContext)
-{
-    _brushContext->transformation.setScale({1.0f, 1.0f});
-    _brushContext->transformation.setRad(0  * M_PI / 180);
-}
+{}
 void BrushStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext){
     _toolRuntimeContext = toolRuntimeContext;
     _cursorContext.enable = false;
@@ -91,11 +88,11 @@ void BrushStrategy::draw(const Point& pixel){
     } else if(_drawingContext->getAlignMode() == ALIGN_MODE::BRUSHING){
         origem = { 0, 0 };
     }
-    
+
     StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
         {shape->getWidth(), shape->getHeight()},
         _toolRuntimeContext.drawingAreaSize,
-        _drawingContext->transformation);
+        *_drawingContext->getTransformation());
 
     while(stamp.hasNext()){
         Point it = stamp.next();

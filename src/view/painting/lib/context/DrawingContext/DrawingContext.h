@@ -45,10 +45,12 @@ private:
     Surface* _pattern = nullptr;
     FILL_MODE _fillMode = FILL_MODE::FILL;
     ALIGN_MODE _alignMode = ALIGN_MODE::BRUSHING;
+
+    Transformation transformation;
+    
 public:
     DrawingContext();
 
-    Transformation transformation;
     void setSize(int size);
     void setHardness(float hardness);
     void setColor(unsigned int color);
@@ -76,6 +78,7 @@ public:
     void enablePattern(bool enable);
     void setIsSolidColor(bool enable);
     bool isSolidColor();
+    Transformation* getTransformation();
 };
 
 #endif

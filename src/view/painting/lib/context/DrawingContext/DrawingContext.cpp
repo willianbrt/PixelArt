@@ -29,6 +29,21 @@ Surface* DrawingContext::getShape()
 {
     if(isDirtyTip){
         _shape = brushTip->getMask(_size);
+
+        if(brushTip->getType() == TYPE_BRUSH_TIP::IMAGE){
+            PointF scale;
+            if(_shape->getWidth() > _shape->getHeight()){
+                scale.x = (float)_size / _shape->getWidth();
+                scale.y = std::max(1.0f / _shape->getHeight(), scale.x);
+            } else {
+                scale.y = (float)_size / _shape->getHeight();
+                scale.x = std::max(1.0f / _shape->getWidth(), scale.y);
+            }
+            transformation.setScale(scale);
+        } else {
+            transformation.setScale({1.0f, 1.0f});
+        }
+
         isDirtyTip = false;
     }
 
@@ -83,4 +98,8 @@ void DrawingContext::setIsSolidColor(bool enable){
 }
 bool DrawingContext::isSolidColor(){
     return _isSolidColor;
+}
+
+Transformation* DrawingContext::getTransformation(){
+    return &transformation;
 }

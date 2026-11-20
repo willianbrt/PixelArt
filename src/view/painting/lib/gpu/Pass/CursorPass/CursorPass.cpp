@@ -27,6 +27,7 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
             float time;
         };
         
+        uniform vec2 scale;
         uniform vec2 editorSize;
         uniform vec2 texPatternSize;
         uniform vec2 texShapeSize;
@@ -55,14 +56,12 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
             vec2 transformedUV = pixelCoord / editorSize;
             if(transformedUV.x < 0.0 || transformedUV.x >= repeat.x || transformedUV.y < 0.0 || transformedUV.y >= repeat.y) discard;
 
-            vec2 pixelShape = pixel - (cursorLocation - floor(texShapeSize * 0.5));
-            vec2 hoverUV = pixelShape / texShapeSize;
-            // if(hoverUV.x < 0.0 || hoverUV.x >= 1.0 || hoverUV.y < 0.0 || hoverUV.y >= 1.0) discard;
-            
+            vec2 shapeSize = floor(texShapeSize * scale);
+            vec2 pixelShape = pixelCoord - (cursorLocation - shapeSize * 0.5);
+            vec2 hoverUV = pixelShape / shapeSize;
 
             float shapeMask = texture(texShape, hoverUV).r;
             
-
             vec3 c = color.rgb;
             float patternMask = 1.0;
             if(isPatternEnable) {
@@ -83,7 +82,9 @@ CursorPass::CursorPass(EditorManager* manager, ToolManager* toolManager, ToolSet
                     c = texture(texShape, hoverUV).abg;
                 }
             }
-            if(hoverUV.x >= 0.0 && hoverUV.x < 1.0 && hoverUV.y >= 0.0 && hoverUV.y < 1.0)
+
+            if (all(greaterThanEqual(floor(pixelShape), vec2(0.0))) &&
+                all(lessThan(floor(pixelShape), shapeSize)))
                 fragColor = vec4(c, shapeMask*patternMask*hardness);
 
 
@@ -161,6 +162,10 @@ void CursorPass::render(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
+    Transformation* transform = _toolSettings->drawingContext.getTransformation();
+    const PointF* scale = transform->getScale();
+
+    glUniform2f(glGetUniformLocation(shader.id(),"scale"), scale->x, scale->y);
     glUniform2f(editorSizeLocation, _surface->getWidth(), _surface->getHeight());
     glUniform2f(texShapeSizeLocationH, _shape == nullptr ? 0 : _shape->getWidth(), _shape == nullptr ? 0 :_shape->getHeight());
     glUniform2f(texPatternSizeLocationH, _pattern == nullptr ? 0 : _pattern->getWidth(), _pattern == nullptr ? 0 :_pattern->getHeight());
@@ -169,6 +174,9 @@ void CursorPass::render(){
     
     glUniform1f(isSolidColorLocation, _toolSettings->drawingContext.isSolidColor());
     glUniform1i(alignModeLocation, (int)_toolSettings->drawingContext.getAlignMode());
+
+
+
 
     unsigned int color = _toolSettings->drawingContext.getColor();
     float a = (color & 0xFF) / 255.0f;      
