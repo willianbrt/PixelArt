@@ -4,8 +4,10 @@ NoneTip::~NoneTip(){
 }
 
 NoneTip::NoneTip() {
-    surface = new Surface(1, 1);
-    surface->putPixel(0,0);
+    _surface = new Surface(1, 1);
+    _surface->putPixel(0,0);
+    int size = 1;
+    setSize(size);
 }
 
 TYPE_BRUSH_TIP NoneTip::getType() {
@@ -13,5 +15,22 @@ TYPE_BRUSH_TIP NoneTip::getType() {
 }
 
 Surface* NoneTip::getMask(int& size){
-    return surface;
+    return _surface;
+}
+
+void NoneTip::setSize(int& size){
+    _size = size;
+}
+void NoneTip::setRotate(float& rad) {
+    _rad = rad;
+    _transform.setRad(rad);
+}
+int NoneTip::getSize(){
+    return _size;
+}
+float NoneTip::getRotate(){
+    return _rad;
+}
+Transformation NoneTip::getTransformation(){
+    return _transform;
 }

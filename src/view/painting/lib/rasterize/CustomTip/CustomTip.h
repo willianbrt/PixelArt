@@ -5,13 +5,22 @@
 
 class CustomTip : public IBrushTip {
 private:
-    unsigned int* _buffer;
-    int _width;
-    int _height;
+    Surface* _surface;
+
+    float _rad;
+    int _size;
+
+    Transformation _transform;
 public:
     CustomTip(unsigned int* buffer, int width, int height);
     ~CustomTip();
     TYPE_BRUSH_TIP getType() override;
     Surface* getMask(int& size) override;
+
+    void setSize(int& size) override;
+    void setRotate(float& rad) override;
+    int getSize() override;
+    float getRotate() override;
+    Transformation getTransformation() override;
 };
 #endif

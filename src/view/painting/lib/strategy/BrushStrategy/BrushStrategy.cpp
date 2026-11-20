@@ -92,7 +92,7 @@ void BrushStrategy::draw(const Point& pixel){
     StampRasterize stamp({(float)pixel.x + 0.5f, (float)pixel.y + 0.5f},
         {shape->getWidth(), shape->getHeight()},
         _toolRuntimeContext.drawingAreaSize,
-        *_drawingContext->getTransformation());
+        _drawingContext->getBrushTip()->getTransformation());
 
     while(stamp.hasNext()){
         Point it = stamp.next();

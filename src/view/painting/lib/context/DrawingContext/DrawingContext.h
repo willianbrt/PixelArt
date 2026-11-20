@@ -70,6 +70,7 @@ public:
     void setShape(IBrushTip* tip);
     Surface* getPattern();
     void setPattern(IBrushTip* tip);
+    IBrushTip* getBrushTip();
     void setFillMode(FILL_MODE fillMode);
     FILL_MODE getFillMode();
     void setAlignMode(ALIGN_MODE alignMode);

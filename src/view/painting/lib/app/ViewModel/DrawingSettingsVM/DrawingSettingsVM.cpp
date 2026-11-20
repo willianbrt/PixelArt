@@ -5,7 +5,9 @@ DrawingSettingsVM::DrawingSettingsVM(){
    _toolManager = AppContext::instance().getToolManager();
    _toolSettings = AppContext::instance().getToolSettings();
    
-    _toolSettings->drawingContext.setShape(new SquareTip());
+   IBrushTip* brushTip = new SquareTip();
+    _toolSettings->drawingContext.setShape(brushTip);
+    _toolSettings->drawingContext.setSize(1);
 }
 DrawingSettingsVM::~DrawingSettingsVM(){
 }
@@ -21,7 +23,7 @@ bool DrawingSettingsVM::isSolidColor(){ return _toolSettings->drawingContext.isS
 
 void DrawingSettingsVM::setSize(int size){
     if(size < 1 || size > 16) return;
-
+ 
     _toolSettings->drawingContext.setSize(size);
     notify("brush");
 }
@@ -97,7 +99,7 @@ void DrawingSettingsVM::setShape(uintptr_t ptr, int size, int factor){
     notify("brush");
 }
 void DrawingSettingsVM::setShape(string pattern){
-    IBrushTip* brushTip = new SquareTip();
+    IBrushTip* brushTip = nullptr;
     if(pattern == "square"){
         brushTip = new SquareTip();
     }
@@ -107,8 +109,7 @@ void DrawingSettingsVM::setShape(string pattern){
     if(pattern == "line"){
         brushTip = new LineTip();
     }
-
-
+    
     _toolSettings->drawingContext.setShape(brushTip);
 
     notify("brush");
@@ -147,7 +148,7 @@ BrushDTO DrawingSettingsVM::getBrush(){
     brushDTO.fillMode = (int)_toolSettings->drawingContext.getFillMode();
     brushDTO.hardness = _toolSettings->drawingContext.getHardness()*100;
     brushDTO.spacing = _toolSettings->drawingContext.getSpacing();
-    brushDTO.size = _toolSettings->drawingContext.getSize();
+    brushDTO.size = _toolSettings->drawingContext.getBrushTip()->getSize();
     brushDTO.alignMode = (int)_toolSettings->drawingContext.getAlignMode();
     brushDTO.stabilizer = _toolSettings->drawingContext.getStabilizer()*100;
     brushDTO.pixelPerfect = _toolSettings->drawingContext.getPixelPerfect();

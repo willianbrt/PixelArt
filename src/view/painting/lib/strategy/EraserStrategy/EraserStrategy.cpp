@@ -39,7 +39,7 @@ void EraserStrategy::draw(const Point& pixel){
         StampRasterize stamp({(float)tracking.x + 0.5f, (float)tracking.y + 0.5f},
             {shape->getWidth(), shape->getHeight()},
             _toolRuntimeContext.drawingAreaSize,
-            *_drawingContext->getTransformation());
+            _drawingContext->getBrushTip()->getTransformation());
 
         while(stamp.hasNext()){
             Point it = stamp.next();

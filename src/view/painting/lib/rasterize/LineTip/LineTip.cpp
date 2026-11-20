@@ -1,6 +1,9 @@
 #include "./LineTip.h"
 
-LineTip::LineTip(){}
+LineTip::LineTip(){
+    int size = 1;
+    setSize(size);
+}
 LineTip::~LineTip(){}
 
 TYPE_BRUSH_TIP LineTip::getType() {
@@ -9,17 +12,35 @@ TYPE_BRUSH_TIP LineTip::getType() {
 
 
 Surface* LineTip::getMask(int& size){
-    surface = new Surface(size,size);
+    return _surface;
+}
+void LineTip::plot(const int& x, const int& y) {
+    _surface->putPixel(x,y,0xFF);
+}
+
+void LineTip::setSize(int& size){
+    _surface = new Surface(size,size);
     LineRasterize line(
         {size-1,0},
         {0,size-1}
     );
     while(line.hasNext()){
         Point p = line.next();
-        surface->putPixel(p.x,p.y,0xFF);
+        _surface->putPixel(p.x,p.y,0xFF);
     }
-    return surface;
+
+    _size = size;
 }
-void LineTip::plot(const int& x, const int& y) {
-    surface->putPixel(x,y,0xFF);
+void LineTip::setRotate(float& rad) {
+    _rad = rad;
+    _transform.setRad(rad);
+}
+int LineTip::getSize(){
+    return _size;
+}
+float LineTip::getRotate(){
+    return _rad;
+}
+Transformation LineTip::getTransformation(){
+    return _transform;
 }

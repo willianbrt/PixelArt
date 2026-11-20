@@ -162,8 +162,8 @@ void CursorPass::render(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    Transformation* transform = _toolSettings->drawingContext.getTransformation();
-    const PointF* scale = transform->getScale();
+    Transformation transform = _toolSettings->drawingContext.getBrushTip()->getTransformation();
+    const PointF* scale = transform.getScale();
 
     glUniform2f(glGetUniformLocation(shader.id(),"scale"), scale->x, scale->y);
     glUniform2f(editorSizeLocation, _surface->getWidth(), _surface->getHeight());
