@@ -73,7 +73,7 @@ void DrawingSession::symmetry(int& x, int& y, unsigned int& color, IPixelWriter*
         pixelWriter->plot(_preview, toMirrorX, y, color);
     }            
     if(_symmetryContext->isMirrorY){
-        pixelWriter->plot(_preview, x, y, color);
+        pixelWriter->plot(_preview, x, toMirrorY, color);
     }
     if(_symmetryContext->isMirrorX && _symmetryContext->isMirrorY){
         pixelWriter->plot(_preview, toMirrorX, toMirrorY, color);
