@@ -139,13 +139,14 @@ void CursorPass::render(){
     
     CursorContext* cursor = _toolManager->getCursorContext();
 
-    ISurface* pattern = _toolSettings->drawingContext.getPattern();
-    ISurface* shape = _toolSettings->drawingContext.getShape();
-
-    if(_pattern != pattern){
-        _pattern = pattern;
-        texturePattern.init(_pattern);
-        if(!textureShape.isInitialized()) return;
+    ISurface* shape = _toolSettings->drawingContext.shape->getMask();
+    
+    if(_toolSettings->drawingContext.pattern != nullptr){
+        if(_pattern != _toolSettings->drawingContext.pattern->getMask()){
+            _pattern = _toolSettings->drawingContext.pattern->getMask();
+            texturePattern.init(_pattern);
+            if(!textureShape.isInitialized()) return;
+        }
     }
 
     if(_shape != shape){
@@ -162,7 +163,7 @@ void CursorPass::render(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    Transformation transform = _toolSettings->drawingContext.getBrushTip()->getTransformation();
+    Transformation transform = _toolSettings->drawingContext.shape->getTransformation();
     const PointF* scale = transform.getScale();
 
     glUniform2f(glGetUniformLocation(shader.id(),"scale"), scale->x, scale->y);
@@ -170,24 +171,23 @@ void CursorPass::render(){
     glUniform2f(texShapeSizeLocationH, _shape == nullptr ? 0 : _shape->getWidth(), _shape == nullptr ? 0 :_shape->getHeight());
     glUniform2f(texPatternSizeLocationH, _pattern == nullptr ? 0 : _pattern->getWidth(), _pattern == nullptr ? 0 :_pattern->getHeight());
 
-    glUniform2f(brushSizeLocation, (float)_toolSettings->drawingContext.getSize(), (float)_toolSettings->drawingContext.getSize());
+    glUniform2f(brushSizeLocation, (float)_toolSettings->drawingContext.shape->getSize(), (float)_toolSettings->drawingContext.shape->getSize());
     
-    glUniform1f(isSolidColorLocation, _toolSettings->drawingContext.isSolidColor());
-    glUniform1i(alignModeLocation, (int)_toolSettings->drawingContext.getAlignMode());
+    glUniform1f(isSolidColorLocation, _toolSettings->drawingContext.isSolidColor);
+    glUniform1i(alignModeLocation, (int)_toolSettings->drawingContext.alignMode);
 
 
 
 
-    unsigned int color = _toolSettings->drawingContext.getColor();
-    float a = (color & 0xFF) / 255.0f;      
-    float b = (color >> 8 & 0xFF) / 255.0f; 
-    float g = (color >> 16 & 0xFF) / 255.0f;
-    float r = (color >> 24 & 0xFF) / 255.0f;
+    float a = (_toolSettings->drawingContext.color & 0xFF) / 255.0f;      
+    float b = (_toolSettings->drawingContext.color >> 8 & 0xFF) / 255.0f; 
+    float g = (_toolSettings->drawingContext.color >> 16 & 0xFF) / 255.0f;
+    float r = (_toolSettings->drawingContext.color >> 24 & 0xFF) / 255.0f;
 
     glUniform4f(brushColorLocation, r,g,b,a);
-    glUniform1f(hardnessLocation, _toolSettings->drawingContext.getHardness());
-    glUniform1f(isPatternEnableLocation, _toolSettings->drawingContext.isPatternEnable());
-    glUniform1i(typeBrushTipLocation, (int)_toolSettings->drawingContext.getTypeBrushTip());
+    glUniform1f(hardnessLocation, _toolSettings->drawingContext.hardness);
+    glUniform1f(isPatternEnableLocation, _toolSettings->drawingContext.enablePattern);
+    glUniform1i(typeBrushTipLocation, (int)_toolSettings->drawingContext.shape->getType());
 
     quad.draw();
 }

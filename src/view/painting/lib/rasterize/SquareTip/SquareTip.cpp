@@ -13,7 +13,7 @@ SquareTip::~SquareTip(){}
 TYPE_BRUSH_TIP SquareTip::getType() {
     return TYPE_BRUSH_TIP::GEOMTRIC;
 }
-Surface* SquareTip::getMask(int& size){
+Surface* SquareTip::getMask(){
     return _surface;
 }
 void  SquareTip::plot(const int& x, const int& y) {

@@ -13,7 +13,7 @@ TYPE_BRUSH_TIP CustomTip::getType() {
     return TYPE_BRUSH_TIP::IMAGE;
 }
 
-Surface* CustomTip::getMask(int& size){
+Surface* CustomTip::getMask(){
     return _surface;
 }
 

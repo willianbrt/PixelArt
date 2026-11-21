@@ -16,7 +16,7 @@ public:
     ~SquareTip();
     SquareTip();
     TYPE_BRUSH_TIP getType() override;
-    Surface* getMask(int& size) override;
+    Surface* getMask() override;
     
     void setSize(int& size) override;
     void setRotate(float& rad) override;

@@ -1,7 +1,7 @@
 #ifndef CURSORCONTEXT_H
 #define CURSORCONTEXT_H
 #include "../../interfaces/ISurface/ISurface.h"
-#include "../../context/BrushContext/BrushContext.h"
+#include <string>
 
 struct CursorContext {
     ISurface* pattern = nullptr;

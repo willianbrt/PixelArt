@@ -28,18 +28,16 @@ void EraserStrategy::onRelease(){
 }
 
 void EraserStrategy::draw(const Point& pixel){
-    float hardness = ( _drawingContext->getHardness());
-    
     LineRasterize line(_from, pixel);
     while(line.hasNext()){
         Point tracking = line.next();
 
-        ISurface* shape = _drawingContext->getShape();
+        ISurface* shape = _drawingContext->shape->getMask();
                 
         StampRasterize stamp({(float)tracking.x + 0.5f, (float)tracking.y + 0.5f},
             {shape->getWidth(), shape->getHeight()},
             _toolRuntimeContext.drawingAreaSize,
-            _drawingContext->getBrushTip()->getTransformation());
+            _drawingContext->shape->getTransformation());
 
         while(stamp.hasNext()){
             Point it = stamp.next();
@@ -50,7 +48,7 @@ void EraserStrategy::draw(const Point& pixel){
             int shapeMask = (shape->getPixel(src.x, src.y) & 0xFF);
             if(shapeMask == 0) continue;
 
-            _toolRuntimeContext.drawingSession->putPixel(it.x, it.y, static_cast<int>((1.0f - shapeMask)*hardness), &WriteMode::eraser);
+            _toolRuntimeContext.drawingSession->putPixel(it.x, it.y, static_cast<int>((1.0f - shapeMask)*_drawingContext->hardness), &WriteMode::eraser);
         }
     }
 }
@@ -68,6 +66,5 @@ void EraserStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* EraserStrategy::getCursorContext(){
-    _cursorContext.scale = _drawingContext->getSize();
     return &_cursorContext;
 }

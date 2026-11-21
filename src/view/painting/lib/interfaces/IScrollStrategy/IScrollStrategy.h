@@ -3,7 +3,6 @@
 
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
 #include "../../context/CursorContext/CursorContext.h"
-#include "../../context/BrushContext/BrushContext.h"
 
 
 class IScrollStrategy  {

@@ -36,7 +36,6 @@ async function init(){
         layerViewModel: (editorId, frameId, layerID)=> { return new module.LayerViewModel(editorId, frameId, layerID); },
         paneToolViewModel: new module.PaneToolbarViewModel(),
         drawingSettingsVM:  new module.DrawingSettingsVM(),
-        brushSettingsVM: new module.BrushSettingsVM(),
         symmetrySettingsVM:  new module.SymmetrySettingsVM(),
         shortcuts: _shortcuts
     });

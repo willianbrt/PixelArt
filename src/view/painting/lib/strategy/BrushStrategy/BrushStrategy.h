@@ -5,7 +5,6 @@
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
 #include "../../context/CursorContext/CursorContext.h"
 #include "../../context/DrawingContext/DrawingContext.h"
-#include "../../context/BrushContext/BrushContext.h"
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 #include "../../graphics/Pixel/Pixel.h"
 #include "../../objects/preview/Preview.h"
@@ -19,7 +18,6 @@ private:
     Point _startPoint, _from;
     PointF _stabilized;
     DrawingContext* _drawingContext = nullptr;
-    BrushContext* _brushContext = nullptr;
     CursorContext _cursorContext;
 
     bool _dirX, _dirY;
@@ -38,7 +36,7 @@ private:
     void draw(const Point& pixel);
 
 public:
-    BrushStrategy(BrushContext* brushContext, DrawingContext* context);
+    BrushStrategy(DrawingContext* context);
 
     void onPressed(int x, int y, const ToolRuntimeContext& toolRuntimeContext) override;
     void onTracking(int x, int y) override;

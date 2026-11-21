@@ -52,34 +52,34 @@ const toolbar = {
     "tracking":[
         {
             name:"pixel-perfect",
-            value: ()=>{ return app.brushSettingsVM.getPixelPerfect(); },
+            value: ()=>{ return app.drawingSettingsVM.getPixelPerfect(); },
             label:"Pixel Perfect",
             type:"checkbox",
             icon:"line_curve",
             action: function(value){
-                app.brushSettingsVM.setPixelPerfect(value);
+                app.drawingSettingsVM.setPixelPerfect(value);
             }
         },
         {
             name:"spacing",
-            value: ()=>{ return app.brushSettingsVM.getSpacing(); },
+            value: ()=>{ return app.drawingSettingsVM.getSpacing(); },
             label:"Spacing",
             type:"number",
             unit:"px",
             min: 0, max:100,
             action: function(value){
-                app.brushSettingsVM.setSpacing(parseInt(value));
+                app.drawingSettingsVM.setSpacing(parseInt(value));
             }
         },
         {
             name:"stabilizer",
-            value: ()=>{ return app.brushSettingsVM.getStabilizer(); },
+            value: ()=>{ return app.drawingSettingsVM.getStabilizer(); },
             label:"Stabilizer",
             type:"number",
             unit:"%",
             min: 0, max:100,
             action: function(value){
-                app.brushSettingsVM.setStabilizer(parseFloat(value) / 100.0);
+                app.drawingSettingsVM.setStabilizer(parseFloat(value) / 100.0);
             }
         },
     ],

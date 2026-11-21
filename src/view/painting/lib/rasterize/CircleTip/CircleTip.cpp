@@ -10,7 +10,7 @@ TYPE_BRUSH_TIP CircleTip::getType() {
     return TYPE_BRUSH_TIP::GEOMTRIC;
 }
 
-Surface* CircleTip::getMask(int& size){
+Surface* CircleTip::getMask(){
     return _surface;
 }
 

@@ -5,7 +5,6 @@
 #include "../../context/ToolRuntimeContext/ToolRuntimeContext.h"
 #include "../../context/CursorContext/CursorContext.h"
 #include "../../context/DrawingContext/DrawingContext.h"
-#include "../../context/BrushContext/BrushContext.h"
 #include "../../context/SymmetryContext/SymmetryContext.h"
 #include "../../graphics/GraphicsEngine/GraphicsEngine.h"
 #include "../../graphics/Pixel/Pixel.h"

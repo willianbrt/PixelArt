@@ -11,75 +11,36 @@
 #include <string>
 
 #include "../../rasterize/LineRasterize/LineRasterize.h"
-#include "../BrushContext/BrushContext.h"
 
 
-// enum FILL_MODE{
-//     FILL = 0,
-//     MASK = 1,
-//     STAMP = 2
-// };
+enum FILL_MODE{
+    FILL = 0,
+    MASK = 1,
+    STAMP = 2
+};
 
-// enum ALIGN_MODE{
-//     BRUSHING = 0,
-//     LOCAL = 1,
-//     SOURCE = 2
-// };
+enum ALIGN_MODE{
+    BRUSHING = 0,
+    LOCAL = 1,
+    SOURCE = 2
+};
+
 
 class DrawingContext {
-private:
-    bool isDirtyTip = false;
-    bool isDirtyPattern = false;
-    IBrushTip* brushTip  = nullptr;
-    IBrushTip* brushPattern = nullptr;
-    int _size = 1;
-    unsigned int _color = 0x000000FF;
-    float _hardness = 1.0f;
-    float _stabilizer = 0.0f;
-    int _spacing = 0;
-    bool _pixelPerfect = false;
-    bool _enablePattern = false;
-    bool _isSolidColor = true;
-
-    Surface* _shape = nullptr;
-    Surface* _pattern = nullptr;
-    FILL_MODE _fillMode = FILL_MODE::FILL;
-    ALIGN_MODE _alignMode = ALIGN_MODE::BRUSHING;
-
-    Transformation transformation;
-    
 public:
-    DrawingContext();
+    unsigned int color = 0x000000FF;
+    float hardness = 1.0f;
+    float stabilizer = 0.0f;
+    int spacing = 0;
+    bool pixelPerfect = false;
+    bool enablePattern = false;
+    bool isSolidColor = true;
 
-    void setSize(int size);
-    void setHardness(float hardness);
-    void setColor(unsigned int color);
-    void setSpacing(int spacing);
-    void setStabilizer(float stabilizer);
-    void setPixelPerfect(bool isEnabled);
+    IBrushTip* shape = nullptr;
+    IBrushTip* pattern = nullptr;
+    FILL_MODE fillMode = FILL_MODE::FILL;
+    ALIGN_MODE alignMode = ALIGN_MODE::BRUSHING;
 
-    int getSize();
-    float getHardness();
-    unsigned int getColor();
-    int getSpacing();
-    float getStabilizer();
-    bool getPixelPerfect();
-
-    Surface* getShape();
-    TYPE_BRUSH_TIP getTypeBrushTip();
-    void setShape(IBrushTip* tip);
-    Surface* getPattern();
-    void setPattern(IBrushTip* tip);
-    IBrushTip* getBrushTip();
-    void setFillMode(FILL_MODE fillMode);
-    FILL_MODE getFillMode();
-    void setAlignMode(ALIGN_MODE alignMode);
-    ALIGN_MODE getAlignMode();
-    bool isPatternEnable();
-    void enablePattern(bool enable);
-    void setIsSolidColor(bool enable);
-    bool isSolidColor();
-    Transformation* getTransformation();
 };
 
 #endif

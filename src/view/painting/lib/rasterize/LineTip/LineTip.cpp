@@ -11,7 +11,7 @@ TYPE_BRUSH_TIP LineTip::getType() {
 }
 
 
-Surface* LineTip::getMask(int& size){
+Surface* LineTip::getMask(){
     return _surface;
 }
 void LineTip::plot(const int& x, const int& y) {

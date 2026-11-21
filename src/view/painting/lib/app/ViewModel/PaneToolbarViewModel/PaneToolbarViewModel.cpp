@@ -14,7 +14,7 @@ PaneToolbarViewModel::~PaneToolbarViewModel(){
 void PaneToolbarViewModel::setPressedTool(std::string tool){
     _tool = tool;
     if(tool == "brush"){
-        _toolManager->setRightToolPressed(new BrushStrategy(&_toolSettings->brushContext, &_toolSettings->drawingContext));
+        _toolManager->setRightToolPressed(new BrushStrategy(&_toolSettings->drawingContext));
         return;
     }
     if(tool == "select"){

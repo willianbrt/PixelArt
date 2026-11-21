@@ -5,51 +5,49 @@ DrawingSettingsVM::DrawingSettingsVM(){
    _toolManager = AppContext::instance().getToolManager();
    _toolSettings = AppContext::instance().getToolSettings();
    
-   IBrushTip* brushTip = new SquareTip();
-    _toolSettings->drawingContext.setShape(brushTip);
-    _toolSettings->drawingContext.setSize(1);
+    _toolSettings->drawingContext.shape = new SquareTip();
 }
 DrawingSettingsVM::~DrawingSettingsVM(){
 }
 
-int DrawingSettingsVM::getSize(){ return _toolSettings->drawingContext.getSize(); }
-float DrawingSettingsVM::getHardness(){ return _toolSettings->drawingContext.getHardness(); }
-unsigned int DrawingSettingsVM::getColor(){ return _toolSettings->drawingContext.getColor(); }
-int DrawingSettingsVM::getSpacing() {return _toolSettings->drawingContext.getSpacing(); }
-float DrawingSettingsVM::getStabilizer(){ return _toolSettings->drawingContext.getStabilizer(); }
-bool DrawingSettingsVM::getPixelPerfect(){ return _toolSettings->drawingContext.getPixelPerfect(); }
-bool DrawingSettingsVM::isPatternEnable(){ return _toolSettings->drawingContext.isPatternEnable(); }
-bool DrawingSettingsVM::isSolidColor(){ return _toolSettings->drawingContext.isSolidColor(); }
+int DrawingSettingsVM::getSize(){ return _toolSettings->drawingContext.shape->getSize(); }
+float DrawingSettingsVM::getHardness(){ return _toolSettings->drawingContext.hardness; }
+unsigned int DrawingSettingsVM::getColor(){ return _toolSettings->drawingContext.color; }
+int DrawingSettingsVM::getSpacing() {return _toolSettings->drawingContext.spacing; }
+float DrawingSettingsVM::getStabilizer(){ return _toolSettings->drawingContext.stabilizer; }
+bool DrawingSettingsVM::getPixelPerfect(){ return _toolSettings->drawingContext.pixelPerfect; }
+bool DrawingSettingsVM::isPatternEnable(){ return _toolSettings->drawingContext.enablePattern; }
+bool DrawingSettingsVM::isSolidColor(){ return _toolSettings->drawingContext.isSolidColor; }
 
 void DrawingSettingsVM::setSize(int size){
     if(size < 1 || size > 16) return;
  
-    _toolSettings->drawingContext.setSize(size);
+    _toolSettings->drawingContext.shape->setSize(size);
     notify("brush");
 }
 void DrawingSettingsVM::setHardness(float hardness){
     if(hardness < 0.0f || hardness > 1.0f) return;
 
-    _toolSettings->drawingContext.setHardness(hardness);
+    _toolSettings->drawingContext.hardness = hardness;
     // _toolSettings->drawingContext.setColor((_toolSettings->drawingContext.getColor() & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f));
     notify("brush");
 }
 void DrawingSettingsVM::setColor(int r, int g, int b){
-    _toolSettings->drawingContext.setColor(r << 24 | g << 16 | b << 8 |  255);
+    _toolSettings->drawingContext.color = (r << 24 | g << 16 | b << 8 |  255);
     notify("brush");
 }
 void DrawingSettingsVM::setSpacing(int spacing){
     if(spacing < 0) return;
-    _toolSettings->drawingContext.setSpacing(spacing);  
+    _toolSettings->drawingContext.spacing = spacing;  
     notify("brush");
 }
 void DrawingSettingsVM::setStabilizer(float stabilizer){
     if(stabilizer < 0.0f || stabilizer > 1.0f) return;
-    _toolSettings->drawingContext.setStabilizer(stabilizer);  
+    _toolSettings->drawingContext.stabilizer = (stabilizer);  
     notify("brush");     
 }
 void DrawingSettingsVM::setPixelPerfect(bool isEnabled){
-    _toolSettings->drawingContext.setPixelPerfect(isEnabled);  
+    _toolSettings->drawingContext.pixelPerfect = (isEnabled);  
     notify("brush");     
 }
 
@@ -67,7 +65,7 @@ void DrawingSettingsVM::setAlignMode(string alignMode){
         align = ALIGN_MODE::SOURCE;
     }
 
-    _toolSettings->drawingContext.setAlignMode(align); 
+    _toolSettings->drawingContext.alignMode = (align); 
     notify("brush");
 }
 
@@ -83,19 +81,25 @@ void DrawingSettingsVM::setFillMode(string fillMode){
         fill = FILL_MODE::MASK;
     }
 
-    _toolSettings->drawingContext.setFillMode(fill); 
+    _toolSettings->drawingContext.fillMode = (fill); 
     notify("brush");
 }
 void DrawingSettingsVM::setPattern(uintptr_t ptr, int size, int factor){
     int w = factor, h = size/factor;
-    _toolSettings->drawingContext.setPattern(new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
+
+    IBrushTip* pattern = _toolSettings->drawingContext.pattern;
+    _toolSettings->drawingContext.pattern = new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h);
+    delete pattern;
 
     notify("brush");
 }
 void DrawingSettingsVM::setShape(uintptr_t ptr, int size, int factor){
     int w = factor, h = size/factor;
     
-    _toolSettings->drawingContext.setShape(new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
+    IBrushTip* shape = _toolSettings->drawingContext.shape;
+    _toolSettings->drawingContext.shape = (new CustomTip(reinterpret_cast<unsigned int*>(ptr), w,h));
+    delete shape;
+
     notify("brush");
 }
 void DrawingSettingsVM::setShape(string pattern){
@@ -109,33 +113,34 @@ void DrawingSettingsVM::setShape(string pattern){
     if(pattern == "line"){
         brushTip = new LineTip();
     }
-    
-    _toolSettings->drawingContext.setShape(brushTip);
+
+    IBrushTip* shape = _toolSettings->drawingContext.shape;
+    _toolSettings->drawingContext.shape = brushTip;
+    delete shape;
 
     notify("brush");
 }
 
 void DrawingSettingsVM::setEnablePattern(bool enable){
-    _toolSettings->drawingContext.enablePattern(enable);
+    _toolSettings->drawingContext.enablePattern = (enable);
     notify("brush");
 }
 void DrawingSettingsVM::setSolidColor(bool enable){
-    _toolSettings->drawingContext.setIsSolidColor(enable);
+    _toolSettings->drawingContext.isSolidColor = (enable);
     notify("brush");
 }
 BrushDTO DrawingSettingsVM::getBrush(){
-    ISurface* pattern = _toolSettings->drawingContext.getPattern();
-    ISurface* shape = _toolSettings->drawingContext.getShape();
-
-
     SurfaceDTO shapeDTO;
-    if(shape->getBuffer() != nullptr){
+    if( _toolSettings->drawingContext.shape != nullptr){
+        ISurface* shape = _toolSettings->drawingContext.shape->getMask();
         shapeDTO.buffer = emscripten::val(emscripten::typed_memory_view(shape->getWidth()* shape->getHeight()*4, reinterpret_cast<uint8_t*>(shape->getBuffer())));
         shapeDTO.width = shape->getWidth();
         shapeDTO.height = shape->getHeight();
     }
     SurfaceDTO patternDTO;
-    if(pattern != nullptr){
+
+    if(_toolSettings->drawingContext.pattern != nullptr){
+        ISurface* pattern = _toolSettings->drawingContext.pattern->getMask();
         patternDTO.buffer = emscripten::val(emscripten::typed_memory_view(pattern->getWidth()* pattern->getHeight()*4, reinterpret_cast<uint8_t*>(pattern->getBuffer())));
         patternDTO.width = pattern->getWidth();
         patternDTO.height = pattern->getHeight();
@@ -144,17 +149,17 @@ BrushDTO DrawingSettingsVM::getBrush(){
     BrushDTO brushDTO;
     brushDTO.pattern = patternDTO;
     brushDTO.shape = shapeDTO;
-    brushDTO.color =  _toolSettings->drawingContext.getColor();
-    brushDTO.fillMode = (int)_toolSettings->drawingContext.getFillMode();
-    brushDTO.hardness = _toolSettings->drawingContext.getHardness()*100;
-    brushDTO.spacing = _toolSettings->drawingContext.getSpacing();
-    brushDTO.size = _toolSettings->drawingContext.getBrushTip()->getSize();
-    brushDTO.alignMode = (int)_toolSettings->drawingContext.getAlignMode();
-    brushDTO.stabilizer = _toolSettings->drawingContext.getStabilizer()*100;
-    brushDTO.pixelPerfect = _toolSettings->drawingContext.getPixelPerfect();
-    brushDTO.isPatternEnable = _toolSettings->drawingContext.isPatternEnable();
-    brushDTO.isSolidColor = _toolSettings->drawingContext.isSolidColor();
-    brushDTO.typeBrushTip = _toolSettings->drawingContext.getTypeBrushTip();
+    brushDTO.size = _toolSettings->drawingContext.shape->getSize();
+    brushDTO.typeBrushTip = _toolSettings->drawingContext.shape->getType();
+    brushDTO.color =  _toolSettings->drawingContext.color;
+    brushDTO.fillMode = (int)_toolSettings->drawingContext.fillMode;
+    brushDTO.hardness = _toolSettings->drawingContext.hardness*100;
+    brushDTO.spacing = _toolSettings->drawingContext.spacing;
+    brushDTO.alignMode = (int)_toolSettings->drawingContext.alignMode;
+    brushDTO.stabilizer = _toolSettings->drawingContext.stabilizer*100;
+    brushDTO.pixelPerfect = _toolSettings->drawingContext.pixelPerfect;
+    brushDTO.isPatternEnable = _toolSettings->drawingContext.enablePattern;
+    brushDTO.isSolidColor = _toolSettings->drawingContext.isSolidColor;
     
     
     return brushDTO;

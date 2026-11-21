@@ -28,7 +28,6 @@ enum class KEY_MOUSE {
 };
 
 struct ToolSettings{
-    BrushContext    brushContext;
     DrawingContext  drawingContext;
     LineContext  lineContext;
     EraserContext  eraserContext;

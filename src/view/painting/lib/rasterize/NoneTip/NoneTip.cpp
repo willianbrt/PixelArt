@@ -14,7 +14,7 @@ TYPE_BRUSH_TIP NoneTip::getType() {
     return TYPE_BRUSH_TIP::NONE;
 }
 
-Surface* NoneTip::getMask(int& size){
+Surface* NoneTip::getMask(){
     return _surface;
 }
 

@@ -27,8 +27,8 @@ void LineStrategy::onRelease(){
 
 void LineStrategy::draw(){
     _toolRuntimeContext.drawingSession->clear();
-    int thinkness = _drawingContext->getSize();
-    int color = _drawingContext->getColor();
+    int thinkness = _drawingContext->shape->getSize();
+    int color = _drawingContext->color;
 
     LineRasterize line(_pivot, _to);
     Point start = {
@@ -79,6 +79,5 @@ void LineStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* LineStrategy::getCursorContext(){
-    _cursorContext.scale = _drawingContext->getSize();
     return &_cursorContext;
 }

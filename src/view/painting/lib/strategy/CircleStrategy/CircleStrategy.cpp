@@ -33,7 +33,7 @@ void CircleStrategy::draw(){
         (pivotPoint.x + _to.x) >> 1,
         (pivotPoint.y + _to.y) >> 1
     };
-    int thinkenss = _drawingContext->getSize();
+    int thinkenss = _drawingContext->shape->getSize();
     const Point diameter = { 
         std::max(std::abs(_to.x - pivotPoint.x), thinkenss-1), 
         std::max(std::abs(_to.y - pivotPoint.y), thinkenss-1)
@@ -45,7 +45,7 @@ void CircleStrategy::draw(){
     circle.draw(*this);
 }
 void CircleStrategy::plot(const int& x, const int& y){
-    _toolRuntimeContext.drawingSession->putPixel(x, y, _drawingContext->getColor(), &WriteMode::normal);
+    _toolRuntimeContext.drawingSession->putPixel(x, y, _drawingContext->color, &WriteMode::normal);
 }
 
 bool CircleStrategy::isInitialized(){
@@ -62,6 +62,5 @@ void CircleStrategy::abort(){
     _cursorContext.enable = true;
 }
 CursorContext* CircleStrategy::getCursorContext(){
-    _cursorContext.scale = _drawingContext->getSize();
     return &_cursorContext;
 }
