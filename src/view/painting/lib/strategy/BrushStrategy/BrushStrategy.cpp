@@ -103,29 +103,25 @@ void BrushStrategy::draw(const Point& pixel){
         float shapeMask = (shape->getPixel(src.x, src.y) & 0xFF) / 255.0f;
         if(shapeMask == 0.0f) continue;
         
-        unsigned int color;
-        if((_drawingContext->shape->getType() == TYPE_BRUSH_TIP::GEOMTRIC && _drawingContext->pattern == nullptr))
+        Color color;
+        if(_drawingContext->shape->getType() == TYPE_BRUSH_TIP::GEOMTRIC && _drawingContext->pattern == nullptr)
             color = _drawingContext->color;
         else if(_drawingContext->enablePattern){
             Point srcPattern = {
                 GraphicsEngine::clampedTilePoint((it.x - origem.x) % pattern->getWidth(), pattern->getWidth()),
                 GraphicsEngine::clampedTilePoint((it.y - origem.y) % pattern->getHeight(), pattern->getHeight())
             };
-            color = _drawingContext->isSolidColor ?
-                    _drawingContext->color :
-                    pattern->getPixel(srcPattern.x, srcPattern.y);
-
-            mask = (pattern->getPixel(srcPattern.x, srcPattern.y) & 0xFF) / 255.0f;
+            color = _drawingContext->isSolidColor ? _drawingContext->color : pattern->getPixel(srcPattern.x, srcPattern.y);
+            
+            Color shapeColor = pattern->getPixel(srcPattern.x, srcPattern.y);
+            mask = shapeColor.alpha;
 
             if(_drawingContext->pattern == nullptr) shapeMask = 1.0f;
         } else {
-            color = _drawingContext->isSolidColor  ? 
-                    _drawingContext->color : 
-                    shape->getPixel(src.x, src.y);
+            color = _drawingContext->isSolidColor ? _drawingContext->color : shape->getPixel(src.x, src.y);
         }
 
-
-        color = (color & 0xFFFFFF00) | static_cast<int>(shapeMask * mask * _drawingContext->hardness * 255.0f);
+        color.alpha = shapeMask * mask * _drawingContext->hardness;
 
         _toolRuntimeContext.drawingSession->putPixel(it.x, it.y, color, &WriteMode::normal);
     }

@@ -22,7 +22,7 @@ private:
 
     bool _dirX, _dirY;
     bool _change;
-    unsigned int _previousColor;
+    Color _previousColor;
     int _accSpacing;
     
     ToolRuntimeContext _toolRuntimeContext;

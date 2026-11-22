@@ -28,7 +28,7 @@ void LineStrategy::onRelease(){
 void LineStrategy::draw(){
     _toolRuntimeContext.drawingSession->clear();
     int thinkness = _drawingContext->shape->getSize();
-    int color = _drawingContext->color;
+    Color color = _drawingContext->color;
 
     LineRasterize line(_pivot, _to);
     Point start = {

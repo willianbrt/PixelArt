@@ -41,28 +41,34 @@ void Editor::compose(Bounding area){
     Layer* drawingLayer = _preview ? _preview->getTarget() : nullptr;
     size_t drawingLayerIndex = activeFrame->getLayerIndex(drawingLayer->getID());
     
-    float opacity = 0.3;
     for(int y = area.start.y; y <= area.end.y; y++){
         int index = y * _sketch->getWidth() + area.start.x;
         
         for(int x = area.start.x; x <= area.end.x; x++){
             // previous frame
-            unsigned int colorHex = activeFrameIndex > 0 ? frames[activeFrameIndex - 1].get()->getPixel(index) : 0;
-            GraphicsEngine::setOpacity(colorHex, opacity);
+            Color color = activeFrameIndex > 0 ? frames[activeFrameIndex - 1].get()->getPixel(index) : 0;
+            color.alpha *= 0.3;
 
-            // active frame
-            colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, 0, drawingLayerIndex));
+            Color firstLayerUpToDrawing = activeFrame->getPixel(index, 0, drawingLayerIndex);
+            color = GraphicsEngine::blendColors(color, firstLayerUpToDrawing);
             if(drawingLayer && drawingLayer->isVisible()){
-                unsigned int drawingPixel = _preview->getPixel(index);
-                GraphicsEngine::setOpacity(drawingPixel, drawingLayer->getOpacity());
-                colorHex = GraphicsEngine::blendColors(colorHex, drawingPixel);
+                Color drawingPixel = _preview->getPixel(index);
+                drawingPixel.alpha *= drawingLayer->getOpacity();
+
+                color = GraphicsEngine::blendColors(color, drawingPixel);
             } else {
-                colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, drawingLayerIndex, drawingLayerIndex+1));
+                Color drawingPixel = _preview->getPixel(index);
+                color = GraphicsEngine::blendColors(color, activeFrame->getPixel(index, drawingLayerIndex, drawingLayerIndex+1));
             }
-            colorHex = GraphicsEngine::blendColors(colorHex, activeFrame->getPixel(index, drawingLayerIndex+1, activeFrame->getLayersLength()));
-            
+
+            Color drawingLayerUpToEnd = activeFrame->getPixel(index, drawingLayerIndex+1, activeFrame->getLayersLength());
+            color = GraphicsEngine::blendColors(color, drawingLayerUpToEnd);
+                    
+            // unsigned int c = color.hex();
+
+
             // view
-            _sketch->putPixel(index, colorHex);
+            _sketch->putPixel(index, color.hex());
             
             index++;
         }

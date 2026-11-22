@@ -177,14 +177,7 @@ void CursorPass::render(){
     glUniform1i(alignModeLocation, (int)_toolSettings->drawingContext.alignMode);
 
 
-
-
-    float a = (_toolSettings->drawingContext.color & 0xFF) / 255.0f;      
-    float b = (_toolSettings->drawingContext.color >> 8 & 0xFF) / 255.0f; 
-    float g = (_toolSettings->drawingContext.color >> 16 & 0xFF) / 255.0f;
-    float r = (_toolSettings->drawingContext.color >> 24 & 0xFF) / 255.0f;
-
-    glUniform4f(brushColorLocation, r,g,b,a);
+    glUniform4f(brushColorLocation, _toolSettings->drawingContext.color.red, _toolSettings->drawingContext.color.green, _toolSettings->drawingContext.color.blue, _toolSettings->drawingContext.hardness);
     glUniform1f(hardnessLocation, _toolSettings->drawingContext.hardness);
     glUniform1f(isPatternEnableLocation, _toolSettings->drawingContext.enablePattern);
     glUniform1i(typeBrushTipLocation, (int)_toolSettings->drawingContext.shape->getType());

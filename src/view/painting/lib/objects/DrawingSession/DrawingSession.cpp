@@ -28,14 +28,14 @@ void DrawingSession::clear(){
     _preview->clear();
     _dirtyManager->markDirty(dirty);
 }
-unsigned int  DrawingSession::getModifiedPixel(int x, int y){
+Color DrawingSession::getModifiedPixel(int x, int y){
     return _preview->getPixel(x,y);
 }
-unsigned int  DrawingSession::getOriginalPixel(int x, int y){
+Color DrawingSession::getOriginalPixel(int x, int y){
     return _preview->getOriginalPixel(x,y);
 }
 
-void DrawingSession::putPixel(int x, int y, unsigned int color, IPixelWriter* pixelWriter, ISurface* mask){
+void DrawingSession::putPixel(int x, int y, const Color& color, IPixelWriter* pixelWriter, ISurface* mask){
     Layer* layer = _preview->getTarget();
     if(layer->isLock()) return;
 
@@ -63,7 +63,7 @@ Point DrawingSession::tiling(int& x, int& y){
     return p;
 }
 
-void DrawingSession::symmetry(int& x, int& y, unsigned int& color, IPixelWriter* pixelWriter){    
+void DrawingSession::symmetry(int& x, int& y, const Color& color, IPixelWriter* pixelWriter){    
     Layer* layer = _preview->getTarget();
     
     int toMirrorX = _symmetryContext->pointMirrored(x, layer->getWidth());
@@ -82,32 +82,34 @@ void DrawingSession::symmetry(int& x, int& y, unsigned int& color, IPixelWriter*
 
 
 Eraser::Eraser(){}
-void Eraser::plot(Preview* drawing, int& x, int& y, unsigned int& color){
-    unsigned int drawingColor = drawing->getPixel(x, y);
-    unsigned int alpha = static_cast<int>((drawingColor & 0xFF) * (color & 0xFF)/255.0f);
-    drawing->putPixel(x, y, (drawingColor & 0xFFFFFF00) | alpha);
+void Eraser::plot(Preview* drawing, int& x, int& y, const Color& color){
+    Color drawingColor = drawing->getPixel(x, y);
+    drawingColor.alpha *=  color.alpha;
+    drawing->putPixel(x, y, drawingColor.hex());
 };
 Mask::Mask() {}
-void Mask::plot(Preview* drawing, int& x, int& y, unsigned int& color){
-    unsigned int originalColor = drawing->getOriginalPixel(x, y);
-    unsigned int result = GraphicsEngine::blendColors(originalColor, color);
+void Mask::plot(Preview* drawing, int& x, int& y, const Color& color){
+    Color originalColor = drawing->getOriginalPixel(x, y);
+    Color result = GraphicsEngine::blendColors(originalColor, color);
     
-    if((result & 0xFF) == 0) return;
+    if(result.alpha == 0.0f) return;
     
-    drawing->putPixel(x, y, result);
+    drawing->putPixel(x, y, result.hex());
 };
 PreserveAlpha::PreserveAlpha() {}
-void PreserveAlpha::plot(Preview* drawing, int& x, int& y, unsigned int& color){
-    drawing->putPixel(x, y, GraphicsEngine::blendColors(drawing->getPixel(x, y), color));
+void PreserveAlpha::plot(Preview* drawing, int& x, int& y, const Color& color){
+    Color modifiedColor = drawing->getPixel(x, y);
+    Color topColor = GraphicsEngine::blendColors(modifiedColor, color);
+    drawing->putPixel(x, y, topColor.hex());
 };
 Normal::Normal() {}
-void Normal::plot(Preview* drawing, int& x, int& y, unsigned int& color){
-    unsigned int modifiedColor = drawing->getPixel(x, y);
-    unsigned int result = GraphicsEngine::blendColors(modifiedColor, color);
+void Normal::plot(Preview* drawing, int& x, int& y, const Color& color){
+    Color modifiedColor = drawing->getPixel(x, y);
+    Color result = GraphicsEngine::blendColors(modifiedColor, color);
     
-    if((result & 0xFF) == 0) return; 
+    if(result.alpha == 0.0f) return; 
       
-    drawing->putPixel(x, y, result);
+    drawing->putPixel(x, y, result.hex());
 };
 
 Eraser WriteMode::eraser;

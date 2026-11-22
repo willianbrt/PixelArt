@@ -12,7 +12,9 @@ DrawingSettingsVM::~DrawingSettingsVM(){
 
 int DrawingSettingsVM::getSize(){ return _toolSettings->drawingContext.shape->getSize(); }
 float DrawingSettingsVM::getHardness(){ return _toolSettings->drawingContext.hardness; }
-unsigned int DrawingSettingsVM::getColor(){ return _toolSettings->drawingContext.color; }
+unsigned int DrawingSettingsVM::getColor(){
+    return _toolSettings->drawingContext.color.hex();
+}
 int DrawingSettingsVM::getSpacing() {return _toolSettings->drawingContext.spacing; }
 float DrawingSettingsVM::getStabilizer(){ return _toolSettings->drawingContext.stabilizer; }
 bool DrawingSettingsVM::getPixelPerfect(){ return _toolSettings->drawingContext.pixelPerfect; }
@@ -29,11 +31,14 @@ void DrawingSettingsVM::setHardness(float hardness){
     if(hardness < 0.0f || hardness > 1.0f) return;
 
     _toolSettings->drawingContext.hardness = hardness;
-    // _toolSettings->drawingContext.setColor((_toolSettings->drawingContext.getColor() & 0xFFFFFF00) | static_cast<int>(hardness * 255.0f));
     notify("brush");
 }
 void DrawingSettingsVM::setColor(int r, int g, int b){
-    _toolSettings->drawingContext.color = (r << 24 | g << 16 | b << 8 |  255);
+    _toolSettings->drawingContext.color.red = r / 255.0f;
+    _toolSettings->drawingContext.color.green = g / 255.0f;
+    _toolSettings->drawingContext.color.blue = b / 255.0f;
+    _toolSettings->drawingContext.color.alpha = 1.0f;
+
     notify("brush");
 }
 void DrawingSettingsVM::setSpacing(int spacing){
@@ -151,7 +156,7 @@ BrushDTO DrawingSettingsVM::getBrush(){
     brushDTO.shape = shapeDTO;
     brushDTO.size = _toolSettings->drawingContext.shape->getSize();
     brushDTO.typeBrushTip = _toolSettings->drawingContext.shape->getType();
-    brushDTO.color =  _toolSettings->drawingContext.color;
+    brushDTO.color =  _toolSettings->drawingContext.color.hex();
     brushDTO.fillMode = (int)_toolSettings->drawingContext.fillMode;
     brushDTO.hardness = _toolSettings->drawingContext.hardness*100;
     brushDTO.spacing = _toolSettings->drawingContext.spacing;

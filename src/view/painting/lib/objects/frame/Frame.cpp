@@ -139,9 +139,9 @@ unsigned int Frame::getPixel(unsigned int index){ return getPixel(index, 0, laye
             continue;
         }
 
-        unsigned int colorLayer = layer->getPixel(index);
-        GraphicsEngine::setOpacity(colorLayer, layer->getOpacity());
-        colorHex = GraphicsEngine::blendColors(colorHex, colorLayer);
+        Color colorLayer = layer->getPixel(index);
+        colorLayer.alpha *= layer->getOpacity();
+        colorHex = GraphicsEngine::blendColors(colorHex, colorLayer).hex();
     }
     
     return colorHex;
@@ -170,9 +170,9 @@ unsigned int* Frame::getBuffer() {
         int incrementY = 0;
 
         while(index < layer->getLength()){
-            unsigned int colorLayer = layer->getPixel(index);
-            GraphicsEngine::setOpacity(colorLayer, layer->getOpacity());
-            buffer[index] = GraphicsEngine::blendColors(buffer[index], colorLayer);
+            Color colorLayer = layer->getPixel(index);
+            colorLayer.alpha *= layer->getOpacity();
+            buffer[index] = GraphicsEngine::blendColors(buffer[index], colorLayer).hex();
 
             index++;
             incrementY++;

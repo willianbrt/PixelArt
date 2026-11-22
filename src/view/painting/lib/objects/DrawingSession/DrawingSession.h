@@ -24,7 +24,7 @@ class IPixelWriter{
 public:
     IPixelWriter() = default;
     ~IPixelWriter() = default;
-    virtual void     plot(Preview* drawing, int& x, int& y, unsigned int& color) = 0;
+    virtual void     plot(Preview* drawing, int& x, int& y, const Color& color) = 0;
 };
 
 
@@ -41,40 +41,40 @@ class DrawingSession {
     void commit();
     void clear();
 
-    void putPixel(int x, int y, unsigned int color, IPixelWriter* pixelWriter, ISurface* mask = nullptr);
+    void putPixel(int x, int y, const Color& color, IPixelWriter* pixelWriter, ISurface* mask = nullptr);
 
-    unsigned int getModifiedPixel(int x, int y);
-    unsigned int getOriginalPixel(int x, int y);
+    Color getModifiedPixel(int x, int y);
+    Color getOriginalPixel(int x, int y);
     
     Point tiling(int& x, int& y);
-    void symmetry(int& x, int& y, unsigned int& color, IPixelWriter* pixelWriter);
+    void symmetry(int& x, int& y, const Color& color, IPixelWriter* pixelWriter);
 
 };
 class Eraser : public IPixelWriter{
 private:
 public:
     Eraser();
-    void plot(Preview* drawing, int& x, int& y, unsigned int& color) override;
+    void plot(Preview* drawing, int& x, int& y, const Color& color) override;
 };
 
 class PreserveAlpha : public IPixelWriter{
 private:
 public:
     PreserveAlpha();
-    void plot(Preview* drawing, int& x, int& y, unsigned int& color) override;
+    void plot(Preview* drawing, int& x, int& y, const Color& color) override;
 };
 
 class Mask : public IPixelWriter{
 private:
 public:
     Mask();
-    void plot(Preview* drawing, int& x, int& y, unsigned int& color) override;
+    void plot(Preview* drawing, int& x, int& y, const Color& color) override;
 };
 class Normal : public IPixelWriter{
 private:
 public:
     Normal();
-    void plot(Preview* drawing, int& x, int& y, unsigned int& color) override;
+    void plot(Preview* drawing, int& x, int& y, const Color& color) override;
 };
 
 class WriteMode {

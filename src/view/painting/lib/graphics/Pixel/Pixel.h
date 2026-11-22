@@ -108,6 +108,35 @@ struct Bounding{
         };
     }
 };
+struct Color{
+public:
+    float red;
+    float green;
+    float blue;
+    float alpha;
 
+    Color(){}
+    Color(const unsigned int& color){
+        alpha = (color & 0xFF) / 255.0f;
+        blue = (color >> 8 & 0xFF) / 255.0f;
+        green = (color >> 16 & 0xFF) / 255.0f;
+        red = (color >> 24 & 0xFF) / 255.0f;
+    }
+    bool operator== (Color color){
+        return color.alpha == alpha && color.red == red && color.blue == blue && color.green == green;
+    };
+    bool operator== (unsigned int color){
+        return hex() ==  color;
+    };
+    bool operator!= (Color color){
+        return color.alpha != alpha || color.red != red || color.blue != blue || color.green != green;
+    };
+    bool operator!= (unsigned int color){
+        return hex() !=  color;
+    };
+    unsigned int hex() const{
+        return (unsigned int)(red*255) << 24 | (unsigned int)(green*255) << 16 | (unsigned int)(blue*255) << 8 | (unsigned int)(alpha*255);
+    };
+};
 
 #endif

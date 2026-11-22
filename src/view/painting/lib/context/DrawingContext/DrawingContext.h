@@ -28,8 +28,9 @@ enum ALIGN_MODE{
 
 class DrawingContext {
 public:
-    unsigned int color = 0x000000FF;
+    Color color;
     float hardness = 1.0f;
+
     float stabilizer = 0.0f;
     int spacing = 0;
     bool pixelPerfect = false;

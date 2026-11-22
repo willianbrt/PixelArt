@@ -30,9 +30,12 @@ void BucketStrategy::draw(const Point& pixel){
     _current.x = GraphicsEngine::clampedTilePoint(pixel.x, _toolRuntimeContext.editor->getWidth());
     _current.y = GraphicsEngine::clampedTilePoint(pixel.y, _toolRuntimeContext.editor->getHeight());
 
-    const unsigned int startColorHEX = _toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y);
+    Color startColor = _toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y);
 
-    if(startColorHEX == _drawingContext->color)
+    if(startColor.red == _drawingContext->color.red &&
+        startColor.green == _drawingContext->color.green &&
+        startColor.blue == _drawingContext->color.blue &&
+        startColor.alpha == _drawingContext->color.alpha)
         return;
 
     vector<Point> queue;
@@ -47,7 +50,12 @@ void BucketStrategy::draw(const Point& pixel){
         clamped.x = GraphicsEngine::clampedTilePoint(point.x, _toolRuntimeContext.editor->getWidth());
         clamped.y = GraphicsEngine::clampedTilePoint(point.y, _toolRuntimeContext.editor->getHeight());
         
-        if(_toolRuntimeContext.drawingSession->getModifiedPixel(clamped.x, clamped.y) != startColorHEX) continue;
+        Color modifiedColor = _toolRuntimeContext.drawingSession->getModifiedPixel(clamped.x, clamped.y);
+        if(startColor.red != modifiedColor.red ||
+            startColor.green != modifiedColor.green ||
+            startColor.blue != modifiedColor.blue ||
+            startColor.alpha != modifiedColor.alpha)
+            continue;
 
         _toolRuntimeContext.drawingSession->putPixel(clamped.x, clamped.y, _drawingContext->color, &WriteMode::normal);
 
