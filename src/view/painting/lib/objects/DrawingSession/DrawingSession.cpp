@@ -34,6 +34,9 @@ Color DrawingSession::getModifiedPixel(int x, int y){
 Color DrawingSession::getOriginalPixel(int x, int y){
     return _preview->getOriginalPixel(x,y);
 }
+bool DrawingSession::isModified(int x, int y){
+    return _preview->isDirty(x,y);
+}
 
 void DrawingSession::putPixel(int x, int y, const Color& color, IPixelWriter* pixelWriter, ISurface* mask){
     Layer* layer = _preview->getTarget();
@@ -41,7 +44,6 @@ void DrawingSession::putPixel(int x, int y, const Color& color, IPixelWriter* pi
 
 
     Point p = tiling(x, y);
-
     pixelWriter->plot(_preview, p.x, p.y, color);
 
     symmetry(p.x, p.y, color, pixelWriter);

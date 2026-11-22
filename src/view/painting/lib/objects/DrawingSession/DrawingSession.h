@@ -28,6 +28,9 @@ public:
 };
 
 
+struct DrawingSettings {
+
+};
 class DrawingSession {
     private:
     Preview* _preview = nullptr;
@@ -45,6 +48,7 @@ class DrawingSession {
 
     Color getModifiedPixel(int x, int y);
     Color getOriginalPixel(int x, int y);
+    bool isModified(int x, int y);
     
     Point tiling(int& x, int& y);
     void symmetry(int& x, int& y, const Color& color, IPixelWriter* pixelWriter);

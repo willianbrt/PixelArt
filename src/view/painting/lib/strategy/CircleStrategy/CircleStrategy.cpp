@@ -45,7 +45,9 @@ void CircleStrategy::draw(){
     circle.draw(*this);
 }
 void CircleStrategy::plot(const int& x, const int& y){
-    _toolRuntimeContext.drawingSession->putPixel(x, y, _drawingContext->color, &WriteMode::normal);
+    Color color = _drawingContext->color;
+    color.alpha *= _drawingContext->hardness;
+    _toolRuntimeContext.drawingSession->putPixel(x, y, color, &WriteMode::normal);
 }
 
 bool CircleStrategy::isInitialized(){

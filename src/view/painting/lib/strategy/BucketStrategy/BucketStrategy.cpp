@@ -16,26 +16,34 @@ void BucketStrategy::onPressed(int x, int y, const ToolRuntimeContext& toolRunti
     Point to = _toolRuntimeContext.canvasSettings->cursorToCanvas(x, y);
 
     draw(to);
-
+    done();
+    
     _from = to;
 }
 void BucketStrategy::onTracking(int x, int y){}
-void BucketStrategy::onRelease(){ done(); }
+void BucketStrategy::onRelease(){  }
 
 void BucketStrategy::draw(const Point& pixel){
     if(pixel.x >= _toolRuntimeContext.drawingAreaSize.x || pixel.y >= _toolRuntimeContext.drawingAreaSize.y || pixel.x < 0 || pixel.y < 0)
         return;
     
+    int canvasW = _toolRuntimeContext.editor->getWidth();
+    int canvasH = _toolRuntimeContext.editor->getHeight();
+
     Point _current;
-    _current.x = GraphicsEngine::clampedTilePoint(pixel.x, _toolRuntimeContext.editor->getWidth());
-    _current.y = GraphicsEngine::clampedTilePoint(pixel.y, _toolRuntimeContext.editor->getHeight());
+    _current.x = GraphicsEngine::clampedTilePoint(pixel.x, canvasW);
+    _current.y = GraphicsEngine::clampedTilePoint(pixel.y, canvasH);
 
-    Color startColor = _toolRuntimeContext.drawingSession->getOriginalPixel(_current.x, _current.y);
 
-    if(startColor.red == _drawingContext->color.red &&
-        startColor.green == _drawingContext->color.green &&
-        startColor.blue == _drawingContext->color.blue &&
-        startColor.alpha == _drawingContext->color.alpha)
+    Color fillColor = _drawingContext->color;
+    fillColor.alpha *= _drawingContext->hardness;
+
+    Color targetColor = _toolRuntimeContext.drawingSession->getModifiedPixel(_current.x, _current.y);
+
+    if(targetColor.red == fillColor.red &&
+        targetColor.green == fillColor.green &&
+        targetColor.blue == fillColor.blue &&
+        targetColor.alpha == fillColor.alpha)
         return;
 
     vector<Point> queue;
@@ -46,18 +54,19 @@ void BucketStrategy::draw(const Point& pixel){
 
         if(point.x >= _toolRuntimeContext.drawingAreaSize.x || point.y >= _toolRuntimeContext.drawingAreaSize.y || point.x < 0 || point.y < 0) continue;
         
-        Point clamped; 
-        clamped.x = GraphicsEngine::clampedTilePoint(point.x, _toolRuntimeContext.editor->getWidth());
-        clamped.y = GraphicsEngine::clampedTilePoint(point.y, _toolRuntimeContext.editor->getHeight());
+        _current.x = GraphicsEngine::clampedTilePoint(point.x, canvasW);
+        _current.y = GraphicsEngine::clampedTilePoint(point.y, canvasH);
         
-        Color modifiedColor = _toolRuntimeContext.drawingSession->getModifiedPixel(clamped.x, clamped.y);
-        if(startColor.red != modifiedColor.red ||
-            startColor.green != modifiedColor.green ||
-            startColor.blue != modifiedColor.blue ||
-            startColor.alpha != modifiedColor.alpha)
+        Color canvasColor = _toolRuntimeContext.drawingSession->getModifiedPixel(_current.x, _current.y);
+        if(!(targetColor.red == canvasColor.red &&
+            targetColor.green == canvasColor.green &&
+            targetColor.blue == canvasColor.blue &&
+            targetColor.alpha == canvasColor.alpha)
+            ||  _toolRuntimeContext.drawingSession->isModified(_current.x, _current.y)
+        )
             continue;
 
-        _toolRuntimeContext.drawingSession->putPixel(clamped.x, clamped.y, _drawingContext->color, &WriteMode::normal);
+        _toolRuntimeContext.drawingSession->putPixel(_current.x, _current.y, fillColor, &WriteMode::normal);
 
         queue.push_back(Point(point.x+1, point.y));
         queue.push_back(Point(point.x-1, point.y));

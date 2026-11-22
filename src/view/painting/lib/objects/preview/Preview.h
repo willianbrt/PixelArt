@@ -49,6 +49,7 @@ public:
     int getHeight() override;
     unsigned int* getBuffer() override;
 
+    bool isDirty(int x, int y);
     bool isDirty(unsigned int index);
     Bounding getDirtyArea();
     void setTarget(Layer* layer);

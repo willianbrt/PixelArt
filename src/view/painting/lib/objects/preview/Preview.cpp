@@ -39,6 +39,9 @@ void Preview::setTarget(Layer* layer){
     clear();
     _layer = layer;
 }
+bool Preview::isDirty(int x, int y){
+    return _dirty[x + _layer->getWidth()*y];
+}
 bool Preview::isDirty(unsigned int index){
     return _dirty[index];
 }
