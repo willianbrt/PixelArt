@@ -24,6 +24,7 @@ private:
     bool _change;
     Color _previousColor;
     int _accSpacing;
+    Point origem = { 0, 0 };
     
     ToolRuntimeContext _toolRuntimeContext;
 
@@ -34,6 +35,7 @@ private:
     void drawHorizontalBrush(Point to, Point from);
     void drawVerticalBrush(Point to, Point from);
     void draw(const Point& pixel);
+    Color getFillColor(const int& x, const int& y);
 
 public:
     BrushStrategy(DrawingContext* context);
