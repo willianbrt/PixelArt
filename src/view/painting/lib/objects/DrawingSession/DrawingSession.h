@@ -15,7 +15,7 @@ enum PIXEL_WRITER{
     MASCARA = 1,
     ERASER = 2,
     ALPHA_BLEND = 3,
-    PRESERVE_ALPHA = 4,
+    LOCK_ALPHA = 4,
     NORMAL = 5
 };
 

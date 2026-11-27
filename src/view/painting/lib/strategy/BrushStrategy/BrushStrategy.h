@@ -12,19 +12,20 @@
 #include "../../objects/DrawingSession/DrawingSession.h"
 #include "../../rasterize/LineRasterize/LineRasterize.h"
 #include "../../rasterize/StampRasterize/StampRasterize.h"
+#include "../DrawTool/DrawTool.h"
 
 class BrushStrategy : public IPressedStrategy {
 private:
     Point _startPoint, _from;
     PointF _stabilized;
     DrawingContext* _drawingContext = nullptr;
+    DrawTool* _drawTool;
     CursorContext _cursorContext;
 
     bool _dirX, _dirY;
     bool _change;
     Color _previousColor;
     int _accSpacing;
-    Point origem = { 0, 0 };
     
     ToolRuntimeContext _toolRuntimeContext;
 
@@ -35,7 +36,8 @@ private:
     void drawHorizontalBrush(Point to, Point from);
     void drawVerticalBrush(Point to, Point from);
     void draw(const Point& pixel);
-    Color getFillColor(const int& x, const int& y);
+    void shape(const int& x, const int& y);
+    void pattern(const int& x, const int& y);
 
 public:
     BrushStrategy(DrawingContext* context);

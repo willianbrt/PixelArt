@@ -82,8 +82,8 @@ void DrawingSettingsVM::setFillMode(string fillMode){
     if(fillMode == "stamp"){
         fill = FILL_MODE::STAMP;
     }
-    if(fillMode == "mask"){
-        fill = FILL_MODE::MASK;
+    if(fillMode == "preserve_alpha"){
+        fill = FILL_MODE::PRESERVE_ALPHA;
     }
 
     _toolSettings->drawingContext.fillMode = (fill); 

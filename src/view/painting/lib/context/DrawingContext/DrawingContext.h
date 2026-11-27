@@ -15,7 +15,7 @@
 
 enum FILL_MODE{
     FILL = 0,
-    MASK = 1,
+    PRESERVE_ALPHA = 1,
     STAMP = 2
 };
 
